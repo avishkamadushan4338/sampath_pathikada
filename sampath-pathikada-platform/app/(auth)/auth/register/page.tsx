@@ -6,10 +6,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import { useDropzone } from "react-dropzone";
 import {
   Eye, EyeOff, ChevronDown, ArrowLeft, Check,
   Globe, Shield, Building2, MapPin, User, Lock,
   Phone, Mail, CreditCard, IdCard, Users, Search, X,
+  UploadCloud, FileImage, ShieldCheck, Trash2,
 } from "lucide-react";
 import {
   DISTRICTS, DIVISIONAL_SECRETARIATS, GN_DIVISIONS,
@@ -38,13 +40,12 @@ function useWindowWidth() {
 /* ─── i18n ───────────────────────────────────────────────────────────────── */
 const STRINGS = {
   en: {
-    stepLabels: ["Language", "Role", "Location", "Personal Info"],
+    stepLabels: ["Language", "Role", "Location", "Personal Info", "Verification"],
     langTitle: "Choose Your Language",
     langSub: "Select your preferred language to continue",
     roleTitle: "Select Your Role",
     roleSub: "Choose the position that matches your official designation",
-    gnLabel: "Grama Niladari",           gnSub: "Village-level administrative officer",
-    eoLabel: "Economic Development Officer", eoSub: "Divisional economic development official",
+    gnLabel: "Economic Development Officer", gnSub: "Village-level administrative officer",
     rsLabel: "Regional Secretary",       rsSub: "Divisional Secretariat representative",
     locTitle: "Location Details",        locSub: "Select your administrative area",
     district: "District",                selectDistrict: "Select District",
@@ -68,15 +69,21 @@ const STRINGS = {
     pwdHint: "Min 8 chars, include uppercase, number & symbol",
     nicHint: "Format: 123456789V or 200012345678",
     mobileHint: "Format: 07XXXXXXXX",
+    verifyTitle: "Identity Verification", verifySub: "Upload a clear photo of your ID document for Super Admin verification",
+    docType: "Document Type", selectDocType: "Select document type",
+    docNic: "National Identity Card (NIC)", docLicense: "Driving License", docPassport: "Passport",
+    docFront: "Front Side", docBack: "Back Side", docFrontPassport: "Photo Page",
+    dropHint: "Drag & drop an image, or click to browse", dropActive: "Drop the image here",
+    fileTooLarge: "File must be 5MB or smaller", fileWrongType: "Only JPG, PNG, or WEBP images are allowed",
+    removeFile: "Remove", privacyNote: "This document is used only to verify your identity. It is permanently deleted from our systems immediately after a Super Admin reviews your application.",
   },
   si: {
-    stepLabels: ["භාෂාව", "භූමිකාව", "ස්ථානය", "තොරතුරු"],
+    stepLabels: ["භාෂාව", "භූමිකාව", "ස්ථානය", "තොරතුරු", "සත්‍යාපනය"],
     langTitle: "භාෂාව තෝරන්න",
     langSub: "ඉදිරිය සඳහා ඔබේ කැමති භාෂාව තෝරන්න",
     roleTitle: "ඔබේ භූමිකාව තෝරන්න",
     roleSub: "ඔබේ නිල තනතුරට ගැළපෙන භූමිකාව තෝරන්න",
-    gnLabel: "ග්‍රාම නිලධාරී නිලධාරී",   gnSub: "ගම් මට්ටමේ පරිපාලන නිලධාරී",
-    eoLabel: "ආර්ථික සංවර්ධන නිලධාරී",   eoSub: "ප්‍රාදේශීය ආර්ථික සංවර්ධන නිලධාරී",
+    gnLabel: "ආර්ථික සංවර්ධන නිලධාරී",   gnSub: "ගම් මට්ටමේ පරිපාලන නිලධාරී",
     rsLabel: "ප්‍රාදේශීය ලේකම්",         rsSub: "ප්‍රාදේශීය ලේකම් කාර්යාල නියෝජිතයා",
     locTitle: "ස්ථාන විස්තර",             locSub: "ඔබේ පරිපාලන ප්‍රදේශය තෝරන්න",
     district: "දිස්ත්‍රික්කය",           selectDistrict: "දිස්ත්‍රික්කය තෝරන්න",
@@ -100,10 +107,19 @@ const STRINGS = {
     pwdHint: "අවම අකුරු 8, ලොකු අකුරු, සංඛ්‍යා හා විශේෂ ලකුණු ඇතුළත් කරන්න",
     nicHint: "ආකෘතිය: 123456789V හෝ 200012345678",
     mobileHint: "ආකෘතිය: 07XXXXXXXX",
+    verifyTitle: "අනන්‍යතා සත්‍යාපනය", verifySub: "සුපිරි පරිපාලක සත්‍යාපනය සඳහා ඔබේ හැඳුනුම්පත් ලේඛනයේ පැහැදිලි ඡායාරූපයක් උඩුගත කරන්න",
+    docType: "ලේඛන වර්ගය", selectDocType: "ලේඛන වර්ගය තෝරන්න",
+    docNic: "ජාතික හැඳුනුම්පත (NIC)", docLicense: "රියදුරු බලපත්‍රය", docPassport: "විදේශ ගමන් බලපත්‍රය",
+    docFront: "ඉදිරි පැත්ත", docBack: "පසුපස", docFrontPassport: "ඡායාරූප පිටුව",
+    dropHint: "රූපයක් ඇද දමන්න, හෝ බ්‍රවුස් කිරීමට ක්ලික් කරන්න", dropActive: "රූපය මෙහි දමන්න",
+    fileTooLarge: "ගොනුව 5MB හෝ ඊට අඩු විය යුතුය", fileWrongType: "JPG, PNG, හෝ WEBP රූප පමණක් අවසර ඇත",
+    removeFile: "ඉවත් කරන්න", privacyNote: "මෙම ලේඛනය ඔබේ අනන්‍යතාවය තහවුරු කිරීමට පමණක් භාවිතා වේ. සුපිරි පරිපාලක ඔබේ අයදුම්පත සමාලෝචනය කිරීමෙන් වහාම පසු එය අපගේ පද්ධතිවලින් ස්ථිරවම මකා දමනු ලැබේ.",
   },
 } as const;
 
 /* ─── Form state ─────────────────────────────────────────────────────────── */
+type DocType = "NIC" | "DRIVING_LICENSE" | "PASSPORT" | "";
+
 interface FormData {
   language: Locale | "";
   userType: UserType | "";
@@ -113,6 +129,7 @@ interface FormData {
   firstName: string; lastName: string; fullName: string;
   nic: string; mobile: string; email: string;
   password: string; confirmPwd: string;
+  docType: DocType; docFront: File | null; docBack: File | null;
 }
 type Errors = Partial<Record<keyof FormData, string>>;
 
@@ -124,7 +141,11 @@ const INIT: FormData = {
   firstName: "", lastName: "", fullName: "",
   nic: "", mobile: "", email: "",
   password: "", confirmPwd: "",
+  docType: "", docFront: null, docBack: null,
 };
+
+const MAX_DOC_BYTES = 5 * 1024 * 1024;
+const ALLOWED_DOC_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
 /* ─── Reusable: PremiumInput ─────────────────────────────────────────────── */
 function PremiumInput({
@@ -841,9 +862,8 @@ function LangCard({
 
 /* ─── Role card ──────────────────────────────────────────────────────────── */
 const ROLE_META: Record<UserType, { icon: React.ReactNode; color: string; gradient: string }> = {
-  gn_officer:    { icon: <Users size={24} />,     color: "#1B6CA8", gradient: "linear-gradient(145deg,#2580C8,#1B6CA8)" },
-  eco_officer:   { icon: <Building2 size={24} />, color: "#1B7A3E", gradient: "linear-gradient(145deg,#22964C,#1B7A3E)" },
-  reg_secretary: { icon: <Shield size={24} />,    color: CRIMSON,   gradient: `linear-gradient(145deg,#8B1220,${CRIMSON})` },
+  economic_development_officer: { icon: <Users size={24} />,  color: "#1B6CA8", gradient: "linear-gradient(145deg,#2580C8,#1B6CA8)" },
+  reg_secretary:                { icon: <Shield size={24} />, color: CRIMSON,   gradient: `linear-gradient(145deg,#8B1220,${CRIMSON})` },
 };
 
 function RoleCard({
@@ -977,6 +997,113 @@ function ErrorBanner({ msg, si }: { msg: string; si: boolean }) {
   );
 }
 
+/* ─── Reusable: DocDropzone ──────────────────────────────────────────────── */
+function DocDropzone({
+  label, file, onSelect, onRemove, error, delay = 0, locale = "en", dropHint, dropActive, removeLabel,
+}: {
+  label: string; file: File | null;
+  onSelect: (f: File) => void; onRemove: () => void;
+  error?: string; delay?: number; locale?: Locale;
+  dropHint: string; dropActive: string; removeLabel: string;
+}) {
+  const si = locale === "si";
+  const ff = si ? "'Yaldevi','Noto Sans Sinhala',sans-serif" : "'Inter',system-ui,sans-serif";
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!file) { setPreviewUrl(null); return; }
+    const url = URL.createObjectURL(file);
+    setPreviewUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [file]);
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    accept: { "image/jpeg": [], "image/png": [], "image/webp": [] },
+    maxFiles: 1,
+    multiple: false,
+    onDrop: (accepted) => { if (accepted[0]) onSelect(accepted[0]); },
+  });
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.45, delay, ease }}
+    >
+      <p style={{
+        margin: "0 0 6px 2px", fontSize: 12, fontWeight: 600, letterSpacing: "0.04em",
+        color: "rgba(17,17,17,0.52)", fontFamily: ff,
+      }}>
+        {label}
+      </p>
+
+      {file && previewUrl ? (
+        <div style={{
+          position: "relative", borderRadius: 12, overflow: "hidden",
+          border: `1.5px solid ${error ? "rgba(239,68,68,0.55)" : "rgba(200,163,77,0.30)"}`,
+          background: "#FAF8F3",
+        }}>
+          <img src={previewUrl} alt={label} style={{ width: "100%", height: 140, objectFit: "cover", display: "block" }} />
+          <div style={{
+            display: "flex", alignItems: "center", justifyContent: "space-between",
+            padding: "8px 12px", background: "rgba(255,253,248,0.92)",
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0 }}>
+              <FileImage size={14} color={GOLD} style={{ flexShrink: 0 }} />
+              <span style={{
+                fontSize: 12, color: "rgba(17,17,17,0.62)", fontFamily: ff,
+                overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+              }}>
+                {file.name}
+              </span>
+            </div>
+            <button
+              type="button" onClick={onRemove}
+              style={{
+                display: "flex", alignItems: "center", gap: 4, flexShrink: 0,
+                background: "none", border: "none", cursor: "pointer",
+                color: "#DC2626", fontSize: 12, fontWeight: 600, fontFamily: ff, padding: 4,
+              }}
+            >
+              <Trash2 size={13} /> {removeLabel}
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div
+          {...getRootProps()}
+          style={{
+            borderRadius: 12, cursor: "pointer",
+            border: `1.5px dashed ${error ? "rgba(239,68,68,0.55)" : isDragActive ? GOLD : "rgba(200,163,77,0.34)"}`,
+            background: isDragActive ? "rgba(200,163,77,0.08)" : "#FAF8F3",
+            padding: "22px 14px",
+            display: "flex", flexDirection: "column", alignItems: "center", gap: 8,
+            transition: "all .2s ease", textAlign: "center",
+          }}
+        >
+          <input {...getInputProps()} />
+          <UploadCloud size={22} color={isDragActive ? GOLD : "rgba(17,17,17,0.32)"} />
+          <span style={{ fontSize: 12.5, color: "rgba(17,17,17,0.46)", fontFamily: ff, lineHeight: 1.4 }}>
+            {isDragActive ? dropActive : dropHint}
+          </span>
+        </div>
+      )}
+
+      <AnimatePresence>
+        {error && (
+          <motion.p
+            initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.2 }}
+            style={{ margin: "4px 4px 0", fontSize: 11.5, fontFamily: ff, color: "#DC2626", lineHeight: 1.4 }}
+          >
+            {error}
+          </motion.p>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  );
+}
+
 /* ─── Main page ──────────────────────────────────────────────────────────── */
 export default function RegisterPage() {
   const router = useRouter();
@@ -986,9 +1113,10 @@ export default function RegisterPage() {
   const [banner, setBanner]   = useState("");
   const w = useWindowWidth();
   const isTablet = w >= 640 && w < 1024;
-  const [loading, setLoading] = useState(false);
-  const [dir, setDir]         = useState(1);
-  const cardRef               = useRef<HTMLDivElement>(null);
+  const [loading, setLoading]     = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [dir, setDir]             = useState(1);
+  const cardRef                   = useRef<HTMLDivElement>(null);
 
   const locale = (data.language || "en") as Locale;
   const si     = locale === "si";
@@ -1021,10 +1149,10 @@ export default function RegisterPage() {
     if (s === 2) {
       if (!data.district) err.district = si ? "දිස්ත්‍රික්කය තෝරන්න" : "Select a district";
       if (!data.ds)       err.ds       = si ? "ප්‍රාදේශීය ලේකම් කාර්යාලය තෝරන්න" : "Select a Divisional Secretariat";
-      if (data.userType === "gn_officer" || data.userType === "eco_officer") {
+      if (data.userType === "economic_development_officer") {
         if (!data.gnDiv)    err.gnDiv    = si ? "ග්‍රාම නිලධාරී වසම තෝරන්න" : "Select a GN Division";
       }
-      if (data.userType === "gn_officer") {
+      if (data.userType === "economic_development_officer") {
         if (!data.localGovt) err.localGovt = si ? "අවශ්‍යයි" : "Required";
         if (!data.electoral) err.electoral = si ? "අවශ්‍යයි" : "Required";
         if (!data.farmers)   err.farmers   = si ? "අවශ්‍යයි" : "Required";
@@ -1051,6 +1179,23 @@ export default function RegisterPage() {
       if (data.password !== data.confirmPwd)
         err.confirmPwd = si ? "මුරපද නොගැළපේ" : "Passwords do not match";
     }
+    if (s === 4) {
+      if (!data.docType) {
+        (err as any).docType = si ? "ලේඛන වර්ගය තෝරන්න" : "Please select a document type";
+      }
+      const checkFile = (f: File | null, requiredMsg: string): string | undefined => {
+        if (!f) return requiredMsg;
+        if (f.size > MAX_DOC_BYTES) return T.fileTooLarge;
+        if (!ALLOWED_DOC_TYPES.includes(f.type)) return T.fileWrongType;
+        return undefined;
+      };
+      const frontErr = checkFile(data.docFront, si ? "ඉදිරි පැත්තේ රූපය අවශ්‍යයි" : "Front-side image is required");
+      if (frontErr) (err as any).docFront = frontErr;
+      if (data.docType !== "PASSPORT") {
+        const backErr = checkFile(data.docBack, si ? "පසුපස රූපය අවශ්‍යයි" : "Back-side image is required");
+        if (backErr) (err as any).docBack = backErr;
+      }
+    }
 
     if (Object.keys(err).length > 0) {
       setErrors(err);
@@ -1074,11 +1219,50 @@ export default function RegisterPage() {
   }, []);
 
   const submit = async () => {
-    if (!validateStep(3)) return;
+    if (!validateStep(4)) return;
     setLoading(true);
-    await new Promise(r => setTimeout(r, 2000));
-    setLoading(false);
-    router.push("/auth/login");
+    setBanner("");
+    try {
+      const roleMap: Record<string, string> = {
+        economic_development_officer: "economic-development-officer",
+        reg_secretary:                "regional-secretary",
+      };
+      const fd = new FormData();
+      fd.append("firstName",  data.firstName.trim());
+      fd.append("lastName",   data.lastName.trim());
+      fd.append("name",       data.fullName.trim());
+      fd.append("email",      data.email.trim().toLowerCase());
+      fd.append("phone",      data.mobile.trim());
+      fd.append("nic",        data.nic.trim());
+      fd.append("password",   data.password);
+      fd.append("role",       roleMap[data.userType as string] ?? "");
+      fd.append("district",   data.district);
+      fd.append("dsDivision", data.ds);
+      if (data.userType === "economic_development_officer") {
+        fd.append("gnDivision", data.gnDiv);
+        fd.append("localGovt",  data.localGovt.trim());
+        fd.append("electoral",  data.electoral.trim());
+        fd.append("farmers",    data.farmers.trim());
+        fd.append("eduZone",    data.eduZone.trim());
+        fd.append("eduDiv",     data.eduDiv.trim());
+        fd.append("mahaweli",   data.mahaweli.trim());
+      }
+      fd.append("docType", data.docType);
+      if (data.docFront) fd.append("docFront", data.docFront);
+      if (data.docBack)  fd.append("docBack", data.docBack);
+
+      const res  = await fetch("/api/registrations", { method: "POST", body: fd });
+      const json = await res.json() as { ok: boolean; message?: string };
+      if (!res.ok) {
+        setBanner(json.message ?? (si ? "දෝෂයක් ඇති විය. නැවත උත්සාහ කරන්න." : "An error occurred. Please try again."));
+        return;
+      }
+      setSubmitted(true);
+    } catch {
+      setBanner(si ? "සේවා දෝෂයක්. නැවත උත්සාහ කරන්න." : "Network error. Please check your connection and try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const variants = {
@@ -1087,8 +1271,13 @@ export default function RegisterPage() {
     exit:  (d: number) => ({ x: d > 0 ? -60 : 60, opacity: 0 }),
   };
 
-  /* ── Step content ── */
-  const StepContent = () => {
+  /* ── Step content ──
+     NOTE: called directly as StepContent() (not rendered as <StepContent/>).
+     It closes over `step`/`data` and returns JSX for the active step. If it were
+     rendered as a JSX component, React would see a new component type on every
+     re-render (every keystroke) and remount the subtree, dropping input focus
+     after a single character. */
+  function StepContent() {
     switch (step) {
       /* ── Step 0: Language ── */
       case 0: return (
@@ -1134,11 +1323,11 @@ export default function RegisterPage() {
             </p>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: "clamp(8px,1.4vh,12px)" }}>
-            {(["gn_officer", "eco_officer", "reg_secretary"] as UserType[]).map(role => (
+            {(["economic_development_officer", "reg_secretary"] as UserType[]).map(role => (
               <RoleCard
                 key={role} role={role}
-                label={role === "gn_officer" ? T.gnLabel : role === "eco_officer" ? T.eoLabel : T.rsLabel}
-                sub={role === "gn_officer" ? T.gnSub : role === "eco_officer" ? T.eoSub : T.rsSub}
+                label={role === "economic_development_officer" ? T.gnLabel : T.rsLabel}
+                sub={role === "economic_development_officer" ? T.gnSub : T.rsSub}
                 selected={data.userType === role}
                 onClick={() => set("userType", role)}
                 si={si}
@@ -1184,8 +1373,8 @@ export default function RegisterPage() {
               bilingual
             />
 
-            {/* GN Division — for GN officer and Economic Development Officer */}
-            {(data.userType === "gn_officer" || data.userType === "eco_officer") && (
+            {/* GN Division — for Economic Development Officer */}
+            {data.userType === "economic_development_officer" && (
               <PremiumSelect
                 id="gnDiv" label={T.gn} value={data.gnDiv} locale={locale}
                 onChange={v => set("gnDiv", v)}
@@ -1196,8 +1385,8 @@ export default function RegisterPage() {
               />
             )}
 
-            {/* Extra GN fields */}
-            {data.userType === "gn_officer" && (
+            {/* Extra Economic Development Officer fields */}
+            {data.userType === "economic_development_officer" && (
               <>
                 <div style={{
                   padding: "10px 14px 4px", borderRadius: 10,
@@ -1210,7 +1399,7 @@ export default function RegisterPage() {
                     textTransform: "uppercase", color: DEEP_GOLD,
                     fontFamily: si ? "'Yaldevi','Noto Sans Sinhala',sans-serif" : "'Inter',system-ui,sans-serif",
                   }}>
-                    {si ? "ග්‍රාම නිලධාරී - අතිරේක විස්තර" : "GN Officer – Additional Details"}
+                    {si ? "ආර්ථික සංවර්ධන නිලධාරී - අතිරේක විස්තර" : "Economic Development Officer – Additional Details"}
                   </p>
 
                   <PremiumInput id="localGovt" label={T.localGovt} value={data.localGovt} locale={locale}
@@ -1307,9 +1496,84 @@ export default function RegisterPage() {
         </div>
       );
 
+      /* ── Step 4: Verification document ── */
+      case 4: return (
+        <div>
+          <div style={{ marginBottom: "clamp(14px,2.5vh,22px)" }}>
+            <h3 style={{
+              margin: 0, fontSize: "clamp(1.1rem,3vw,1.5rem)",
+              fontFamily: "'Playfair Display',Georgia,serif",
+              fontWeight: 800, color: CHARCOAL, letterSpacing: "-0.03em",
+            }}>
+              {T.verifyTitle}
+            </h3>
+            <p style={{ margin: "6px 0 0", fontSize: isTablet ? 15 : 13, color: "rgba(17,17,17,0.42)", fontFamily: si ? "'Yaldevi','Noto Sans Sinhala',sans-serif" : "'Inter',system-ui,sans-serif" }}>
+              {T.verifySub}
+            </p>
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: "clamp(10px,1.8vh,16px)" }}>
+            <PremiumSelect
+              id="docType" label={T.docType} value={data.docType} locale={locale}
+              onChange={v => set("docType", v as DocType)}
+              options={[
+                { id: "NIC",             en: STRINGS.en.docNic,      si: STRINGS.si.docNic },
+                { id: "DRIVING_LICENSE", en: STRINGS.en.docLicense,  si: STRINGS.si.docLicense },
+                { id: "PASSPORT",        en: STRINGS.en.docPassport, si: STRINGS.si.docPassport },
+              ]}
+              placeholder={T.selectDocType}
+              icon={<ShieldCheck size={16} />} error={(errors as any).docType} delay={0.05}
+            />
+
+            <div style={{
+              display: "grid",
+              gridTemplateColumns: data.docType !== "PASSPORT" ? (w >= 640 ? "1fr 1fr" : "1fr") : "1fr",
+              gap: "clamp(8px,1.5vw,14px)",
+            }}>
+              <DocDropzone
+                label={data.docType === "PASSPORT" ? T.docFrontPassport : T.docFront}
+                file={data.docFront}
+                onSelect={f => set("docFront", f)}
+                onRemove={() => set("docFront", null)}
+                error={(errors as any).docFront}
+                delay={0.10} locale={locale}
+                dropHint={T.dropHint} dropActive={T.dropActive} removeLabel={T.removeFile}
+              />
+              {data.docType !== "PASSPORT" && (
+                <DocDropzone
+                  label={T.docBack}
+                  file={data.docBack}
+                  onSelect={f => set("docBack", f)}
+                  onRemove={() => set("docBack", null)}
+                  error={(errors as any).docBack}
+                  delay={0.15} locale={locale}
+                  dropHint={T.dropHint} dropActive={T.dropActive} removeLabel={T.removeFile}
+                />
+              )}
+            </div>
+
+            <div style={{
+              display: "flex", gap: 10, alignItems: "flex-start",
+              padding: "12px 14px", borderRadius: 10,
+              background: "rgba(27,108,168,0.06)",
+              border: "1px solid rgba(27,108,168,0.16)",
+            }}>
+              <ShieldCheck size={15} color="#1B6CA8" style={{ flexShrink: 0, marginTop: 1 }} />
+              <p style={{
+                margin: 0, fontSize: isTablet ? 13 : 11.5, lineHeight: 1.6,
+                color: "rgba(17,17,17,0.56)",
+                fontFamily: si ? "'Yaldevi','Noto Sans Sinhala',sans-serif" : "'Inter',system-ui,sans-serif",
+              }}>
+                {T.privacyNote}
+              </p>
+            </div>
+          </div>
+        </div>
+      );
+
       default: return null;
     }
-  };
+  }
 
   /* ─── Render ─────────────────────────────────────────────────────────── */
   return (
@@ -1422,115 +1686,224 @@ export default function RegisterPage() {
 
             <div style={{ padding: "clamp(20px,4vw,44px) clamp(18px,5vw,48px) clamp(20px,4vw,36px)" }}>
 
-              {/* Progress bar */}
-              <StepBar step={step} labels={T.stepLabels} />
-
-              {/* Error banner */}
-              <AnimatePresence>
-                {banner && <ErrorBanner msg={banner} si={si} />}
-              </AnimatePresence>
-
-              {/* Animated step content */}
-              <AnimatePresence mode="wait" custom={dir}>
+              {submitted ? (
+                /* ── Success state ── */
                 <motion.div
-                  key={step}
-                  custom={dir}
-                  variants={variants}
-                  initial="enter"
-                  animate="center"
-                  exit="exit"
-                  transition={{ duration: 0.32, ease }}
+                  initial={{ opacity: 0, scale: 0.96 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.5, ease }}
+                  style={{ textAlign: "center", padding: "clamp(16px,3vh,32px) 0" }}
                 >
-                  <StepContent />
-                </motion.div>
-              </AnimatePresence>
-
-              {/* ── Nav buttons ── */}
-              <div style={{
-                display: "flex", gap: 12,
-                marginTop: "clamp(16px,3vh,28px)",
-                flexDirection: step === 0 ? "row-reverse" : "row",
-              }}>
-                {step > 0 && (
-                  <motion.button
-                    type="button" onClick={back}
-                    whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
+                  {/* Animated check circle */}
+                  <motion.div
+                    initial={{ scale: 0, rotate: -30 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    transition={{ type: "spring", stiffness: 420, damping: 22, delay: 0.1 }}
                     style={{
-                      display: "flex", alignItems: "center", gap: 7,
-                      height: "clamp(44px,6vh,56px)",
-                      padding: "0 clamp(16px,3vw,24px)",
-                      borderRadius: 11,
-                      border: "1.5px solid rgba(200,163,77,0.55)",
-                      background: "#FAFAF5",
-                      cursor: "pointer", flexShrink: 0,
-                      fontFamily: si ? "'Yaldevi','Noto Sans Sinhala',sans-serif" : "'Inter',system-ui,sans-serif",
-                      fontSize: isTablet ? 15 : 14, fontWeight: 600, color: "rgba(17,17,17,0.78)",
-                      transition: "all .2s ease",
+                      width: 80, height: 80, borderRadius: "50%",
+                      background: "linear-gradient(145deg,#2D9A52,#1B7A3E)",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      margin: "0 auto clamp(16px,2.5vh,24px)",
+                      boxShadow: "0 8px 32px rgba(45,154,82,0.30),0 0 0 8px rgba(45,154,82,0.10)",
                     }}
                   >
-                    <ArrowLeft size={isTablet ? 17 : 15} />
-                    {T.back}
-                  </motion.button>
-                )}
+                    <Check size={38} color="#fff" strokeWidth={2.8} />
+                  </motion.div>
 
-                <motion.button
-                  type="button"
-                  onClick={step < 3 ? next : submit}
-                  disabled={loading}
-                  whileHover={{ y: -2, scale: 1.01 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="group"
-                  style={{
-                    flex: 1, height: "clamp(44px,6vh,56px)",
-                    borderRadius: 11, cursor: loading ? "wait" : "pointer",
-                    background: "linear-gradient(160deg,#D4AA55 0%,#C8A34D 40%,#A67C00 100%)",
-                    border: "1px solid rgba(255,255,255,0.18)",
-                    boxShadow: "0 0 0 1px rgba(255,255,255,0.12) inset,0 1px 0 rgba(255,255,255,0.20) inset,0 8px 28px rgba(166,124,0,0.30),0 3px 8px rgba(166,124,0,0.18)",
-                    position: "relative", overflow: "hidden",
-                  }}
-                >
-                  <span className="pointer-events-none absolute -inset-full top-0 h-full w-1/2 -skew-x-12 opacity-0 group-hover:opacity-100 group-hover:translate-x-[350%] transition-all duration-700"
-                    style={{ background: "linear-gradient(90deg,transparent,rgba(255,255,255,0.14),transparent)" }} />
-                  <span style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
-                    {loading ? (
-                      <>
-                        <motion.div
-                          style={{ width: 14, height: 14, borderRadius: "50%", border: "2px solid rgba(255,255,255,0.30)", borderTopColor: "#fff" }}
-                          animate={{ rotate: 360 }} transition={{ duration: 0.75, repeat: Infinity, ease: "linear" }}
-                        />
-                        <span style={{ fontFamily: "'Inter',system-ui,sans-serif", fontWeight: 700, fontSize: isTablet ? 15 : 13.5, letterSpacing: "0.08em", color: "#fff", textTransform: "uppercase" }}>
-                          {T.submitting}
-                        </span>
-                      </>
-                    ) : (
-                      <span style={{
+                  <motion.h3
+                    initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.28 }}
+                    style={{
+                      margin: "0 0 10px",
+                      fontFamily: "'Playfair Display',Georgia,serif",
+                      fontSize: "clamp(1.35rem,4vw,1.85rem)",
+                      fontWeight: 800, letterSpacing: "-0.03em",
+                      color: CHARCOAL,
+                    }}
+                  >
+                    {si ? "ලියාපදිංචිය සාර්ථකයි!" : "Registration Submitted!"}
+                  </motion.h3>
+
+                  <motion.p
+                    initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.38 }}
+                    style={{
+                      margin: "0 0 clamp(18px,3vh,28px)",
+                      fontSize: isTablet ? 16 : 14,
+                      color: "rgba(17,17,17,0.52)",
+                      lineHeight: 1.7,
+                      fontFamily: si ? "'Yaldevi','Noto Sans Sinhala',sans-serif" : "'Inter',system-ui,sans-serif",
+                    }}
+                  >
+                    {si
+                      ? "ඔබේ ලියාපදිංචිය සාර්ථකව ලැබී ඇත. සුපිරි පරිපාලක විසින් සමාලෝචනය කිරීමෙන් පසු ඔබට දැනුම් දෙනු ලැබේ."
+                      : "Your registration has been received. You will be notified once a Super Admin reviews and approves your application."}
+                  </motion.p>
+
+                  {/* Info box */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.46 }}
+                    style={{
+                      padding: "14px 18px", borderRadius: 12, marginBottom: "clamp(18px,3vh,28px)",
+                      background: "rgba(200,163,77,0.06)",
+                      border: "1px solid rgba(200,163,77,0.20)",
+                      textAlign: "left",
+                    }}
+                  >
+                    <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+                      <div style={{
+                        width: 6, height: 6, borderRadius: "50%",
+                        background: GOLD, flexShrink: 0, marginTop: 6,
+                      }} />
+                      <p style={{
+                        margin: 0, fontSize: isTablet ? 14 : 12.5, lineHeight: 1.65,
+                        color: "rgba(17,17,17,0.55)",
                         fontFamily: si ? "'Yaldevi','Noto Sans Sinhala',sans-serif" : "'Inter',system-ui,sans-serif",
-                        fontWeight: 700, fontSize: isTablet ? 15 : "clamp(12px,1.6vw,14px)",
-                        letterSpacing: si ? "0.02em" : "0.08em",
-                        color: "#fff", textTransform: si ? "none" : "uppercase",
                       }}>
-                        {step < 3 ? T.next : T.submit}
-                      </span>
-                    )}
-                  </span>
-                </motion.button>
-              </div>
+                        {si
+                          ? `ලියාපදිංචි ඊමේල් ලිපිනය: ${data.email} — මෙම ලිපිනයට තත්ව යාවත්කාලීනයන් ලැබෙනු ඇත.`
+                          : `Registered email: ${data.email} — status updates will be sent to this address.`}
+                      </p>
+                    </div>
+                  </motion.div>
 
-              {/* Sign in link */}
-              <motion.p
-                initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                transition={{ delay: 0.5 }}
-                style={{
-                  textAlign: "center", margin: "clamp(14px,2.5vh,22px) 0 0",
-                  fontFamily: si ? "'Yaldevi','Noto Sans Sinhala',sans-serif" : "'Inter',system-ui,sans-serif",
-                  fontSize: isTablet ? 15 : 13, color: "rgba(17,17,17,0.42)",
-                }}
-              >
-                {T.hasAccount}{" "}
-                <Link href="/auth/login" style={{ color: DEEP_GOLD, fontWeight: 700, textDecoration: "none" }}>
-                  {T.signIn}
-                </Link>
-              </motion.p>
+                  <motion.button
+                    type="button"
+                    onClick={() => router.push("/auth/login")}
+                    initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.54 }}
+                    whileHover={{ y: -2, scale: 1.01 }}
+                    whileTap={{ scale: 0.98 }}
+                    style={{
+                      width: "100%", height: "clamp(44px,6vh,56px)",
+                      borderRadius: 11, cursor: "pointer",
+                      background: "linear-gradient(160deg,#D4AA55 0%,#C8A34D 40%,#A67C00 100%)",
+                      border: "1px solid rgba(255,255,255,0.18)",
+                      boxShadow: "0 8px 28px rgba(166,124,0,0.28),0 3px 8px rgba(166,124,0,0.16)",
+                      fontFamily: si ? "'Yaldevi','Noto Sans Sinhala',sans-serif" : "'Inter',system-ui,sans-serif",
+                      fontSize: isTablet ? 15 : 14, fontWeight: 700,
+                      letterSpacing: si ? "0.02em" : "0.08em",
+                      color: "#fff", textTransform: si ? "none" : "uppercase",
+                    }}
+                  >
+                    {si ? "පිවිසීමට යන්න" : "Go to Sign In"}
+                  </motion.button>
+                </motion.div>
+              ) : (
+                /* ── Multi-step form ── */
+                <>
+                  {/* Progress bar */}
+                  <StepBar step={step} labels={T.stepLabels} />
+
+                  {/* Error banner */}
+                  <AnimatePresence>
+                    {banner && <ErrorBanner msg={banner} si={si} />}
+                  </AnimatePresence>
+
+                  {/* Animated step content */}
+                  <AnimatePresence mode="wait" custom={dir}>
+                    <motion.div
+                      key={step}
+                      custom={dir}
+                      variants={variants}
+                      initial="enter"
+                      animate="center"
+                      exit="exit"
+                      transition={{ duration: 0.32, ease }}
+                    >
+                      {StepContent()}
+                    </motion.div>
+                  </AnimatePresence>
+
+                  {/* ── Nav buttons ── */}
+                  <div style={{
+                    display: "flex", gap: 12,
+                    marginTop: "clamp(16px,3vh,28px)",
+                    flexDirection: step === 0 ? "row-reverse" : "row",
+                  }}>
+                    {step > 0 && (
+                      <motion.button
+                        type="button" onClick={back}
+                        whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
+                        style={{
+                          display: "flex", alignItems: "center", gap: 7,
+                          height: "clamp(44px,6vh,56px)",
+                          padding: "0 clamp(16px,3vw,24px)",
+                          borderRadius: 11,
+                          border: "1.5px solid rgba(200,163,77,0.55)",
+                          background: "#FAFAF5",
+                          cursor: "pointer", flexShrink: 0,
+                          fontFamily: si ? "'Yaldevi','Noto Sans Sinhala',sans-serif" : "'Inter',system-ui,sans-serif",
+                          fontSize: isTablet ? 15 : 14, fontWeight: 600, color: "rgba(17,17,17,0.78)",
+                          transition: "all .2s ease",
+                        }}
+                      >
+                        <ArrowLeft size={isTablet ? 17 : 15} />
+                        {T.back}
+                      </motion.button>
+                    )}
+
+                    <motion.button
+                      type="button"
+                      onClick={step < 4 ? next : submit}
+                      disabled={loading}
+                      whileHover={{ y: -2, scale: 1.01 }}
+                      whileTap={{ scale: 0.98 }}
+                      className="group"
+                      style={{
+                        flex: 1, height: "clamp(44px,6vh,56px)",
+                        borderRadius: 11, cursor: loading ? "wait" : "pointer",
+                        background: "linear-gradient(160deg,#D4AA55 0%,#C8A34D 40%,#A67C00 100%)",
+                        border: "1px solid rgba(255,255,255,0.18)",
+                        boxShadow: "0 0 0 1px rgba(255,255,255,0.12) inset,0 1px 0 rgba(255,255,255,0.20) inset,0 8px 28px rgba(166,124,0,0.30),0 3px 8px rgba(166,124,0,0.18)",
+                        position: "relative", overflow: "hidden",
+                      }}
+                    >
+                      <span className="pointer-events-none absolute -inset-full top-0 h-full w-1/2 -skew-x-12 opacity-0 group-hover:opacity-100 group-hover:translate-x-[350%] transition-all duration-700"
+                        style={{ background: "linear-gradient(90deg,transparent,rgba(255,255,255,0.14),transparent)" }} />
+                      <span style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                        {loading ? (
+                          <>
+                            <motion.div
+                              style={{ width: 14, height: 14, borderRadius: "50%", border: "2px solid rgba(255,255,255,0.30)", borderTopColor: "#fff" }}
+                              animate={{ rotate: 360 }} transition={{ duration: 0.75, repeat: Infinity, ease: "linear" }}
+                            />
+                            <span style={{ fontFamily: "'Inter',system-ui,sans-serif", fontWeight: 700, fontSize: isTablet ? 15 : 13.5, letterSpacing: "0.08em", color: "#fff", textTransform: "uppercase" }}>
+                              {T.submitting}
+                            </span>
+                          </>
+                        ) : (
+                          <span style={{
+                            fontFamily: si ? "'Yaldevi','Noto Sans Sinhala',sans-serif" : "'Inter',system-ui,sans-serif",
+                            fontWeight: 700, fontSize: isTablet ? 15 : "clamp(12px,1.6vw,14px)",
+                            letterSpacing: si ? "0.02em" : "0.08em",
+                            color: "#fff", textTransform: si ? "none" : "uppercase",
+                          }}>
+                            {step < 4 ? T.next : T.submit}
+                          </span>
+                        )}
+                      </span>
+                    </motion.button>
+                  </div>
+
+                  {/* Sign in link */}
+                  <motion.p
+                    initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                    transition={{ delay: 0.5 }}
+                    style={{
+                      textAlign: "center", margin: "clamp(14px,2.5vh,22px) 0 0",
+                      fontFamily: si ? "'Yaldevi','Noto Sans Sinhala',sans-serif" : "'Inter',system-ui,sans-serif",
+                      fontSize: isTablet ? 15 : 13, color: "rgba(17,17,17,0.42)",
+                    }}
+                  >
+                    {T.hasAccount}{" "}
+                    <Link href="/auth/login" style={{ color: DEEP_GOLD, fontWeight: 700, textDecoration: "none" }}>
+                      {T.signIn}
+                    </Link>
+                  </motion.p>
+                </>
+              )}
 
             </div>
           </div>

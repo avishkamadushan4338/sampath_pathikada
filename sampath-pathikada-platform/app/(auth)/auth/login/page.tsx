@@ -141,9 +141,26 @@ export default function LoginPage() {
     e.preventDefault();
     if (!username.trim() || !password.trim()) { setError("Please enter your credentials."); return; }
     setError(""); setLoading(true);
-    await new Promise(r => setTimeout(r, 1800));
-    setLoading(false);
-    router.push("/admin/dashboard");
+
+    try {
+      const res = await fetch("/api/auth/login", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ email: username.trim(), password }),
+      });
+      const data = await res.json();
+
+      if (!res.ok || !data.ok) {
+        setError(data.message ?? "Invalid credentials. Please try again.");
+        setLoading(false);
+        return;
+      }
+
+      router.push(data.redirectTo ?? "/super-admin/dashboard");
+    } catch {
+      setError("Network error. Please check your connection and try again.");
+      setLoading(false);
+    }
   };
 
   return (
@@ -414,9 +431,9 @@ export default function LoginPage() {
                 <form onSubmit={handleSubmit} noValidate>
                   <div style={{ display:"flex", flexDirection:"column", gap:"clamp(10px,1.6vh,18px)", marginBottom:"clamp(12px,1.8vh,20px)" }}>
                     <PremiumInput
-                      id="username" label="Username or Email"
-                      type="text" value={username} onChange={setUsername}
-                      autoComplete="username" delay={0.70}
+                      id="username" label="Email Address"
+                      type="email" value={username} onChange={setUsername}
+                      autoComplete="email" delay={0.70}
                       icon={
                         <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
                           <circle cx="8" cy="5" r="3" stroke="currentColor" strokeWidth="1.5"/>
