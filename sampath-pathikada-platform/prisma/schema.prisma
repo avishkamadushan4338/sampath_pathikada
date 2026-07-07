@@ -1,0 +1,283 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// Sampath Pathikada — Prisma Schema (MySQL)
+// ─────────────────────────────────────────────────────────────────────────────
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../lib/prisma-client"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ───────────────────────────────────────────────────────────────────
+
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  ECONOMIC_DEVELOPMENT_OFFICER
+  REGIONAL_SECRETARY
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum RegistrationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum AuditSeverity {
+  INFO
+  WARNING
+  ERROR
+  SUCCESS
+}
+
+enum AuditCategory {
+  AUTH
+  USER
+  ADMIN
+  SYSTEM
+  DATA
+  REGISTRATION
+}
+
+enum SubmissionStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  REJECTED
+  REVISION_NEEDED
+}
+
+enum VerificationDocType {
+  NIC
+  DRIVING_LICENSE
+  PASSPORT
+}
+
+// ─── User ─────────────────────────────────────────────────────────────────────
+
+model User {
+  id                String     @id @default(cuid())
+  email             String     @unique @db.VarChar(255)
+  passwordHash      String     @db.VarChar(255)
+  name              String     @db.VarChar(120)
+  nameSinhala       String?    @db.VarChar(120)
+  phone             String?    @db.VarChar(20)
+  nic               String?    @unique @db.VarChar(20)
+  role              UserRole
+  status            UserStatus @default(ACTIVE)
+
+  // Geographic assignment
+  district          String?    @db.VarChar(80)
+  dsDivision        String?    @db.VarChar(80)
+  gnDivision        String?    @db.VarChar(80)
+
+  // Auth / security
+  lastLoginAt       DateTime?
+  lastLoginIp       String?    @db.VarChar(45)
+  loginAttempts     Int        @default(0)
+  lockedUntil       DateTime?
+  mustResetPassword Boolean    @default(false)
+  emailVerified     Boolean    @default(false)
+
+  // Meta
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+  createdById       String?
+
+  // Relations — one per registration table
+  auditLogs                    AuditLog[]
+  submissions                  Submission[]
+  gnApprovals                  EconomicDevelopmentOfficerRegistration[] @relation("GnApprovedBy")
+  regionalSecretaryApprovals   RegionalSecretaryRegistration[] @relation("RsApprovedBy")
+
+  @@index([email])
+  @@index([role])
+  @@index([district])
+  @@map("users")
+}
+
+// ─── 1. Economic Development Officer Registrations ───────────────────────────
+//    Table: economic_development_officer_registrations
+//    gnDivision is required — Economic Development Officers are assigned to a specific division
+
+model EconomicDevelopmentOfficerRegistration {
+  id                   String             @id @default(cuid())
+
+  firstName            String?            @db.VarChar(80)
+  lastName             String?            @db.VarChar(80)
+  name                 String             @db.VarChar(120)   // full name as in NIC
+  email                String             @db.VarChar(255)
+  phone                String             @db.VarChar(20)
+  nic                  String             @db.VarChar(20)
+  passwordHash         String             @db.VarChar(255)
+
+  // Verification document — temporary only, deleted the instant Super Admin approves/rejects
+  verificationDocType      VerificationDocType?
+  verificationDocFrontPath String?              @db.VarChar(500)
+  verificationDocBackPath  String?              @db.VarChar(500)
+  verificationDocDeletedAt DateTime?
+
+  district             String             @db.VarChar(80)
+  dsDivision           String             @db.VarChar(80)
+  gnDivision           String             @db.VarChar(80)
+
+  localGovt            String?            @db.VarChar(200)
+  electoral            String?            @db.VarChar(200)
+  farmers              String?            @db.VarChar(200)
+  eduZone              String?            @db.VarChar(200)
+  eduDiv               String?            @db.VarChar(200)
+  mahaweli             String?            @db.VarChar(200)
+
+  status               RegistrationStatus @default(PENDING)
+  rejectionNote        String?            @db.Text
+  approvedAt           DateTime?
+  approvedById         String?
+  approvedBy           User?              @relation("GnApprovedBy", fields: [approvedById], references: [id])
+
+  submittedAt          DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+  submittedFromIp      String?            @db.VarChar(45)
+
+  @@index([status])
+  @@index([district])
+  @@index([dsDivision])
+  @@index([gnDivision])
+  @@index([email])
+  @@index([nic])
+  @@map("economic_development_officer_registrations")
+}
+
+// ─── 2. Regional Secretary Registrations ─────────────────────────────────────
+//    Table: regional_secretary_registrations
+
+model RegionalSecretaryRegistration {
+  id                   String             @id @default(cuid())
+
+  firstName            String?            @db.VarChar(80)
+  lastName             String?            @db.VarChar(80)
+  name                 String             @db.VarChar(120)   // full name as in NIC
+  email                String             @db.VarChar(255)
+  phone                String             @db.VarChar(20)
+  nic                  String             @db.VarChar(20)
+  passwordHash         String             @db.VarChar(255)
+
+  // Verification document — temporary only, deleted the instant Super Admin approves/rejects
+  verificationDocType      VerificationDocType?
+  verificationDocFrontPath String?              @db.VarChar(500)
+  verificationDocBackPath  String?              @db.VarChar(500)
+  verificationDocDeletedAt DateTime?
+
+  district             String             @db.VarChar(80)
+  dsDivision           String             @db.VarChar(80)
+
+  status               RegistrationStatus @default(PENDING)
+  rejectionNote        String?            @db.Text
+  approvedAt           DateTime?
+  approvedById         String?
+  approvedBy           User?              @relation("RsApprovedBy", fields: [approvedById], references: [id])
+
+  submittedAt          DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+  submittedFromIp      String?            @db.VarChar(45)
+
+  @@index([status])
+  @@index([district])
+  @@index([dsDivision])
+  @@index([email])
+  @@index([nic])
+  @@map("regional_secretary_registrations")
+}
+
+// ─── Audit Log ────────────────────────────────────────────────────────────────
+
+model AuditLog {
+  id          String        @id @default(cuid())
+  action      String        @db.VarChar(120)
+  description String        @db.Text
+  category    AuditCategory
+  severity    AuditSeverity @default(INFO)
+
+  userId      String?
+  user        User?         @relation(fields: [userId], references: [id])
+  userName    String        @db.VarChar(120)
+  userIp      String?       @db.VarChar(45)
+  userAgent   String?       @db.VarChar(500)
+
+  metadata    Json?
+
+  createdAt   DateTime      @default(now())
+
+  @@index([category])
+  @@index([severity])
+  @@index([userId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+// ─── Admin Invite ─────────────────────────────────────────────────────────────
+
+model AdminInvite {
+  id           String    @id @default(cuid())
+  email        String    @unique @db.VarChar(255)
+  name         String    @db.VarChar(120)
+  tempPassword String    @db.VarChar(255)
+  districts    Json?
+  invitedById  String
+  acceptedAt   DateTime?
+  expiresAt    DateTime
+  createdAt    DateTime  @default(now())
+
+  @@index([email])
+  @@map("admin_invites")
+}
+
+// ─── Submission ───────────────────────────────────────────────────────────────
+
+model Submission {
+  id            String           @id @default(cuid())
+  submittedById String
+  submittedBy   User             @relation(fields: [submittedById], references: [id])
+
+  year          Int              // reporting cycle, e.g. 2026 (represents the "2026/27" cycle)
+
+  district      String           @db.VarChar(80)
+  dsDivision    String           @db.VarChar(80)
+  gnDivision    String           @db.VarChar(80)
+
+  data          Json
+
+  status        SubmissionStatus @default(DRAFT)
+  rejectionNote String?          @db.Text
+  reviewedById  String?
+  reviewedAt    DateTime?
+
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  @@unique([submittedById, year])
+  @@index([submittedById])
+  @@index([status])
+  @@index([district])
+  @@index([year])
+  @@map("submissions")
+}
+
+// ─── System Settings ──────────────────────────────────────────────────────────
+
+model SystemSetting {
+  key       String   @id @db.VarChar(80)
+  value     String   @db.Text
+  updatedAt DateTime @updatedAt
+
+  @@map("system_settings")
+}
