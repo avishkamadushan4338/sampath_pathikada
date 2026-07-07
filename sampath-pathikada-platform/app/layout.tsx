@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   },
   description:
     "The official digital platform for Grama Niladhari resource profile collection and development planning across the Southern Province of Sri Lanka.",
-  keywords: ["Sampath Pathikada", "Southern Province", "GN Office", "Sri Lanka", "Development Planning"],
+  keywords: ["Sampath Pathikada", "Southern Province", "Economic Development Officer", "Sri Lanka", "Development Planning"],
   authors: [{ name: "Southern Province Planning Secretariat" }],
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"),
   robots: { index: false, follow: false },

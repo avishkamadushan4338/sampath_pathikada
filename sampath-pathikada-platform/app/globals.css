@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
-/* ─── Fonts are self-hosted via next/font in app/layout.tsx ─────────────────
-   No @import url() needed here — next/font emits preload <link> tags and
-   injects @font-face rules automatically, so a CSS @import would double-load. */
+/* ─── Fonts are loaded via Google Fonts <link> tags in app/layout.tsx ───────
+   No @import url() needed here — the <link> tags already emit preload hints
+   and @font-face rules, so a CSS @import would double-load them. */
 
 /* ─── CSS Design Tokens ─────────────────────────────────────────────────────── */
 @layer base {
@@ -157,32 +157,46 @@
     --dur-slower: 600ms;
 
     /* ── Typography — role-based font stack ─────────────────────────────────
-       Variables injected by next/font CSS variables (set on <html>).
+       Fonts are loaded via Google Fonts <link> tags in app/layout.tsx (not
+       next/font), so these reference the literal family names directly.
        Fallback chains are carefully ordered: matching metric fonts first so
        layout shift is imperceptible even before the webfont loads.
     ──────────────────────────────────────────────────────────────────────── */
 
     /* UI chrome & body copy (English) */
-    --font-ui:       var(--font-ui),      "Inter",            ui-sans-serif, system-ui, sans-serif;
+    --font-ui:       "Inter", "DM Sans", ui-sans-serif, system-ui, sans-serif;
 
     /* Editorial display headings — large sizes only */
-    --font-display:  var(--font-display), "Playfair Display", Georgia,       serif;
+    --font-display:  "Playfair Display", "Cormorant Garamond", Georgia, serif;
 
     /* Data-dense tables, dashboard numbers, stat cards */
-    --font-data:     var(--font-data),    "DM Sans",          "Inter",       ui-sans-serif, sans-serif;
+    --font-data:     "DM Sans", "Inter", ui-sans-serif, sans-serif;
 
     /* Code, IDs, submission numbers, timestamps */
-    --font-mono:     var(--font-mono),    "JetBrains Mono",   "Fira Code",   ui-monospace, monospace;
+    --font-mono:     "JetBrains Mono", "Fira Code", ui-monospace, monospace;
 
     /* Sinhala formal headings, PDF / print documents */
-    --font-si-serif: var(--font-si-serif),"Noto Serif Sinhala", serif;
+    --font-si-serif: "Noto Serif Sinhala", serif;
 
     /* Sinhala UI body, labels, navigation, forms */
-    --font-si-sans:  var(--font-si-sans), "Noto Sans Sinhala",  sans-serif;
+    --font-si-sans:  "Noto Sans Sinhala", "Yaldevi", sans-serif;
 
     /* Convenience aliases consumed by Tailwind utilities below */
     --font-sans:     var(--font-ui);
     --font-sinhala:  var(--font-si-sans);
+
+    /* ── Fluid type scale ─────────────────────────────────────────────────
+       Scales continuously with viewport width instead of jumping at
+       breakpoints — used by form headings/labels so the same layout reads
+       well from a 320px phone up to an 8K display without media queries.
+    ──────────────────────────────────────────────────────────────────────── */
+    --text-fluid-xs:   clamp(0.75rem,  0.71rem + 0.2vw, 0.8125rem);
+    --text-fluid-sm:   clamp(0.8125rem, 0.77rem + 0.25vw, 0.9375rem);
+    --text-fluid-base: clamp(0.9375rem, 0.875rem + 0.3vw, 1.0625rem);
+    --text-fluid-lg:   clamp(1.0625rem, 0.98rem + 0.4vw, 1.25rem);
+    --text-fluid-xl:   clamp(1.25rem,  1.1rem + 0.7vw,  1.625rem);
+    --text-fluid-2xl:  clamp(1.5rem,   1.3rem + 1vw,    2.0625rem);
+    --text-fluid-3xl:  clamp(1.875rem, 1.55rem + 1.6vw, 2.75rem);
 
     /* Z-index scale */
     --z-base:     0;
@@ -236,6 +250,46 @@
       radial-gradient(at 80% 10%, rgba(14,43,78,.25)   0, transparent 50%),
       radial-gradient(at 10% 70%, rgba(102,38,30,.12)  0, transparent 50%);
   }
+}
+
+/* ─── Tailwind v4 theme bridge ───────────────────────────────────────────────
+   Maps the semantic HSL tokens above into Tailwind's --color-* namespace so
+   bare utilities (bg-primary, text-foreground, border-input, ring-ring, …)
+   resolve correctly — this is what shadcn/ui's generated components expect.
+   Values stay defined once, in :root/.dark above; this block only aliases them.
+──────────────────────────────────────────────────────────────────────────── */
+@theme inline {
+  --color-background:           hsl(var(--background));
+  --color-foreground:           hsl(var(--foreground));
+  --color-card:                 hsl(var(--card));
+  --color-card-foreground:      hsl(var(--card-foreground));
+  --color-popover:              hsl(var(--popover));
+  --color-popover-foreground:   hsl(var(--popover-foreground));
+  --color-primary:              hsl(var(--primary));
+  --color-primary-foreground:   hsl(var(--primary-foreground));
+  --color-secondary:            hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted:                hsl(var(--muted));
+  --color-muted-foreground:     hsl(var(--muted-foreground));
+  --color-accent:               hsl(var(--accent));
+  --color-accent-foreground:    hsl(var(--accent-foreground));
+  --color-destructive:          hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-border:                hsl(var(--border));
+  --color-input:                 hsl(var(--input));
+  --color-ring:                  hsl(var(--ring));
+  --color-chart-1: hsl(var(--chart-1));
+  --color-chart-2: hsl(var(--chart-2));
+  --color-chart-3: hsl(var(--chart-3));
+  --color-chart-4: hsl(var(--chart-4));
+  --color-chart-5: hsl(var(--chart-5));
+
+  --radius-sm:  var(--radius-sm);
+  --radius-md:  var(--radius-md);
+  --radius-lg:  var(--radius-lg);
+  --radius-xl:  var(--radius-xl);
+
+  --font-sans: var(--font-ui);
 }
 
 /* ─── Base Resets ────────────────────────────────────────────────────────────── */
@@ -476,6 +530,21 @@
   /* Typography helpers */
   .text-balance { text-wrap: balance; }
   .text-pretty  { text-wrap: pretty; }
+
+  /* Fluid type scale utilities */
+  .text-fluid-xs   { font-size: var(--text-fluid-xs); }
+  .text-fluid-sm   { font-size: var(--text-fluid-sm); }
+  .text-fluid-base { font-size: var(--text-fluid-base); }
+  .text-fluid-lg   { font-size: var(--text-fluid-lg); }
+  .text-fluid-xl   { font-size: var(--text-fluid-xl); line-height: 1.25; }
+  .text-fluid-2xl  { font-size: var(--text-fluid-2xl); line-height: 1.2; }
+  .text-fluid-3xl  { font-size: var(--text-fluid-3xl); line-height: 1.15; }
+
+  /* Minimum touch target (WCAG 2.2 SC 2.5.8) for icon/small interactive controls */
+  .touch-target {
+    min-width: 44px;
+    min-height: 44px;
+  }
 
   /* 3D helpers */
   .perspective   { perspective: 1200px; }
