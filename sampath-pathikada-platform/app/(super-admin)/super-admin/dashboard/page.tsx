@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
+import Link from "next/link";
 import {
   Users, UserCheck, ShieldCheck, Activity, TrendingUp, TrendingDown,
   Clock, CheckCircle2, XCircle, ArrowRight, BarChart3,
@@ -26,7 +27,7 @@ interface RegistrationRow {
   id: string; name: string; district: string; dsDivision: string;
   status: "PENDING" | "APPROVED" | "REJECTED";
   submittedAt: string; approvedAt: string | null;
-  role: "economic-development-officer" | "regional-secretary";
+  role: "economic-development-officer" | "divisional-secretariat";
   roleLabel: string;
   verificationDocType?: "NIC" | "DRIVING_LICENSE" | "PASSPORT" | null;
 }
@@ -225,9 +226,7 @@ export default function SuperAdminDashboard() {
     try {
       const [regsRes, countsRes, usersRes, auditRes] = await Promise.all([
         fetch("/api/registrations?status=all&role=all&limit=50"),
-        Promise.all((["all", "pending", "approved", "rejected"] as const).map(s =>
-          fetch(`/api/registrations?status=${s}&role=all&limit=1`).then(r => r.json())
-        )),
+        fetch("/api/registrations?countsOnly=true"),
         fetch("/api/users"),
         fetch("/api/audit-logs?limit=5"),
       ]);
@@ -235,11 +234,8 @@ export default function SuperAdminDashboard() {
       const regsJson = await regsRes.json() as { ok: boolean; data?: RegistrationRow[] };
       if (regsJson.ok) setRegistrations(regsJson.data ?? []);
 
-      const [all, pending, approved, rejected] = countsRes as Array<{ total?: number }>;
-      setRegCounts({
-        total: all.total ?? 0, pending: pending.total ?? 0,
-        approved: approved.total ?? 0, rejected: rejected.total ?? 0,
-      });
+      const countsJson = await countsRes.json() as { ok: boolean; counts?: typeof regCounts };
+      if (countsJson.ok && countsJson.counts) setRegCounts(countsJson.counts);
 
       const usersJson = await usersRes.json() as { ok: boolean; data?: UserRow[] };
       if (usersJson.ok) setUsers(usersJson.data ?? []);
@@ -285,12 +281,12 @@ export default function SuperAdminDashboard() {
     for (const u of users) counts[u.role] = (counts[u.role] ?? 0) + 1;
     const labelMap: Record<string, string> = {
       ECONOMIC_DEVELOPMENT_OFFICER: "Economic Development Officers",
-      REGIONAL_SECRETARY: "Regional Secretaries",
+      DIVISIONAL_SECRETARIAT: "Divisional Secretariats",
       ADMIN: "Admins",
       SUPER_ADMIN: "Super Admins",
     };
     const colorMap: Record<string, string> = {
-      ECONOMIC_DEVELOPMENT_OFFICER: NAVY, REGIONAL_SECRETARY: MAROON, ADMIN: GREEN, SUPER_ADMIN: GOLD,
+      ECONOMIC_DEVELOPMENT_OFFICER: NAVY, DIVISIONAL_SECRETARIAT: MAROON, ADMIN: GREEN, SUPER_ADMIN: GOLD,
     };
     return Object.entries(counts)
       .filter(([, v]) => v > 0)
@@ -343,7 +339,7 @@ export default function SuperAdminDashboard() {
             ))}
           </div>
           <GhostBtn icon={RefreshCw} label="Refresh" onClick={handleRefresh} busy={refreshing} />
-          <a
+          <Link
             href="/super-admin/registrations"
             className="flex items-center gap-2 px-3.5 py-2 text-[12.5px] font-semibold rounded-xl text-white transition-all"
             style={{
@@ -354,7 +350,7 @@ export default function SuperAdminDashboard() {
             onMouseLeave={e => (e.currentTarget.style.boxShadow = "0 2px 8px rgba(14,43,78,0.25)")}
           >
             <UserCheck size={14} /> Review Registrations
-          </a>
+          </Link>
         </div>
       </div>
 
@@ -520,13 +516,13 @@ export default function SuperAdminDashboard() {
             <h2 className="font-bold text-[14.5px]" style={{ color: "hsl(var(--foreground))" }}>
               Recent Registrations
             </h2>
-            <a
+            <Link
               href="/super-admin/registrations"
               className="flex items-center gap-1 text-[12px] font-semibold hover:underline"
               style={{ color: GOLD_D }}
             >
               View all <ArrowRight size={12} />
-            </a>
+            </Link>
           </div>
           <div>
             {recentRegistrations.length === 0 && (
@@ -535,7 +531,7 @@ export default function SuperAdminDashboard() {
               </p>
             )}
             {recentRegistrations.map(r => (
-              <a
+              <Link
                 key={r.id}
                 href="/super-admin/registrations"
                 className="flex items-center gap-3 px-5 py-3.5 transition-colors"
@@ -567,7 +563,7 @@ export default function SuperAdminDashboard() {
                     {timeAgo(r.submittedAt)}
                   </p>
                 </div>
-              </a>
+              </Link>
             ))}
           </div>
         </div>
@@ -584,13 +580,13 @@ export default function SuperAdminDashboard() {
             <h2 className="font-bold text-[14.5px]" style={{ color: "hsl(var(--foreground))" }}>
               Audit Log
             </h2>
-            <a
+            <Link
               href="/super-admin/audit-logs"
               className="flex items-center gap-1 text-[12px] font-semibold hover:underline"
               style={{ color: GOLD_D }}
             >
               View all <ArrowRight size={12} />
-            </a>
+            </Link>
           </div>
           <div>
             {auditLog.length === 0 && (
@@ -656,7 +652,7 @@ export default function SuperAdminDashboard() {
             { label: "View Audit Logs",       icon: Eye,       href: "/super-admin/audit-logs",     accent: GOLD_D },
             { label: "System Settings",       icon: Settings,  href: "/super-admin/system-settings",accent: MAROON },
           ].map(a => (
-            <a
+            <Link
               key={a.label}
               href={a.href}
               className="flex flex-col items-center gap-2.5 p-4 rounded-xl text-center group transition-all"
@@ -685,7 +681,7 @@ export default function SuperAdminDashboard() {
               >
                 {a.label}
               </span>
-            </a>
+            </Link>
           ))}
         </div>
       </div>

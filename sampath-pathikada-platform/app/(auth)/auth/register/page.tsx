@@ -46,7 +46,7 @@ const STRINGS = {
     roleTitle: "Select Your Role",
     roleSub: "Choose the position that matches your official designation",
     gnLabel: "Economic Development Officer", gnSub: "Village-level administrative officer",
-    rsLabel: "Regional Secretary",       rsSub: "Divisional Secretariat representative",
+    rsLabel: "Divisional Secretariat",   rsSub: "Divisional Secretariat representative",
     locTitle: "Location Details",        locSub: "Select your administrative area",
     district: "District",                selectDistrict: "Select District",
     ds: "Divisional Secretariat",        selectDs: "Select Divisional Secretariat",
@@ -863,7 +863,7 @@ function LangCard({
 /* ─── Role card ──────────────────────────────────────────────────────────── */
 const ROLE_META: Record<UserType, { icon: React.ReactNode; color: string; gradient: string }> = {
   economic_development_officer: { icon: <Users size={24} />,  color: "#1B6CA8", gradient: "linear-gradient(145deg,#2580C8,#1B6CA8)" },
-  reg_secretary:                { icon: <Shield size={24} />, color: CRIMSON,   gradient: `linear-gradient(145deg,#8B1220,${CRIMSON})` },
+  divisional_secretariat:       { icon: <Shield size={24} />, color: CRIMSON,   gradient: `linear-gradient(145deg,#8B1220,${CRIMSON})` },
 };
 
 function RoleCard({
@@ -1225,7 +1225,7 @@ export default function RegisterPage() {
     try {
       const roleMap: Record<string, string> = {
         economic_development_officer: "economic-development-officer",
-        reg_secretary:                "regional-secretary",
+        divisional_secretariat:       "divisional-secretariat",
       };
       const fd = new FormData();
       fd.append("firstName",  data.firstName.trim());
@@ -1323,7 +1323,7 @@ export default function RegisterPage() {
             </p>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: "clamp(8px,1.4vh,12px)" }}>
-            {(["economic_development_officer", "reg_secretary"] as UserType[]).map(role => (
+            {(["economic_development_officer", "divisional_secretariat"] as UserType[]).map(role => (
               <RoleCard
                 key={role} role={role}
                 label={role === "economic_development_officer" ? T.gnLabel : T.rsLabel}

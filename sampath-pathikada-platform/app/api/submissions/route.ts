@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/db";
 import { getSession } from "@/lib/auth";
 
-const REVIEWER_ROLES = ["REGIONAL_SECRETARY", "ADMIN", "SUPER_ADMIN"];
+const REVIEWER_ROLES = ["DIVISIONAL_SECRETARIAT", "ADMIN", "SUPER_ADMIN"];
 
 /* ── GET /api/submissions ── reviewer-facing list, filterable by district/status/year ── */
 export async function GET(req: NextRequest) {
@@ -32,6 +32,15 @@ export async function GET(req: NextRequest) {
       { dsDivision: { contains: search } },
       { submittedBy: { name: { contains: search } } },
     ];
+  }
+
+  // A Divisional Secretariat or Admin may only ever see submissions from their own DS division —
+  // this overrides any other filter and is not client-controllable.
+  if (session.role === "DIVISIONAL_SECRETARIAT" || session.role === "ADMIN") {
+    if (!session.dsDivision) {
+      return NextResponse.json({ ok: false, message: "No division assigned to this account." }, { status: 403 });
+    }
+    where.dsDivision = session.dsDivision;
   }
 
   const [total, submissions] = await Promise.all([

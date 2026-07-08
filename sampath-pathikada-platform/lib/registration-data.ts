@@ -1,5 +1,5 @@
 export type Locale = "en" | "si";
-export type UserType = "economic_development_officer" | "reg_secretary";
+export type UserType = "economic_development_officer" | "divisional_secretariat";
 
 export interface District { id: string; en: string; si: string; }
 export interface DivisionalSecretariat { id: string; districtId: string; en: string; si: string; }

@@ -12,7 +12,7 @@ const PROTECTED_PREFIXES = [
   "/super-admin",
   "/admin",
   "/economic-development-officer",
-  "/regional-secretary",
+  "/divisional-secretariat",
 ];
 
 /* ── Routes that logged-in users should NOT revisit ─────────────────────── */
@@ -54,7 +54,7 @@ export async function middleware(request: NextRequest) {
   const isAuthRoute = AUTH_ROUTES.some((r) => pathname.startsWith(r));
   if (isAuthRoute && authenticated && token) {
     const role = await getSessionRole(token);
-    const dest = role === "super-admin" ? "/super-admin/dashboard" : "/admin/dashboard";
+    const dest = role === "SUPER_ADMIN" ? "/super-admin/dashboard" : "/admin/dashboard";
     return NextResponse.redirect(new URL(dest, request.url));
   }
 

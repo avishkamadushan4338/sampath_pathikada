@@ -7,6 +7,7 @@ import {
   LayoutDashboard, Users, UserCheck, ShieldCheck, ScrollText,
   Settings, Database, ChevronLeft, Menu, Bell, LogOut, Sun, Moon,
   ChevronDown, Crown, Activity, AlertCircle, CheckCircle2, Clock, Zap, X,
+  MapPinned,
 } from "lucide-react";
 
 /* ─── Brand tokens (raw hex so they work everywhere) ─────────────────────── */
@@ -28,6 +29,12 @@ const NAV = [
     items: [
       { href: "/super-admin/registrations",    icon: UserCheck,       label: "Registrations",  badge: 12 },
       { href: "/super-admin/admins",           icon: Users,           label: "Admin Accounts"  },
+    ],
+  },
+  {
+    label: "Analytics",
+    items: [
+      { href: "/super-admin/divisions",        icon: MapPinned,       label: "Division Drill-Down" },
     ],
   },
   {

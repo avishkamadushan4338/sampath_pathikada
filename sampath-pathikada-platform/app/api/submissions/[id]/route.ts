@@ -2,7 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/db";
 import { getSession } from "@/lib/auth";
 
-const REVIEWER_ROLES = ["REGIONAL_SECRETARY", "ADMIN", "SUPER_ADMIN"];
+const REVIEWER_ROLES = ["DIVISIONAL_SECRETARIAT", "ADMIN", "SUPER_ADMIN"];
+
+/** A Divisional Secretariat outside a submission's DS division must see the same
+ *  404 as a genuinely-missing submission — a 403 would leak that a submission
+ *  exists somewhere outside their authorization boundary. */
+function isOutOfScope(session: { role: string; dsDivision: string | null }, submissionDsDivision: string): boolean {
+  return session.role === "DIVISIONAL_SECRETARIAT" && submissionDsDivision !== session.dsDivision;
+}
 
 /* ── GET /api/submissions/[id] ── reviewer view of one officer's submission ──── */
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -17,7 +24,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     include: { submittedBy: { select: { id: true, name: true, email: true, phone: true, nic: true } } },
   });
 
-  if (!submission) {
+  if (!submission || isOutOfScope(session, submission.dsDivision)) {
     return NextResponse.json({ ok: false, message: "Submission not found." }, { status: 404 });
   }
 
@@ -60,7 +67,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   }
 
   const submission = await prisma.submission.findUnique({ where: { id } });
-  if (!submission) {
+  if (!submission || isOutOfScope(session, submission.dsDivision)) {
     return NextResponse.json({ ok: false, message: "Submission not found." }, { status: 404 });
   }
   if (submission.status !== "SUBMITTED") {

@@ -13,7 +13,7 @@ const GOLD_D = "#915F2F";
 const GREEN = "#2D7A51";
 const MAROON = "#66261E";
 
-type Role = "economic-development-officer" | "regional-secretary" | "admin";
+type Role = "economic-development-officer" | "divisional-secretariat" | "admin";
 
 interface Permission { id: string; label: string; description: string; category: string; }
 interface RoleConfig  { id: Role; label: string; labelSi: string; iconBg: string; userCount: number; permissions: string[]; }
@@ -39,7 +39,7 @@ const ALL_PERMISSIONS: Permission[] = [
 
 const ROLE_CONFIGS: RoleConfig[] = [
   { id: "economic-development-officer", label: "Economic Development Officer", labelSi: "ආර්ථික සංවර්ධන නිලධාරී", iconBg: NAVY,   userCount: 312, permissions: ["submission.create","submission.read","submission.update"] },
-  { id: "regional-secretary", label: "Regional Secretary",  labelSi: "ප්‍රාදේශීය ලේකම්",        iconBg: MAROON, userCount: 28,  permissions: ["submission.read","submission.approve","submission.export","analytics.read","analytics.export","user.read"] },
+  { id: "divisional-secretariat", label: "Divisional Secretariat",  labelSi: "ප්‍රාදේශීය ලේකම්",        iconBg: MAROON, userCount: 28,  permissions: ["submission.read","submission.approve","submission.export","analytics.read","analytics.export","user.read"] },
   { id: "admin",              label: "Admin",               labelSi: "පරිපාලක",                   iconBg: GREEN,  userCount: 12,  permissions: ["submission.read","submission.approve","submission.export","user.read","user.create","user.update","analytics.read","analytics.export","system.audit"] },
 ];
 

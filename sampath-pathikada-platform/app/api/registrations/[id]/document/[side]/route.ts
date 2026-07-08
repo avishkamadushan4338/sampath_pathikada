@@ -6,7 +6,7 @@ import { resolveVerificationDocPath, mimeTypeForPath } from "@/lib/verification-
 
 type Params = { params: Promise<{ id: string; side: string }> };
 
-/* ── GET /api/registrations/[id]/document/[side]?role=gn|rs ──────────────────
+/* ── GET /api/registrations/[id]/document/[side]?role=gn|ds ──────────────────
    Super-Admin/Admin-only streaming route for verification document images.
    Never exposes the raw filesystem path — the client only ever sends id+side,
    and this route looks up the real (temporary) path from the DB itself.
@@ -23,8 +23,8 @@ export async function GET(req: NextRequest, { params }: Params) {
   }
 
   const tableKey = (new URL(req.url).searchParams.get("role") ?? "gn") as TableKey;
-  if (!["gn", "rs"].includes(tableKey)) {
-    return NextResponse.json({ ok: false, message: "role must be 'gn' or 'rs'." }, { status: 400 });
+  if (!["gn", "ds"].includes(tableKey)) {
+    return NextResponse.json({ ok: false, message: "role must be 'gn' or 'ds'." }, { status: 400 });
   }
 
   const reg = await findRecord(id, tableKey);

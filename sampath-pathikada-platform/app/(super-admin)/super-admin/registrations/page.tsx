@@ -15,8 +15,8 @@ const NAVY2 = "#0B2240";
 
 /* ── Types ───────────────────────────────────────────────────── */
 type Status = "pending" | "approved" | "rejected";
-type Role = "economic-development-officer" | "regional-secretary";
-type TableKey = "gn" | "rs";
+type Role = "economic-development-officer" | "divisional-secretariat";
+type TableKey = "gn" | "ds";
 type DocType = "NIC" | "DRIVING_LICENSE" | "PASSPORT" | null;
 
 const DOC_TYPE_LABELS: Record<Exclude<DocType, null>, string> = {
@@ -34,12 +34,12 @@ interface Registration {
 
 const ROLE_TO_TABLE_KEY: Record<Role, TableKey> = {
   "economic-development-officer": "gn",
-  "regional-secretary":           "rs",
+  "divisional-secretariat":       "ds",
 };
 
 const UI_ROLE_TO_API: Record<Role | "all", string> = {
   "economic-development-officer": "gn",
-  "regional-secretary":           "rs",
+  "divisional-secretariat":       "ds",
   all:                            "all",
 };
 
@@ -81,7 +81,7 @@ function mapRow(r: ApiRow): Registration {
 /* Role pill — inline styles instead of broken bg-[#hex]/12 */
 const ROLE_STYLES: Record<Role, { bg: string; color: string; border: string; label: string }> = {
   "economic-development-officer": { bg: "rgba(14,43,78,0.10)",  color: NAVY2,    border: "rgba(14,43,78,0.20)",  label: "Economic Development Officer" },
-  "regional-secretary":           { bg: "#f3e8ff",               color: "#6b21a8", border: "#ddd6fe",              label: "Regional Secretary"           },
+  "divisional-secretariat":       { bg: "#f3e8ff",               color: "#6b21a8", border: "#ddd6fe",              label: "Divisional Secretariat"       },
 };
 
 /* ── Status badge ─────────────────────────────────────────────── */
@@ -453,15 +453,9 @@ export default function RegistrationsPage() {
 
   const fetchCounts = useCallback(async () => {
     try {
-      const [all, pending, approved, rejected] = await Promise.all(
-        (["all", "pending", "approved", "rejected"] as const).map(async (s) => {
-          const params = new URLSearchParams({ status: s, role: "all", limit: "1" });
-          const res  = await fetch(`/api/registrations?${params.toString()}`);
-          const json = await res.json() as { total?: number };
-          return json.total ?? 0;
-        })
-      );
-      setCounts({ total: all, pending, approved, rejected });
+      const res  = await fetch(`/api/registrations?countsOnly=true`);
+      const json = await res.json() as { ok: boolean; counts?: typeof counts };
+      if (json.ok && json.counts) setCounts(json.counts);
     } catch {
       // non-critical — leave previous counts in place
     }
@@ -608,7 +602,7 @@ export default function RegistrationsPage() {
           >
             <option value="all">All Roles</option>
             <option value="economic-development-officer">Economic Development Officer</option>
-            <option value="regional-secretary">Regional Secretary</option>
+            <option value="divisional-secretariat">Divisional Secretariat</option>
           </select>
           <ChevronDown size={13} className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: "hsl(var(--muted-foreground))" }} />
         </div>

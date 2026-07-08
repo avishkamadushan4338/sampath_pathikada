@@ -11,10 +11,11 @@ export const COOKIE_NAME     = "sp_session";
 export const SESSION_DURATION = 60 * 60 * 8; // 8 hours
 
 export interface SessionPayload {
-  userId:   string;
-  email:    string;
-  name:     string;
-  role:     string;  // matches UserRole enum values
+  userId:     string;
+  email:      string;
+  name:       string;
+  role:       string;  // matches UserRole enum values
+  dsDivision: string | null; // Divisional Secretariat's own DS division, used to scope reviewer access
 }
 
 // ─── JWT helpers ──────────────────────────────────────────────────────────────
@@ -133,17 +134,18 @@ export async function loginWithCredentials(
   });
 
   const token = await signToken({
-    userId: user.id,
-    email:  user.email,
-    name:   user.name,
-    role:   user.role,
+    userId:     user.id,
+    email:      user.email,
+    name:       user.name,
+    role:       user.role,
+    dsDivision: user.dsDivision,
   });
 
   const roleRedirects: Record<string, string> = {
     SUPER_ADMIN:                  "/super-admin/dashboard",
     ADMIN:                        "/admin/dashboard",
     ECONOMIC_DEVELOPMENT_OFFICER: "/economic-development-officer/dashboard",
-    REGIONAL_SECRETARY:           "/regional-secretary/dashboard",
+    DIVISIONAL_SECRETARIAT:       "/divisional-secretariat/dashboard",
   };
 
   return {

@@ -6,20 +6,20 @@ import { saveVerificationDoc, deleteVerificationDocs, cleanupPartialUpload, Inva
 
 /* ─── Role → table mapping ───────────────────────────────────────────────────
    Incoming `role` values (from the public form):
-     "economic-development-officer" | "regional-secretary"
+     "economic-development-officer" | "divisional-secretariat"
    Normalised to these keys which map to Prisma delegates.
 ──────────────────────────────────────────────────────────────────────────── */
 
 function resolveTable(role: string): TableKey | null {
   const r = role.toLowerCase().replace(/_/g, "-");
   if (r === "economic-development-officer") return "gn";
-  if (r === "regional-secretary")            return "rs";
+  if (r === "divisional-secretariat")        return "ds";
   return null;
 }
 
 const TABLE_LABELS: Record<TableKey, string> = {
   gn:  "Economic Development Officer",
-  rs:  "Regional Secretary",
+  ds:  "Divisional Secretariat",
 };
 
 const VALID_DOC_TYPES = new Set(["NIC", "DRIVING_LICENSE", "PASSPORT"]);
@@ -45,16 +45,16 @@ async function cleanupStaleVerificationDocs() {
     OR: [{ verificationDocFrontPath: { not: null } }, { verificationDocBackPath: { not: null } }],
   };
 
-  const [staleGn, staleRs] = await Promise.all([
+  const [staleGn, staleDs] = await Promise.all([
     prisma.economicDevelopmentOfficerRegistration.findMany({ where, select: { id: true, verificationDocFrontPath: true, verificationDocBackPath: true } }),
-    prisma.regionalSecretaryRegistration.findMany({ where, select: { id: true, verificationDocFrontPath: true, verificationDocBackPath: true } }),
+    prisma.divisionalSecretariatRegistration.findMany({ where, select: { id: true, verificationDocFrontPath: true, verificationDocBackPath: true } }),
   ]);
 
-  for (const rows of [staleGn, staleRs]) {
-    for (const row of rows) {
-      await deleteVerificationDocs(row.id, { front: row.verificationDocFrontPath, back: row.verificationDocBackPath });
-    }
-  }
+  await Promise.all(
+    [...staleGn, ...staleDs].map(row =>
+      deleteVerificationDocs(row.id, { front: row.verificationDocFrontPath, back: row.verificationDocBackPath })
+    )
+  );
 
   if (staleGn.length) {
     await prisma.economicDevelopmentOfficerRegistration.updateMany({
@@ -62,9 +62,9 @@ async function cleanupStaleVerificationDocs() {
       data: { verificationDocFrontPath: null, verificationDocBackPath: null, verificationDocDeletedAt: new Date() },
     });
   }
-  if (staleRs.length) {
-    await prisma.regionalSecretaryRegistration.updateMany({
-      where: { id: { in: staleRs.map(r => r.id) } },
+  if (staleDs.length) {
+    await prisma.divisionalSecretariatRegistration.updateMany({
+      where: { id: { in: staleDs.map(r => r.id) } },
       data: { verificationDocFrontPath: null, verificationDocBackPath: null, verificationDocDeletedAt: new Date() },
     });
   }
@@ -77,14 +77,13 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ ok: false, message: "Unauthorized" }, { status: 401 });
   }
 
-  await cleanupStaleVerificationDocs().catch(err => console.error("[stale-doc-cleanup]", err));
-
   const { searchParams } = new URL(req.url);
   const statusParam = searchParams.get("status") ?? "all";
-  const tableParam  = searchParams.get("role")   ?? "all";   // "gn" | "eco" | "rs" | "all"
+  const tableParam  = searchParams.get("role")   ?? "all";   // "gn" | "ds" | "all"
   const search      = searchParams.get("search") ?? "";
   const page        = Math.max(1, parseInt(searchParams.get("page")  ?? "1"));
   const pageSize    = Math.min(50, parseInt(searchParams.get("limit") ?? "20"));
+  const countsOnly  = searchParams.get("countsOnly") === "true";
 
   const statusFilter  = statusParam !== "all" ? statusParam.toUpperCase() as any : undefined;
   const searchFilter  = search ? {
@@ -101,6 +100,30 @@ export async function GET(req: NextRequest) {
     ...searchFilter,
   };
 
+  // Lightweight mode: return status counts (total/pending/approved/rejected) via
+  // one round trip using indexed COUNT queries instead of transferring full rows.
+  if (countsOnly) {
+    const whereFor = (status?: "PENDING" | "APPROVED" | "REJECTED") => ({
+      ...(status ? { status } : {}),
+      ...searchFilter,
+    });
+    const countBoth = (where: object) => Promise.all([
+      prisma.economicDevelopmentOfficerRegistration.count({ where }),
+      prisma.divisionalSecretariatRegistration.count({ where }),
+    ]).then(([a, b]) => a + b);
+
+    const [total, pending, approved, rejected] = await Promise.all([
+      countBoth(whereFor()),
+      countBoth(whereFor("PENDING")),
+      countBoth(whereFor("APPROVED")),
+      countBoth(whereFor("REJECTED")),
+    ]);
+
+    return NextResponse.json({ ok: true, counts: { total, pending, approved, rejected } });
+  }
+
+  await cleanupStaleVerificationDocs().catch(err => console.error("[stale-doc-cleanup]", err));
+
   const baseSelect = {
     id: true, name: true, email: true, phone: true,
     nic: true, district: true, dsDivision: true,
@@ -113,9 +136,9 @@ export async function GET(req: NextRequest) {
 
   // Query only the requested table(s) in parallel
   type GnRow = Awaited<ReturnType<typeof prisma.economicDevelopmentOfficerRegistration.findMany<{ where: typeof baseWhere; select: typeof baseSelect & { gnDivision: true } }>>>;
-  type RsRow = Awaited<ReturnType<typeof prisma.regionalSecretaryRegistration.findMany<{ where: typeof baseWhere; select: typeof baseSelect }>>>;
+  type DsRow = Awaited<ReturnType<typeof prisma.divisionalSecretariatRegistration.findMany<{ where: typeof baseWhere; select: typeof baseSelect }>>>;
 
-  const [gnRows, rsRows] = await Promise.all([
+  const [gnRows, dsRows] = await Promise.all([
     (tableParam === "all" || tableParam === "gn")
       ? prisma.economicDevelopmentOfficerRegistration.findMany({
           where: baseWhere,
@@ -123,13 +146,13 @@ export async function GET(req: NextRequest) {
           select: { ...baseSelect, gnDivision: true },
         })
       : ([] as GnRow),
-    (tableParam === "all" || tableParam === "rs")
-      ? prisma.regionalSecretaryRegistration.findMany({
+    (tableParam === "all" || tableParam === "ds")
+      ? prisma.divisionalSecretariatRegistration.findMany({
           where: baseWhere,
           orderBy: { submittedAt: "desc" },
           select: baseSelect,
         })
-      : ([] as RsRow),
+      : ([] as DsRow),
   ]);
 
   // Tag each row with its role and merge — never serialize raw document paths to the client,
@@ -143,12 +166,12 @@ export async function GET(req: NextRequest) {
     ...r, ...withDocFlags(verificationDocFrontPath, verificationDocBackPath),
     role: "economic-development-officer" as const, roleLabel: "Economic Development Officer",
   }));
-  const rsMapped = rsRows.map(({ verificationDocFrontPath, verificationDocBackPath, ...r }) => ({
+  const dsMapped = dsRows.map(({ verificationDocFrontPath, verificationDocBackPath, ...r }) => ({
     ...r, ...withDocFlags(verificationDocFrontPath, verificationDocBackPath),
-    role: "regional-secretary" as const, roleLabel: "Regional Secretary",
+    role: "divisional-secretariat" as const, roleLabel: "Divisional Secretariat",
   }));
 
-  const all: Array<typeof gnMapped[number] | typeof rsMapped[number]> = [...gnMapped, ...rsMapped];
+  const all: Array<typeof gnMapped[number] | typeof dsMapped[number]> = [...gnMapped, ...dsMapped];
   all.sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime());
 
   // Client-side pagination after merge
@@ -189,7 +212,7 @@ export async function POST(req: NextRequest) {
 
     const tableKey = resolveTable(role);
     if (!tableKey) {
-      return NextResponse.json({ ok: false, message: "Invalid role. Must be economic-development-officer or regional-secretary." }, { status: 400 });
+      return NextResponse.json({ ok: false, message: "Invalid role. Must be economic-development-officer or divisional-secretariat." }, { status: 400 });
     }
 
     // Economic Development Officers must provide gnDivision
@@ -213,12 +236,12 @@ export async function POST(req: NextRequest) {
     const ip = req.headers.get("x-forwarded-for")?.split(",")[0] ?? undefined;
 
     // Duplicate check across both tables + users table
-    const [gnDup, rsDup, userDup] = await Promise.all([
+    const [gnDup, dsDup, userDup] = await Promise.all([
       prisma.economicDevelopmentOfficerRegistration.findFirst({
         where: { OR: [{ email: emailLower }, { nic: nicTrimmed }], status: { not: "REJECTED" } },
         select: { id: true, email: true },
       }),
-      prisma.regionalSecretaryRegistration.findFirst({
+      prisma.divisionalSecretariatRegistration.findFirst({
         where: { OR: [{ email: emailLower }, { nic: nicTrimmed }], status: { not: "REJECTED" } },
         select: { id: true, email: true },
       }),
@@ -228,7 +251,7 @@ export async function POST(req: NextRequest) {
       }),
     ]);
 
-    if (gnDup || rsDup) {
+    if (gnDup || dsDup) {
       return NextResponse.json({ ok: false, message: "A registration with this email or NIC already exists and is pending or approved." }, { status: 409 });
     }
     if (userDup) {
@@ -266,7 +289,7 @@ export async function POST(req: NextRequest) {
       });
       registrationId = rec.id;
     } else {
-      const rec = await prisma.regionalSecretaryRegistration.create({ data: commonData });
+      const rec = await prisma.divisionalSecretariatRegistration.create({ data: commonData });
       registrationId = rec.id;
     }
 
@@ -277,13 +300,13 @@ export async function POST(req: NextRequest) {
 
       const docUpdate = { verificationDocFrontPath: frontPath, verificationDocBackPath: backPath };
       if (tableKey === "gn") await prisma.economicDevelopmentOfficerRegistration.update({ where: { id: registrationId }, data: docUpdate });
-      else                   await prisma.regionalSecretaryRegistration.update({ where: { id: registrationId }, data: docUpdate });
+      else                   await prisma.divisionalSecretariatRegistration.update({ where: { id: registrationId }, data: docUpdate });
     } catch (docErr) {
       // Roll back: remove the just-created row and any partially-written files.
       // Prisma transactions can't span filesystem writes, so this is a manual two-phase cleanup.
       await cleanupPartialUpload(registrationId);
       if (tableKey === "gn") await prisma.economicDevelopmentOfficerRegistration.delete({ where: { id: registrationId } }).catch(() => {});
-      else                   await prisma.regionalSecretaryRegistration.delete({ where: { id: registrationId } }).catch(() => {});
+      else                   await prisma.divisionalSecretariatRegistration.delete({ where: { id: registrationId } }).catch(() => {});
 
       const message = docErr instanceof InvalidDocumentError ? docErr.message : "Failed to process the uploaded document image.";
       return NextResponse.json({ ok: false, message }, { status: 400 });

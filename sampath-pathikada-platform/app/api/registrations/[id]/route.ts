@@ -6,7 +6,7 @@ import { deleteVerificationDocs } from "@/lib/verification-docs";
 
 type Params = { params: Promise<{ id: string }> };
 
-/* ── GET /api/registrations/[id]?role=gn|rs ─────────────────────────── */
+/* ── GET /api/registrations/[id]?role=gn|ds ─────────────────────────── */
 export async function GET(req: NextRequest, { params }: Params) {
   const session = await getSession();
   if (!session || !["SUPER_ADMIN", "ADMIN"].includes(session.role)) {
@@ -45,14 +45,14 @@ export async function PATCH(req: NextRequest, { params }: Params) {
   const { id } = await params;
   const body = await req.json() as {
     action: "approve" | "reject";
-    role: TableKey;          // which table: "gn" | "rs"
+    role: TableKey;          // which table: "gn" | "ds"
     rejectionNote?: string;
   };
 
   const { action, role: tableKey, rejectionNote } = body;
 
-  if (!tableKey || !["gn", "rs"].includes(tableKey)) {
-    return NextResponse.json({ ok: false, message: "role must be 'gn' or 'rs'." }, { status: 400 });
+  if (!tableKey || !["gn", "ds"].includes(tableKey)) {
+    return NextResponse.json({ ok: false, message: "role must be 'gn' or 'ds'." }, { status: 400 });
   }
 
   const reg = await findRecord(id, tableKey);
@@ -78,7 +78,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     };
 
     if (tableKey === "gn")  await prisma.economicDevelopmentOfficerRegistration.update({ where: { id }, data: updateData });
-    else await prisma.regionalSecretaryRegistration.update({ where: { id }, data: updateData });
+    else await prisma.divisionalSecretariatRegistration.update({ where: { id }, data: updateData });
 
     // Delete the verification document files now that a decision has been made —
     // retaining ID images after review is not permitted.
@@ -145,7 +145,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
       };
 
       if (tableKey === "gn") await tx.economicDevelopmentOfficerRegistration.update({ where: { id }, data: approveData });
-      else                   await tx.regionalSecretaryRegistration.update({ where: { id }, data: approveData });
+      else                   await tx.divisionalSecretariatRegistration.update({ where: { id }, data: approveData });
 
       await tx.auditLog.create({
         data: {

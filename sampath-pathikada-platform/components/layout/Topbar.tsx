@@ -27,12 +27,12 @@ const HOME_ROUTES: Record<string, string> = {
   SUPER_ADMIN: "/super-admin/dashboard",
   ADMIN: "/admin/dashboard",
   ECONOMIC_DEVELOPMENT_OFFICER: "/economic-development-officer/dashboard",
-  REGIONAL_SECRETARY: "/regional-secretary/dashboard",
+  DIVISIONAL_SECRETARIAT: "/divisional-secretariat/dashboard",
 };
 
 const PROFILE_ROUTES: Record<string, string> = {
   ECONOMIC_DEVELOPMENT_OFFICER: "/economic-development-officer/profile",
-  REGIONAL_SECRETARY: "/regional-secretary/dashboard",
+  DIVISIONAL_SECRETARIAT: "/divisional-secretariat/dashboard",
 };
 
 export function Topbar({ saveStatus = "idle" }: TopbarProps) {
