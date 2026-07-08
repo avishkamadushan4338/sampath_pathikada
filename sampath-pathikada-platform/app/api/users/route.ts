@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/db";
 import { getSession, hashPassword } from "@/lib/auth";
+import { DIVISIONAL_SECRETARIATS } from "@/lib/registration-data";
 
 /* ── GET /api/users ── list admin accounts ────────────────────────────────── */
 export async function GET(req: NextRequest) {
@@ -45,8 +46,8 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const { name, email, phone, password, districts } = await req.json() as {
-      name: string; email: string; phone?: string; password: string; districts?: string[];
+    const { name, email, phone, password, dsDivision } = await req.json() as {
+      name: string; email: string; phone?: string; password: string; dsDivision?: string;
     };
 
     if (!name || !email || !password) {
@@ -54,6 +55,14 @@ export async function POST(req: NextRequest) {
     }
     if (password.length < 8) {
       return NextResponse.json({ ok: false, message: "Password must be at least 8 characters." }, { status: 400 });
+    }
+    if (!dsDivision) {
+      return NextResponse.json({ ok: false, message: "A division must be assigned to this admin account." }, { status: 400 });
+    }
+
+    const division = DIVISIONAL_SECRETARIATS.find((d) => d.id === dsDivision);
+    if (!division) {
+      return NextResponse.json({ ok: false, message: "Unknown division selected." }, { status: 400 });
     }
 
     const emailLower = email.toLowerCase().trim();
@@ -72,23 +81,24 @@ export async function POST(req: NextRequest) {
         passwordHash,
         role:             "ADMIN",
         status:           "ACTIVE",
-        district:         districts?.[0] ?? null,
+        district:         division.districtId,
+        dsDivision:       division.id,
         mustResetPassword: true,
         emailVerified:    true,
         createdById:      session.userId,
       },
-      select: { id: true, name: true, email: true, role: true, status: true, createdAt: true },
+      select: { id: true, name: true, email: true, role: true, status: true, district: true, dsDivision: true, createdAt: true },
     });
 
     await prisma.auditLog.create({
       data: {
         action:      "Admin Created",
-        description: `New admin account created for ${name} (${emailLower})`,
+        description: `New admin account created for ${name} (${emailLower}), assigned to ${division.en}`,
         category:    "ADMIN",
         severity:    "INFO",
         userId:      session.userId,
         userName:    session.name,
-        metadata:    { newAdminId: user.id, assignedDistricts: districts ?? [] },
+        metadata:    { newAdminId: user.id, dsDivision: division.id, district: division.districtId },
       },
     });
 
