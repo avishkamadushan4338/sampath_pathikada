@@ -18,7 +18,7 @@ enum UserRole {
   SUPER_ADMIN
   ADMIN
   ECONOMIC_DEVELOPMENT_OFFICER
-  REGIONAL_SECRETARY
+  DIVISIONAL_SECRETARIAT
 }
 
 enum UserStatus {
@@ -98,7 +98,7 @@ model User {
   auditLogs                    AuditLog[]
   submissions                  Submission[]
   gnApprovals                  EconomicDevelopmentOfficerRegistration[] @relation("GnApprovedBy")
-  regionalSecretaryApprovals   RegionalSecretaryRegistration[] @relation("RsApprovedBy")
+  divisionalSecretariatApprovals DivisionalSecretariatRegistration[] @relation("DsApprovedBy")
 
   @@index([email])
   @@index([role])
@@ -157,10 +157,10 @@ model EconomicDevelopmentOfficerRegistration {
   @@map("economic_development_officer_registrations")
 }
 
-// ─── 2. Regional Secretary Registrations ─────────────────────────────────────
-//    Table: regional_secretary_registrations
+// ─── 2. Divisional Secretariat Registrations ─────────────────────────────────
+//    Table: divisional_secretariat_registrations
 
-model RegionalSecretaryRegistration {
+model DivisionalSecretariatRegistration {
   id                   String             @id @default(cuid())
 
   firstName            String?            @db.VarChar(80)
@@ -184,7 +184,7 @@ model RegionalSecretaryRegistration {
   rejectionNote        String?            @db.Text
   approvedAt           DateTime?
   approvedById         String?
-  approvedBy           User?              @relation("RsApprovedBy", fields: [approvedById], references: [id])
+  approvedBy           User?              @relation("DsApprovedBy", fields: [approvedById], references: [id])
 
   submittedAt          DateTime           @default(now())
   updatedAt            DateTime           @updatedAt
@@ -195,7 +195,7 @@ model RegionalSecretaryRegistration {
   @@index([dsDivision])
   @@index([email])
   @@index([nic])
-  @@map("regional_secretary_registrations")
+  @@map("divisional_secretariat_registrations")
 }
 
 // ─── Audit Log ────────────────────────────────────────────────────────────────
