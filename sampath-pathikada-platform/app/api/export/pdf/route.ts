@@ -56,8 +56,22 @@ export async function GET(req: NextRequest) {
   });
 
   const division = dsDivisionFilter ? DIVISIONAL_SECRETARIATS.find((d) => d.id === dsDivisionFilter) : null;
-  const district = division ? DISTRICTS.find((d) => d.id === division.districtId) : null;
+  const district = districtFilter
+    ? DISTRICTS.find((d) => d.id === districtFilter)
+    : division
+      ? DISTRICTS.find((d) => d.id === division.districtId)
+      : null;
   const gnLabel = (id: string) => GN_DIVISIONS.find((g) => g.id === id)?.en ?? id;
+
+  // Single-GN scope gets its own explicit label in the report header, matching the CSV/Excel scoping.
+  const singleGn = gnDivisionFilter && gnDivisionFilter.length === 1 ? GN_DIVISIONS.find((g) => g.id === gnDivisionFilter[0]) : null;
+  const scopeLabel = singleGn
+    ? `${singleGn.en} GN Division${division ? ` · ${division.en}` : ""}${district ? ` · ${district.en} District` : ""}`
+    : division
+      ? `${division.en} · ${district?.en ?? ""}`
+      : district
+        ? `${district.en} District`
+        : "All Districts";
 
   const aggregate = aggregateDemographics(rows);
 
@@ -70,7 +84,7 @@ export async function GET(req: NextRequest) {
   doc.setFontSize(11);
   doc.setTextColor("#47556D");
   doc.text(
-    `${division ? `${division.en} · ${district?.en ?? ""}` : "All Divisions"}  |  Reporting Year ${year}/${(year + 1) % 100}  |  Generated ${new Date().toLocaleDateString("en-LK")}`,
+    `${scopeLabel}  |  Reporting Year ${year}/${(year + 1) % 100}  |  Generated ${new Date().toLocaleDateString("en-LK")}`,
     40, 60
   );
 
@@ -170,11 +184,15 @@ export async function GET(req: NextRequest) {
 
   const buffer = Buffer.from(doc.output("arraybuffer"));
 
+  const scopeSlug = gnDivisionFilter && gnDivisionFilter.length === 1
+    ? gnDivisionFilter[0]
+    : dsDivisionFilter ?? districtFilter ?? "all";
+
   return new NextResponse(buffer, {
     status: 200,
     headers: {
       "Content-Type": "application/pdf",
-      "Content-Disposition": `attachment; filename="division-summary-${year}.pdf"`,
+      "Content-Disposition": `attachment; filename="division-summary-${scopeSlug}-${year}.pdf"`,
     },
   });
 }

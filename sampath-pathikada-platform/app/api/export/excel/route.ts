@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import * as XLSX from "xlsx";
 import prisma from "@/lib/db";
 import { getSession } from "@/lib/auth";
-import { DIVISIONAL_SECRETARIATS, GN_DIVISIONS } from "@/lib/registration-data";
+import { DISTRICTS, DIVISIONAL_SECRETARIATS, GN_DIVISIONS } from "@/lib/registration-data";
 import { CURRENT_YEAR } from "@/lib/constants";
 import { aggregateDemographics } from "@/lib/analytics/aggregate-demographics";
 import {
@@ -57,6 +57,22 @@ export async function GET(req: NextRequest) {
   const gnLabel = (id: string) => GN_DIVISIONS.find((g) => g.id === id)?.en ?? id;
   const dsLabel = (id: string) => DIVISIONAL_SECRETARIATS.find((d) => d.id === id)?.en ?? id;
 
+  // Scope label shown on the Report Info sheet — mirrors the PDF export's header scope logic.
+  const singleGn = gnDivisionFilter && gnDivisionFilter.length === 1 ? GN_DIVISIONS.find((g) => g.id === gnDivisionFilter[0]) : null;
+  const scopeDivision = dsDivisionFilter ? DIVISIONAL_SECRETARIATS.find((d) => d.id === dsDivisionFilter) : null;
+  const scopeDistrict = districtFilter
+    ? DISTRICTS.find((d) => d.id === districtFilter)
+    : scopeDivision
+      ? DISTRICTS.find((d) => d.id === scopeDivision.districtId)
+      : null;
+  const scopeLabel = singleGn
+    ? `${singleGn.en} GN Division${scopeDivision ? ` · ${scopeDivision.en}` : ""}${scopeDistrict ? ` · ${scopeDistrict.en} District` : ""}`
+    : scopeDivision
+      ? `${scopeDivision.en}${scopeDistrict ? ` · ${scopeDistrict.en} District` : ""}`
+      : scopeDistrict
+        ? `${scopeDistrict.en} District`
+        : "All Districts";
+
   const summarySheet = rows.map((r) => {
     const demo = aggregateDemographics([r]);
     return {
@@ -98,6 +114,16 @@ export async function GET(req: NextRequest) {
   }));
 
   const workbook = XLSX.utils.book_new();
+
+  const reportInfoWs = XLSX.utils.json_to_sheet([
+    { Field: "Report", Value: "Sampath Pathikada — Division Summary Report" },
+    { Field: "Scope", Value: scopeLabel },
+    { Field: "Reporting Year", Value: `${year}/${(year + 1) % 100}` },
+    { Field: "GN Divisions in Scope", Value: rows.length },
+    { Field: "Generated", Value: new Date().toLocaleDateString("en-LK") },
+  ], { skipHeader: true });
+  reportInfoWs["!cols"] = [{ wch: 22 }, { wch: 50 }];
+  XLSX.utils.book_append_sheet(workbook, reportInfoWs, "Report Info");
 
   const summaryWs = XLSX.utils.json_to_sheet(summarySheet);
   summaryWs["!cols"] = Array(18).fill({ wch: 18 });
@@ -227,11 +253,15 @@ export async function GET(req: NextRequest) {
 
   const buffer = XLSX.write(workbook, { type: "buffer", bookType: "xlsx" });
 
+  const scopeSlug = gnDivisionFilter && gnDivisionFilter.length === 1
+    ? gnDivisionFilter[0]
+    : dsDivisionFilter ?? districtFilter ?? "all";
+
   return new NextResponse(buffer, {
     status: 200,
     headers: {
       "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      "Content-Disposition": `attachment; filename="division-summary-${year}.xlsx"`,
+      "Content-Disposition": `attachment; filename="division-summary-${scopeSlug}-${year}.xlsx"`,
     },
   });
 }
