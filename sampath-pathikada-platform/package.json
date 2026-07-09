@@ -9,6 +9,7 @@
     "lint": "next lint",
     "lint:fix": "next lint --fix",
     "type-check": "tsc --noEmit",
+    "test": "vitest run",
     "db:push": "prisma db push",
     "db:generate": "prisma generate",
     "db:studio": "prisma studio",
@@ -163,13 +164,16 @@
     "@types/three": "^0.176.0",
     "@typescript-eslint/eslint-plugin": "^8.34.1",
     "@typescript-eslint/parser": "^8.34.1",
+    "@vitejs/plugin-react": "^6.0.3",
     "eslint": "^9.28.0",
     "eslint-config-next": "15.3.3",
     "eslint-plugin-tailwindcss": "^3.18.0",
     "prettier": "^3.5.3",
     "prettier-plugin-tailwindcss": "^0.6.12",
     "ts-node": "^10.9.2",
-    "vite": "^6.3.5"
+    "vite": "^6.3.5",
+    "vite-tsconfig-paths": "^6.1.1",
+    "vitest": "^4.1.10"
   },
   "engines": {
     "node": ">=20.0.0",
