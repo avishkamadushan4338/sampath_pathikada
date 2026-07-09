@@ -281,3 +281,15 @@ model SystemSetting {
 
   @@map("system_settings")
 }
+
+// ─── Website Content ────────────────────────────────────────────────────────
+
+model WebsiteContent {
+  key         String   @id @db.VarChar(80)
+  title       String   @db.VarChar(200)
+  body        String   @db.Text
+  updatedAt   DateTime @updatedAt
+  updatedById String?
+
+  @@map("website_content")
+}
