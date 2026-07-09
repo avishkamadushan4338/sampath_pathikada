@@ -5,6 +5,9 @@ node_modules/
 .next/
 out/
 
+# TypeScript incremental build cache
+*.tsbuildinfo
+
 # Prisma generated client (regenerate with: npm run db:generate)
 lib/prisma-client/
 

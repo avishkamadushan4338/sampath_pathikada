@@ -1,10 +1,8 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { jwtVerify } from "jose";
+import { JWT_SECRET } from "@/lib/jwt-secret";
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET ?? "sampath-pathikada-super-secret-key-2026-change-in-production"
-);
 const COOKIE_NAME = "sp_session";
 
 /* ── Routes that require a valid session ─────────────────────────────────── */

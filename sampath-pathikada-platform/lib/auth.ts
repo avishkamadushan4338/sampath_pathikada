@@ -2,11 +2,8 @@ import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import bcrypt from "bcryptjs";
 import prisma from "@/lib/db";
+import { JWT_SECRET } from "@/lib/jwt-secret";
 
-// ─── JWT config ───────────────────────────────────────────────────────────────
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET ?? "sampath-pathikada-super-secret-key-2026-change-in-production"
-);
 export const COOKIE_NAME     = "sp_session";
 export const SESSION_DURATION = 60 * 60 * 8; // 8 hours
 

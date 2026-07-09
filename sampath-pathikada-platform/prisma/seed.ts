@@ -7,9 +7,19 @@ async function main() {
   console.log("🌱  Seeding database…");
 
   // ── Super Admin ────────────────────────────────────────────────────────────
-  const email    = process.env.SUPER_ADMIN_EMAIL    ?? "superadmin@sampath.lk";
-  const password = process.env.SUPER_ADMIN_PASSWORD ?? "SuperAdmin@2026";
-  const hash     = await bcrypt.hash(password, 12);
+  const email    = process.env.SUPER_ADMIN_EMAIL;
+  const password = process.env.SUPER_ADMIN_PASSWORD;
+
+  if (!email || !password) {
+    throw new Error(
+      "SUPER_ADMIN_EMAIL and SUPER_ADMIN_PASSWORD must be set before seeding — refusing to create an account with a predictable default password."
+    );
+  }
+  if (password.length < 8) {
+    throw new Error("SUPER_ADMIN_PASSWORD must be at least 8 characters.");
+  }
+
+  const hash = await bcrypt.hash(password, 12);
 
   const superAdmin = await prisma.user.upsert({
     where: { email },
