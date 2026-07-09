@@ -2,11 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/db";
 import { getSession, hashPassword } from "@/lib/auth";
 import { DIVISIONAL_SECRETARIATS } from "@/lib/registration-data";
+import { verifyOrigin } from "@/lib/csrf";
 
-/* ── GET /api/users ── list admin accounts ────────────────────────────────── */
+/* ── GET /api/users ── list admin accounts ────────────────────────────────────
+   SUPER_ADMIN sees all users. ADMIN is scoped to their own dsDivision only —
+   they can only see/manage accounts within the division they were assigned. */
 export async function GET(req: NextRequest) {
   const session = await getSession();
-  if (!session || session.role !== "SUPER_ADMIN") {
+  if (!session || !["SUPER_ADMIN", "ADMIN"].includes(session.role)) {
     return NextResponse.json({ ok: false, message: "Unauthorized" }, { status: 401 });
   }
 
@@ -24,6 +27,9 @@ export async function GET(req: NextRequest) {
       { email: { contains: search } },
     ];
   }
+  if (session.role === "ADMIN") {
+    where.dsDivision = session.dsDivision;
+  }
 
   const users = await prisma.user.findMany({
     where,
@@ -38,17 +44,29 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({ ok: true, data: users });
 }
 
-/* ── POST /api/users ── create an admin account ───────────────────────────── */
+/* ── POST /api/users ── create an admin account ──────────────────────────────
+   SUPER_ADMIN may assign any division. ADMIN may only create accounts within
+   their own dsDivision — the client-supplied dsDivision is ignored for ADMIN
+   and forced to session.dsDivision instead. */
 export async function POST(req: NextRequest) {
+  if (!verifyOrigin(req)) {
+    return NextResponse.json({ ok: false, message: "Invalid request origin." }, { status: 403 });
+  }
+
   const session = await getSession();
-  if (!session || session.role !== "SUPER_ADMIN") {
+  if (!session || !["SUPER_ADMIN", "ADMIN"].includes(session.role)) {
     return NextResponse.json({ ok: false, message: "Unauthorized" }, { status: 401 });
+  }
+  if (session.role === "ADMIN" && !session.dsDivision) {
+    return NextResponse.json({ ok: false, message: "Your account has no division assigned." }, { status: 403 });
   }
 
   try {
-    const { name, email, phone, password, dsDivision } = await req.json() as {
+    const { name, email, phone, password, dsDivision: requestedDsDivision } = await req.json() as {
       name: string; email: string; phone?: string; password: string; dsDivision?: string;
     };
+
+    const dsDivision = session.role === "ADMIN" ? session.dsDivision! : requestedDsDivision;
 
     if (!name || !email || !password) {
       return NextResponse.json({ ok: false, message: "Name, email, and password are required." }, { status: 400 });

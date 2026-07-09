@@ -3,6 +3,7 @@ import prisma from "@/lib/db";
 import { hashPassword, getSession } from "@/lib/auth";
 import { type TableKey } from "@/lib/registrations";
 import { saveVerificationDoc, deleteVerificationDocs, cleanupPartialUpload, InvalidDocumentError } from "@/lib/verification-docs";
+import { verifyOrigin } from "@/lib/csrf";
 
 /* ─── Role → table mapping ───────────────────────────────────────────────────
    Incoming `role` values (from the public form):
@@ -186,6 +187,10 @@ export async function GET(req: NextRequest) {
    arrive together in one multipart request.
 ──────────────────────────────────────────────────────────────────────────── */
 export async function POST(req: NextRequest) {
+  if (!verifyOrigin(req)) {
+    return NextResponse.json({ ok: false, message: "Invalid request origin." }, { status: 403 });
+  }
+
   let registrationId: string | undefined;
 
   try {

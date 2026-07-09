@@ -3,6 +3,7 @@ import prisma from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import { findRecord, ROLE_LABELS, USER_ROLE_MAP, type TableKey } from "@/lib/registrations";
 import { deleteVerificationDocs } from "@/lib/verification-docs";
+import { verifyOrigin } from "@/lib/csrf";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -37,6 +38,10 @@ export async function GET(req: NextRequest, { params }: Params) {
 
 /* ── PATCH /api/registrations/[id] ── approve or reject ─────────────────── */
 export async function PATCH(req: NextRequest, { params }: Params) {
+  if (!verifyOrigin(req)) {
+    return NextResponse.json({ ok: false, message: "Invalid request origin." }, { status: 403 });
+  }
+
   const session = await getSession();
   if (!session || !["SUPER_ADMIN", "ADMIN"].includes(session.role)) {
     return NextResponse.json({ ok: false, message: "Unauthorized" }, { status: 401 });

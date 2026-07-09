@@ -1,11 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { loginWithCredentials, COOKIE_NAME, SESSION_DURATION } from "@/lib/auth";
 import { rateLimit } from "@/lib/rate-limit";
+import { verifyOrigin } from "@/lib/csrf";
 
 const LOGIN_LIMIT = 10;
 const LOGIN_WINDOW_SECONDS = 60;
 
 export async function POST(req: NextRequest) {
+  if (!verifyOrigin(req)) {
+    return NextResponse.json({ ok: false, message: "Invalid request origin." }, { status: 403 });
+  }
+
   try {
     const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? req.headers.get("x-real-ip") ?? "unknown";
 

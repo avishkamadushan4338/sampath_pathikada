@@ -1,13 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/db";
 import { getSession } from "@/lib/auth";
+import { verifyOrigin } from "@/lib/csrf";
 
 type Params = { params: Promise<{ id: string }> };
 
-/* ── PATCH /api/users/[id] ── toggle status, update details ──────────────── */
+/* ── PATCH /api/users/[id] ── toggle status, update details ────────────────────
+   ADMIN may only modify users within their own dsDivision — a user outside
+   that scope is reported as not found, matching the pattern used elsewhere
+   in this codebase for cross-scope access (see submissions/[id]/route.ts). */
 export async function PATCH(req: NextRequest, { params }: Params) {
+  if (!verifyOrigin(req)) {
+    return NextResponse.json({ ok: false, message: "Invalid request origin." }, { status: 403 });
+  }
+
   const session = await getSession();
-  if (!session || session.role !== "SUPER_ADMIN") {
+  if (!session || !["SUPER_ADMIN", "ADMIN"].includes(session.role)) {
     return NextResponse.json({ ok: false, message: "Unauthorized" }, { status: 401 });
   }
 
@@ -15,7 +23,9 @@ export async function PATCH(req: NextRequest, { params }: Params) {
   const body = await req.json() as { status?: "ACTIVE" | "INACTIVE"; name?: string; phone?: string };
 
   const user = await prisma.user.findUnique({ where: { id } });
-  if (!user) return NextResponse.json({ ok: false, message: "User not found." }, { status: 404 });
+  if (!user || (session.role === "ADMIN" && user.dsDivision !== session.dsDivision)) {
+    return NextResponse.json({ ok: false, message: "User not found." }, { status: 404 });
+  }
 
   const updated = await prisma.user.update({
     where: { id },
@@ -46,9 +56,13 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 }
 
 /* ── DELETE /api/users/[id] ──────────────────────────────────────────────── */
-export async function DELETE(_req: NextRequest, { params }: Params) {
+export async function DELETE(req: NextRequest, { params }: Params) {
+  if (!verifyOrigin(req)) {
+    return NextResponse.json({ ok: false, message: "Invalid request origin." }, { status: 403 });
+  }
+
   const session = await getSession();
-  if (!session || session.role !== "SUPER_ADMIN") {
+  if (!session || !["SUPER_ADMIN", "ADMIN"].includes(session.role)) {
     return NextResponse.json({ ok: false, message: "Unauthorized" }, { status: 401 });
   }
 
@@ -58,7 +72,9 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
   }
 
   const user = await prisma.user.findUnique({ where: { id } });
-  if (!user) return NextResponse.json({ ok: false, message: "User not found." }, { status: 404 });
+  if (!user || (session.role === "ADMIN" && user.dsDivision !== session.dsDivision)) {
+    return NextResponse.json({ ok: false, message: "User not found." }, { status: 404 });
+  }
 
   await prisma.user.delete({ where: { id } });
 

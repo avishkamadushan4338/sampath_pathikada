@@ -3,6 +3,7 @@ import prisma from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import { isSectionKey } from "@/lib/types/submission";
 import { getSectionPartialSchema } from "@/lib/validators/section-registry";
+import { verifyOrigin } from "@/lib/csrf";
 
 function parseYear(raw: string): number | null {
   const year = Number(raw);
@@ -58,6 +59,10 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ year
 
 /* ── PATCH /api/submissions/[year] ── replace one section's data ─────────────── */
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ year: string }> }) {
+  if (!verifyOrigin(req)) {
+    return NextResponse.json({ ok: false, message: "Invalid request origin." }, { status: 403 });
+  }
+
   const session = await getSession();
   if (!session || session.role !== "ECONOMIC_DEVELOPMENT_OFFICER") {
     return NextResponse.json({ ok: false, message: "Unauthorized" }, { status: 401 });

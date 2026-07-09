@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/db";
 import { getSession } from "@/lib/auth";
+import { verifyOrigin } from "@/lib/csrf";
 
 const REVIEWER_ROLES = ["DIVISIONAL_SECRETARIAT", "ADMIN", "SUPER_ADMIN"];
 
@@ -33,6 +34,10 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 
 /* ── PATCH /api/submissions/[id] ── approve / reject / request revision ──────── */
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  if (!verifyOrigin(req)) {
+    return NextResponse.json({ ok: false, message: "Invalid request origin." }, { status: 403 });
+  }
+
   const session = await getSession();
   if (!session || !REVIEWER_ROLES.includes(session.role)) {
     return NextResponse.json({ ok: false, message: "Unauthorized" }, { status: 401 });

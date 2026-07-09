@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import { SECTION_KEYS, type SubmissionData } from "@/lib/types/submission";
+import { verifyOrigin } from "@/lib/csrf";
 
 function parseYear(raw: string): number | null {
   const year = Number(raw);
@@ -11,6 +12,10 @@ function parseYear(raw: string): number | null {
 
 /* ── POST /api/submissions/[year]/submit ── DRAFT/REVISION_NEEDED → SUBMITTED ── */
 export async function POST(req: NextRequest, { params }: { params: Promise<{ year: string }> }) {
+  if (!verifyOrigin(req)) {
+    return NextResponse.json({ ok: false, message: "Invalid request origin." }, { status: 403 });
+  }
+
   const session = await getSession();
   if (!session || session.role !== "ECONOMIC_DEVELOPMENT_OFFICER") {
     return NextResponse.json({ ok: false, message: "Unauthorized" }, { status: 401 });
