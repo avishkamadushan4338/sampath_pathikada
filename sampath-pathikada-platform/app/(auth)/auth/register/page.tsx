@@ -1158,7 +1158,8 @@ export default function RegisterPage() {
         if (!data.farmers)   err.farmers   = si ? "අවශ්‍යයි" : "Required";
         if (!data.eduZone)   err.eduZone   = si ? "අවශ්‍යයි" : "Required";
         if (!data.eduDiv)    err.eduDiv    = si ? "අවශ්‍යයි" : "Required";
-        if (!data.mahaweli)  err.mahaweli  = si ? "අවශ්‍යයි" : "Required";
+        if (data.district === "hambantota" && !data.mahaweli)
+          err.mahaweli = si ? "අවශ්‍යයි" : "Required";
       }
     }
     if (s === 3) {
@@ -1427,10 +1428,12 @@ export default function RegisterPage() {
                     hint={si ? STRINGS.en.eduDiv : undefined}
                     error={errors.eduDiv} delay={0.40} />
 
-                  <PremiumInput id="mahaweli" label={T.mahaweli} value={data.mahaweli} locale={locale}
-                    onChange={v => set("mahaweli", v)} icon={<Building2 size={16} />}
-                    hint={si ? STRINGS.en.mahaweli : undefined}
-                    error={errors.mahaweli} delay={0.45} />
+                  {data.district === "hambantota" && (
+                    <PremiumInput id="mahaweli" label={T.mahaweli} value={data.mahaweli} locale={locale}
+                      onChange={v => set("mahaweli", v)} icon={<Building2 size={16} />}
+                      hint={si ? STRINGS.en.mahaweli : undefined}
+                      error={errors.mahaweli} delay={0.45} />
+                  )}
                 </div>
               </>
             )}
