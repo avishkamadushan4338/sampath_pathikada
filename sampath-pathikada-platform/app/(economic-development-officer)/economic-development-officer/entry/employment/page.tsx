@@ -119,7 +119,7 @@ export default function EmploymentPage() {
 
   return (
     <SectionForm
-      sectionNumber={5}
+      sectionNumber={6}
       title={employmentDict.title}
       description={employmentDict.description}
       form={form}
