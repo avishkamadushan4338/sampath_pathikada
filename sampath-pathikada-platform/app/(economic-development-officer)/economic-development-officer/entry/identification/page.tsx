@@ -6,7 +6,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 import { SectionForm } from "@/components/forms/SectionForm";
 import { FieldWrapper } from "@/components/forms/FormField";
-import { RepeatableTable, type RepeatableColumn } from "@/components/forms/RepeatableTable";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -27,11 +26,6 @@ import {
   DISTRICTS,
   DIVISIONAL_SECRETARIATS,
   GN_DIVISIONS,
-  LOCAL_GOVT_BODIES,
-  ELECTORAL_CONSTITUENCIES,
-  FARMERS_SERVICE_CENTERS,
-  EDUCATION_ZONES,
-  EDUCATION_DIVISIONS,
   MAHAWELI_DIVISIONS,
 } from "@/lib/registration-data";
 
@@ -52,9 +46,6 @@ const EMPTY_VALUES: IdentificationDraft = {
   eduZone: "",
   eduDiv: "",
   mahaweli: "",
-  stateInstitutions: [],
-  illegalStructures: [],
-  developmentProjects: [],
 };
 
 export default function IdentificationPage() {
@@ -72,11 +63,24 @@ export default function IdentificationPage() {
     if (submission?.data.identification) {
       form.reset({ ...EMPTY_VALUES, ...submission.data.identification });
     } else if (user) {
+      // Pre-fill from the details the officer already submitted at registration —
+      // they remain free to edit any of these before saving.
+      const gn = GN_DIVISIONS.find((g) => g.id === user.gnDivision);
       form.reset({
         ...EMPTY_VALUES,
+        gnDivisionName: gn ? (lang === "si" ? gn.si : gn.en) : "",
+        gnDivisionNumber: user.gnDivision ?? "",
+        officerName: user.name ?? "",
+        officerPhone: user.phone ?? "",
         district: user.district ?? "",
         dsDivision: user.dsDivision ?? "",
         gnDivision: user.gnDivision ?? "",
+        localGovt: user.localGovt ?? "",
+        electoral: user.electoral ?? "",
+        farmers: user.farmers ?? "",
+        eduZone: user.eduZone ?? "",
+        eduDiv: user.eduDiv ?? "",
+        mahaweli: user.mahaweli ?? "",
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -106,30 +110,6 @@ export default function IdentificationPage() {
     );
   }
 
-  const stateInstitutionColumns: RepeatableColumn[] = [
-    { key: "name", label: { en: "Institution Name", si: "ආයතනයේ නම" }, type: "text" },
-    { key: "address", label: { en: "Address", si: "ලිපිනය" }, type: "text" },
-  ];
-
-  const illegalStructureColumns: RepeatableColumn[] = [
-    { key: "description", label: { en: "Description", si: "විස්තරය" }, type: "text" },
-    { key: "location", label: { en: "Location", si: "ස්ථානය" }, type: "text" },
-  ];
-
-  const developmentProjectColumns: RepeatableColumn[] = [
-    { key: "name", label: { en: "Project Name", si: "ව්‍යාපෘතියේ නම" }, type: "text" },
-    {
-      key: "status",
-      label: { en: "Status", si: "තත්ත්වය" },
-      type: "select",
-      options: [
-        { value: "ongoing", label: { en: "Ongoing", si: "ක්‍රියාත්මක" } },
-        { value: "new", label: { en: "New", si: "නව" } },
-      ],
-    },
-    { key: "location", label: { en: "Location", si: "ස්ථානය" }, type: "text" },
-  ];
-
   return (
     <SectionForm
       sectionNumber={1}
@@ -143,13 +123,13 @@ export default function IdentificationPage() {
       <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4">
         <FieldWrapper name="gnDivisionName" label={identificationDict.fields.gnDivisionName} required>
           {({ id, describedBy, invalid }) => (
-            <Input id={id} aria-describedby={describedBy} aria-invalid={invalid} {...form.register("gnDivisionName")} />
+            <Input id={id} disabled aria-describedby={describedBy} aria-invalid={invalid} {...form.register("gnDivisionName")} />
           )}
         </FieldWrapper>
 
         <FieldWrapper name="gnDivisionNumber" label={identificationDict.fields.gnDivisionNumber} required>
           {({ id, describedBy, invalid }) => (
-            <Input id={id} aria-describedby={describedBy} aria-invalid={invalid} {...form.register("gnDivisionNumber")} />
+            <Input id={id} disabled aria-describedby={describedBy} aria-invalid={invalid} {...form.register("gnDivisionNumber")} />
           )}
         </FieldWrapper>
 
@@ -180,17 +160,16 @@ export default function IdentificationPage() {
         </FieldWrapper>
       </div>
 
+      <p className="text-fluid-xs text-muted-foreground">
+        {lang === "si"
+          ? "මෙම විස්තර ලියාපදිංචි වීමේදී ලබා දී ඇති අතර, ඒවා වෙනස් කළ හැක්කේ පරිපාලකවරයෙකු විසින් පමණි."
+          : "These details were provided at registration and can only be changed by an administrator."}
+      </p>
+
       <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4 border-t border-border pt-6">
         <FieldWrapper name="district" label={identificationDict.fields.district} required>
           {({ id, describedBy, invalid }) => (
-            <Select
-              value={form.watch("district") ?? ""}
-              onValueChange={(v) => {
-                form.setValue("district", v, { shouldDirty: true });
-                form.setValue("dsDivision", "");
-                form.setValue("gnDivision", "");
-              }}
-            >
+            <Select value={form.watch("district") ?? ""} onValueChange={() => {}} disabled>
               <SelectTrigger id={id} aria-describedby={describedBy} aria-invalid={invalid}>
                 <SelectValue />
               </SelectTrigger>
@@ -207,14 +186,7 @@ export default function IdentificationPage() {
 
         <FieldWrapper name="dsDivision" label={identificationDict.fields.dsDivision} required>
           {({ id, describedBy, invalid }) => (
-            <Select
-              value={form.watch("dsDivision") ?? ""}
-              onValueChange={(v) => {
-                form.setValue("dsDivision", v, { shouldDirty: true });
-                form.setValue("gnDivision", "");
-              }}
-              disabled={!selectedDistrict}
-            >
+            <Select value={form.watch("dsDivision") ?? ""} onValueChange={() => {}} disabled>
               <SelectTrigger id={id} aria-describedby={describedBy} aria-invalid={invalid}>
                 <SelectValue />
               </SelectTrigger>
@@ -231,11 +203,7 @@ export default function IdentificationPage() {
 
         <FieldWrapper name="gnDivision" label={identificationDict.fields.gnDivision} required>
           {({ id, describedBy, invalid }) => (
-            <Select
-              value={form.watch("gnDivision") ?? ""}
-              onValueChange={(v) => form.setValue("gnDivision", v, { shouldDirty: true })}
-              disabled={!selectedDs}
-            >
+            <Select value={form.watch("gnDivision") ?? ""} onValueChange={() => {}} disabled>
               <SelectTrigger id={id} aria-describedby={describedBy} aria-invalid={invalid}>
                 <SelectValue />
               </SelectTrigger>
@@ -250,80 +218,45 @@ export default function IdentificationPage() {
           )}
         </FieldWrapper>
 
-        <LookupField
-          name="localGovt"
-          label={identificationDict.fields.localGovt}
-          items={LOCAL_GOVT_BODIES}
-          form={form}
-          lang={lang}
-          required
-        />
-        <LookupField
-          name="electoral"
-          label={identificationDict.fields.electoral}
-          items={ELECTORAL_CONSTITUENCIES}
-          form={form}
-          lang={lang}
-          required
-        />
-        <LookupField
-          name="farmers"
-          label={identificationDict.fields.farmers}
-          items={FARMERS_SERVICE_CENTERS}
-          form={form}
-          lang={lang}
-          required
-        />
-        <LookupField
-          name="eduZone"
-          label={identificationDict.fields.eduZone}
-          items={EDUCATION_ZONES}
-          form={form}
-          lang={lang}
-          required
-        />
-        <LookupField
-          name="eduDiv"
-          label={identificationDict.fields.eduDiv}
-          items={EDUCATION_DIVISIONS}
-          form={form}
-          lang={lang}
-          required
-        />
-        <LookupField
-          name="mahaweli"
-          label={identificationDict.fields.mahaweli}
-          items={MAHAWELI_DIVISIONS}
-          form={form}
-          lang={lang}
-        />
-      </div>
+        <FieldWrapper name="localGovt" label={identificationDict.fields.localGovt} required>
+          {({ id, describedBy, invalid }) => (
+            <Input id={id} disabled aria-describedby={describedBy} aria-invalid={invalid} {...form.register("localGovt")} />
+          )}
+        </FieldWrapper>
 
-      <div className="border-t border-border pt-6">
-        <RepeatableTable
-          name="stateInstitutions"
-          title={identificationDict.fields.stateInstitutions}
-          columns={stateInstitutionColumns}
-          emptyRowFactory={() => ({ name: "", address: "" })}
-        />
-      </div>
+        <FieldWrapper name="electoral" label={identificationDict.fields.electoral} required>
+          {({ id, describedBy, invalid }) => (
+            <Input id={id} disabled aria-describedby={describedBy} aria-invalid={invalid} {...form.register("electoral")} />
+          )}
+        </FieldWrapper>
 
-      <div className="border-t border-border pt-6">
-        <RepeatableTable
-          name="illegalStructures"
-          title={identificationDict.fields.illegalStructures}
-          columns={illegalStructureColumns}
-          emptyRowFactory={() => ({ description: "", location: "" })}
-        />
-      </div>
+        <FieldWrapper name="farmers" label={identificationDict.fields.farmers} required>
+          {({ id, describedBy, invalid }) => (
+            <Input id={id} disabled aria-describedby={describedBy} aria-invalid={invalid} {...form.register("farmers")} />
+          )}
+        </FieldWrapper>
 
-      <div className="border-t border-border pt-6">
-        <RepeatableTable
-          name="developmentProjects"
-          title={identificationDict.fields.developmentProjects}
-          columns={developmentProjectColumns}
-          emptyRowFactory={() => ({ name: "", status: "ongoing", location: "" })}
-        />
+        <FieldWrapper name="eduZone" label={identificationDict.fields.eduZone} required>
+          {({ id, describedBy, invalid }) => (
+            <Input id={id} disabled aria-describedby={describedBy} aria-invalid={invalid} {...form.register("eduZone")} />
+          )}
+        </FieldWrapper>
+
+        <FieldWrapper name="eduDiv" label={identificationDict.fields.eduDiv} required>
+          {({ id, describedBy, invalid }) => (
+            <Input id={id} disabled aria-describedby={describedBy} aria-invalid={invalid} {...form.register("eduDiv")} />
+          )}
+        </FieldWrapper>
+
+        {selectedDistrict === "hambantota" && (
+          <LookupField
+            name="mahaweli"
+            label={identificationDict.fields.mahaweli}
+            items={MAHAWELI_DIVISIONS}
+            form={form}
+            lang={lang}
+          />
+        )}
       </div>
     </SectionForm>
   );
@@ -335,22 +268,17 @@ function LookupField({
   items,
   form,
   lang,
-  required,
 }: {
-  name: "localGovt" | "electoral" | "farmers" | "eduZone" | "eduDiv" | "mahaweli";
+  name: "mahaweli";
   label: { en: string; si: string };
   items: { id: string; en: string; si: string }[];
   form: ReturnType<typeof useForm<IdentificationDraft>>;
   lang: "en" | "si";
-  required?: boolean;
 }) {
   return (
-    <FieldWrapper name={name} label={label} required={required}>
+    <FieldWrapper name={name} label={label}>
       {({ id, describedBy, invalid }) => (
-        <Select
-          value={form.watch(name) ?? ""}
-          onValueChange={(v) => form.setValue(name, v, { shouldDirty: true })}
-        >
+        <Select value={form.watch(name) ?? ""} onValueChange={() => {}} disabled>
           <SelectTrigger id={id} aria-describedby={describedBy} aria-invalid={invalid}>
             <SelectValue />
           </SelectTrigger>
