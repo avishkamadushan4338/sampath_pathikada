@@ -11,8 +11,10 @@ export async function GET() {
   const user = await prisma.user.findUnique({
     where: { id: session.userId },
     select: {
-      id: true, name: true, nameSinhala: true, email: true, role: true,
+      id: true, name: true, nameSinhala: true, email: true, phone: true, role: true,
       district: true, dsDivision: true, gnDivision: true,
+      localGovt: true, electoral: true, farmers: true,
+      eduZone: true, eduDiv: true, mahaweli: true,
     },
   });
 
