@@ -95,7 +95,7 @@ export default function TourismPage() {
 
   return (
     <SectionForm
-      sectionNumber={13}
+      sectionNumber={14}
       title={tourismDict.title}
       description={tourismDict.description}
       form={form}
