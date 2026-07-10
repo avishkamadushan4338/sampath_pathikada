@@ -112,7 +112,7 @@ export default function SocialWelfarePage() {
 
   return (
     <SectionForm
-      sectionNumber={11}
+      sectionNumber={12}
       title={socialWelfareDict.title}
       description={socialWelfareDict.description}
       form={form}
