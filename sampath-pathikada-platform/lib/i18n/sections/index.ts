@@ -1,6 +1,7 @@
 import type { SectionKey } from "@/lib/types/submission";
 import type { SectionDictionary } from "@/lib/i18n/types";
 import { identificationDict } from "@/lib/i18n/sections/identification";
+import { stateInstitutionsLandDict } from "@/lib/i18n/sections/state-institutions-land";
 import { physicalEnvironmentDict } from "@/lib/i18n/sections/physical-environment";
 import { demographicsDict } from "@/lib/i18n/sections/demographics";
 import { housingDict } from "@/lib/i18n/sections/housing";
@@ -18,6 +19,7 @@ import { wasteDisasterDict } from "@/lib/i18n/sections/waste-disaster";
 /** Every section's bilingual field dictionary, keyed by SectionKey — used by SectionDetailViewer. */
 export const SECTION_DICTS: Record<SectionKey, SectionDictionary<string>> = {
   identification: identificationDict,
+  stateInstitutionsLand: stateInstitutionsLandDict,
   physicalEnvironment: physicalEnvironmentDict,
   demographics: demographicsDict,
   housing: housingDict,
