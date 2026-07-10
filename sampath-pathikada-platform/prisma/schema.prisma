@@ -81,6 +81,16 @@ model User {
   dsDivision        String?    @db.VarChar(80)
   gnDivision        String?    @db.VarChar(80)
 
+  // Additional details captured at registration (Economic Development Officers only) —
+  // copied from EconomicDevelopmentOfficerRegistration on approval, used to pre-fill the
+  // Identification section of the yearly submission.
+  localGovt         String?    @db.VarChar(200)
+  electoral         String?    @db.VarChar(200)
+  farmers           String?    @db.VarChar(200)
+  eduZone           String?    @db.VarChar(200)
+  eduDiv            String?    @db.VarChar(200)
+  mahaweli          String?    @db.VarChar(200)
+
   // Auth / security
   lastLoginAt       DateTime?
   lastLoginIp       String?    @db.VarChar(45)
@@ -280,16 +290,4 @@ model SystemSetting {
   updatedAt DateTime @updatedAt
 
   @@map("system_settings")
-}
-
-// ─── Website Content ────────────────────────────────────────────────────────
-
-model WebsiteContent {
-  key         String   @id @db.VarChar(80)
-  title       String   @db.VarChar(200)
-  body        String   @db.Text
-  updatedAt   DateTime @updatedAt
-  updatedById String?
-
-  @@map("website_content")
 }
