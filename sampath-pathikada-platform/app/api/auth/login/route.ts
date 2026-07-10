@@ -31,7 +31,10 @@ export async function POST(req: NextRequest) {
     const result = await loginWithCredentials(email, password, ip === "unknown" ? undefined : ip);
 
     if (!result.ok || !result.token) {
-      return NextResponse.json({ ok: false, message: result.message }, { status: 401 });
+      return NextResponse.json(
+        { ok: false, message: result.message, pending: result.pending ?? false },
+        { status: 401 }
+      );
     }
 
     const res = NextResponse.json({ ok: true, redirectTo: result.redirectTo });
