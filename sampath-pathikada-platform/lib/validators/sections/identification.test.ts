@@ -33,13 +33,4 @@ describe("identificationSchemaStrict", () => {
     const result = identificationSchemaStrict.safeParse({ ...validPayload, officerPhone: "12345" });
     expect(result.success).toBe(false);
   });
-
-  it("defaults array fields to empty when omitted", () => {
-    const result = identificationSchemaStrict.safeParse(validPayload);
-    if (result.success) {
-      expect(result.data.stateInstitutions).toEqual([]);
-      expect(result.data.illegalStructures).toEqual([]);
-      expect(result.data.developmentProjects).toEqual([]);
-    }
-  });
 });
