@@ -2,6 +2,7 @@ import type { z } from "zod";
 import type { SectionKey } from "@/lib/types/submission";
 
 import { identificationSchemaStrict, identificationSchemaPartial } from "@/lib/validators/sections/identification";
+import { stateInstitutionsLandSchemaStrict, stateInstitutionsLandSchemaPartial } from "@/lib/validators/sections/state-institutions-land";
 import { physicalEnvironmentSchemaStrict, physicalEnvironmentSchemaPartial } from "@/lib/validators/sections/physical-environment";
 import { demographicsSchemaStrict, demographicsSchemaPartial } from "@/lib/validators/sections/demographics";
 import { housingSchemaStrict, housingSchemaPartial } from "@/lib/validators/sections/housing";
@@ -18,6 +19,7 @@ import { wasteDisasterSchemaStrict, wasteDisasterSchemaPartial } from "@/lib/val
 
 export const SECTION_STRICT_SCHEMAS: Record<SectionKey, z.ZodTypeAny> = {
   identification: identificationSchemaStrict,
+  stateInstitutionsLand: stateInstitutionsLandSchemaStrict,
   physicalEnvironment: physicalEnvironmentSchemaStrict,
   demographics: demographicsSchemaStrict,
   housing: housingSchemaStrict,
@@ -35,6 +37,7 @@ export const SECTION_STRICT_SCHEMAS: Record<SectionKey, z.ZodTypeAny> = {
 
 export const SECTION_PARTIAL_SCHEMAS: Record<SectionKey, z.ZodTypeAny> = {
   identification: identificationSchemaPartial,
+  stateInstitutionsLand: stateInstitutionsLandSchemaPartial,
   physicalEnvironment: physicalEnvironmentSchemaPartial,
   demographics: demographicsSchemaPartial,
   housing: housingSchemaPartial,
