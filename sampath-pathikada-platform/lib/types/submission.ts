@@ -1,4 +1,5 @@
 import type { IdentificationData } from "@/lib/validators/sections/identification";
+import type { StateInstitutionsLandData } from "@/lib/validators/sections/state-institutions-land";
 import type { PhysicalEnvironmentData } from "@/lib/validators/sections/physical-environment";
 import type { DemographicsData } from "@/lib/validators/sections/demographics";
 import type { HousingData } from "@/lib/validators/sections/housing";
@@ -19,6 +20,7 @@ import type { WasteDisasterData } from "@/lib/validators/sections/waste-disaster
  */
 export interface SubmissionData {
   identification?: IdentificationData;
+  stateInstitutionsLand?: StateInstitutionsLandData;
   physicalEnvironment?: PhysicalEnvironmentData;
   demographics?: DemographicsData;
   housing?: HousingData;
@@ -37,6 +39,7 @@ export interface SubmissionData {
 /** PDF numeric order — used for dashboard/sidebar ordering, not alphabetical. */
 export const SECTION_KEYS = [
   "identification",
+  "stateInstitutionsLand",
   "physicalEnvironment",
   "demographics",
   "housing",
@@ -57,6 +60,7 @@ export type SectionKey = (typeof SECTION_KEYS)[number];
 /** Route slug for each section — matches the existing entry/ folder names. */
 export const SECTION_ROUTES: Record<SectionKey, string> = {
   identification: "identification",
+  stateInstitutionsLand: "state-institutions-land",
   physicalEnvironment: "physical-environment",
   demographics: "demographics",
   housing: "housing",
