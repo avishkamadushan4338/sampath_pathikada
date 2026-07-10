@@ -175,7 +175,7 @@ export default function DemographicsPage() {
 
   return (
     <SectionForm
-      sectionNumber={3}
+      sectionNumber={4}
       title={demographicsDict.title}
       description={demographicsDict.description}
       form={form}
