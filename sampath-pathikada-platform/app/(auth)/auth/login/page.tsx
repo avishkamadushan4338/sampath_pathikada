@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Eye, EyeOff, Lock } from "lucide-react";
+import { Eye, EyeOff, Lock, Clock, Home } from "lucide-react";
 
 const GOLD      = "#C8A34D";
 const DEEP_GOLD = "#A67C00";
@@ -136,6 +136,8 @@ export default function LoginPage() {
   const [remember, setRemember] = useState(false);
   const [loading,  setLoading]  = useState(false);
   const [error,    setError]    = useState("");
+  const [pendingReview, setPendingReview] = useState(false);
+  const [pendingMessage, setPendingMessage] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -151,6 +153,12 @@ export default function LoginPage() {
       const data = await res.json();
 
       if (!res.ok || !data.ok) {
+        if (data.pending) {
+          setPendingMessage(data.message ?? "Your registration is still under review by a Super Admin.");
+          setPendingReview(true);
+          setLoading(false);
+          return;
+        }
         setError(data.message ?? "Invalid credentials. Please try again.");
         setLoading(false);
         return;
@@ -378,6 +386,83 @@ export default function LoginPage() {
 
               <div style={{ padding:"clamp(22px,5vh,52px) clamp(22px,5vw,52px)" }}>
 
+              {pendingReview ? (
+                /* ── Under review state ── */
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.96 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.5, ease }}
+                  style={{ textAlign: "center", padding: "clamp(10px,2vh,20px) 0" }}
+                >
+                  <motion.div
+                    initial={{ scale: 0, rotate: -30 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    transition={{ type: "spring", stiffness: 420, damping: 22, delay: 0.1 }}
+                    style={{
+                      width: 72, height: 72, borderRadius: "50%",
+                      background: `linear-gradient(145deg,${GOLD},${DEEP_GOLD})`,
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      margin: "0 auto clamp(16px,2.5vh,22px)",
+                      boxShadow: "0 8px 32px rgba(166,124,0,0.30),0 0 0 8px rgba(200,163,77,0.10)",
+                    }}
+                  >
+                    <Clock size={34} color="#fff" strokeWidth={2.4} />
+                  </motion.div>
+
+                  <motion.h2
+                    initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.24 }}
+                    style={{
+                      margin: "0 0 10px",
+                      fontFamily: "'Playfair Display',Georgia,serif",
+                      fontSize: "clamp(1.3rem,4vw,1.75rem)",
+                      fontWeight: 800, letterSpacing: "-0.03em",
+                      color: CHARCOAL,
+                    }}
+                  >
+                    Account Under Review
+                  </motion.h2>
+
+                  <motion.p
+                    initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.32 }}
+                    style={{
+                      margin: "0 0 clamp(20px,3.2vh,30px)",
+                      fontSize: "0.9rem",
+                      color: "rgba(17,17,17,0.52)",
+                      lineHeight: 1.7,
+                      fontFamily: "'Inter',system-ui,sans-serif",
+                    }}
+                  >
+                    {pendingMessage}
+                  </motion.p>
+
+                  <motion.button
+                    type="button"
+                    onClick={() => router.push("/")}
+                    initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.40 }}
+                    whileHover={{ y: -2, scale: 1.01 }}
+                    whileTap={{ scale: 0.98 }}
+                    style={{
+                      width: "100%", height: "clamp(44px,6vh,56px)",
+                      borderRadius: 11, cursor: "pointer",
+                      display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                      background: "linear-gradient(160deg,#D4AA55 0%,#C8A34D 40%,#A67C00 100%)",
+                      border: "1px solid rgba(255,255,255,0.18)",
+                      boxShadow: "0 8px 28px rgba(166,124,0,0.28),0 3px 8px rgba(166,124,0,0.16)",
+                      fontFamily: "'Inter',system-ui,sans-serif",
+                      fontSize: "0.85rem", fontWeight: 700,
+                      letterSpacing: "0.08em",
+                      color: "#fff", textTransform: "uppercase",
+                    }}
+                  >
+                    <Home size={14} color="#fff" strokeWidth={2.5} />
+                    Back to Home
+                  </motion.button>
+                </motion.div>
+              ) : (
+              <>
                 {/* card header */}
                 <motion.div
                   initial={{ opacity:0, y:10 }} animate={{ opacity:1, y:0 }}
@@ -558,6 +643,8 @@ export default function LoginPage() {
                     </button>
                   </motion.div>
                 </form>
+              </>
+              )}
 
               </div>
             </div>
