@@ -185,7 +185,7 @@ export default function EducationPage() {
 
   return (
     <SectionForm
-      sectionNumber={6}
+      sectionNumber={7}
       title={educationDict.title}
       description={educationDict.description}
       form={form}
