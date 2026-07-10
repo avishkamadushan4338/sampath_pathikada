@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard, MapPinned, ChevronLeft, Menu, LogOut, Sun, Moon,
-  ChevronDown, ShieldCheck, Users, CalendarClock, ClipboardList, FileText, DatabaseZap,
+  ChevronDown, ShieldCheck, Users, CalendarClock, ClipboardList,
 } from "lucide-react";
 import { RoleGuard } from "@/components/layout/RoleGuard";
 import { useSession } from "@/hooks/use-session";
@@ -42,8 +42,6 @@ const NAV = [
     items: [
       { href: "/admin/reporting-cycles", icon: CalendarClock, label: "Reporting Cycles" },
       { href: "/admin/form-config", icon: ClipboardList, label: "Form Config" },
-      { href: "/admin/website-content", icon: FileText, label: "Website Content" },
-      { href: "/admin/backups", icon: DatabaseZap, label: "Backups" },
     ],
   },
 ];
