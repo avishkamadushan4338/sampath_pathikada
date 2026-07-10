@@ -3,10 +3,14 @@ import prisma from "@/lib/db";
 import { getSession, hashPassword } from "@/lib/auth";
 import { DIVISIONAL_SECRETARIATS } from "@/lib/registration-data";
 import { verifyOrigin } from "@/lib/csrf";
+import { CURRENT_YEAR } from "@/lib/constants";
+import type { SubmissionData } from "@/lib/types/submission";
 
-/* ── GET /api/users ── list admin accounts ────────────────────────────────────
-   SUPER_ADMIN sees all users. ADMIN is scoped to their own dsDivision only —
-   they can only see/manage accounts within the division they were assigned. */
+/* ── GET /api/users ── list users ─────────────────────────────────────────────
+   SUPER_ADMIN sees all users. ADMIN is scoped to their own dsDivision only,
+   view access only (see POST/PATCH/DELETE below, which are SUPER_ADMIN-only),
+   and never sees other ADMIN accounts — admin-account visibility/management
+   is a SUPER_ADMIN-only concern. */
 export async function GET(req: NextRequest) {
   const session = await getSession();
   if (!session || !["SUPER_ADMIN", "ADMIN"].includes(session.role)) {
@@ -29,6 +33,7 @@ export async function GET(req: NextRequest) {
   }
   if (session.role === "ADMIN") {
     where.dsDivision = session.dsDivision;
+    where.role = { not: "ADMIN" };
   }
 
   const users = await prisma.user.findMany({
@@ -36,37 +41,54 @@ export async function GET(req: NextRequest) {
     orderBy: { createdAt: "desc" },
     select: {
       id: true, name: true, nameSinhala: true, email: true, phone: true,
-      role: true, status: true, district: true, dsDivision: true,
+      role: true, status: true, district: true, dsDivision: true, gnDivision: true,
+      localGovt: true, electoral: true, farmers: true, eduZone: true, eduDiv: true, mahaweli: true,
       lastLoginAt: true, createdAt: true,
     },
   });
 
-  return NextResponse.json({ ok: true, data: users });
+  // Designation is entered by the officer per reporting cycle (inside their own
+  // submission), not stored on the User profile — pull it from this year's
+  // submission, if one exists, for each Economic Development Officer returned.
+  const edoIds = users.filter((u) => u.role === "ECONOMIC_DEVELOPMENT_OFFICER").map((u) => u.id);
+  const designationByUserId = new Map<string, string | null>();
+  if (edoIds.length > 0) {
+    const submissions = await prisma.submission.findMany({
+      where: { submittedById: { in: edoIds }, year: CURRENT_YEAR },
+      select: { submittedById: true, data: true },
+    });
+    for (const s of submissions) {
+      const data = s.data as SubmissionData;
+      designationByUserId.set(s.submittedById, data.identification?.officerDesignation ?? null);
+    }
+  }
+
+  const data = users.map((u) => ({
+    ...u,
+    officerDesignation: designationByUserId.get(u.id) ?? null,
+  }));
+
+  return NextResponse.json({ ok: true, data });
 }
 
 /* ── POST /api/users ── create an admin account ──────────────────────────────
-   SUPER_ADMIN may assign any division. ADMIN may only create accounts within
-   their own dsDivision — the client-supplied dsDivision is ignored for ADMIN
-   and forced to session.dsDivision instead. */
+   SUPER_ADMIN only. ADMIN accounts are view-only for user management — they
+   can see who is in their division but cannot create, edit, or remove
+   accounts (including other admin accounts). */
 export async function POST(req: NextRequest) {
   if (!verifyOrigin(req)) {
     return NextResponse.json({ ok: false, message: "Invalid request origin." }, { status: 403 });
   }
 
   const session = await getSession();
-  if (!session || !["SUPER_ADMIN", "ADMIN"].includes(session.role)) {
+  if (!session || session.role !== "SUPER_ADMIN") {
     return NextResponse.json({ ok: false, message: "Unauthorized" }, { status: 401 });
-  }
-  if (session.role === "ADMIN" && !session.dsDivision) {
-    return NextResponse.json({ ok: false, message: "Your account has no division assigned." }, { status: 403 });
   }
 
   try {
-    const { name, email, phone, password, dsDivision: requestedDsDivision } = await req.json() as {
+    const { name, email, phone, password, dsDivision } = await req.json() as {
       name: string; email: string; phone?: string; password: string; dsDivision?: string;
     };
-
-    const dsDivision = session.role === "ADMIN" ? session.dsDivision! : requestedDsDivision;
 
     if (!name || !email || !password) {
       return NextResponse.json({ ok: false, message: "Name, email, and password are required." }, { status: 400 });
