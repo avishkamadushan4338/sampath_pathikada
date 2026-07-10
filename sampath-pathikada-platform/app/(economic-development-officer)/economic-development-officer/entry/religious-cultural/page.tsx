@@ -82,7 +82,7 @@ export default function ReligiousCulturalPage() {
 
   return (
     <SectionForm
-      sectionNumber={7}
+      sectionNumber={8}
       title={religiousCulturalDict.title}
       description={religiousCulturalDict.description}
       form={form}
