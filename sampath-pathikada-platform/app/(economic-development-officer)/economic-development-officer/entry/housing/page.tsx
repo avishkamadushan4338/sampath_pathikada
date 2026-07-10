@@ -81,7 +81,7 @@ export default function HousingPage() {
 
   return (
     <SectionForm
-      sectionNumber={4}
+      sectionNumber={5}
       title={housingDict.title}
       description={housingDict.description}
       form={form}
