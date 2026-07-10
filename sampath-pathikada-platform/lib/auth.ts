@@ -53,6 +53,7 @@ export interface LoginResult {
   message?:   string;
   token?:     string;
   redirectTo?: string;
+  pending?:   boolean;
 }
 
 export async function loginWithCredentials(
@@ -60,9 +61,34 @@ export async function loginWithCredentials(
   password: string,
   ip?: string
 ): Promise<LoginResult> {
-  const user = await prisma.user.findUnique({ where: { email: email.toLowerCase().trim() } });
+  const emailLower = email.toLowerCase().trim();
+  const user = await prisma.user.findUnique({ where: { email: emailLower } });
 
   if (!user) {
+    // No user account yet — check whether this email belongs to a registration
+    // that's still awaiting Super Admin review. Only reveal that state once the
+    // submitted password is verified against the registration, so an attacker
+    // guessing emails can't use this to enumerate pending applicants.
+    const [gnReg, dsReg] = await Promise.all([
+      prisma.economicDevelopmentOfficerRegistration.findFirst({
+        where: { email: emailLower, status: "PENDING" },
+        select: { passwordHash: true },
+      }),
+      prisma.divisionalSecretariatRegistration.findFirst({
+        where: { email: emailLower, status: "PENDING" },
+        select: { passwordHash: true },
+      }),
+    ]);
+    const pendingReg = gnReg ?? dsReg;
+
+    if (pendingReg && await verifyPassword(password, pendingReg.passwordHash)) {
+      return {
+        ok: false,
+        pending: true,
+        message: "Your registration is still under review by a Super Admin. You'll be able to sign in once it's approved.",
+      };
+    }
+
     return { ok: false, message: "Invalid email or password." };
   }
 
