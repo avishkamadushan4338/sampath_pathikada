@@ -2,7 +2,6 @@
 
 import { useState, useMemo } from "react";
 import { Globe2, MapPinned } from "lucide-react";
-import { DivisionSummaryPanel } from "@/components/dashboard/DivisionSummaryPanel";
 import { DISTRICTS, DIVISIONAL_SECRETARIATS } from "@/lib/registration-data";
 
 const NAVY = "#0E2B4E";
@@ -15,9 +14,6 @@ export default function SuperAdminDivisionsPage() {
     () => (districtId === "all" ? [] : DIVISIONAL_SECRETARIATS.filter((d) => d.districtId === districtId)),
     [districtId]
   );
-
-  const effectiveDsDivision = dsDivisionId !== "all" ? dsDivisionId : undefined;
-  const effectiveDistrict = !effectiveDsDivision && districtId !== "all" ? districtId : undefined;
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-6">
@@ -64,8 +60,6 @@ export default function SuperAdminDivisionsPage() {
           </select>
         </div>
       </div>
-
-      <DivisionSummaryPanel key={`${effectiveDsDivision ?? ""}-${effectiveDistrict ?? ""}`} dsDivision={effectiveDsDivision} district={effectiveDistrict} />
     </div>
   );
 }
