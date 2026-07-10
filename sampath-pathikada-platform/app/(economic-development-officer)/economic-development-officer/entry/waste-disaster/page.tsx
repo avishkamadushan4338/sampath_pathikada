@@ -95,7 +95,7 @@ export default function WasteDisasterPage() {
 
   return (
     <SectionForm
-      sectionNumber={14}
+      sectionNumber={15}
       title={wasteDisasterDict.title}
       description={wasteDisasterDict.description}
       form={form}
