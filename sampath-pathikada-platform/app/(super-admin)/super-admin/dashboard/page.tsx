@@ -4,14 +4,10 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import Link from "next/link";
 import {
   Users, UserCheck, ShieldCheck, Activity, TrendingUp, TrendingDown,
-  Clock, CheckCircle2, XCircle, ArrowRight, BarChart3,
+  Clock, CheckCircle2, XCircle, ArrowRight,
   Globe, Database, Zap, Eye, RefreshCw, Download, Calendar, Settings,
   IdCard, Car, BookImage,
 } from "lucide-react";
-import {
-  AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
-  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
-} from "recharts";
 
 /* ─── Brand tokens ─────────────────────────────────────────────────────── */
 const NAVY   = "#0E2B4E";
@@ -59,60 +55,90 @@ function timeAgo(iso: string): string {
   return `${days}d ago`;
 }
 
+function formatUptime(seconds: number): string {
+  const days = Math.floor(seconds / 86400);
+  const hours = Math.floor((seconds % 86400) / 3600);
+  const mins = Math.floor((seconds % 3600) / 60);
+  if (days > 0) return `${days}d ${hours}h`;
+  if (hours > 0) return `${hours}h ${mins}m`;
+  return `${mins}m`;
+}
+
 /* ─── Stat Card ────────────────────────────────────────────────────────── */
-function StatCard({ icon: Icon, label, value, sub, trend, trendValue, iconBg }: {
+function StatCard({ icon: Icon, label, value, sub, trend, trendValue, iconBg, href }: {
   icon: React.ElementType; label: string; value: string | number; sub: string;
-  trend?: "up" | "down" | "neutral"; trendValue?: string; iconBg: string;
+  trend?: "up" | "down" | "neutral"; trendValue?: string; iconBg: string; href?: string;
 }) {
+  const className = "relative overflow-hidden rounded-2xl p-5 transition-all duration-300 hover:-translate-y-0.5 group block";
+  const style = {
+    background: "hsl(var(--card))",
+    border: "1px solid hsl(var(--border))",
+    boxShadow: "0 1px 3px rgba(14,43,78,0.06)",
+  };
+
+  const content = (
+    <div className="flex items-start justify-between gap-3">
+      <div className="min-w-0">
+        <p
+          className="text-[11px] font-bold uppercase tracking-wider mb-2"
+          style={{ color: "hsl(var(--muted-foreground))", letterSpacing: "0.1em" }}
+        >
+          {label}
+        </p>
+        <p
+          className="text-3xl font-bold leading-none"
+          style={{ fontFamily: "'DM Sans','Inter',sans-serif", fontVariantNumeric: "tabular-nums", color: "hsl(var(--foreground))" }}
+        >
+          {value}
+        </p>
+        <p className="text-[12px] mt-2" style={{ color: "hsl(var(--muted-foreground))" }}>
+          {sub}
+        </p>
+        {trend && trendValue && (
+          <div
+            className="flex items-center gap-1 mt-2 text-[12px] font-semibold"
+            style={{
+              color: trend === "up" ? "#16a34a" : trend === "down" ? MAROON : "hsl(var(--muted-foreground))",
+            }}
+          >
+            {trend === "up"   && <TrendingUp size={12} />}
+            {trend === "down" && <TrendingDown size={12} />}
+            {trend === "neutral" && <Activity size={12} />}
+            <span>{trendValue}</span>
+          </div>
+        )}
+      </div>
+      <div
+        className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
+        style={{ background: iconBg }}
+      >
+        <Icon size={20} color="#fff" />
+      </div>
+    </div>
+  );
+
+  if (href) {
+    return (
+      <Link
+        href={href}
+        className={className}
+        style={style}
+        onMouseEnter={e => (e.currentTarget.style.boxShadow = "0 8px 24px rgba(14,43,78,0.10)")}
+        onMouseLeave={e => (e.currentTarget.style.boxShadow = "0 1px 3px rgba(14,43,78,0.06)")}
+      >
+        {content}
+      </Link>
+    );
+  }
+
   return (
     <div
-      className="relative overflow-hidden rounded-2xl p-5 transition-all duration-300 hover:-translate-y-0.5 group"
-      style={{
-        background: "hsl(var(--card))",
-        border: "1px solid hsl(var(--border))",
-        boxShadow: "0 1px 3px rgba(14,43,78,0.06)",
-      }}
+      className={className}
+      style={style}
       onMouseEnter={e => (e.currentTarget.style.boxShadow = "0 8px 24px rgba(14,43,78,0.10)")}
       onMouseLeave={e => (e.currentTarget.style.boxShadow = "0 1px 3px rgba(14,43,78,0.06)")}
     >
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p
-            className="text-[11px] font-bold uppercase tracking-wider mb-2"
-            style={{ color: "hsl(var(--muted-foreground))", letterSpacing: "0.1em" }}
-          >
-            {label}
-          </p>
-          <p
-            className="text-3xl font-bold leading-none"
-            style={{ fontFamily: "'DM Sans','Inter',sans-serif", fontVariantNumeric: "tabular-nums", color: "hsl(var(--foreground))" }}
-          >
-            {value}
-          </p>
-          <p className="text-[12px] mt-2" style={{ color: "hsl(var(--muted-foreground))" }}>
-            {sub}
-          </p>
-          {trend && trendValue && (
-            <div
-              className="flex items-center gap-1 mt-2 text-[12px] font-semibold"
-              style={{
-                color: trend === "up" ? "#16a34a" : trend === "down" ? MAROON : "hsl(var(--muted-foreground))",
-              }}
-            >
-              {trend === "up"   && <TrendingUp size={12} />}
-              {trend === "down" && <TrendingDown size={12} />}
-              {trend === "neutral" && <Activity size={12} />}
-              <span>{trendValue}</span>
-            </div>
-          )}
-        </div>
-        <div
-          className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
-          style={{ background: iconBg }}
-        >
-          <Icon size={20} color="#fff" />
-        </div>
-      </div>
+      {content}
     </div>
   );
 }
@@ -154,44 +180,6 @@ function DocBadge({ docType }: { docType?: "NIC" | "DRIVING_LICENSE" | "PASSPORT
   );
 }
 
-/* ─── Chart tooltip ────────────────────────────────────────────────────── */
-function ChartTooltip({ active, payload, label }: any) {
-  if (!active || !payload?.length) return null;
-  return (
-    <div
-      className="rounded-xl p-3 text-xs"
-      style={{
-        background: "hsl(var(--background))",
-        border: "1px solid hsl(var(--border))",
-        boxShadow: "0 10px 30px rgba(0,0,0,0.10)",
-      }}
-    >
-      <p className="font-bold mb-1.5" style={{ color: "hsl(var(--foreground))" }}>{label}</p>
-      {payload.map((p: any) => (
-        <p key={p.dataKey} className="capitalize" style={{ color: p.color }}>
-          {p.name}: <strong>{p.value}</strong>
-        </p>
-      ))}
-    </div>
-  );
-}
-
-/* ─── Period button ────────────────────────────────────────────────────── */
-function PeriodBtn({ active, onClick, label }: { active: boolean; onClick: () => void; label: string }) {
-  return (
-    <button
-      onClick={onClick}
-      className="px-3.5 py-2 text-[12px] font-semibold transition-colors"
-      style={{
-        background: active ? NAVY : "transparent",
-        color:      active ? "#fff" : "hsl(var(--muted-foreground))",
-      }}
-    >
-      {label}
-    </button>
-  );
-}
-
 /* ─── Ghost button ─────────────────────────────────────────────────────── */
 function GhostBtn({ onClick, icon: Icon, label, busy }: { onClick?: () => void; icon: React.ElementType; label: string; busy?: boolean }) {
   return (
@@ -213,7 +201,6 @@ function GhostBtn({ onClick, icon: Icon, label, busy }: { onClick?: () => void; 
 
 /* ─── Page ─────────────────────────────────────────────────────────────── */
 export default function SuperAdminDashboard() {
-  const [period, setPeriod] = useState<"7d" | "30d" | "90d">("30d");
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -221,14 +208,18 @@ export default function SuperAdminDashboard() {
   const [regCounts, setRegCounts] = useState({ total: 0, pending: 0, approved: 0, rejected: 0 });
   const [users, setUsers] = useState<UserRow[]>([]);
   const [auditLog, setAuditLog] = useState<AuditRow[]>([]);
+  const [health, setHealth] = useState<{ dbHealthy: boolean | null; uptimeSeconds: number | null }>({
+    dbHealthy: null, uptimeSeconds: null,
+  });
 
   const fetchAll = useCallback(async () => {
     try {
-      const [regsRes, countsRes, usersRes, auditRes] = await Promise.all([
+      const [regsRes, countsRes, usersRes, auditRes, healthRes] = await Promise.all([
         fetch("/api/registrations?status=all&role=all&limit=50"),
         fetch("/api/registrations?countsOnly=true"),
         fetch("/api/users"),
         fetch("/api/audit-logs?limit=5"),
+        fetch("/api/health"),
       ]);
 
       const regsJson = await regsRes.json() as { ok: boolean; data?: RegistrationRow[] };
@@ -242,8 +233,12 @@ export default function SuperAdminDashboard() {
 
       const auditJson = await auditRes.json() as { ok: boolean; data?: AuditRow[] };
       if (auditJson.ok) setAuditLog(auditJson.data ?? []);
+
+      const healthJson = await healthRes.json() as { ok: boolean; uptimeSeconds?: number };
+      setHealth({ dbHealthy: healthJson.ok, uptimeSeconds: healthJson.uptimeSeconds ?? null });
     } catch {
       // dashboard is best-effort; leave previous state on transient network errors
+      setHealth(h => ({ ...h, dbHealthy: false }));
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -253,45 +248,6 @@ export default function SuperAdminDashboard() {
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
   const handleRefresh = () => { setRefreshing(true); fetchAll(); };
-
-  /* ── Derived: registration trend (last 6 months, real data) ── */
-  const registrationTrend = useMemo(() => {
-    const now = new Date();
-    const buckets: { key: string; month: string; approved: number; pending: number; rejected: number }[] = [];
-    for (let i = 5; i >= 0; i--) {
-      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      buckets.push({ key: `${d.getFullYear()}-${d.getMonth()}`, month: d.toLocaleString("en", { month: "short" }), approved: 0, pending: 0, rejected: 0 });
-    }
-    const byKey = new Map(buckets.map(b => [b.key, b]));
-    for (const r of registrations) {
-      const d = new Date(r.submittedAt);
-      const key = `${d.getFullYear()}-${d.getMonth()}`;
-      const bucket = byKey.get(key);
-      if (!bucket) continue;
-      if (r.status === "APPROVED") bucket.approved++;
-      else if (r.status === "REJECTED") bucket.rejected++;
-      else bucket.pending++;
-    }
-    return buckets;
-  }, [registrations]);
-
-  /* ── Derived: role distribution (real users) ── */
-  const roleDistribution = useMemo(() => {
-    const counts: Record<string, number> = {};
-    for (const u of users) counts[u.role] = (counts[u.role] ?? 0) + 1;
-    const labelMap: Record<string, string> = {
-      ECONOMIC_DEVELOPMENT_OFFICER: "Economic Development Officers",
-      DIVISIONAL_SECRETARIAT: "Divisional Secretariats",
-      ADMIN: "Admins",
-      SUPER_ADMIN: "Super Admins",
-    };
-    const colorMap: Record<string, string> = {
-      ECONOMIC_DEVELOPMENT_OFFICER: NAVY, DIVISIONAL_SECRETARIAT: MAROON, ADMIN: GREEN, SUPER_ADMIN: GOLD,
-    };
-    return Object.entries(counts)
-      .filter(([, v]) => v > 0)
-      .map(([role, value]) => ({ name: labelMap[role] ?? role, value, color: colorMap[role] ?? GOLD }));
-  }, [users]);
 
   /* ── Derived: approved this month + admin accounts ── */
   const approvedThisMonth = useMemo(() => {
@@ -330,14 +286,6 @@ export default function SuperAdminDashboard() {
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          <div
-            className="flex rounded-xl overflow-hidden"
-            style={{ border: "1px solid hsl(var(--border))", background: "hsl(var(--card))" }}
-          >
-            {(["7d", "30d", "90d"] as const).map(p => (
-              <PeriodBtn key={p} active={period === p} onClick={() => setPeriod(p)} label={p} />
-            ))}
-          </div>
           <GhostBtn icon={RefreshCw} label="Refresh" onClick={handleRefresh} busy={refreshing} />
           <Link
             href="/super-admin/registrations"
@@ -358,33 +306,42 @@ export default function SuperAdminDashboard() {
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         <StatCard
           icon={Users} label="Total Users" value={loading ? "—" : users.length}
-          sub="Across all roles" iconBg={NAVY}
+          sub="Across all roles" iconBg={NAVY} href="/super-admin/users"
         />
         <StatCard
           icon={Clock} label="Pending Verification" value={loading ? "—" : regCounts.pending}
           sub="Awaiting document review" trend={regCounts.pending > 0 ? "neutral" : undefined}
           trendValue={regCounts.pending > 0 ? "Needs Super Admin action" : undefined}
-          iconBg={GOLD}
+          iconBg={GOLD} href="/super-admin/registrations?status=pending"
         />
         <StatCard
           icon={CheckCircle2} label="Approved (Month)" value={loading ? "—" : approvedThisMonth}
           sub={new Date().toLocaleString("en", { month: "long", year: "numeric" })}
-          iconBg={GREEN}
+          iconBg={GREEN} href="/super-admin/registrations?status=approved"
         />
         <StatCard
           icon={ShieldCheck} label="Admin Accounts" value={loading ? "—" : adminAccounts.length}
           sub={loading ? "" : `${activeAdmins} active · ${adminAccounts.length - activeAdmins} inactive`}
-          iconBg={MAROON}
+          iconBg={MAROON} href="/super-admin/admins"
         />
       </div>
 
       {/* ── System Health ── */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
-          { label: "Uptime",        value: "99.9%",   icon: Zap,      valueColor: GREEN  },
+          {
+            label: "Uptime",
+            value: health.uptimeSeconds == null ? "—" : formatUptime(health.uptimeSeconds),
+            icon: Zap, valueColor: GREEN,
+          },
           { label: "Registrations", value: String(regCounts.total), icon: Globe, valueColor: GOLD_D },
-          { label: "DB Health",     value: "Healthy", icon: Database, valueColor: GREEN  },
-          { label: "Rejected",      value: String(regCounts.rejected), icon: Calendar, valueColor: "hsl(var(--muted-foreground))" },
+          {
+            label: "DB Health",
+            value: health.dbHealthy == null ? "—" : health.dbHealthy ? "Healthy" : "Down",
+            icon: Database,
+            valueColor: health.dbHealthy === false ? MAROON : GREEN,
+          },
+          { label: "Rejected", value: String(regCounts.rejected), icon: Calendar, valueColor: "hsl(var(--muted-foreground))" },
         ].map(item => (
           <div
             key={item.label}
@@ -405,100 +362,6 @@ export default function SuperAdminDashboard() {
             </div>
           </div>
         ))}
-      </div>
-
-      {/* ── Charts row ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-
-        {/* Area chart */}
-        <div
-          className="lg:col-span-2 rounded-2xl p-5"
-          style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}
-        >
-          <div className="flex items-center justify-between mb-5">
-            <div>
-              <h2 className="font-semibold text-[15px]" style={{ color: "hsl(var(--foreground))" }}>
-                Registration Trend
-              </h2>
-              <p className="text-[12px]" style={{ color: "hsl(var(--muted-foreground))" }}>
-                Monthly approvals vs rejections
-              </p>
-            </div>
-            <BarChart3 size={18} style={{ color: "hsl(var(--muted-foreground))" }} />
-          </div>
-          <ResponsiveContainer width="100%" height={220}>
-            <AreaChart data={registrationTrend} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
-              <defs>
-                <linearGradient id="gApp" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%"  stopColor={NAVY}  stopOpacity={0.2} />
-                  <stop offset="95%" stopColor={NAVY}  stopOpacity={0} />
-                </linearGradient>
-                <linearGradient id="gPen" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%"  stopColor={GOLD}  stopOpacity={0.2} />
-                  <stop offset="95%" stopColor={GOLD}  stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.7} />
-              <XAxis dataKey="month" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} allowDecimals={false} />
-              <Tooltip content={<ChartTooltip />} />
-              <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11, paddingTop: 12 }} />
-              <Area type="monotone" dataKey="approved" name="Approved" stroke={NAVY}   strokeWidth={2.5} fill="url(#gApp)" dot={{ r: 3, fill: NAVY   }} />
-              <Area type="monotone" dataKey="pending"  name="Pending"  stroke={GOLD}   strokeWidth={2.5} fill="url(#gPen)" dot={{ r: 3, fill: GOLD   }} />
-              <Area type="monotone" dataKey="rejected" name="Rejected" stroke={MAROON} strokeWidth={2.5} fill="none"       dot={{ r: 3, fill: MAROON }} />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-
-        {/* Pie chart */}
-        <div
-          className="rounded-2xl p-5"
-          style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}
-        >
-          <div className="mb-4">
-            <h2 className="font-semibold text-[15px]" style={{ color: "hsl(var(--foreground))" }}>User Roles</h2>
-            <p className="text-[12px]" style={{ color: "hsl(var(--muted-foreground))" }}>Distribution by role</p>
-          </div>
-          {roleDistribution.length > 0 ? (
-            <>
-              <ResponsiveContainer width="100%" height={160}>
-                <PieChart>
-                  <Pie data={roleDistribution} cx="50%" cy="50%" innerRadius={48} outerRadius={72} paddingAngle={3} dataKey="value">
-                    {roleDistribution.map((entry, i) => <Cell key={i} fill={entry.color} />)}
-                  </Pie>
-                  <Tooltip
-                    formatter={(val: number, name: string) => [val, name]}
-                    contentStyle={{
-                      borderRadius: 12, fontSize: 12,
-                      border: "1px solid hsl(var(--border))",
-                      background: "hsl(var(--background))",
-                    }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-              <ul className="mt-4 space-y-2.5">
-                {roleDistribution.map(r => (
-                  <li key={r.name} className="flex items-center gap-2.5">
-                    <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: r.color }} />
-                    <span className="text-[12px] flex-1 truncate" style={{ color: "hsl(var(--muted-foreground))" }}>
-                      {r.name}
-                    </span>
-                    <span
-                      className="text-[12px] font-bold"
-                      style={{ fontVariantNumeric: "tabular-nums", color: "hsl(var(--foreground))" }}
-                    >
-                      {r.value}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </>
-          ) : (
-            <p className="text-[12px] py-8 text-center" style={{ color: "hsl(var(--muted-foreground))" }}>
-              {loading ? "Loading…" : "No users yet"}
-            </p>
-          )}
-        </div>
       </div>
 
       {/* ── Recent tables ── */}
