@@ -105,7 +105,7 @@ export default function HealthPage() {
 
   return (
     <SectionForm
-      sectionNumber={8}
+      sectionNumber={9}
       title={healthDict.title}
       description={healthDict.description}
       form={form}
