@@ -173,7 +173,7 @@ export default function EconomicAgriculturePage() {
 
   return (
     <SectionForm
-      sectionNumber={9}
+      sectionNumber={10}
       title={economicAgricultureDict.title}
       description={economicAgricultureDict.description}
       form={form}
