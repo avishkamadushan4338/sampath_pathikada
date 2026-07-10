@@ -22,14 +22,5 @@ export const identificationDict: SectionDictionary<keyof IdentificationData & st
     eduZone: { en: "Education Zone", si: "අධ්‍යාපන කලාපය" },
     eduDiv: { en: "Education Division", si: "අධ්‍යාපන කොට්ඨාසය" },
     mahaweli: { en: "Mahaweli Zone", si: "මහවැලි කොට්ඨාසය" },
-    stateInstitutions: { en: "State Institutions in the Division", si: "වසම තුළ පිහිටි රාජ්‍ය ආයතන" },
-    illegalStructures: {
-      en: "Unauthorized Structures on Encroached State Land",
-      si: "අත්‍යවශ්‍ය නොවන ලෙස ඉදිකර ඇති නීති විරෝධී ගොඩනැගිලි",
-    },
-    developmentProjects: {
-      en: "Ongoing / New Development Projects on State Land",
-      si: "රජයේ ඉඩම්වල ක්‍රියාත්මක වන/නව සංවර්ධන ව්‍යාපෘති",
-    },
   },
 };
