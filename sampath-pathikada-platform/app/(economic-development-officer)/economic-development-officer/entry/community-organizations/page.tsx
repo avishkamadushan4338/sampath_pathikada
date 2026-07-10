@@ -94,7 +94,7 @@ export default function CommunityOrganizationsPage() {
 
   return (
     <SectionForm
-      sectionNumber={12}
+      sectionNumber={13}
       title={communityOrganizationsDict.title}
       description={communityOrganizationsDict.description}
       form={form}
