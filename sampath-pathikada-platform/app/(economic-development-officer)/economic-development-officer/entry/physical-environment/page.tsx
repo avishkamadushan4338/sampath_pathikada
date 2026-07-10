@@ -114,7 +114,7 @@ export default function PhysicalEnvironmentPage() {
 
   return (
     <SectionForm
-      sectionNumber={2}
+      sectionNumber={3}
       title={physicalEnvironmentDict.title}
       description={physicalEnvironmentDict.description}
       form={form}
