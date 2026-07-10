@@ -16,6 +16,13 @@ const PROTECTED_PREFIXES = [
 /* ── Routes that logged-in users should NOT revisit ─────────────────────── */
 const AUTH_ROUTES = ["/auth/login", "/auth/register"];
 
+const ROLE_DASHBOARDS: Record<string, string> = {
+  SUPER_ADMIN:                  "/super-admin/dashboard",
+  ADMIN:                        "/admin/dashboard",
+  ECONOMIC_DEVELOPMENT_OFFICER: "/economic-development-officer/dashboard",
+  DIVISIONAL_SECRETARIAT:       "/divisional-secretariat/dashboard",
+};
+
 async function isValidSession(token: string | undefined): Promise<boolean> {
   if (!token) return false;
   try {
@@ -52,7 +59,7 @@ export async function middleware(request: NextRequest) {
   const isAuthRoute = AUTH_ROUTES.some((r) => pathname.startsWith(r));
   if (isAuthRoute && authenticated && token) {
     const role = await getSessionRole(token);
-    const dest = role === "SUPER_ADMIN" ? "/super-admin/dashboard" : "/admin/dashboard";
+    const dest = ROLE_DASHBOARDS[role ?? ""] ?? "/admin/dashboard";
     return NextResponse.redirect(new URL(dest, request.url));
   }
 
