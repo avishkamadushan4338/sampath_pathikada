@@ -141,8 +141,8 @@ export async function GET(req: NextRequest) {
   });
 
   /* ── Page 2: Section Coverage Summary — a decision-maker's overview of how many
-     GN divisions have submitted data for each of the 14 form sections. Full
-     per-section detail lives in the Excel export, not here — 14 sections'
+     GN divisions have submitted data for each of the 15 form sections. Full
+     per-section detail lives in the Excel export, not here — 15 sections'
      worth of tables would make the PDF unreadable. ── */
   const totalScoped = rows.length;
   const coverageRows: [string, string][] = [
@@ -163,6 +163,7 @@ export async function GET(req: NextRequest) {
     ["Tourism", `${areaProfileCoverage.tourism.withData}/${totalScoped}`],
     ["Waste Management", `${areaProfileCoverage.wasteDisaster.withData}/${totalScoped}`],
     ["Identification", `${areaProfileCoverage.identification.withData}/${totalScoped}`],
+    ["State Institutions & Land", `${areaProfileCoverage.stateInstitutionsLand.withData}/${totalScoped}`],
   );
 
   doc.addPage();
