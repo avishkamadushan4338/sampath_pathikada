@@ -9,7 +9,7 @@ import {
   aggregateEconomicAgriculture, aggregateCommunityWelfare, aggregateInfrastructure, aggregateAreaProfile,
 } from "@/lib/analytics/aggregate-sections";
 
-const ALLOWED_ROLES = ["ADMIN", "SUPER_ADMIN"];
+const ALLOWED_ROLES = ["ADMIN", "SUPER_ADMIN", "DIVISIONAL_SECRETARIAT"];
 const VALID_STATUSES = ["DRAFT", "SUBMITTED", "APPROVED", "REJECTED", "REVISION_NEEDED"];
 
 interface SubmissionRow {
@@ -64,7 +64,7 @@ export async function GET(req: NextRequest) {
   let dsDivisionFilter: string | null = null;
   let districtFilter: string | null = null;
 
-  if (session.role === "ADMIN") {
+  if (session.role === "ADMIN" || session.role === "DIVISIONAL_SECRETARIAT") {
     if (!session.dsDivision) {
       return NextResponse.json({ ok: false, message: "No division assigned to this account." }, { status: 403 });
     }
@@ -81,14 +81,27 @@ export async function GET(req: NextRequest) {
   if (status) where.status = status;
   if (gnDivisionFilter && gnDivisionFilter.length > 0) where.gnDivision = { in: gnDivisionFilter };
 
-  const rows = await prisma.submission.findMany({
-    where,
-    select: {
-      id: true, gnDivision: true, status: true,
-      createdAt: true, updatedAt: true, reviewedAt: true, data: true,
-      submittedBy: { select: { name: true, email: true } },
-    },
-  }) as unknown as SubmissionRow[];
+  // Scope for "who has an officer account at all" — independent of whether that officer
+  // has ever created a submission row (which only happens once they open the entry form).
+  const officerWhere: Record<string, unknown> = { role: "ECONOMIC_DEVELOPMENT_OFFICER" };
+  if (dsDivisionFilter) officerWhere.dsDivision = dsDivisionFilter;
+  else if (districtFilter) officerWhere.district = districtFilter;
+
+  const [rows, registeredOfficers] = await Promise.all([
+    prisma.submission.findMany({
+      where,
+      select: {
+        id: true, gnDivision: true, status: true,
+        createdAt: true, updatedAt: true, reviewedAt: true, data: true,
+        submittedBy: { select: { name: true, email: true } },
+      },
+    }) as unknown as Promise<SubmissionRow[]>,
+    prisma.user.findMany({ where: officerWhere, select: { gnDivision: true, name: true } }),
+  ]);
+
+  const registeredGnMap = new Map(
+    registeredOfficers.filter((o): o is typeof o & { gnDivision: string } => !!o.gnDivision).map((o) => [o.gnDivision, o.name])
+  );
 
   const division = dsDivisionFilter ? DIVISIONAL_SECRETARIATS.find((d) => d.id === dsDivisionFilter) : null;
   const district = districtFilter ? DISTRICTS.find((d) => d.id === districtFilter) : null;
@@ -128,6 +141,8 @@ export async function GET(req: NextRequest) {
     ? Math.round((decisionDurations.reduce((a, b) => a + b, 0) / decisionDurations.length) * 10) / 10
     : null;
 
+  const notRegisteredCount = gnRoster.filter((gn) => !registeredGnMap.has(gn.id)).length;
+
   const gnBreakdown = [...gnRoster]
     .sort((a, b) => a.en.localeCompare(b.en))
     .map((gn) => {
@@ -136,7 +151,8 @@ export async function GET(req: NextRequest) {
         gnId: gn.id,
         gnName: gn.en,
         gnNameSi: gn.si,
-        officer: submission?.submittedBy.name ?? null,
+        officer: submission?.submittedBy.name ?? registeredGnMap.get(gn.id) ?? null,
+        officerRegistered: registeredGnMap.has(gn.id),
         status: submission?.status ?? null,
         createdAt: submission?.createdAt ?? null,
         reviewedAt: submission?.reviewedAt ?? null,
@@ -169,6 +185,7 @@ export async function GET(req: NextRequest) {
     approvalRate,
     avgDecisionDays,
     totalGnDivisions: gnRoster.length,
+    notRegisteredCount,
     totalSubmissions: rows.length,
     trend: monthlyTrend(rows),
     gnBreakdown,
