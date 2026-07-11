@@ -247,9 +247,9 @@ export async function GET(req: NextRequest) {
   }]);
   addSheet("Waste - Disposal Methods", areaProfile.wasteManagement.disposalMethodIfNoProgram.map((d) => ({ "Method": d.en, "Divisions": d.presentCount })));
 
-  addSheet("Identification - State Institutions", areaProfile.stateInstitutions.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Address": r.address })));
-  addSheet("Identification - Development Projects", areaProfile.developmentProjects.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Status": r.status, "Location": r.location })));
-  addSheet("Identification - Illegal Structures", areaProfile.illegalStructures.rows.map((r) => ({ "GN Division": r.gnName, "Description": r.description, "Location": r.location })));
+  addSheet("State Land - State Institutions", areaProfile.stateInstitutions.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Address": r.address })));
+  addSheet("State Land - Development Projects", areaProfile.developmentProjects.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Status": r.status, "Location": r.location })));
+  addSheet("State Land - Illegal Structures", areaProfile.illegalStructures.rows.map((r) => ({ "GN Division": r.gnName, "Description": r.description, "Location": r.location })));
 
   const buffer = XLSX.write(workbook, { type: "buffer", bookType: "xlsx" });
 
