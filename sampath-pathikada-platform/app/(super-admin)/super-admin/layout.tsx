@@ -27,8 +27,9 @@ const NAV = [
   {
     label: "User Management",
     items: [
-      { href: "/super-admin/registrations",    icon: UserCheck,       label: "Registrations",  badge: 12 },
-      { href: "/super-admin/admins",           icon: Users,           label: "Admin Accounts"  },
+      { href: "/super-admin/users",            icon: Users,           label: "All Users"       },
+      { href: "/super-admin/registrations",    icon: UserCheck,       label: "Registrations"   },
+      { href: "/super-admin/admins",           icon: ShieldCheck,     label: "Admin Accounts"  },
     ],
   },
   {
@@ -69,6 +70,7 @@ export default function SuperAdminLayout({ children }: { children: React.ReactNo
   const [dark,         setDark]         = useState(false);
   const [notifOpen,    setNotifOpen]    = useState(false);
   const [profileOpen,  setProfileOpen]  = useState(false);
+  const [pendingRegistrations, setPendingRegistrations] = useState(0);
 
   /* hydrate theme from localStorage */
   useEffect(() => {
@@ -78,6 +80,16 @@ export default function SuperAdminLayout({ children }: { children: React.ReactNo
       document.documentElement.classList.add("dark");
     }
   }, []);
+
+  /* pending registrations count for the sidebar badge */
+  useEffect(() => {
+    fetch("/api/registrations?countsOnly=true")
+      .then(res => res.json())
+      .then((json: { ok: boolean; counts?: { pending: number } }) => {
+        if (json.ok && json.counts) setPendingRegistrations(json.counts.pending);
+      })
+      .catch(() => {});
+  }, [pathname]);
 
   const toggleTheme = useCallback(() => {
     setDark(prev => {
@@ -200,6 +212,7 @@ export default function SuperAdminLayout({ children }: { children: React.ReactNo
               <ul className="space-y-0.5 px-2">
                 {group.items.map(item => {
                   const active = isActive(item.href);
+                  const badge  = item.href === "/super-admin/registrations" ? pendingRegistrations : 0;
                   return (
                     <li key={item.href}>
                       <Link
@@ -240,18 +253,18 @@ export default function SuperAdminLayout({ children }: { children: React.ReactNo
                             <span className="text-[13.5px] font-medium truncate flex-1">
                               {item.label}
                             </span>
-                            {"badge" in item && item.badge ? (
+                            {badge > 0 ? (
                               <span
                                 className="min-w-5 h-5 px-1.5 rounded-full text-[10px] font-bold flex items-center justify-center"
                                 style={{ background: GOLD, color: NAVY }}
                               >
-                                {item.badge}
+                                {badge}
                               </span>
                             ) : null}
                           </>
                         )}
 
-                        {collapsed && "badge" in item && item.badge ? (
+                        {collapsed && badge > 0 ? (
                           <span
                             className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full"
                             style={{ background: GOLD }}
