@@ -159,10 +159,10 @@ export function buildCsvRows(
       "Waste: Has Collection Program": areaProfile.wasteManagement.divisionsWithProgram > 0 ? "Yes" : "No",
       "Waste: Has Compost/Disposal Site": areaProfile.wasteManagement.divisionsWithCompostSite > 0 ? "Yes" : "No",
 
-      // ── Identification ──
-      "Identification: State Institutions Listed": areaProfile.stateInstitutions.rows.length,
-      "Identification: Development Projects Listed": areaProfile.developmentProjects.rows.length,
-      "Identification: Illegal Structures Flagged": areaProfile.illegalStructures.rows.length,
+      // ── State Institutions & Land ──
+      "State Institutions & Land: State Institutions Listed": areaProfile.stateInstitutions.rows.length,
+      "State Institutions & Land: Development Projects Listed": areaProfile.developmentProjects.rows.length,
+      "State Institutions & Land: Illegal Structures Flagged": areaProfile.illegalStructures.rows.length,
     };
 
     return row;
