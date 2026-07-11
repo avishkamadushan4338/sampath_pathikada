@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   Search, CheckCircle2, XCircle, Clock, Eye, ChevronDown,
   ChevronLeft, ChevronRight, RefreshCw, User, MapPin,
@@ -403,7 +404,13 @@ function DetailDrawer({ reg, busy, onClose, onApprove, onReject }: {
 /* ── Page ────────────────────────────────────────────────────── */
 const PER_PAGE = 6;
 
-export default function RegistrationsPage() {
+const VALID_STATUSES: (Status | "all")[] = ["all", "pending", "approved", "rejected"];
+
+function RegistrationsContent() {
+  const searchParams = useSearchParams();
+  const statusParam = searchParams.get("status");
+  const initialStatus = VALID_STATUSES.includes(statusParam as Status | "all") ? (statusParam as Status | "all") : "all";
+
   const [rows, setRows]           = useState<Registration[]>([]);
   const [total, setTotal]         = useState(0);
   const [counts, setCounts]       = useState({ total: 0, pending: 0, approved: 0, rejected: 0 });
@@ -413,7 +420,7 @@ export default function RegistrationsPage() {
 
   const [search, setSearch]             = useState("");
   const [searchInput, setSearchInput]   = useState("");
-  const [statusFilter, setStatusFilter] = useState<Status | "all">("all");
+  const [statusFilter, setStatusFilter] = useState<Status | "all">(initialStatus);
   const [roleFilter, setRoleFilter]     = useState<Role | "all">("all");
   const [selected, setSelected]         = useState<Registration | null>(null);
   const [page, setPage]                 = useState(1);
@@ -785,5 +792,14 @@ export default function RegistrationsPage() {
 
       <DetailDrawer reg={selected} busy={actionBusy} onClose={() => setSelected(null)} onApprove={handleApprove} onReject={handleReject} />
     </div>
+  );
+}
+
+/* ── Page ────────────────────────────────────────────────────── */
+export default function RegistrationsPage() {
+  return (
+    <Suspense>
+      <RegistrationsContent />
+    </Suspense>
   );
 }
