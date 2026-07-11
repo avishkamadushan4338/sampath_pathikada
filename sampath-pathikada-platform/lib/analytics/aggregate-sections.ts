@@ -545,7 +545,7 @@ export function aggregateInfrastructure(rows: SubmissionLike[], gnLabel: (id: st
   };
 }
 
-/* ── Area Profile: physicalEnvironment + religiousCultural + tourism + wasteDisaster + identification ── */
+/* ── Area Profile: physicalEnvironment + religiousCultural + tourism + wasteDisaster + stateInstitutionsLand ── */
 export function aggregateAreaProfile(rows: SubmissionLike[], gnLabel: (id: string) => string) {
   const religiousSiteCounts = {
     temples: { count: 0, clergyCount: 0 }, kovils: { count: 0, clergyCount: 0 },
@@ -575,6 +575,7 @@ export function aggregateAreaProfile(rows: SubmissionLike[], gnLabel: (id: strin
       tourism: coverage(rows, "tourism"),
       wasteDisaster: coverage(rows, "wasteDisaster"),
       identification: coverage(rows, "identification"),
+      stateInstitutionsLand: coverage(rows, "stateInstitutionsLand"),
     },
     religiousSiteCounts,
     wasteManagement: {
@@ -598,10 +599,10 @@ export function aggregateAreaProfile(rows: SubmissionLike[], gnLabel: (id: strin
     hotelInventory: capRows(flattenRows(rows, gnLabel, "tourism", "hotelInventory")),
     guestAccommodations: capRows(flattenRows(rows, gnLabel, "tourism", "guestAccommodations")),
     otherAccommodations: capRows(flattenRows(rows, gnLabel, "tourism", "otherAccommodations")),
-    // identification — list-only
-    stateInstitutions: capRows(flattenRows(rows, gnLabel, "identification", "stateInstitutions")),
-    illegalStructures: capRows(flattenRows(rows, gnLabel, "identification", "illegalStructures")),
-    developmentProjects: capRows(flattenRows(rows, gnLabel, "identification", "developmentProjects")),
+    // stateInstitutionsLand — list-only
+    stateInstitutions: capRows(flattenRows(rows, gnLabel, "stateInstitutionsLand", "stateInstitutions")),
+    illegalStructures: capRows(flattenRows(rows, gnLabel, "stateInstitutionsLand", "illegalStructures")),
+    developmentProjects: capRows(flattenRows(rows, gnLabel, "stateInstitutionsLand", "developmentProjects")),
   };
 }
 
