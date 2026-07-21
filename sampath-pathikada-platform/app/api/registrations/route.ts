@@ -139,11 +139,16 @@ export async function GET(req: NextRequest) {
   type GnRow = Awaited<ReturnType<typeof prisma.economicDevelopmentOfficerRegistration.findMany<{ where: typeof baseWhere; select: typeof baseSelect & { gnDivision: true } }>>>;
   type DsRow = Awaited<ReturnType<typeof prisma.divisionalSecretariatRegistration.findMany<{ where: typeof baseWhere; select: typeof baseSelect }>>>;
 
-  const [gnRows, dsRows] = await Promise.all([
+  // Bound each table's query to the rows we could possibly need (page * pageSize from
+  // each side, worst case), instead of pulling every matching row before merging/slicing.
+  const mergedLimit = page * pageSize;
+
+  const [gnRows, dsRows, gnTotal, dsTotal] = await Promise.all([
     (tableParam === "all" || tableParam === "gn")
       ? prisma.economicDevelopmentOfficerRegistration.findMany({
           where: baseWhere,
           orderBy: { submittedAt: "desc" },
+          take: mergedLimit,
           select: { ...baseSelect, gnDivision: true },
         })
       : ([] as GnRow),
@@ -151,9 +156,16 @@ export async function GET(req: NextRequest) {
       ? prisma.divisionalSecretariatRegistration.findMany({
           where: baseWhere,
           orderBy: { submittedAt: "desc" },
+          take: mergedLimit,
           select: baseSelect,
         })
       : ([] as DsRow),
+    (tableParam === "all" || tableParam === "gn")
+      ? prisma.economicDevelopmentOfficerRegistration.count({ where: baseWhere })
+      : 0,
+    (tableParam === "all" || tableParam === "ds")
+      ? prisma.divisionalSecretariatRegistration.count({ where: baseWhere })
+      : 0,
   ]);
 
   // Tag each row with its role and merge — never serialize raw document paths to the client,
@@ -175,8 +187,9 @@ export async function GET(req: NextRequest) {
   const all: Array<typeof gnMapped[number] | typeof dsMapped[number]> = [...gnMapped, ...dsMapped];
   all.sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime());
 
-  // Client-side pagination after merge
-  const total    = all.length;
+  // Merge-then-slice pagination: each side already contributed at most `mergedLimit`
+  // rows (ordered), so slicing the merged, sorted set yields the correct page.
+  const total    = gnTotal + dsTotal;
   const pageData = all.slice((page - 1) * pageSize, page * pageSize);
 
   return NextResponse.json({ ok: true, data: pageData, total, page, pageSize });

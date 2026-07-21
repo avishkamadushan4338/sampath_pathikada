@@ -16,3 +16,4 @@ export function findRecord(id: string, tableKey: TableKey) {
   if (tableKey === "gn") return prisma.economicDevelopmentOfficerRegistration.findUnique({ where: { id } });
   return prisma.divisionalSecretariatRegistration.findUnique({ where: { id } });
 }
+

@@ -1,9 +1,9 @@
 "use client";
 
-import { use, useState } from "react";
+import { use, useRef, useState, type WheelEvent } from "react";
 import { useRouter } from "next/navigation";
 import useSWR from "swr";
-import { CheckCircle2, XCircle, MessageSquareWarning, ArrowLeft, Loader2 } from "lucide-react";
+import { CheckCircle2, XCircle, MessageSquareWarning, ArrowLeft, Loader2, ChartColumn } from "lucide-react";
 import Link from "next/link";
 import { Bilingual } from "@/components/Bilingual";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
@@ -20,6 +20,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { SectionDetailViewer } from "@/components/review/SectionDetailViewer";
+import { DivisionGraphs } from "@/components/review/DivisionGraphs";
 import { SECTION_KEYS } from "@/lib/types/submission";
 import { SECTION_META } from "@/lib/i18n/section-meta";
 import { DISTRICTS, GN_DIVISIONS } from "@/lib/registration-data";
@@ -66,6 +67,15 @@ export default function ReviewDetailPage({ params }: { params: Promise<{ divisio
   const [pendingAction, setPendingAction] = useState<DecisionAction | null>(null);
   const [note, setNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const tabsScrollRef = useRef<HTMLDivElement>(null);
+
+  function handleTabsWheel(e: WheelEvent<HTMLDivElement>) {
+    const el = tabsScrollRef.current;
+    if (!el || el.scrollWidth <= el.clientWidth) return;
+    if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
+    e.preventDefault();
+    el.scrollLeft += e.deltaY;
+  }
 
   async function handleDecision() {
     if (!pendingAction) return;
@@ -147,10 +157,16 @@ export default function ReviewDetailPage({ params }: { params: Promise<{ divisio
         </div>
       </div>
 
-      {/* 14 sections via Tabs */}
-      <Tabs defaultValue={SECTION_KEYS[0]}>
-        <div className="no-scrollbar mb-4 overflow-x-auto">
+      {/* Graphs overview + 14 raw-data sections via Tabs */}
+      <Tabs defaultValue="graphs">
+        <div ref={tabsScrollRef} onWheel={handleTabsWheel} className="no-scrollbar mb-4 overflow-x-auto">
           <TabsList variant="line" className="w-max min-w-full justify-start border-b border-border">
+            <TabsTrigger value="graphs" className="gap-1.5 whitespace-nowrap">
+              <ChartColumn className="size-3.5 shrink-0" aria-hidden="true" />
+              <span className={lang === "si" ? "font-si" : "font-ui"}>
+                <Bilingual en="Graphs" si="ප්‍රස්ථාර" />
+              </span>
+            </TabsTrigger>
             {SECTION_KEYS.map((key) => {
               const meta = SECTION_META[key];
               const Icon = meta.icon;
@@ -168,6 +184,10 @@ export default function ReviewDetailPage({ params }: { params: Promise<{ divisio
             })}
           </TabsList>
         </div>
+
+        <TabsContent value="graphs" className="rounded-xl border border-border bg-card p-4 sm:p-6">
+          <DivisionGraphs data={submission.data} />
+        </TabsContent>
 
         {SECTION_KEYS.map((key) => (
           <TabsContent key={key} value={key} className="rounded-xl border border-border bg-card p-4 sm:p-6">
