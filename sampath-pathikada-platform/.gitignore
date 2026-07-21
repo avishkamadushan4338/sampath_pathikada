@@ -1,0 +1,32 @@
+# Dependencies
+node_modules/
+
+# Next.js build output
+.next/
+out/
+
+# TypeScript incremental build cache
+*.tsbuildinfo
+
+# Prisma generated client (regenerate with: npm run db:generate)
+lib/prisma-client/
+
+# Temporary verification document uploads — never committed, never retained
+storage/verification-uploads/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Editor
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*

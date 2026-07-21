@@ -1,0 +1,596 @@
+@import "tailwindcss";
+
+/* ─── Fonts are loaded via Google Fonts <link> tags in app/layout.tsx ───────
+   No @import url() needed here — the <link> tags already emit preload hints
+   and @font-face rules, so a CSS @import would double-load them. */
+
+/* ─── CSS Design Tokens ─────────────────────────────────────────────────────── */
+@layer base {
+  :root {
+    /* Radius scale */
+    --radius:      0.625rem;
+    --radius-sm:   calc(var(--radius) - 4px);
+    --radius-md:   calc(var(--radius) - 2px);
+    --radius-lg:   var(--radius);
+    --radius-xl:   calc(var(--radius) + 4px);
+    --radius-2xl:  calc(var(--radius) + 8px);
+    --radius-full: 9999px;
+
+    /* ── Sampath Pathikada Brand Palette ─────────────────────────────────────
+       Navy + Gold + Maroon on Cream — premium heritage / government aesthetic
+       matching the Word document identity system.
+    ──────────────────────────────────────────────────────────────────────── */
+
+    /* Primary – Deep Navy  #0E2B4E */
+    --navy-50:  215 38% 96%;   /* #EDF1F7 */
+    --navy-100: 215 35% 88%;   /* #CDD8E8 */
+    --navy-200: 215 34% 75%;   /* #9BB3CE */
+    --navy-300: 215 33% 60%;   /* #6889AF */
+    --navy-400: 215 36% 44%;   /* #3F6291 */
+    --navy-500: 215 64% 18%;   /* #0E2B4E  ← brand primary */
+    --navy-600: 215 66% 14%;   /* #0B2240 */
+    --navy-700: 215 68% 11%;   /* #081932 */
+    --navy-800: 215 70%  8%;   /* #061124 */
+    --navy-900: 215 72%  5%;   /* #030A16 */
+
+    /* Secondary – Maroon / Wine Red  #66261E */
+    --maroon-50:  5 36% 95%;   /* #F4EDEC */
+    --maroon-100: 5 35% 85%;   /* #DFC2BF */
+    --maroon-200: 5 38% 70%;   /* #C48E89 */
+    --maroon-300: 5 40% 55%;   /* #A75A54 */
+    --maroon-400: 5 45% 43%;   /* #8A3530 */
+    --maroon-500: 5 57% 25%;   /* #66261E  ← brand secondary */
+    --maroon-600: 5 60% 20%;   /* #531E17 */
+    --maroon-700: 5 62% 15%;   /* #3F1511 */
+    --maroon-800: 5 64% 10%;   /* #2A0D0A */
+    --maroon-900: 5 66%  6%;   /* #180705 */
+
+    /* Accent – Antique Gold  #BC9144  /  Deep Gold  #915F2F */
+    --gold-50:  38 55% 95%;    /* #F8F1E5 */
+    --gold-100: 38 52% 85%;    /* #EDD9B8 */
+    --gold-200: 38 50% 72%;    /* #DFC08C */
+    --gold-300: 38 48% 60%;    /* #CFA864 */
+    --gold-400: 38 46% 50%;    /* #BC9144  ← antique gold */
+    --gold-500: 30 52% 37%;    /* #915F2F  ← deep gold */
+    --gold-600: 30 54% 30%;    /* #764D25 */
+    --gold-700: 30 56% 23%;    /* #5C3B1C */
+    --gold-800: 30 58% 16%;    /* #432A13 */
+    --gold-900: 30 60%  9%;    /* #2A190B */
+
+    /* Neutral – Warm Ivory / Champagne Cream */
+    --ivory-50:  38 44% 98%;   /* #FDFAF5 */
+    --ivory-100: 38 42% 96%;   /* #F4EEE1  ← base background */
+    --ivory-200: 38 38% 90%;   /* #EEE3CC  ← card background */
+    --ivory-300: 38 28% 82%;   /* #D9CDB8 */
+    --ivory-400: 38 18% 68%;   /* #B8ADA0 */
+    --ivory-500: 38 10% 55%;   /* #978F88 */
+
+    /* UI Text – Slate Blue-Grey / Stone Grey */
+    --slate-400: 216 19% 55%;  /* #7A8CA0 */
+    --slate-500: 216 22% 35%;  /* #47556D  ← muted headings / secondary nav */
+    --slate-600: 216 24% 28%;  /* #394558 */
+    --slate-700: 216 26% 20%;  /* #283040 */
+    --stone-400: 220  5% 60%;  /* #939599 */
+    --stone-500: 220  4% 53%;  /* #848892  ← captions / placeholders */
+    --stone-600: 220  5% 42%;  /* #68696F */
+
+    /* Status (functional – stays on-brand) */
+    --status-approved: 145 48% 34%;  /* muted green  #2D7A51 */
+    --status-pending:  38 46% 50%;   /* reuse antique gold for amber */
+    --status-rejected: 5 57% 25%;    /* reuse maroon #66261E */
+
+    /* ── Semantic tokens (light mode) ───────────────────────────────────── */
+    --background:           38 42% 96%;    /* Warm Ivory  #F4EEE1 */
+    --foreground:           216 26% 12%;   /* near-black  #1A1A24 */
+
+    --card:                 38 38% 90%;    /* Champagne Cream  #EEE3CC */
+    --card-foreground:      216 26% 12%;
+
+    --popover:              38 42% 97%;
+    --popover-foreground:   216 26% 12%;
+
+    --primary:              215 64% 18%;   /* Deep Navy  #0E2B4E */
+    --primary-hover:        215 62% 24%;   /* #163B66 */
+    --primary-foreground:   38 42% 96%;    /* Ivory text on navy */
+
+    --secondary:            5 57% 25%;     /* Maroon  #66261E */
+    --secondary-foreground: 38 42% 96%;
+
+    --muted:                38 28% 82%;    /* ivory-300 */
+    --muted-foreground:     216 22% 35%;   /* Slate Blue-Grey  #47556D */
+
+    --accent:               38 46% 50%;    /* Antique Gold  #BC9144 */
+    --accent-deep:          30 52% 37%;    /* Deep Gold  #915F2F */
+    --accent-foreground:    38 42% 96%;    /* ivory on gold */
+
+    --destructive:          5 57% 25%;     /* Maroon (on-brand rejection) */
+    --destructive-foreground: 38 42% 96%;
+
+    --border:               38 28% 78%;    /* warm ivory-300 darker */
+    --input:                38 38% 90%;    /* card tone */
+    --ring:                 38 46% 50%;    /* gold focus ring */
+
+    /* Chart palette – stays on-brand */
+    --chart-1: 215 64% 18%;   /* navy */
+    --chart-2: 38  46% 50%;   /* antique gold */
+    --chart-3: 5   57% 25%;   /* maroon */
+    --chart-4: 145 48% 34%;   /* muted green */
+    --chart-5: 30  52% 37%;   /* deep gold */
+
+    /* Glass – ivory-tinted */
+    --glass-bg:     rgba(244, 238, 225, 0.75);
+    --glass-border: rgba(188, 145, 68,  0.25);
+    --glass-shadow: 0 8px 32px rgba(14, 43, 78, 0.10);
+    --glass-blur:   14px;
+
+    /* Elevation shadows – navy-tinted */
+    --shadow-xs:   0 1px 2px rgba(14,43,78,.05);
+    --shadow-sm:   0 1px 3px rgba(14,43,78,.07), 0 1px 2px rgba(14,43,78,.05);
+    --shadow-md:   0 4px 6px -1px rgba(14,43,78,.08), 0 2px 4px -2px rgba(14,43,78,.06);
+    --shadow-lg:   0 10px 15px -3px rgba(14,43,78,.09), 0 4px 6px -4px rgba(14,43,78,.06);
+    --shadow-xl:   0 20px 25px -5px rgba(14,43,78,.10), 0 8px 10px -6px rgba(14,43,78,.05);
+    --shadow-2xl:  0 25px 50px -12px rgba(14,43,78,.18);
+    --shadow-glow-brand:  0 0 22px rgba(14,  43, 78, 0.35);
+    --shadow-glow-accent: 0 0 22px rgba(188, 145, 68, 0.45);
+    --shadow-glow-gold:   0 0 18px rgba(145, 95, 47, 0.40);
+    --shadow-inner: inset 0 2px 4px rgba(14,43,78,.06);
+
+    /* Gradient presets */
+    --gradient-brand:  linear-gradient(135deg, #163B66 0%, #0E2B4E 55%, #08192C 100%);
+    --gradient-accent: linear-gradient(135deg, #D4A85A 0%, #BC9144 50%, #915F2F 100%);
+    --gradient-hero:   linear-gradient(135deg, #08192C 0%, #0E2B4E 45%, #163B66 100%);
+    --gradient-navy-gold: linear-gradient(135deg, #0E2B4E 0%, #1D4A7A 40%, #BC9144 100%);
+    --gradient-parchment: linear-gradient(160deg, #F4EEE1 0%, #EEE3CC 60%, #D9CDB8 100%);
+    --gradient-mesh:
+      radial-gradient(at 30% 20%, rgba(188,145,68,.18) 0, transparent 50%),
+      radial-gradient(at 80% 10%, rgba(14,43,78,.12)   0, transparent 50%),
+      radial-gradient(at 10% 70%, rgba(102,38,30,.10)  0, transparent 50%);
+
+    /* Animation timing */
+    --ease-spring:   cubic-bezier(0.34, 1.56, 0.64, 1);
+    --ease-smooth:   cubic-bezier(0.4, 0, 0.2, 1);
+    --ease-bounce:   cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
+    --dur-fast:   150ms;
+    --dur-normal: 250ms;
+    --dur-slow:   400ms;
+    --dur-slower: 600ms;
+
+    /* ── Typography — role-based font stack ─────────────────────────────────
+       Fonts are loaded via Google Fonts <link> tags in app/layout.tsx (not
+       next/font), so these reference the literal family names directly.
+       Fallback chains are carefully ordered: matching metric fonts first so
+       layout shift is imperceptible even before the webfont loads.
+    ──────────────────────────────────────────────────────────────────────── */
+
+    /* UI chrome & body copy (English) */
+    --font-ui:       "Inter", "DM Sans", ui-sans-serif, system-ui, sans-serif;
+
+    /* Editorial display headings — large sizes only */
+    --font-display:  "Playfair Display", "Cormorant Garamond", Georgia, serif;
+
+    /* Data-dense tables, dashboard numbers, stat cards */
+    --font-data:     "DM Sans", "Inter", ui-sans-serif, sans-serif;
+
+    /* Code, IDs, submission numbers, timestamps */
+    --font-mono:     "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+
+    /* Sinhala formal headings, PDF / print documents */
+    --font-si-serif: "Noto Serif Sinhala", serif;
+
+    /* Sinhala UI body, labels, navigation, forms */
+    --font-si-sans:  "Noto Sans Sinhala", "Yaldevi", sans-serif;
+
+    /* Convenience aliases consumed by Tailwind utilities below */
+    --font-sans:     var(--font-ui);
+    --font-sinhala:  var(--font-si-sans);
+
+    /* ── Fluid type scale ─────────────────────────────────────────────────
+       Scales continuously with viewport width instead of jumping at
+       breakpoints — used by form headings/labels so the same layout reads
+       well from a 320px phone up to an 8K display without media queries.
+    ──────────────────────────────────────────────────────────────────────── */
+    --text-fluid-xs:   clamp(0.75rem,  0.71rem + 0.2vw, 0.8125rem);
+    --text-fluid-sm:   clamp(0.8125rem, 0.77rem + 0.25vw, 0.9375rem);
+    --text-fluid-base: clamp(0.9375rem, 0.875rem + 0.3vw, 1.0625rem);
+    --text-fluid-lg:   clamp(1.0625rem, 0.98rem + 0.4vw, 1.25rem);
+    --text-fluid-xl:   clamp(1.25rem,  1.1rem + 0.7vw,  1.625rem);
+    --text-fluid-2xl:  clamp(1.5rem,   1.3rem + 1vw,    2.0625rem);
+    --text-fluid-3xl:  clamp(1.875rem, 1.55rem + 1.6vw, 2.75rem);
+
+    /* Z-index scale */
+    --z-base:     0;
+    --z-raised:   10;
+    --z-dropdown: 100;
+    --z-sticky:   200;
+    --z-overlay:  300;
+    --z-modal:    400;
+    --z-popover:  500;
+    --z-toast:    600;
+    --z-tooltip:  700;
+  }
+
+  /* ── Dark mode — deep navy canvas with gold highlights ──────────────────── */
+  .dark {
+    --background:           215 64% 10%;   /* very deep navy  #0A1C30 */
+    --foreground:           38 42% 92%;    /* warm off-white  #EDE5D4 */
+
+    --card:                 215 60% 14%;   /* dark navy card  #102238 */
+    --card-foreground:      38 42% 92%;
+
+    --popover:              215 60% 12%;
+    --popover-foreground:   38 42% 92%;
+
+    --primary:              38 46% 50%;    /* Antique Gold becomes primary in dark */
+    --primary-foreground:   215 64% 10%;
+
+    --secondary:            5 40% 38%;     /* softened maroon */
+    --secondary-foreground: 38 42% 92%;
+
+    --muted:                215 50% 18%;
+    --muted-foreground:     216 19% 60%;   /* lighter slate */
+
+    --accent:               38 46% 50%;    /* gold accent */
+    --accent-deep:          30 52% 37%;
+    --accent-foreground:    215 64% 10%;
+
+    --destructive:          5 52% 40%;
+    --destructive-foreground: 38 42% 92%;
+
+    --border:               215 40% 22%;
+    --input:                215 40% 18%;
+    --ring:                 38 46% 50%;    /* gold ring */
+
+    --glass-bg:     rgba(10, 28, 48, 0.75);
+    --glass-border: rgba(188, 145, 68, 0.18);
+    --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.50);
+
+    --gradient-mesh:
+      radial-gradient(at 30% 20%, rgba(188,145,68,.12) 0, transparent 50%),
+      radial-gradient(at 80% 10%, rgba(14,43,78,.25)   0, transparent 50%),
+      radial-gradient(at 10% 70%, rgba(102,38,30,.12)  0, transparent 50%);
+  }
+}
+
+/* ─── Tailwind v4 theme bridge ───────────────────────────────────────────────
+   Maps the semantic HSL tokens above into Tailwind's --color-* namespace so
+   bare utilities (bg-primary, text-foreground, border-input, ring-ring, …)
+   resolve correctly — this is what shadcn/ui's generated components expect.
+   Values stay defined once, in :root/.dark above; this block only aliases them.
+──────────────────────────────────────────────────────────────────────────── */
+@theme inline {
+  --color-background:           hsl(var(--background));
+  --color-foreground:           hsl(var(--foreground));
+  --color-card:                 hsl(var(--card));
+  --color-card-foreground:      hsl(var(--card-foreground));
+  --color-popover:              hsl(var(--popover));
+  --color-popover-foreground:   hsl(var(--popover-foreground));
+  --color-primary:              hsl(var(--primary));
+  --color-primary-foreground:   hsl(var(--primary-foreground));
+  --color-secondary:            hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted:                hsl(var(--muted));
+  --color-muted-foreground:     hsl(var(--muted-foreground));
+  --color-accent:               hsl(var(--accent));
+  --color-accent-foreground:    hsl(var(--accent-foreground));
+  --color-destructive:          hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-border:                hsl(var(--border));
+  --color-input:                 hsl(var(--input));
+  --color-ring:                  hsl(var(--ring));
+  --color-chart-1: hsl(var(--chart-1));
+  --color-chart-2: hsl(var(--chart-2));
+  --color-chart-3: hsl(var(--chart-3));
+  --color-chart-4: hsl(var(--chart-4));
+  --color-chart-5: hsl(var(--chart-5));
+
+  --radius-sm:  var(--radius-sm);
+  --radius-md:  var(--radius-md);
+  --radius-lg:  var(--radius-lg);
+  --radius-xl:  var(--radius-xl);
+
+  --font-sans: var(--font-ui);
+}
+
+/* ─── Base Resets ────────────────────────────────────────────────────────────── */
+@layer base {
+  * {
+    border-color: hsl(var(--border));
+    box-sizing: border-box;
+  }
+
+  /* Kill browser autofill background injection */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 1000px #FAF8F3 inset !important;
+    box-shadow: 0 0 0 1000px #FAF8F3 inset !important;
+    -webkit-text-fill-color: #111111 !important;
+    caret-color: #C8A34D !important;
+    transition: background-color 99999s ease-in-out 0s;
+  }
+
+  /* Hide native placeholder — we render our own overlay */
+  input::placeholder { color: transparent !important; }
+
+  html {
+    font-family: var(--font-ui);
+    scroll-behavior: smooth;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    /* Inter variable features: contextual alternates, slashed zero, tabular nums */
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11", "zero", "ss01";
+    font-optical-sizing: auto;
+  }
+
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    min-height: 100dvh;
+    overflow-x: hidden;
+  }
+
+  :focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+
+  ::-webkit-scrollbar          { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track    { background: transparent; }
+  ::-webkit-scrollbar-thumb    { background: hsl(var(--border)); border-radius: var(--radius-full); }
+  ::-webkit-scrollbar-thumb:hover { background: hsl(var(--muted-foreground) / 0.5); }
+
+  ::selection {
+    background: hsl(var(--primary) / 0.2);
+    color: hsl(var(--foreground));
+  }
+
+  /* ── Sinhala base rules ──────────────────────────────────────────────── */
+  /* Body-level Sinhala — sans for UI readability */
+  .font-si, [lang="si"] {
+    font-family: var(--font-si-sans);
+    line-height: 1.9;
+    letter-spacing: 0.01em;
+    word-spacing: 0.05em;
+  }
+  /* Heading-level Sinhala — serif for formality */
+  .font-si-heading {
+    font-family: var(--font-si-serif);
+    line-height: 1.7;
+    letter-spacing: 0.015em;
+    font-feature-settings: "kern";
+  }
+
+  /* ── English font role utilities ─────────────────────────────────────── */
+  /* Applied via className — mirrors the --font-* CSS vars */
+  .font-ui      { font-family: var(--font-ui); }
+  .font-display { font-family: var(--font-display); }
+  .font-data    { font-family: var(--font-data); font-variant-numeric: tabular-nums; }
+  .font-mono    { font-family: var(--font-mono); }
+
+  /* ── Numeric rendering ───────────────────────────────────────────────── */
+  /* Use on stat cards, table cells, IDs — renders numbers in fixed columns */
+  .nums-tabular    { font-variant-numeric: tabular-nums; }
+  .nums-oldstyle   { font-variant-numeric: oldstyle-nums; }
+  .nums-proportion { font-variant-numeric: proportional-nums; }
+  .slashed-zero    { font-feature-settings: "zero"; }
+
+  /* ── Ligature control ────────────────────────────────────────────────── */
+  .ligatures-on  { font-feature-settings: "liga", "calt"; }
+  .ligatures-off { font-feature-settings: "liga" 0, "calt" 0; }
+}
+
+/* ─── Utility Classes ────────────────────────────────────────────────────────── */
+@layer utilities {
+  /* Glass morphism */
+  .glass {
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+  }
+  .glass-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+    border-radius: var(--radius-xl);
+  }
+
+  /* Gradients */
+  .gradient-brand  { background: var(--gradient-brand); }
+  .gradient-accent { background: var(--gradient-accent); }
+  .gradient-hero   { background: var(--gradient-hero); }
+  .gradient-mesh   { background: var(--gradient-mesh); }
+
+  .gradient-text-brand {
+    background: var(--gradient-brand);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .gradient-text-accent {
+    background: var(--gradient-accent);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Glow */
+  .glow-brand  { box-shadow: var(--shadow-glow-brand); }
+  .glow-accent { box-shadow: var(--shadow-glow-accent); }
+
+  /* Animated conic-gradient border */
+  @property --grad-angle { syntax: "<angle>"; initial-value: 0deg; inherits: false; }
+
+  .animated-border {
+    position: relative;
+    border-radius: var(--radius-lg);
+  }
+  .animated-border::before {
+    content: "";
+    position: absolute;
+    inset: -2px;
+    border-radius: calc(var(--radius-lg) + 2px);
+    background: conic-gradient(from var(--grad-angle), #0E2B4E, #BC9144, #66261E, #BC9144, #0E2B4E);
+    animation: grad-rotate 4s linear infinite;
+    z-index: -1;
+  }
+  @keyframes grad-rotate { to { --grad-angle: 360deg; } }
+
+  /* Shimmer skeleton */
+  .shimmer {
+    background: linear-gradient(
+      90deg,
+      hsl(var(--muted)) 25%,
+      hsl(var(--secondary)) 50%,
+      hsl(var(--muted)) 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer-sweep 1.5s infinite;
+  }
+  @keyframes shimmer-sweep {
+    from { background-position: 200% 0; }
+    to   { background-position: -200% 0; }
+  }
+
+  /* Floating */
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50%       { transform: translateY(-12px); }
+  }
+
+  /* Pulse glow */
+  .animate-pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+  @keyframes pulse-glow {
+    0%, 100% { box-shadow: 0 0 6px  rgba(14, 43, 78, 0.30); }
+    50%       { box-shadow: 0 0 26px rgba(14, 43, 78, 0.65); }
+  }
+
+  /* Fade-in up */
+  .animate-fade-up {
+    animation: fade-up 0.5s var(--ease-smooth) both;
+  }
+  @keyframes fade-up {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Scale in */
+  .animate-scale-in {
+    animation: scale-in 0.2s var(--ease-spring) both;
+  }
+  @keyframes scale-in {
+    from { opacity: 0; transform: scale(0.92); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+
+  /* Stagger delays for lists */
+  .stagger > *:nth-child(1)  { animation-delay:  40ms; }
+  .stagger > *:nth-child(2)  { animation-delay:  80ms; }
+  .stagger > *:nth-child(3)  { animation-delay: 120ms; }
+  .stagger > *:nth-child(4)  { animation-delay: 160ms; }
+  .stagger > *:nth-child(5)  { animation-delay: 200ms; }
+  .stagger > *:nth-child(6)  { animation-delay: 240ms; }
+  .stagger > *:nth-child(7)  { animation-delay: 280ms; }
+  .stagger > *:nth-child(8)  { animation-delay: 320ms; }
+
+  /* Card hover lift */
+  .card-lift {
+    transition: transform var(--dur-normal) var(--ease-smooth),
+                box-shadow var(--dur-normal) var(--ease-smooth);
+  }
+  .card-lift:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-xl), var(--shadow-glow-accent);
+  }
+
+  /* Background patterns */
+  .bg-dots {
+    background-image: radial-gradient(circle, hsl(var(--border)) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+  .bg-grid {
+    background-image:
+      linear-gradient(hsl(var(--border) / 0.4) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--border) / 0.4) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+
+  /* Typography helpers */
+  .text-balance { text-wrap: balance; }
+  .text-pretty  { text-wrap: pretty; }
+
+  /* Fluid type scale utilities */
+  .text-fluid-xs   { font-size: var(--text-fluid-xs); }
+  .text-fluid-sm   { font-size: var(--text-fluid-sm); }
+  .text-fluid-base { font-size: var(--text-fluid-base); }
+  .text-fluid-lg   { font-size: var(--text-fluid-lg); }
+  .text-fluid-xl   { font-size: var(--text-fluid-xl); line-height: 1.25; }
+  .text-fluid-2xl  { font-size: var(--text-fluid-2xl); line-height: 1.2; }
+  .text-fluid-3xl  { font-size: var(--text-fluid-3xl); line-height: 1.15; }
+
+  /* Minimum touch target (WCAG 2.2 SC 2.5.8) for icon/small interactive controls */
+  .touch-target {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* 3D helpers */
+  .perspective   { perspective: 1200px; }
+  .preserve-3d   { transform-style: preserve-3d; }
+  .backface-hidden { backface-visibility: hidden; }
+
+  /* Hide scrollbar */
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+  /* NProgress top loader */
+  #nprogress .bar {
+    background: hsl(var(--primary)) !important;
+    height: 3px !important;
+    box-shadow: 0 0 8px hsl(var(--primary)) !important;
+  }
+  #nprogress .peg { box-shadow: 0 0 12px hsl(var(--primary)) !important; }
+  #nprogress .spinner-icon {
+    border-top-color:  hsl(var(--primary)) !important;
+    border-left-color: hsl(var(--primary)) !important;
+  }
+}
+
+/* ─── Component Layer ────────────────────────────────────────────────────────── */
+@layer components {
+  /* Sonner toast theming */
+  [data-sonner-toaster] {
+    --normal-bg:     hsl(var(--card));
+    --normal-border: hsl(var(--border));
+    --normal-text:   hsl(var(--foreground));
+  }
+
+  /* React Day Picker */
+  .rdp {
+    --rdp-accent-color:     hsl(var(--primary));
+    --rdp-background-color: hsl(var(--accent) / 0.1);
+  }
+
+  /* Print */
+  @media print {
+    .no-print { display: none !important; }
+    body { background: white; color: black; }
+    .glass, .glass-card {
+      background: white;
+      backdrop-filter: none;
+      border: 1px solid #D9CDB8;
+    }
+  }
+}

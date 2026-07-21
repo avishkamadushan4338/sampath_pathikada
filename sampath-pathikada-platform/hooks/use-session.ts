@@ -1,0 +1,42 @@
+"use client";
+
+import useSWR from "swr";
+
+export interface SessionUser {
+  id: string;
+  name: string;
+  nameSinhala: string | null;
+  email: string;
+  phone: string | null;
+  role: "SUPER_ADMIN" | "ADMIN" | "ECONOMIC_DEVELOPMENT_OFFICER" | "DIVISIONAL_SECRETARIAT";
+  district: string | null;
+  dsDivision: string | null;
+  gnDivision: string | null;
+  localGovt: string | null;
+  electoral: string | null;
+  farmers: string | null;
+  eduZone: string | null;
+  eduDiv: string | null;
+  mahaweli: string | null;
+}
+
+const fetcher = async (url: string) => {
+  const res = await fetch(url);
+  const json = await res.json();
+  if (!res.ok || !json.ok) throw new Error(json.message ?? "Failed to load session");
+  return json.data as SessionUser;
+};
+
+export function useSession() {
+  const { data, error, isLoading, mutate } = useSWR<SessionUser>("/api/auth/me", fetcher, {
+    revalidateOnFocus: false,
+    shouldRetryOnError: false,
+  });
+
+  return {
+    user: data ?? null,
+    isLoading,
+    isError: !!error,
+    mutate,
+  };
+}
