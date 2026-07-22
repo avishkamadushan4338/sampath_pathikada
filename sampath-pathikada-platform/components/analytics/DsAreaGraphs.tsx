@@ -1,6 +1,5 @@
 "use client";
 
-import { useMemo } from "react";
 import {
   Landmark,
   Users,
@@ -12,7 +11,6 @@ import {
   RouteOff,
   HandHeart,
 } from "lucide-react";
-import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { Bilingual } from "@/components/Bilingual";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -20,80 +18,99 @@ import {
   GOLD,
   MAROON,
   GREEN,
-  hasKeys,
   BarCard,
   StatGrid,
   YesNoBadge,
   SectionGroup,
 } from "@/components/charts/chart-primitives";
-import {
-  aggregateHousing,
-  aggregateEmployment,
-  aggregateEducation,
-  aggregateHealth,
-  aggregateEconomicAgriculture,
-  aggregateCommunityWelfare,
-  aggregateInfrastructure,
-  aggregateAreaProfile,
+import type { DemographicsAggregate } from "@/lib/analytics/aggregate-demographics";
+import type {
+  HousingAggregate,
+  EmploymentAggregate,
+  EducationAggregate,
+  HealthAggregate,
+  EconomicAgricultureAggregate,
+  CommunityWelfareAggregate,
+  InfrastructureAggregate,
+  AreaProfileAggregate,
 } from "@/lib/analytics/aggregate-sections";
-import { aggregateDemographics } from "@/lib/analytics/aggregate-demographics";
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 
-interface DivisionGraphsProps {
-  data: Record<string, unknown> | null | undefined;
+export interface DsAreaGraphsProps {
+  demographics: DemographicsAggregate;
+  housing: HousingAggregate;
+  employment: EmploymentAggregate;
+  education: EducationAggregate;
+  health: HealthAggregate;
+  economicAgriculture: EconomicAgricultureAggregate;
+  communityWelfare: CommunityWelfareAggregate;
+  infrastructure: InfrastructureAggregate;
+  areaProfile: AreaProfileAggregate;
 }
 
-/** Visual (chart) overview of a single submission's numeric/aggregable data — reuses the same
- *  lib/analytics aggregation functions the area-wide /api/analytics endpoint uses, just scoped
- *  to a single-row array so one GN division's submission renders through the identical logic. */
-export function DivisionGraphs({ data }: DivisionGraphsProps) {
+/** Coverage pill — "Data from N of M GN divisions" — reads directly off each aggregate's
+ *  `coverage` counters returned by /api/analytics, so it stays accurate without any extra
+ *  client-side computation. */
+function CoverageBadge({ withData, total }: { withData: number; total: number }) {
+  if (total === 0) return null;
+  return (
+    <span className="rounded-full border border-border bg-muted/40 px-2.5 py-1 text-fluid-xs nums-tabular text-muted-foreground">
+      <Bilingual
+        en={`Data from ${withData} of ${total} GN divisions`}
+        si={`ග්‍රාම නිලධාරී වසම් ${total} න් ${withData} ක දත්ත`}
+      />
+    </span>
+  );
+}
+
+/** Area-wide (all GN divisions in a DS division) counterpart to DivisionGraphs — renders the
+ *  exact same chart vocabulary (BarCard / StatGrid / SectionGroup), but every prop here is
+ *  already aggregated server-side across many submissions by /api/analytics, so this component
+ *  is purely presentational and never re-derives totals on the client. */
+export function DsAreaGraphs({
+  demographics: demo,
+  housing,
+  employment,
+  education,
+  health,
+  economicAgriculture: econAgri,
+  communityWelfare: community,
+  infrastructure: infra,
+  areaProfile,
+}: DsAreaGraphsProps) {
   const { lang } = useLanguage();
-
-  const rows = useMemo(() => [{ data: data ?? {}, gnDivision: "" }], [data]);
-  const gnLabel = () => "";
-
-  const demo = useMemo(() => aggregateDemographics(rows), [rows]);
-  const housing = useMemo(() => aggregateHousing(rows, gnLabel), [rows]);
-  const employment = useMemo(() => aggregateEmployment(rows, gnLabel), [rows]);
-  const education = useMemo(() => aggregateEducation(rows, gnLabel), [rows]);
-  const health = useMemo(() => aggregateHealth(rows, gnLabel), [rows]);
-  const econAgri = useMemo(() => aggregateEconomicAgriculture(rows, gnLabel), [rows]);
-  const community = useMemo(() => aggregateCommunityWelfare(rows, gnLabel), [rows]);
-  const infra = useMemo(() => aggregateInfrastructure(rows, gnLabel), [rows]);
-  const areaProfile = useMemo(() => aggregateAreaProfile(rows, gnLabel), [rows]);
+  const t = (en: string, si: string) => (lang === "si" ? si : en);
 
   const hasAreaProfile =
-    hasKeys(data?.stateInstitutionsLand) ||
-    hasKeys(data?.physicalEnvironment) ||
-    hasKeys(data?.religiousCultural) ||
-    hasKeys(data?.tourism) ||
-    hasKeys(data?.wasteDisaster);
-  const hasDemographics = hasKeys(data?.demographics);
-  const hasHousing = hasKeys(data?.housing);
-  const hasEmployment = hasKeys(data?.employment);
-  const hasEducation = hasKeys(data?.education);
-  const hasHealth = hasKeys(data?.health);
-  const hasEconAgri = hasKeys(data?.economicAgriculture);
-  const hasInfra = hasKeys(data?.roadInfrastructure);
-  const hasCommunity = hasKeys(data?.communityOrganizations) || hasKeys(data?.socialWelfare);
-
-  const anyData =
-    hasAreaProfile || hasDemographics || hasHousing || hasEmployment || hasEducation ||
-    hasHealth || hasEconAgri || hasInfra || hasCommunity;
-
-  if (!anyData) {
-    return (
-      <p className="text-fluid-sm text-muted-foreground">
-        <Bilingual en="No data recorded yet — charts will appear once at least one section is filled in." si="තවම දත්ත සටහන් කර නොමැත — අවම වශයෙන් එක් කොටසක් සම්පූර්ණ කළ පසු ප්‍රස්ථාර දිස්වනු ඇත." />
-      </p>
-    );
-  }
-
-  const t = (en: string, si: string) => (lang === "si" ? si : en);
+    areaProfile.coverage.physicalEnvironment.withData > 0 ||
+    areaProfile.coverage.religiousCultural.withData > 0 ||
+    areaProfile.coverage.tourism.withData > 0 ||
+    areaProfile.coverage.wasteDisaster.withData > 0 ||
+    areaProfile.coverage.stateInstitutionsLand.withData > 0;
+  const hasDemographics = demo.totalPopulation > 0 || demo.households.total > 0;
+  const hasHousing = housing.coverage.withData > 0;
+  const hasEmployment = employment.coverage.withData > 0;
+  const hasEducation = education.coverage.withData > 0;
+  const hasHealth = health.coverage.withData > 0;
+  const hasEconAgri = econAgri.coverage.withData > 0;
+  const hasInfra = infra.coverage.withData > 0;
+  const hasCommunity = community.coverage.communityOrganizations.withData > 0 || community.coverage.socialWelfare.withData > 0;
 
   return (
     <div className="flex flex-col gap-10">
-      {/* ── Area Profile: State Institutions & Land, Physical & Environment, Religious & Cultural, Tourism, Waste Management ── */}
-      <SectionGroup icon={Landmark} titleEn="Area Profile" titleSi="ප්‍රදේශ පැතිකඩ" empty={!hasAreaProfile}>
+      {/* ── Area Profile ── */}
+      <SectionGroup
+        icon={Landmark}
+        titleEn="Area Profile"
+        titleSi="ප්‍රදේශ පැතිකඩ"
+        empty={!hasAreaProfile}
+        badge={
+          <CoverageBadge
+            withData={areaProfile.coverage.stateInstitutionsLand.withData}
+            total={areaProfile.coverage.stateInstitutionsLand.total}
+          />
+        }
+      >
         <BarCard
           titleEn="Religious Sites"
           titleSi="ආගමික ස්ථාන"
@@ -195,7 +212,13 @@ export function DivisionGraphs({ data }: DivisionGraphsProps) {
       </SectionGroup>
 
       {/* ── Housing ── */}
-      <SectionGroup icon={Home} titleEn="Housing" titleSi="නිවාස" empty={!hasHousing}>
+      <SectionGroup
+        icon={Home}
+        titleEn="Housing"
+        titleSi="නිවාස"
+        empty={!hasHousing}
+        badge={<CoverageBadge withData={housing.coverage.withData} total={housing.coverage.total} />}
+      >
         <Card className="lg:col-span-2">
           <CardContent className="pt-6">
             <StatGrid
@@ -236,7 +259,13 @@ export function DivisionGraphs({ data }: DivisionGraphsProps) {
       </SectionGroup>
 
       {/* ── Employment ── */}
-      <SectionGroup icon={Briefcase} titleEn="Employment" titleSi="රැකියා" empty={!hasEmployment}>
+      <SectionGroup
+        icon={Briefcase}
+        titleEn="Employment"
+        titleSi="රැකියා"
+        empty={!hasEmployment}
+        badge={<CoverageBadge withData={employment.coverage.withData} total={employment.coverage.total} />}
+      >
         <Card className="lg:col-span-2">
           <CardContent className="pt-6">
             <StatGrid
@@ -263,7 +292,13 @@ export function DivisionGraphs({ data }: DivisionGraphsProps) {
       </SectionGroup>
 
       {/* ── Education ── */}
-      <SectionGroup icon={GraduationCap} titleEn="Education" titleSi="අධ්‍යාපනය" empty={!hasEducation}>
+      <SectionGroup
+        icon={GraduationCap}
+        titleEn="Education"
+        titleSi="අධ්‍යාපනය"
+        empty={!hasEducation}
+        badge={<CoverageBadge withData={education.coverage.withData} total={education.coverage.total} />}
+      >
         <Card className="lg:col-span-2">
           <CardContent className="pt-6">
             <StatGrid
@@ -316,7 +351,13 @@ export function DivisionGraphs({ data }: DivisionGraphsProps) {
       </SectionGroup>
 
       {/* ── Health ── */}
-      <SectionGroup icon={HeartPulse} titleEn="Health" titleSi="සෞඛ්‍යය" empty={!hasHealth}>
+      <SectionGroup
+        icon={HeartPulse}
+        titleEn="Health"
+        titleSi="සෞඛ්‍යය"
+        empty={!hasHealth}
+        badge={<CoverageBadge withData={health.coverage.withData} total={health.coverage.total} />}
+      >
         <BarCard
           titleEn="Health Institution Counts"
           titleSi="සෞඛ්‍ය ආයතන ගණන්"
@@ -337,7 +378,13 @@ export function DivisionGraphs({ data }: DivisionGraphsProps) {
       </SectionGroup>
 
       {/* ── Economic — Agriculture / Industry ── */}
-      <SectionGroup icon={Wheat} titleEn="Economic — Agriculture / Industry" titleSi="ආර්ථික — කෘෂිකාර්මික/කාර්මික" empty={!hasEconAgri}>
+      <SectionGroup
+        icon={Wheat}
+        titleEn="Economic — Agriculture / Industry"
+        titleSi="ආර්ථික — කෘෂිකාර්මික/කාර්මික"
+        empty={!hasEconAgri}
+        badge={<CoverageBadge withData={econAgri.coverage.withData} total={econAgri.coverage.total} />}
+      >
         <Card className="lg:col-span-2">
           <CardContent className="flex flex-col gap-4 pt-6">
             <div className="flex flex-wrap gap-2">
@@ -421,7 +468,13 @@ export function DivisionGraphs({ data }: DivisionGraphsProps) {
       </SectionGroup>
 
       {/* ── Transport & Infrastructure ── */}
-      <SectionGroup icon={RouteOff} titleEn="Transport & Infrastructure" titleSi="ප්‍රවාහන හා යටිතල පහසුකම්" empty={!hasInfra}>
+      <SectionGroup
+        icon={RouteOff}
+        titleEn="Transport & Infrastructure"
+        titleSi="ප්‍රවාහන හා යටිතල පහසුකම්"
+        empty={!hasInfra}
+        badge={<CoverageBadge withData={infra.coverage.withData} total={infra.coverage.total} />}
+      >
         <Card className="lg:col-span-2">
           <CardContent className="flex flex-col gap-4 pt-6">
             <div className="flex flex-wrap gap-2">
