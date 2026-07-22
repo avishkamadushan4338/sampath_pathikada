@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import useSWR from "swr";
-import { LayoutDashboard, ClipboardList, BarChart3, Menu, X } from "lucide-react";
+import { LayoutDashboard, ClipboardList, BarChart3, LineChart, Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { Bilingual } from "@/components/Bilingual";
@@ -29,9 +29,10 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { href: `${BASE}/dashboard`, label: dictionary.dashboard, icon: LayoutDashboard },
+  { href: `${BASE}/dashboard`, label: { en: "My Division Information", si: "මාගේ වසම් තොරතුරු" }, icon: LayoutDashboard },
   { href: `${BASE}/review`, label: { en: "Review Queue", si: "සමාලෝචන පෝලිම" }, icon: ClipboardList, showPendingBadge: true },
   { href: `${BASE}/summary`, label: { en: "Summary", si: "සාරාංශය" }, icon: BarChart3 },
+  { href: `${BASE}/graphs`, label: { en: "Graphs", si: "ප්‍රස්ථාර" }, icon: LineChart },
 ];
 
 export function DsSidebar() {

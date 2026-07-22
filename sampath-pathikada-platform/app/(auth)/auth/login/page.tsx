@@ -4,22 +4,18 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { Eye, EyeOff, Lock, Clock, Home } from "lucide-react";
 
-const GOLD      = "#C8A34D";
-const DEEP_GOLD = "#A67C00";
-const CRIMSON   = "#6B0F1A";
-const CHARCOAL  = "#111111";
-const ease      = [0.16, 1, 0.3, 1] as const;
+const ease = [0.16, 1, 0.3, 1] as const;
 
 /* ── Input ───────────────────────────────────────────────────────────────── */
 function PremiumInput({
-  id, label, type, value, onChange, icon, autoComplete, delay,
+  id, name, label, type, value, onChange, icon, autoComplete, delay, error, describedBy, rm,
 }: {
-  id: string; label: string; type: string; value: string;
+  id: string; name: string; label: string; type: string; value: string;
   onChange: (v: string) => void; icon: React.ReactNode;
-  autoComplete?: string; delay: number;
+  autoComplete?: string; delay: number; error?: boolean; describedBy?: string; rm: boolean;
 }) {
   const [focused, setFocused] = useState(false);
   const [showPwd, setShowPwd] = useState(false);
@@ -29,9 +25,9 @@ function PremiumInput({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
+      initial={rm ? false : { opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay, ease }}
+      transition={rm ? { duration: 0 } : { duration: 0.5, delay, ease }}
     >
       {/* outer wrapper — sets border/bg, uses flex column */}
       <div style={{
@@ -41,59 +37,56 @@ function PremiumInput({
         position: "relative",
         height: "clamp(58px,8vh,72px)",
         borderRadius: 11,
-        border: `1.5px solid ${focused ? GOLD : "rgba(200,163,77,0.28)"}`,
-        background: focused ? "#FFFDF8" : "#FAF8F3",
+        border: `1.5px solid ${error ? "var(--error-border)" : focused ? "var(--gold)" : "rgba(200,163,77,0.28)"}`,
+        background: focused ? "var(--input-bg-focus)" : "var(--input-bg)",
         boxShadow: focused ? "0 0 0 3px rgba(200,163,77,0.10)" : "none",
         transition: "border-color .2s, box-shadow .2s, background .2s",
         padding: "0 42px 0 42px",
         overflow: "hidden",
       }}>
         {/* icon — absolute, centered vertically */}
-        <div style={{
+        <div aria-hidden="true" style={{
           position: "absolute", left: 13, top: "50%", transform: "translateY(-50%)",
           display: "flex", pointerEvents: "none", zIndex: 1,
-          color: focused ? GOLD : "rgba(17,17,17,0.28)", transition: "color .2s",
+          color: focused ? "var(--gold)" : "var(--ink-28)", transition: "color .2s",
         }}>
           {icon}
         </div>
 
-        {/* label — slides up when lifted */}
+        {/*
+          Label always renders its text — it doubles as the "placeholder" via
+          position/size animation instead of ever being emptied out, so the
+          input keeps a valid accessible name whether it's focused or not.
+        */}
         <label htmlFor={id} style={{
+          position: lifted ? "static" : "absolute",
+          left: lifted ? "auto" : 42,
+          top: lifted ? "auto" : "50%",
+          transform: lifted ? "none" : "translateY(-50%)",
           display: "block",
           fontSize: lifted ? 11 : 16,
           fontWeight: lifted ? 600 : 400,
           lineHeight: 1,
           letterSpacing: lifted ? "0.07em" : "0em",
-          color: focused ? GOLD : lifted ? "rgba(17,17,17,0.45)" : "rgba(17,17,17,0.34)",
+          color: focused ? "var(--gold)" : lifted ? "var(--ink-45)" : "var(--ink-34)",
           fontFamily: "'Inter',system-ui,sans-serif",
           pointerEvents: "none", userSelect: "none", whiteSpace: "nowrap",
           marginBottom: lifted ? 3 : 0,
-          marginTop: lifted ? 0 : 0,
-          transition: "font-size .15s ease, color .15s ease, margin .15s ease, letter-spacing .15s ease",
+          transition: "font-size .15s ease, color .15s ease, margin .15s ease, letter-spacing .15s ease, transform .15s ease",
         }}>
-          {lifted ? label : ""}
+          {label}
         </label>
-
-        {/* real placeholder when not lifted */}
-        {!lifted && (
-          <div style={{
-            position: "absolute", left: 42, top: "50%", transform: "translateY(-50%)",
-            fontSize: 16, fontWeight: 400,
-            color: "rgba(17,17,17,0.34)",
-            fontFamily: "'Inter',system-ui,sans-serif",
-            pointerEvents: "none", userSelect: "none", whiteSpace: "nowrap",
-          }}>
-            {label}
-          </div>
-        )}
 
         {/* input */}
         <input
-          id={id} type={inputType} value={value}
+          id={id} name={name} type={inputType} value={value}
           onChange={e => onChange(e.target.value)}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
           autoComplete={autoComplete}
+          required
+          aria-invalid={error || undefined}
+          aria-describedby={describedBy}
           placeholder=""
           style={{
             display: "block",
@@ -101,23 +94,26 @@ function PremiumInput({
             paddingRight: isPassword ? 30 : 0,
             fontSize: 16,
             fontFamily: "'Inter',system-ui,sans-serif",
-            fontWeight: 500, color: CHARCOAL, caretColor: GOLD,
+            fontWeight: 500, color: "var(--charcoal)", caretColor: "var(--gold)",
             background: "transparent", border: "none", outline: "none",
             boxShadow: "none", padding: 0,
             lineHeight: 1.2,
           }}
         />
 
-        {/* eye toggle */}
+        {/* eye toggle — full-height 44px hit zone for touch/WCAG 2.5.8, reachable by keyboard */}
         {isPassword && (
-          <button type="button" tabIndex={-1}
+          <button type="button"
+            className="touch-target"
             onClick={() => setShowPwd(p => !p)}
-            aria-label={showPwd ? "Hide" : "Show"}
+            aria-label={showPwd ? "Hide password" : "Show password"}
+            aria-pressed={showPwd}
             style={{
-              position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)",
-              display: "flex", background: "none", border: "none",
+              position: "absolute", right: 0, top: 0, bottom: 0, width: 44,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              background: "none", border: "none",
               padding: 0, cursor: "pointer", zIndex: 1,
-              color: focused ? GOLD : "rgba(17,17,17,0.28)", transition: "color .2s",
+              color: focused ? "var(--gold)" : "var(--ink-28)", transition: "color .2s",
             }}
           >
             {showPwd ? <EyeOff size={15}/> : <Eye size={15}/>}
@@ -138,6 +134,7 @@ export default function LoginPage() {
   const [error,    setError]    = useState("");
   const [pendingReview, setPendingReview] = useState(false);
   const [pendingMessage, setPendingMessage] = useState("");
+  const rm = useReducedMotion() ?? false;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -173,18 +170,91 @@ export default function LoginPage() {
 
   return (
     /*
-      Root: position fixed, 100dvh × 100dvw — nothing can scroll out.
+      Root: normal flow, min-height 100dvh — grows and lets the page scroll
+      instead of clipping (position:fixed+overflow:hidden would fail WCAG
+      1.4.10 Reflow the moment content doesn't fit a viewport, e.g. at 400%
+      zoom or on very short screens).
       Grid rows: 2px top-rule | 1fr main | auto footer
-      Main on mobile : single column, branding + card stacked, both scroll-free
-      Main on lg+    : two columns 52/48, each filling the 1fr row
+      Main on mobile : single column, branding + card stacked
+      Main on lg+    : two columns 52/48
     */
-    <div style={{
-      position: "fixed", inset: 0,
+    <div className="sp-login" style={{
+      position: "relative",
+      minHeight: "100dvh",
+      width: "100%",
       display: "grid",
       gridTemplateRows: "2px 1fr auto",
-      background: "linear-gradient(150deg,#FEFCF7 0%,#FAF8F3 55%,#F2EDE1 100%)",
-      overflow: "hidden",
+      background: "var(--bg-grad)",
+      overflowX: "hidden",
     }}>
+      {/*
+        Scoped theme tokens — mirrors the app-wide :root/.dark convention in
+        globals.css so this page follows the next-themes `.dark` class
+        instead of being hardcoded to the light cream palette.
+      */}
+      <style jsx>{`
+        .sp-login {
+          --gold: #C8A34D;
+          --deep-gold: #A67C00;
+          --crimson: #6B0F1A;
+          --pathikada-gold: #8B6400;
+          --charcoal: #111111;
+          --bg-grad: linear-gradient(150deg,#FEFCF7 0%,#FAF8F3 55%,#F2EDE1 100%);
+          --card-bg: #FEFCF8;
+          --card-border: rgba(200,163,77,0.18);
+          --card-shadow: 0 16px 56px rgba(0,0,0,0.08),0 4px 16px rgba(166,124,0,0.06),inset 0 1px 0 rgba(255,255,255,1);
+          --input-bg: #FAF8F3;
+          --input-bg-focus: #FFFDF8;
+          --footer-bg: rgba(254,252,248,0.80);
+          --label-brand: rgba(61,46,0,0.68);
+          --ink-28: rgba(17,17,17,0.28);
+          --ink-34: rgba(17,17,17,0.34);
+          --ink-38: rgba(17,17,17,0.38);
+          --ink-42: rgba(17,17,17,0.42);
+          --ink-44: rgba(17,17,17,0.44);
+          --ink-45: rgba(17,17,17,0.45);
+          --ink-50: rgba(17,17,17,0.50);
+          --ink-52: rgba(17,17,17,0.52);
+          --error-text: #B91C1C;
+          --error-dot: #EF4444;
+          --error-bg: rgba(220,38,38,0.06);
+          --error-border: rgba(220,38,38,0.16);
+        }
+        :global(.dark) .sp-login {
+          --gold: #D9B76A;
+          --deep-gold: #E8C77E;
+          --crimson: #E2897F;
+          --pathikada-gold: #E3B85F;
+          --charcoal: #F3EEE3;
+          --bg-grad: linear-gradient(150deg,#0A1C30 0%,#0D2038 55%,#081627 100%);
+          --card-bg: #0F2136;
+          --card-border: rgba(200,163,77,0.30);
+          --card-shadow: 0 16px 56px rgba(0,0,0,0.45),0 4px 16px rgba(0,0,0,0.30),inset 0 1px 0 rgba(255,255,255,0.06);
+          --input-bg: #0F2033;
+          --input-bg-focus: #142943;
+          --footer-bg: rgba(10,28,48,0.80);
+          --label-brand: rgba(224,196,140,0.75);
+          --ink-28: rgba(243,238,227,0.38);
+          --ink-34: rgba(243,238,227,0.42);
+          --ink-38: rgba(243,238,227,0.46);
+          --ink-42: rgba(243,238,227,0.50);
+          --ink-44: rgba(243,238,227,0.52);
+          --ink-45: rgba(243,238,227,0.54);
+          --ink-50: rgba(243,238,227,0.58);
+          --ink-52: rgba(243,238,227,0.62);
+          --error-text: #F87171;
+          --error-dot: #F87171;
+          --error-bg: rgba(248,113,113,0.10);
+          --error-border: rgba(248,113,113,0.24);
+        }
+        /* Below this, the un-breakable brand lockup would clip at 400% zoom / tiny viewports */
+        @media (max-width: 340px) {
+          .brand-heading, .brand-sinhala {
+            white-space: normal !important;
+            text-align: center !important;
+          }
+        }
+      `}</style>
 
       {/* ── static bg accents (no filter, no GPU layer) ── */}
       <div style={{ position:"absolute", inset:0, pointerEvents:"none", zIndex:0 }}>
@@ -204,9 +274,9 @@ export default function LoginPage() {
 
       {/* ── top gold rule (grid row 0) ── */}
       <motion.div
-        initial={{ scaleX:0, opacity:0 }} animate={{ scaleX:1, opacity:1 }}
-        transition={{ duration:1.6, ease:"easeOut" }}
-        style={{ background:`linear-gradient(90deg,transparent,${DEEP_GOLD} 20%,${GOLD} 50%,${DEEP_GOLD} 80%,transparent)`, zIndex:10 }}
+        initial={rm ? false : { scaleX:0, opacity:0 }} animate={{ scaleX:1, opacity:1 }}
+        transition={rm ? { duration: 0 } : { duration:1.6, ease:"easeOut" }}
+        style={{ background:`linear-gradient(90deg,transparent,var(--deep-gold) 20%,var(--gold) 50%,var(--deep-gold) 80%,transparent)`, zIndex:10 }}
       />
 
       {/* ════════════════ MAIN (grid row 1) ════════════════ */}
@@ -216,7 +286,6 @@ export default function LoginPage() {
         /* mobile: single col | lg: 52% divider 48% */
         gridTemplateColumns: "1fr",
         gridTemplateRows: "auto auto",
-        overflow: "hidden",
         alignContent: "center",
       }}
         className="lg:grid! lg:grid-cols-[52%_1px_48%]! lg:grid-rows-[1fr]!"
@@ -229,15 +298,14 @@ export default function LoginPage() {
           /* clamp padding so nothing overflows at any size */
           padding: "clamp(10px,2vh,32px) clamp(20px,5vw,80px) clamp(4px,0.8vh,12px)",
           gap: "clamp(6px,1.2vh,14px)",
-          overflow: "hidden",
         }}
           className="lg:items-start"
         >
           {/* logos */}
           <motion.div
-            initial={{ opacity:0, y:18, scale:0.95 }}
+            initial={rm ? false : { opacity:0, y:18, scale:0.95 }}
             animate={{ opacity:1, y:0,  scale:1 }}
-            transition={{ duration:1.0, delay:0.15, ease }}
+            transition={rm ? { duration: 0 } : { duration:1.0, delay:0.15, ease }}
             style={{
               display:"flex", alignItems:"center", justifyContent:"center",
               gap:"clamp(10px,2.2vw,28px)", flexWrap:"wrap",
@@ -284,19 +352,19 @@ export default function LoginPage() {
 
           {/* gold rule */}
           <motion.div
-            initial={{ scaleX:0, opacity:0 }} animate={{ scaleX:1, opacity:1 }}
-            transition={{ duration:0.9, delay:0.42, ease:"easeOut" }}
+            initial={rm ? false : { scaleX:0, opacity:0 }} animate={{ scaleX:1, opacity:1 }}
+            transition={rm ? { duration: 0 } : { duration:0.9, delay:0.42, ease:"easeOut" }}
             style={{
               width:"clamp(40px,7vw,80px)", height:1,
-              background:`linear-gradient(90deg,transparent,${GOLD},transparent)`,
+              background:`linear-gradient(90deg,transparent,var(--gold),transparent)`,
               transformOrigin:"center",
             }}
           />
 
           {/* system name */}
           <motion.h1
-            initial={{ opacity:0, y:12 }} animate={{ opacity:1, y:0 }}
-            transition={{ duration:0.8, delay:0.54, ease }}
+            initial={rm ? false : { opacity:0, y:12 }} animate={{ opacity:1, y:0 }}
+            transition={rm ? { duration: 0 } : { duration:0.8, delay:0.54, ease }}
             style={{
               fontFamily:"'Playfair Display','Cormorant Garamond',Georgia,serif",
               fontSize:"clamp(1.6rem,5.5vw,4.4rem)",
@@ -304,16 +372,16 @@ export default function LoginPage() {
               letterSpacing:"-0.04em", whiteSpace:"nowrap", margin:0,
               textAlign:"center",
             }}
-            className="lg:text-left"
+            className="lg:text-left brand-heading"
           >
-            <span style={{ color:CRIMSON }}>Sampath</span>{" "}
-            <span style={{ color:"#8B6400" }}>Pathikada</span>
+            <span style={{ color:"var(--crimson)" }}>Sampath</span>{" "}
+            <span style={{ color:"var(--pathikada-gold)" }}>Pathikada</span>
           </motion.h1>
 
           {/* subtitle + sinhala */}
           <motion.div
-            initial={{ opacity:0, y:10 }} animate={{ opacity:1, y:0 }}
-            transition={{ duration:0.8, delay:0.66, ease }}
+            initial={rm ? false : { opacity:0, y:10 }} animate={{ opacity:1, y:0 }}
+            transition={rm ? { duration: 0 } : { duration:0.8, delay:0.66, ease }}
             style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:"clamp(3px,0.8vh,8px)" }}
             className="lg:items-start"
           >
@@ -321,7 +389,7 @@ export default function LoginPage() {
               fontFamily:"'Inter',system-ui,sans-serif",
               fontSize:"clamp(0.66rem,1.6vw,0.90rem)",
               fontWeight:600, letterSpacing:"0.20em",
-              color:"rgba(61,46,0,0.68)", textTransform:"uppercase", margin:0,
+              color:"var(--label-brand)", textTransform:"uppercase", margin:0,
             }}>
               Digital Governance Platform
             </p>
@@ -335,14 +403,14 @@ export default function LoginPage() {
             <p lang="si" style={{
               fontFamily:"'Yaldevi','Noto Sans Sinhala',sans-serif",
               fontSize:"clamp(0.95rem,3vw,1.8rem)",
-              fontWeight:700, letterSpacing:"0.04em", color:"#8B6400",
+              fontWeight:700, letterSpacing:"0.04em", color:"var(--pathikada-gold)",
               margin:0, whiteSpace:"nowrap", textAlign:"center",
             }}
-              className="lg:text-left"
+              className="lg:text-left brand-sinhala"
             >
               සම්පත් පැතිකඩ
-              <span style={{ color:"#A67C00", margin:"0 0.4em", fontWeight:300, opacity:0.5 }}>|</span>
-              <span style={{ color:CRIMSON }}>දකුණු පළාත</span>
+              <span style={{ color:"var(--deep-gold)", margin:"0 0.4em", fontWeight:300, opacity:0.5 }}>|</span>
+              <span style={{ color:"var(--crimson)" }}>දකුණු පළාත</span>
             </p>
           </motion.div>
 
@@ -351,8 +419,8 @@ export default function LoginPage() {
         {/* ── vertical divider (lg only) ── */}
         <motion.div
           className="hidden lg:block"
-          initial={{ scaleY:0, opacity:0 }} animate={{ scaleY:1, opacity:1 }}
-          transition={{ duration:1.1, delay:0.3, ease:"easeOut" }}
+          initial={rm ? false : { scaleY:0, opacity:0 }} animate={{ scaleY:1, opacity:1 }}
+          transition={rm ? { duration: 0 } : { duration:1.1, delay:0.3, ease:"easeOut" }}
           style={{
             background:"linear-gradient(to bottom,transparent,rgba(200,163,77,0.24),transparent)",
             margin:"28px 0",
@@ -363,73 +431,72 @@ export default function LoginPage() {
         <div style={{
           display:"flex", alignItems:"center", justifyContent:"center",
           padding:"clamp(8px,1.5vh,24px) clamp(12px,3vw,36px)",
-          overflow:"hidden",
         }}
           className="lg:pb-0! lg:pt-0! pt-0!"
         >
           <motion.div
-            initial={{ opacity:0, y:14 }} animate={{ opacity:1, y:0 }}
-            transition={{ duration:0.8, delay:0.45, ease }}
+            initial={rm ? false : { opacity:0, y:14 }} animate={{ opacity:1, y:0 }}
+            transition={rm ? { duration: 0 } : { duration:0.8, delay:0.45, ease }}
             style={{ width:"min(90vw,640px)" }}
           >
             {/* card */}
             <div style={{
               borderRadius: 20,
-              background: "#FEFCF8",
-              border: "1px solid rgba(200,163,77,0.18)",
-              boxShadow: "0 16px 56px rgba(0,0,0,0.08),0 4px 16px rgba(166,124,0,0.06),inset 0 1px 0 rgba(255,255,255,1)",
+              background: "var(--card-bg)",
+              border: "1px solid var(--card-border)",
+              boxShadow: "var(--card-shadow)",
               isolation: "isolate",
             }}>
               {/* gold top edge */}
               <div style={{ height:2, borderRadius:"20px 20px 0 0",
-                background:`linear-gradient(90deg,transparent 10%,${GOLD}55 50%,transparent 90%)` }}/>
+                background:`linear-gradient(90deg,transparent 10%,var(--gold) 50%,transparent 90%)`, opacity:0.55 }}/>
 
               <div style={{ padding:"clamp(22px,5vh,52px) clamp(22px,5vw,52px)" }}>
 
               {pendingReview ? (
                 /* ── Under review state ── */
                 <motion.div
-                  initial={{ opacity: 0, scale: 0.96 }}
+                  initial={rm ? false : { opacity: 0, scale: 0.96 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.5, ease }}
+                  transition={rm ? { duration: 0 } : { duration: 0.5, ease }}
                   style={{ textAlign: "center", padding: "clamp(10px,2vh,20px) 0" }}
                 >
                   <motion.div
-                    initial={{ scale: 0, rotate: -30 }}
+                    initial={rm ? false : { scale: 0, rotate: -30 }}
                     animate={{ scale: 1, rotate: 0 }}
-                    transition={{ type: "spring", stiffness: 420, damping: 22, delay: 0.1 }}
+                    transition={rm ? { duration: 0 } : { type: "spring", stiffness: 420, damping: 22, delay: 0.1 }}
                     style={{
                       width: 72, height: 72, borderRadius: "50%",
-                      background: `linear-gradient(145deg,${GOLD},${DEEP_GOLD})`,
+                      background: `linear-gradient(145deg,var(--gold),var(--deep-gold))`,
                       display: "flex", alignItems: "center", justifyContent: "center",
                       margin: "0 auto clamp(16px,2.5vh,22px)",
                       boxShadow: "0 8px 32px rgba(166,124,0,0.30),0 0 0 8px rgba(200,163,77,0.10)",
                     }}
                   >
-                    <Clock size={34} color="#fff" strokeWidth={2.4} />
+                    <Clock size={34} color="#fff" strokeWidth={2.4} aria-hidden="true" />
                   </motion.div>
 
                   <motion.h2
-                    initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.24 }}
+                    initial={rm ? false : { opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                    transition={rm ? { duration: 0 } : { delay: 0.24 }}
                     style={{
                       margin: "0 0 10px",
                       fontFamily: "'Playfair Display',Georgia,serif",
                       fontSize: "clamp(1.3rem,4vw,1.75rem)",
                       fontWeight: 800, letterSpacing: "-0.03em",
-                      color: CHARCOAL,
+                      color: "var(--charcoal)",
                     }}
                   >
                     Account Under Review
                   </motion.h2>
 
                   <motion.p
-                    initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.32 }}
+                    initial={rm ? false : { opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+                    transition={rm ? { duration: 0 } : { delay: 0.32 }}
                     style={{
                       margin: "0 0 clamp(20px,3.2vh,30px)",
                       fontSize: "0.9rem",
-                      color: "rgba(17,17,17,0.52)",
+                      color: "var(--ink-52)",
                       lineHeight: 1.7,
                       fontFamily: "'Inter',system-ui,sans-serif",
                     }}
@@ -440,8 +507,8 @@ export default function LoginPage() {
                   <motion.button
                     type="button"
                     onClick={() => router.push("/")}
-                    initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.40 }}
+                    initial={rm ? false : { opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
+                    transition={rm ? { duration: 0 } : { delay: 0.40 }}
                     whileHover={{ y: -2, scale: 1.01 }}
                     whileTap={{ scale: 0.98 }}
                     style={{
@@ -457,7 +524,7 @@ export default function LoginPage() {
                       color: "#fff", textTransform: "uppercase",
                     }}
                   >
-                    <Home size={14} color="#fff" strokeWidth={2.5} />
+                    <Home size={14} color="#fff" strokeWidth={2.5} aria-hidden="true" />
                     Back to Home
                   </motion.button>
                 </motion.div>
@@ -465,15 +532,15 @@ export default function LoginPage() {
               <>
                 {/* card header */}
                 <motion.div
-                  initial={{ opacity:0, y:10 }} animate={{ opacity:1, y:0 }}
-                  transition={{ duration:0.6, delay:0.60, ease }}
+                  initial={rm ? false : { opacity:0, y:10 }} animate={{ opacity:1, y:0 }}
+                  transition={rm ? { duration: 0 } : { duration:0.6, delay:0.60, ease }}
                   style={{ marginBottom:"clamp(14px,2.2vh,22px)" }}
                 >
                   <h2
                     className="text-[1.4rem] md:text-[2rem] lg:text-[2.2rem]"
                     style={{
                       fontFamily:"'Playfair Display',Georgia,serif",
-                      fontWeight:800, color:CHARCOAL,
+                      fontWeight:800, color:"var(--charcoal)",
                       lineHeight:1.1, letterSpacing:"-0.03em",
                       margin:"0 0 4px",
                     }}>
@@ -483,7 +550,7 @@ export default function LoginPage() {
                     className="text-[0.82rem] md:text-[1rem] lg:text-[1rem]"
                     style={{
                       fontFamily:"'Inter',system-ui,sans-serif",
-                      color:"rgba(17,17,17,0.44)", margin:0,
+                      color:"var(--ink-44)", margin:0,
                     }}>
                     Sign in to access the governance platform.
                   </p>
@@ -493,19 +560,21 @@ export default function LoginPage() {
                 <AnimatePresence>
                   {error && (
                     <motion.div
-                      initial={{ opacity:0, height:0, marginBottom:0 }}
+                      id="login-error"
+                      role="alert"
+                      initial={rm ? false : { opacity:0, height:0, marginBottom:0 }}
                       animate={{ opacity:1, height:"auto", marginBottom:12 }}
                       exit={{ opacity:0, height:0, marginBottom:0 }}
-                      transition={{ duration:0.25 }}
+                      transition={rm ? { duration: 0 } : { duration:0.25 }}
                       style={{
                         padding:"9px 13px", borderRadius:9,
-                        background:"rgba(220,38,38,0.06)",
-                        border:"1px solid rgba(220,38,38,0.16)",
+                        background:"var(--error-bg)",
+                        border:"1px solid var(--error-border)",
                         display:"flex", alignItems:"center", gap:8,
                       }}
                     >
-                      <div style={{ width:5, height:5, borderRadius:"50%", background:"#EF4444", flexShrink:0 }}/>
-                      <span style={{ fontFamily:"'Inter',system-ui,sans-serif", fontSize:"0.78rem", color:"#B91C1C", fontWeight:500 }}>
+                      <div aria-hidden="true" style={{ width:5, height:5, borderRadius:"50%", background:"var(--error-dot)", flexShrink:0 }}/>
+                      <span style={{ fontFamily:"'Inter',system-ui,sans-serif", fontSize:"0.78rem", color:"var(--error-text)", fontWeight:500 }}>
                         {error}
                       </span>
                     </motion.div>
@@ -516,9 +585,10 @@ export default function LoginPage() {
                 <form onSubmit={handleSubmit} noValidate>
                   <div style={{ display:"flex", flexDirection:"column", gap:"clamp(10px,1.6vh,18px)", marginBottom:"clamp(12px,1.8vh,20px)" }}>
                     <PremiumInput
-                      id="username" label="Email Address"
+                      id="username" name="email" label="Email Address"
                       type="email" value={username} onChange={setUsername}
-                      autoComplete="email" delay={0.70}
+                      autoComplete="email" delay={0.70} rm={rm}
+                      error={!!error} describedBy={error ? "login-error" : undefined}
                       icon={
                         <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
                           <circle cx="8" cy="5" r="3" stroke="currentColor" strokeWidth="1.5"/>
@@ -527,9 +597,10 @@ export default function LoginPage() {
                       }
                     />
                     <PremiumInput
-                      id="password" label="Password"
+                      id="password" name="password" label="Password"
                       type="password" value={password} onChange={setPassword}
-                      autoComplete="current-password" delay={0.78}
+                      autoComplete="current-password" delay={0.78} rm={rm}
+                      error={!!error} describedBy={error ? "login-error" : undefined}
                       icon={
                         <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
                           <rect x="3" y="7" width="10" height="8" rx="2" stroke="currentColor" strokeWidth="1.5"/>
@@ -542,17 +613,19 @@ export default function LoginPage() {
 
                   {/* remember + forgot */}
                   <motion.div
-                    initial={{ opacity:0 }} animate={{ opacity:1 }}
-                    transition={{ duration:0.5, delay:0.86 }}
+                    initial={rm ? false : { opacity:0 }} animate={{ opacity:1 }}
+                    transition={rm ? { duration: 0 } : { duration:0.5, delay:0.86 }}
                     style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:"clamp(12px,2vh,20px)" }}
                   >
                     <button type="button" onClick={() => setRemember(r => !r)}
+                      role="checkbox" aria-checked={remember}
+                      className="touch-target"
                       style={{ display:"flex", alignItems:"center", gap:8, background:"none", border:"none", padding:0, cursor:"pointer" }}
                     >
-                      <div style={{
+                      <div aria-hidden="true" style={{
                         width:16, height:16, borderRadius:4, flexShrink:0,
                         border: remember ? "none" : "1.5px solid rgba(200,163,77,0.38)",
-                        background: remember ? `linear-gradient(135deg,${GOLD},${DEEP_GOLD})` : "#fff",
+                        background: remember ? `linear-gradient(135deg,var(--gold),var(--deep-gold))` : "var(--input-bg)",
                         boxShadow: remember ? "0 2px 6px rgba(200,163,77,0.28)" : "none",
                         display:"flex", alignItems:"center", justifyContent:"center",
                         transition:"all .18s ease",
@@ -560,8 +633,8 @@ export default function LoginPage() {
                         <AnimatePresence>
                           {remember && (
                             <motion.svg
-                              initial={{ scale:0, opacity:0 }} animate={{ scale:1, opacity:1 }}
-                              exit={{ scale:0, opacity:0 }} transition={{ duration:0.15 }}
+                              initial={rm ? false : { scale:0, opacity:0 }} animate={{ scale:1, opacity:1 }}
+                              exit={{ scale:0, opacity:0 }} transition={rm ? { duration: 0 } : { duration:0.15 }}
                               width="9" height="9" viewBox="0 0 10 10" fill="none"
                             >
                               <path d="M1.5 5l2.5 2.5 4.5-4.5" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
@@ -569,14 +642,14 @@ export default function LoginPage() {
                           )}
                         </AnimatePresence>
                       </div>
-                      <span className="text-[0.75rem] md:text-[0.95rem]" style={{ fontFamily:"'Inter',system-ui,sans-serif", color:"rgba(17,17,17,0.50)", fontWeight:500 }}>
+                      <span className="text-[0.75rem] md:text-[0.95rem]" style={{ fontFamily:"'Inter',system-ui,sans-serif", color:"var(--ink-50)", fontWeight:500 }}>
                         Remember this device
                       </span>
                     </button>
 
                     <Link href="/auth/forgot-password"
-                      className="text-[0.75rem] md:text-[0.95rem]"
-                      style={{ fontFamily:"'Inter',system-ui,sans-serif", color:DEEP_GOLD, fontWeight:600, textDecoration:"none" }}
+                      className="text-[0.75rem] md:text-[0.95rem] touch-target"
+                      style={{ fontFamily:"'Inter',system-ui,sans-serif", color:"var(--deep-gold)", fontWeight:600, textDecoration:"none", display:"inline-flex", alignItems:"center" }}
                     >
                       Forgot password?
                     </Link>
@@ -584,25 +657,25 @@ export default function LoginPage() {
 
                   {/* register link */}
                   <motion.p
-                    initial={{ opacity:0 }} animate={{ opacity:1 }}
-                    transition={{ duration:0.5, delay:0.90 }}
-                    style={{ textAlign:"center", marginBottom:"clamp(10px,1.5vh,16px)", fontFamily:"'Inter',system-ui,sans-serif", fontSize:"0.82rem", color:"rgba(17,17,17,0.42)" }}
+                    initial={rm ? false : { opacity:0 }} animate={{ opacity:1 }}
+                    transition={rm ? { duration: 0 } : { duration:0.5, delay:0.90 }}
+                    style={{ textAlign:"center", marginBottom:"clamp(10px,1.5vh,16px)", fontFamily:"'Inter',system-ui,sans-serif", fontSize:"0.82rem", color:"var(--ink-42)" }}
                   >
                     {"Don't have an account? "}
-                    <Link href="/auth/register" style={{ color:DEEP_GOLD, fontWeight:700, textDecoration:"none" }}>
+                    <Link href="/auth/register" style={{ color:"var(--deep-gold)", fontWeight:700, textDecoration:"none" }}>
                       Register here
                     </Link>
                   </motion.p>
 
                   {/* submit */}
                   <motion.div
-                    initial={{ opacity:0, y:10 }} animate={{ opacity:1, y:0 }}
-                    transition={{ duration:0.6, delay:0.94, ease }}
+                    initial={rm ? false : { opacity:0, y:10 }} animate={{ opacity:1, y:0 }}
+                    transition={rm ? { duration: 0 } : { duration:0.6, delay:0.94, ease }}
                     whileHover={{ y:-2, scale:1.012 }}
                     whileTap={{ scale:0.98 }}
                   >
                     <button
-                      type="submit" disabled={loading}
+                      type="submit" disabled={loading} aria-busy={loading}
                       className="group"
                       style={{
                         position:"relative", width:"100%",
@@ -624,8 +697,9 @@ export default function LoginPage() {
                         {loading ? (
                           <>
                             <motion.div
+                              aria-hidden="true"
                               style={{ width:14, height:14, borderRadius:"50%", border:"2px solid rgba(255,255,255,0.3)", borderTopColor:"#fff" }}
-                              animate={{ rotate:360 }} transition={{ duration:0.75, repeat:Infinity, ease:"linear" }}
+                              animate={rm ? undefined : { rotate:360 }} transition={rm ? undefined : { duration:0.75, repeat:Infinity, ease:"linear" }}
                             />
                             <span className="text-[0.75rem] md:text-[0.95rem]" style={{ fontFamily:"'Inter',system-ui,sans-serif", fontWeight:700, letterSpacing:"0.10em", color:"#fff", textTransform:"uppercase" }}>
                               Authenticating…
@@ -633,7 +707,7 @@ export default function LoginPage() {
                           </>
                         ) : (
                           <>
-                            <Lock size={13} color="#fff" strokeWidth={2.5}/>
+                            <Lock size={13} color="#fff" strokeWidth={2.5} aria-hidden="true"/>
                             <span className="text-[0.75rem] md:text-[0.95rem]" style={{ fontFamily:"'Inter',system-ui,sans-serif", fontWeight:700, letterSpacing:"0.10em", color:"#fff", textTransform:"uppercase" }}>
                               Sign In Securely
                             </span>
@@ -654,20 +728,20 @@ export default function LoginPage() {
 
       {/* ── footer (grid row 2) ── */}
       <motion.footer
-        initial={{ opacity:0 }} animate={{ opacity:1 }}
-        transition={{ duration:0.8, delay:1.1 }}
+        initial={rm ? false : { opacity:0 }} animate={{ opacity:1 }}
+        transition={rm ? { duration: 0 } : { duration:0.8, delay:1.1 }}
         style={{
           position:"relative", zIndex:1,
           display:"flex", alignItems:"center", justifyContent:"center",
           padding:"6px 16px",
           borderTop:"1px solid rgba(200,163,77,0.12)",
-          background:"rgba(254,252,248,0.80)",
+          background:"var(--footer-bg)",
         }}
       >
         <p style={{
           fontFamily:"'Inter',system-ui,sans-serif",
           fontSize:"clamp(0.58rem,0.85vw,0.70rem)",
-          color:"rgba(17,17,17,0.38)", letterSpacing:"0.03em",
+          color:"var(--ink-38)", letterSpacing:"0.03em",
           fontWeight:500, margin:0, textAlign:"center",
         }}>
           Southern Province Planning Secretariat
