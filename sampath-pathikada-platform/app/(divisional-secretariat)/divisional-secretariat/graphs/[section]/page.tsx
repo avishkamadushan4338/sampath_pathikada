@@ -3,10 +3,11 @@
 import * as React from "react";
 import useSWR from "swr";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Globe2, Home, MapPin, Users, UserCheck, Eye } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { Bilingual } from "@/components/Bilingual";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardFooter, CardTitle } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -57,11 +58,43 @@ function PageSkeleton() {
   );
 }
 
+function TopicCard({
+  icon: Icon,
+  titleEn,
+  titleSi,
+}: {
+  icon: LucideIcon;
+  titleEn: string;
+  titleSi: string;
+}) {
+  return (
+    <Card className="card-lift overflow-hidden border-border/60 shadow-md">
+      <CardHeader className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-100">
+            <Icon className="size-5" aria-hidden="true" />
+          </span>
+          <CardTitle className="min-w-0 font-display text-fluid-2xl font-semibold text-foreground">
+            <Bilingual en={titleEn} si={titleSi} />
+          </CardTitle>
+        </div>
+        <div className="flex items-start justify-end">
+          <Button variant="outline" size="sm" className="gap-2">
+            <Eye className="size-4" />
+            <Bilingual en="View" si="බලන්න" />
+          </Button>
+        </div>
+      </CardHeader>
+    </Card>
+  );
+}
+
 export default function Page({ params }: { params: Promise<{ section: string }> }) {
   const { lang } = useLanguage();
   const resolvedParams = React.use(params);
   const section = resolvedParams.section;
   const isAreaProfile = section === "area-profile";
+  const isDemographics = section === "demographics";
   const { data, error, isLoading } = useSWR(
     isAreaProfile ? "/api/registrations?role=gn&status=all&limit=100" : null,
     fetcher
@@ -69,12 +102,19 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
 
   const title = isAreaProfile
     ? { en: "Area Profile", si: "ප්‍රදේශ පැතිකඩ" }
+    : isDemographics
+    ? { en: "Division Demographics Overview", si: "ජනගහන සාරාංශය" }
     : { en: "Section details", si: "සැකිලි විස්තර" };
 
   const description = isAreaProfile
     ? {
-        en: "Officer name, phone number, district, DS division, GN division name/number, local government body, electoral division, farmers' service center, education zone, and education division for your EDOs.",
-        si: "ඔබගේ EDO සඳහා නිලධාරී නම, දුරකථන අංකය, දිස්ත්‍රික්කය, DS වසම, GN වසමේ නාමය/අංකය, පළාත් පාලන ආයතනය, මැතිවරණ බල ප්‍රදේශය, ගොවිජන සේවා මධ්‍යස්ථානය, අධ්‍යාපන කලාපය සහ අධ්‍යාපන කොට්ඨාසය.",
+        en: "View the complete administrative directory and details for your EDOs.",
+        si: "ඔබගේ EDO සඳහා පූර්ණ පරිපාලන ඩිරෙක්ටරිය සහ විස්තර දැක්වීමට මෙහි ක්ලික් කරන්න.",
+      }
+    : isDemographics
+    ? {
+        en: "Explore comprehensive demographic data, population distribution, and household metrics for your division.",
+        si: "ඔබගේ වසම් සඳහා සම්පූර්ණ ජනගහන දත්ත, ජනගහන විනිවුදු සහ ගෘහස්ථ මැට්‍රික්ස් අධ්‍යයනය කරන්න.",
       }
     : {
         en: "This section is not available yet. Please return to the division information overview.",
@@ -100,7 +140,17 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
         </Button>
       </div>
 
-      {!isAreaProfile ? (
+      {isDemographics ? (
+        <div className="space-y-4">
+          <TopicCard icon={Users} titleEn="Total Population" titleSi="මහජන සංඛ්‍යාව" />
+          <TopicCard icon={MapPin} titleEn="Population by Grama Niladhari Divisions" titleSi="ග්‍රාම නිලධාරී වසම් අනුව ජනගහනය" />
+          <TopicCard icon={Globe2} titleEn="Population Distribution by Religion" titleSi="ධර්මය අනුව ජනගහනය" />
+          <TopicCard icon={Users} titleEn="Population Distribution by Ethnicity" titleSi="ජාතිය අනුව ජනගහනය" />
+          <TopicCard icon={Globe2} titleEn="Foreign nationals in the division" titleSi="වසමේ විදේශ ජාතිකයන්" />
+          <TopicCard icon={Home} titleEn="Households" titleSi="ගෘහස්ථයන්" />
+          <TopicCard icon={UserCheck} titleEn="Registered voters" titleSi="රෙජිස්ටර් කර ඇති ඡන්දදාරුවන්" />
+        </div>
+      ) : !isAreaProfile ? (
         <Card>
           <CardContent className="text-fluid-sm text-muted-foreground">
             <Bilingual
