@@ -1,0 +1,11 @@
+{
+  "name": "sampath-pathikada",
+  "private": true,
+  "scripts": {
+    "db:generate": "npm --prefix sampath-pathikada-platform run db:generate",
+    "db:push": "npm --prefix sampath-pathikada-platform run db:push",
+    "db:studio": "npm --prefix sampath-pathikada-platform run db:studio",
+    "db:seed": "npm --prefix sampath-pathikada-platform run db:seed",
+    "db:migrate": "npm --prefix sampath-pathikada-platform run db:migrate"
+  }
+}

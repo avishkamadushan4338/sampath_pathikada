@@ -74,7 +74,7 @@ async function cleanupStaleVerificationDocs() {
 /* ── GET /api/registrations ── super-admin list (all three tables) ─────────── */
 export async function GET(req: NextRequest) {
   const session = await getSession();
-  if (!session || !["SUPER_ADMIN", "ADMIN"].includes(session.role)) {
+  if (!session || !["SUPER_ADMIN", "ADMIN", "DIVISIONAL_SECRETARIAT"].includes(session.role)) {
     return NextResponse.json({ ok: false, message: "Unauthorized" }, { status: 401 });
   }
 
@@ -101,12 +101,17 @@ export async function GET(req: NextRequest) {
     ...searchFilter,
   };
 
+  const actualWhere = session.role === "SUPER_ADMIN" ? baseWhere : {
+    ...baseWhere,
+    dsDivision: session.dsDivision ?? undefined,
+  };
+
   // Lightweight mode: return status counts (total/pending/approved/rejected) via
   // one round trip using indexed COUNT queries instead of transferring full rows.
   if (countsOnly) {
     const whereFor = (status?: "PENDING" | "APPROVED" | "REJECTED") => ({
       ...(status ? { status } : {}),
-      ...searchFilter,
+      ...(session.role === "SUPER_ADMIN" ? searchFilter : { ...searchFilter, dsDivision: session.dsDivision ?? undefined }),
     });
     const countBoth = (where: object) => Promise.all([
       prisma.economicDevelopmentOfficerRegistration.count({ where }),
@@ -128,6 +133,7 @@ export async function GET(req: NextRequest) {
   const baseSelect = {
     id: true, name: true, email: true, phone: true,
     nic: true, district: true, dsDivision: true,
+    localGovt: true, electoral: true, farmers: true, eduZone: true, eduDiv: true,
     status: true, rejectionNote: true, submittedAt: true, approvedAt: true,
     approvedBy: { select: { name: true } },
     verificationDocType: true,
@@ -146,7 +152,7 @@ export async function GET(req: NextRequest) {
   const [gnRows, dsRows, gnTotal, dsTotal] = await Promise.all([
     (tableParam === "all" || tableParam === "gn")
       ? prisma.economicDevelopmentOfficerRegistration.findMany({
-          where: baseWhere,
+          where: actualWhere,
           orderBy: { submittedAt: "desc" },
           take: mergedLimit,
           select: { ...baseSelect, gnDivision: true },
@@ -154,17 +160,17 @@ export async function GET(req: NextRequest) {
       : ([] as GnRow),
     (tableParam === "all" || tableParam === "ds")
       ? prisma.divisionalSecretariatRegistration.findMany({
-          where: baseWhere,
+          where: actualWhere,
           orderBy: { submittedAt: "desc" },
           take: mergedLimit,
           select: baseSelect,
         })
       : ([] as DsRow),
     (tableParam === "all" || tableParam === "gn")
-      ? prisma.economicDevelopmentOfficerRegistration.count({ where: baseWhere })
+      ? prisma.economicDevelopmentOfficerRegistration.count({ where: actualWhere })
       : 0,
     (tableParam === "all" || tableParam === "ds")
-      ? prisma.divisionalSecretariatRegistration.count({ where: baseWhere })
+      ? prisma.divisionalSecretariatRegistration.count({ where: actualWhere })
       : 0,
   ]);
 
