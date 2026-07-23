@@ -82,20 +82,57 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     );
   }
 
-  const updated = await prisma.submission.update({
-    where: { id },
-    data: {
-      status: nextStatus,
-      rejectionNote: nextStatus === "APPROVED" ? null : (note?.trim() ?? null),
-      reviewedById: session.userId,
-      reviewedAt: new Date(),
-    },
-  });
+  const reviewedAt = new Date();
+
+  const [updated] = await prisma.$transaction([
+    prisma.submission.update({
+      where: { id },
+      data: {
+        status: nextStatus,
+        rejectionNote: nextStatus === "APPROVED" ? null : (note?.trim() ?? null),
+        reviewedById: session.userId,
+        reviewedAt,
+      },
+    }),
+    // Approval freezes the submission's data as the division's official record —
+    // this is the only place DivisionProfile is written. It is keyed by gnDivision,
+    // so approving a later year's submission for the same division overwrites (not
+    // duplicates) the previous snapshot: it always reflects the latest approved data.
+    ...(nextStatus === "APPROVED"
+      ? [
+          prisma.divisionProfile.upsert({
+            where: { gnDivision: submission.gnDivision },
+            create: {
+              district: submission.district,
+              dsDivision: submission.dsDivision,
+              gnDivision: submission.gnDivision,
+              data: submission.data as object,
+              sourceSubmissionId: submission.id,
+              year: submission.year,
+              approvedById: session.userId,
+              approvedAt: reviewedAt,
+            },
+            update: {
+              district: submission.district,
+              dsDivision: submission.dsDivision,
+              data: submission.data as object,
+              sourceSubmissionId: submission.id,
+              year: submission.year,
+              approvedById: session.userId,
+              approvedAt: reviewedAt,
+            },
+          }),
+        ]
+      : []),
+  ]);
 
   await prisma.auditLog.create({
     data: {
       action: `Submission ${nextStatus}`,
-      description: `${session.name} set submission ${id} (${submission.gnDivision}, ${submission.year}) to ${nextStatus}`,
+      description:
+        nextStatus === "APPROVED"
+          ? `${session.name} approved submission ${id} (${submission.gnDivision}, ${submission.year}) — saved as the division's official record`
+          : `${session.name} set submission ${id} (${submission.gnDivision}, ${submission.year}) to ${nextStatus}`,
       category: "DATA",
       severity: nextStatus === "APPROVED" ? "SUCCESS" : "WARNING",
       userId: session.userId,
