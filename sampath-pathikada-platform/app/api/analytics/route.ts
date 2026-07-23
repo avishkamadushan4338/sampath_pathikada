@@ -87,7 +87,16 @@ export async function GET(req: NextRequest) {
   if (dsDivisionFilter) officerWhere.dsDivision = dsDivisionFilter;
   else if (districtFilter) officerWhere.district = districtFilter;
 
-  const [rows, registeredOfficers] = await Promise.all([
+  // Approved-only scope for the division's official record — powers "My Division
+  // Information" content (demographics/sections) independently of `year`: it always
+  // reflects each GN division's latest approved submission, so the profile never goes
+  // blank between report cycles just because this year's hasn't been approved yet.
+  const profileWhere: Record<string, unknown> = {};
+  if (dsDivisionFilter) profileWhere.dsDivision = dsDivisionFilter;
+  else if (districtFilter) profileWhere.district = districtFilter;
+  if (gnDivisionFilter && gnDivisionFilter.length > 0) profileWhere.gnDivision = { in: gnDivisionFilter };
+
+  const [rows, registeredOfficers, profiles] = await Promise.all([
     prisma.submission.findMany({
       where,
       select: {
@@ -97,7 +106,10 @@ export async function GET(req: NextRequest) {
       },
     }) as unknown as Promise<SubmissionRow[]>,
     prisma.user.findMany({ where: officerWhere, select: { gnDivision: true, name: true } }),
+    prisma.divisionProfile.findMany({ where: profileWhere, select: { gnDivision: true, data: true } }),
   ]);
+
+  const profileByGn = new Map(profiles.map((p) => [p.gnDivision, p]));
 
   const registeredGnMap = new Map(
     registeredOfficers.filter((o): o is typeof o & { gnDivision: string } => !!o.gnDivision).map((o) => [o.gnDivision, o.name])
@@ -147,6 +159,7 @@ export async function GET(req: NextRequest) {
     .sort((a, b) => a.en.localeCompare(b.en))
     .map((gn) => {
       const submission = submissionByGn.get(gn.id);
+      const profile = profileByGn.get(gn.id);
       return {
         gnId: gn.id,
         gnName: gn.en,
@@ -156,9 +169,11 @@ export async function GET(req: NextRequest) {
         status: submission?.status ?? null,
         createdAt: submission?.createdAt ?? null,
         reviewedAt: submission?.reviewedAt ?? null,
-        // Each GN division's own demographic numbers, so the frontend can drill into a single division
-        // without a second request.
-        demographics: submission ? aggregateDemographics([submission]) : null,
+        hasApprovedRecord: !!profile,
+        // Each GN division's own demographic numbers, sourced from its latest approved
+        // record only (never a draft/pending/rejected submission), so the frontend can
+        // drill into a single division without a second request.
+        demographics: profile ? aggregateDemographics([profile]) : null,
       };
     });
 
@@ -170,16 +185,20 @@ export async function GET(req: NextRequest) {
       district: district ? { id: district.id, en: district.en, si: district.si } : (division ? DISTRICTS.find((d) => d.id === division.districtId) ?? null : null),
     },
     year,
-    demographics: aggregateDemographics(rows),
+    // "My Division Information" content — approved data only (DivisionProfile), always
+    // the latest approved snapshot per GN division, independent of the `year` filter above
+    // (which still scopes the workflow/funnel numbers to a specific reporting cycle).
+    approvedGnDivisions: profiles.length,
+    demographics: aggregateDemographics(profiles),
     sections: {
-      housing: aggregateHousing(rows, gnLabel),
-      employment: aggregateEmployment(rows, gnLabel),
-      education: aggregateEducation(rows, gnLabel),
-      health: aggregateHealth(rows, gnLabel),
-      economicAgriculture: aggregateEconomicAgriculture(rows, gnLabel),
-      communityWelfare: aggregateCommunityWelfare(rows, gnLabel),
-      infrastructure: aggregateInfrastructure(rows, gnLabel),
-      areaProfile: aggregateAreaProfile(rows, gnLabel),
+      housing: aggregateHousing(profiles, gnLabel),
+      employment: aggregateEmployment(profiles, gnLabel),
+      education: aggregateEducation(profiles, gnLabel),
+      health: aggregateHealth(profiles, gnLabel),
+      economicAgriculture: aggregateEconomicAgriculture(profiles, gnLabel),
+      communityWelfare: aggregateCommunityWelfare(profiles, gnLabel),
+      infrastructure: aggregateInfrastructure(profiles, gnLabel),
+      areaProfile: aggregateAreaProfile(profiles, gnLabel),
     },
     funnel,
     approvalRate,
