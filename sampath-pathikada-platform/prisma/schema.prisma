@@ -109,6 +109,7 @@ model User {
   submissions                  Submission[]
   gnApprovals                  EconomicDevelopmentOfficerRegistration[] @relation("GnApprovedBy")
   divisionalSecretariatApprovals DivisionalSecretariatRegistration[] @relation("DsApprovedBy")
+  divisionProfileApprovals     DivisionProfile[] @relation("DivisionProfileApprovedBy")
 
   @@index([email])
   @@index([role])
@@ -274,12 +275,45 @@ model Submission {
   createdAt     DateTime         @default(now())
   updatedAt     DateTime         @updatedAt
 
+  divisionProfile DivisionProfile?
+
   @@unique([submittedById, year])
   @@index([submittedById])
   @@index([status])
   @@index([district])
   @@index([year])
   @@map("submissions")
+}
+
+// ─── Division Profile ──────────────────────────────────────────────────────
+// The single "official" record for a GN division — created/overwritten only when a
+// Divisional Secretariat approves a Submission. This is the division's current-truth
+// snapshot: it feeds "My Division Information" analytics (approved data only, never
+// mixed with draft/pending/rejected submissions) and seeds next year's submission
+// draft, so officers update the existing record instead of starting from blank.
+model DivisionProfile {
+  id                 String     @id @default(cuid())
+
+  district           String     @db.VarChar(80)
+  dsDivision         String     @db.VarChar(80)
+  gnDivision         String     @unique @db.VarChar(80)
+
+  data               Json
+
+  sourceSubmissionId String     @unique
+  sourceSubmission   Submission @relation(fields: [sourceSubmissionId], references: [id])
+  year               Int
+
+  approvedById       String
+  approvedBy         User       @relation("DivisionProfileApprovedBy", fields: [approvedById], references: [id])
+  approvedAt         DateTime
+
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+
+  @@index([district])
+  @@index([dsDivision])
+  @@map("division_profiles")
 }
 
 // ─── System Settings ──────────────────────────────────────────────────────────

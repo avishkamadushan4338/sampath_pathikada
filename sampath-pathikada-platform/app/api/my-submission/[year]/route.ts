@@ -42,6 +42,13 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ year
     );
   }
 
+  // Seed a brand-new draft from the division's last approved record, if one exists,
+  // so the officer updates the existing official data instead of starting blank.
+  const profile = await prisma.divisionProfile.findUnique({
+    where: { gnDivision: user.gnDivision },
+    select: { data: true },
+  });
+
   const created = await prisma.submission.create({
     data: {
       submittedById: session.userId,
@@ -49,7 +56,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ year
       district: user.district,
       dsDivision: user.dsDivision,
       gnDivision: user.gnDivision,
-      data: {},
+      data: profile?.data ?? {},
       status: "DRAFT",
     },
   });
