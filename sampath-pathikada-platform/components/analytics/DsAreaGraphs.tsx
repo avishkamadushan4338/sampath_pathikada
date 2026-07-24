@@ -15,7 +15,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { Bilingual } from "@/components/Bilingual";
-import { Card, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { NAVY, GOLD, MAROON, GREEN } from "@/components/charts/chart-primitives";
 import type { DemographicsAggregate } from "@/lib/analytics/aggregate-demographics";
@@ -60,10 +60,10 @@ const SECTIONS: {
   { key: "infrastructure", icon: RouteOff, titleEn: "Transport & Infrastructure", titleSi: "ප්‍රවාහන හා යටිතල පහසුකම්", accent: NAVY },
 ];
 
-/** Navigation card — icon + title in the header, a gold-gradient "View" pill in the footer
- *  that links out to that section's own page. The detailed breakdown for each section is
- *  being rebuilt as a dedicated page, so this card is purely a navigation entry point and
- *  renders no chart content inline. */
+/** Navigation card — icon, title, and a gold-gradient "View" pill in a single row that links
+ *  out to that section's own page. The detailed breakdown for each section is being rebuilt as
+ *  a dedicated page, so this card is purely a navigation entry point and renders no chart
+ *  content inline. */
 function SectionCard({
   icon: Icon,
   titleEn,
@@ -78,26 +78,29 @@ function SectionCard({
   href: string;
 }) {
   return (
-    <Card className="card-lift overflow-hidden border-border/60 shadow-md">
-      <CardHeader>
-        <div className="flex items-center gap-3">
+    <Card className="card-lift relative overflow-hidden border-border/60 py-0 shadow-md">
+      <span
+        className="absolute inset-y-0 left-0 w-1.5"
+        style={{ backgroundColor: accent }}
+        aria-hidden="true"
+      />
+      <div className="flex items-center justify-between gap-4 py-4 pr-5 pl-7">
+        <div className="flex min-w-0 items-center gap-4">
           <span
-            className="flex size-11 shrink-0 items-center justify-center rounded-full"
+            className="flex size-12 shrink-0 items-center justify-center rounded-full"
             style={{ backgroundColor: `${accent}1F`, color: accent }}
           >
-            <Icon className="size-5" aria-hidden="true" />
+            <Icon className="size-6" aria-hidden="true" />
           </span>
-          <CardTitle className="font-display text-fluid-lg font-semibold text-foreground">
+          <CardTitle className="font-display text-fluid-xl font-bold text-foreground">
             <Bilingual en={titleEn} si={titleSi} />
           </CardTitle>
         </div>
-      </CardHeader>
-      <CardFooter className="justify-end">
         <Button
           asChild
           variant="ghost"
           size="sm"
-          className="gap-1.5 rounded-full border-0 px-5 font-medium text-white shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:text-white hover:shadow-(--shadow-glow-accent)"
+          className="shrink-0 gap-1.5 rounded-full border-0 px-5 font-medium text-white shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:text-white hover:shadow-(--shadow-glow-accent)"
           style={{ backgroundImage: "var(--gradient-accent)" }}
         >
           <Link href={href}>
@@ -105,7 +108,7 @@ function SectionCard({
             <Bilingual en="View" si="බලන්න" />
           </Link>
         </Button>
-      </CardFooter>
+      </div>
     </Card>
   );
 }
