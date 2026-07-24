@@ -85,7 +85,7 @@ function SectionCard({
           >
             <Icon className="size-6" aria-hidden="true" />
           </span>
-          <CardTitle className="font-display text-fluid-xl font-bold text-foreground">
+          <CardTitle className="font-display text-fluid-2xl font-bold text-foreground">
             <Bilingual en={titleEn} si={titleSi} />
           </CardTitle>
         </div>
