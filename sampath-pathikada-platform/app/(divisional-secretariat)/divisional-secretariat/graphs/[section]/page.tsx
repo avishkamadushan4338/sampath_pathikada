@@ -61,17 +61,17 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
   const { lang } = useLanguage();
   const resolvedParams = React.use(params);
   const section = resolvedParams.section;
-  const isAreaProfile = section === "area-profile";
+  const isIdentification = section === "identification";
   const { data, error, isLoading } = useSWR(
-    isAreaProfile ? "/api/registrations?role=gn&status=all&limit=100" : null,
+    isIdentification ? "/api/registrations?role=gn&status=all&limit=100" : null,
     fetcher
   );
 
-  const title = isAreaProfile
-    ? { en: "Area Profile", si: "ප්‍රදේශ පැතිකඩ" }
+  const title = isIdentification
+    ? { en: "Identification", si: "හඳුනාගැනීම" }
     : { en: "Section details", si: "සැකිලි විස්තර" };
 
-  const description = isAreaProfile
+  const description = isIdentification
     ? {
         en: "Officer name, phone number, district, DS division, GN division name/number, local government body, electoral division, farmers' service center, education zone, and education division for your EDOs.",
         si: "ඔබගේ EDO සඳහා නිලධාරී නම, දුරකථන අංකය, දිස්ත්‍රික්කය, DS වසම, GN වසමේ නාමය/අංකය, පළාත් පාලන ආයතනය, මැතිවරණ බල ප්‍රදේශය, ගොවිජන සේවා මධ්‍යස්ථානය, අධ්‍යාපන කලාපය සහ අධ්‍යාපන කොට්ඨාසය.",
@@ -100,7 +100,7 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
         </Button>
       </div>
 
-      {!isAreaProfile ? (
+      {!isIdentification ? (
         <Card>
           <CardContent className="text-fluid-sm text-muted-foreground">
             <Bilingual
