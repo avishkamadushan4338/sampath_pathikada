@@ -50,9 +50,10 @@ interface AnalyticsGnBreakdownRow {
   demographics: DemographicsAggregate | null;
 }
 
+// ✅ FIXED: Use the full DemographicsAggregate type
 interface AnalyticsResponse {
   ok: true;
-  demographics: DemographicsAggregate;
+  demographics: DemographicsAggregate;  // ✅ This includes populationByReligion and populationByEthnicity
   gnBreakdown: AnalyticsGnBreakdownRow[];
 }
 
@@ -452,7 +453,7 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
                         </thead>
                         <tbody>
                           {analytics.demographics.populationByEthnicity.map((row) => (
-                            <tr key={row.key} className="border_t last:border-b">
+                            <tr key={row.key} className="border-t last:border-b">
                               <td className="px-3 py-3">{lang === "si" ? row.si : row.en}</td>
                               <td className="px-3 py-3">{row.female.toLocaleString()}</td>
                               <td className="px-3 py-3">{row.male.toLocaleString()}</td>
