@@ -34,6 +34,31 @@ export async function verifyToken(token: string): Promise<SessionPayload | null>
   }
 }
 
+// ─── Password-reset tokens ────────────────────────────────────────────────────
+// Short-lived, single-purpose JWT issued after a successful OTP check, so the
+// reset-password step doesn't need to re-verify the OTP. `purpose` keeps it from
+// being confused with (or accepted as) a session token.
+
+const RESET_TOKEN_DURATION = 10 * 60; // 10 minutes
+
+export async function signResetToken(email: string): Promise<string> {
+  return new SignJWT({ email, purpose: "password-reset" })
+    .setProtectedHeader({ alg: "HS256" })
+    .setIssuedAt()
+    .setExpirationTime(`${RESET_TOKEN_DURATION}s`)
+    .sign(JWT_SECRET);
+}
+
+export async function verifyResetToken(token: string): Promise<{ email: string } | null> {
+  try {
+    const { payload } = await jwtVerify(token, JWT_SECRET);
+    if (payload.purpose !== "password-reset" || typeof payload.email !== "string") return null;
+    return { email: payload.email };
+  } catch {
+    return null;
+  }
+}
+
 export async function getSession(): Promise<SessionPayload | null> {
   const cookieStore = await cookies();
   const token = cookieStore.get(COOKIE_NAME)?.value;
