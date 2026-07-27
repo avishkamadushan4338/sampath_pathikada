@@ -162,12 +162,32 @@ function ResetPasswordContent() {
     if (newPwd !== confirmPwd) {
       setError("Passwords do not match."); return;
     }
+    const resetToken = window.sessionStorage.getItem(`sp-reset-token:${email}`);
+    if (!resetToken) {
+      setError("Your session has expired. Please restart the password reset process.");
+      return;
+    }
     setError(""); setLoading(true);
-    await new Promise(r => setTimeout(r, 1800));
-    setLoading(false);
-    setSuccess(true);
-    await new Promise(r => setTimeout(r, 1800));
-    router.push("/auth/login");
+    try {
+      const res = await fetch("/api/auth/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ resetToken, newPassword: newPwd }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        setError(data.message ?? "Something went wrong. Please try again.");
+        setLoading(false);
+        return;
+      }
+      window.sessionStorage.removeItem(`sp-reset-token:${email}`);
+      setLoading(false);
+      setSuccess(true);
+      setTimeout(() => router.push("/auth/login"), 1200);
+    } catch {
+      setError("Unable to reach the server. Please check your connection and try again.");
+      setLoading(false);
+    }
   };
 
   return (
