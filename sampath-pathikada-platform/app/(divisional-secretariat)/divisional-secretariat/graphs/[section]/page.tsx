@@ -47,14 +47,10 @@ interface AnalyticsGnBreakdownRow {
   demographics: DemographicsAggregate | null;
 }
 
+// ✅ FIXED: Use the full DemographicsAggregate type
 interface AnalyticsResponse {
   ok: true;
-  demographics: {
-    totalPopulation: number;
-    female: number;
-    male: number;
-    households: { total: number };
-  };
+  demographics: DemographicsAggregate;  // ← This was the problem
   gnBreakdown: AnalyticsGnBreakdownRow[];
 }
 
