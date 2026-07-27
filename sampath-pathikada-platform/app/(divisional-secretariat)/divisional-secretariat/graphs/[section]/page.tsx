@@ -20,6 +20,9 @@ import {
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { CURRENT_YEAR } from "@/lib/constants";
 import { GN_DIVISIONS } from "@/lib/registration-data";
+import { StateInstitutionsLandView } from "@/components/analytics/StateInstitutionsLandView";
+import { PhysicalEnvironmentView } from "@/components/analytics/PhysicalEnvironmentView";
+import { HousingView } from "@/components/analytics/HousingView";
 
 interface RegistrationRow {
   id: string;
@@ -121,6 +124,9 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
   const section = resolvedParams.section;
   const isIdentification = section === "identification";
   const isDemographics = section === "demographics";
+  const isStateInstitutionsLand = section === "state-institutions-land";
+  const isPhysicalEnvironment = section === "physical-environment";
+  const isHousing = section === "housing";
   const { data, error, isLoading } = useSWR(
     isIdentification ? "/api/registrations?role=gn&status=all&limit=100" : null,
     fetcher
@@ -130,6 +136,12 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
     ? { en: "Identification", si: "හඳුනාගැනීම" }
     : isDemographics
     ? { en: "Division Demographics Overview", si: "ජනගහන සාරාංශය" }
+    : isStateInstitutionsLand
+    ? { en: "State Institutions & Land", si: "රාජ්‍ය ආයතන හා ඉඩම්" }
+    : isPhysicalEnvironment
+    ? { en: "Physical & Environment", si: "භෞතික හා පාරිසරික තොරතුරු" }
+    : isHousing
+    ? { en: "Housing", si: "නිවාස තොරතුරු" }
     : { en: "Section details", si: "සැකිලි විස්තර" };
 
   const description = isIdentification
@@ -141,6 +153,21 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
     ? {
         en: "Explore comprehensive demographic data, population distribution, and household metrics for your division.",
         si: "ඔබගේ වසම් සඳහා සම්පූර්ණ ජනගහන දත්ත, ජනගහන විනිවුදු සහ ගෘහස්ථ මැට්‍රික්ස් අධ්‍යයනය කරන්න.",
+      }
+    : isStateInstitutionsLand
+    ? {
+        en: "Search or select a GN division to view its state institutions, encroached-land structures, and development projects.",
+        si: "රාජ්‍ය ආයතන, අත්‍යවශ්‍ය නොවන ඉදිකිරීම් සහ සංවර්ධන ව්‍යාපෘති බැලීමට ග්‍රාම නිලධාරී වසමක් සොයන්න හෝ තෝරන්න.",
+      }
+    : isPhysicalEnvironment
+    ? {
+        en: "Search or select a GN division to view its water sources, sensitive zones, natural resources, hazards, and tourist sites.",
+        si: "ජල මූලාශ්‍ර, සංවේදී කලාප, ස්වාභාවික සම්පත්, ආපදා සහ සංචාරක ස්ථාන බැලීමට ග්‍රාම නිලධාරී වසමක් සොයන්න හෝ තෝරන්න.",
+      }
+    : isHousing
+    ? {
+        en: "Search or select a GN division to view its housing stock, sanitation, drinking water sources, and electricity access data.",
+        si: "නිවාස ප්‍රමාණය, සනීපාරක්ෂක පහසුකම්, පානීය ජල මූලාශ්‍ර සහ විදුලි පහසුකම් දත්ත බැලීමට ග්‍රාම නිලධාරී වසමක් සොයන්න හෝ තෝරන්න.",
       }
     : {
         en: "This section is not available yet. Please return to the division information overview.",
@@ -181,7 +208,13 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
         </Button>
       </div>
 
-      {isDemographics ? (
+      {isStateInstitutionsLand ? (
+        <StateInstitutionsLandView />
+      ) : isPhysicalEnvironment ? (
+        <PhysicalEnvironmentView />
+      ) : isHousing ? (
+        <HousingView />
+      ) : isDemographics ? (
         <div className="space-y-4">
           <Card className="card-lift overflow-hidden border-border/60 shadow-md">
             <CardHeader className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">

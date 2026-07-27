@@ -16,9 +16,13 @@ import {
   LabelList,
 } from "recharts";
 
-/** On-brand chart palette — shared by every chart surface (per-submission and area-wide). */
+/** On-brand chart palette — shared by every chart surface (per-submission and area-wide).
+ *  GOLD is deliberately darker than the brand's UI-accent gold: at #BC9144 it measured only
+ *  2.27:1 against the champagne-cream card surface (#EEE3CC), well under the 3:1 floor for
+ *  chart marks. #96702E clears 3:1 against both the light card (3.54:1) and the dark-mode
+ *  card (3.56:1) while staying in the same hue family. */
 export const NAVY = "#0E2B4E";
-export const GOLD = "#BC9144";
+export const GOLD = "#96702E";
 export const MAROON = "#66261E";
 export const GREEN = "#2D7A51";
 
@@ -108,6 +112,50 @@ export function BarCard({
           </div>
         )}
         {footer}
+      </CardContent>
+    </Card>
+  );
+}
+
+/** Single ratio against a 0-100 limit (e.g. "% electricity access") — a filled track in the
+ *  section's accent color against a lighter step of that same hue, per the dataviz meter spec:
+ *  the fill carries the value, the unfilled track stays on-ramp instead of a neutral gray. */
+export function MeterCard({
+  titleEn,
+  titleSi,
+  percent,
+  color,
+}: {
+  titleEn: string;
+  titleSi: string;
+  percent: number | null;
+  color: string;
+}) {
+  const value = percent !== null ? Math.min(100, Math.max(0, percent)) : null;
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-fluid-base">
+          <Bilingual en={titleEn} si={titleSi} />
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        {value === null ? (
+          <p className="text-fluid-sm text-muted-foreground">
+            <Bilingual en="No data recorded." si="දත්ත සටහන් කර නොමැත." />
+          </p>
+        ) : (
+          <div className="flex flex-col gap-3">
+            <p className="text-fluid-3xl font-semibold nums-tabular text-foreground">{value}%</p>
+            <div className="h-3 w-full overflow-hidden rounded-full" style={{ background: `${color}26` }}>
+              <div
+                className="h-full rounded-full transition-[width]"
+                style={{ width: `${value}%`, background: color }}
+              />
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
