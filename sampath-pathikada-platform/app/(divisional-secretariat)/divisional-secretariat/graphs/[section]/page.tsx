@@ -49,12 +49,7 @@ interface AnalyticsGnBreakdownRow {
 
 interface AnalyticsResponse {
   ok: true;
-  demographics: {
-    totalPopulation: number;
-    female: number;
-    male: number;
-    households: { total: number };
-  };
+  demographics: DemographicsAggregate;
   gnBreakdown: AnalyticsGnBreakdownRow[];
 }
 
