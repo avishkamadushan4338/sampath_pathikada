@@ -28,9 +28,23 @@ export default function ForgotPasswordPage() {
     }
     setError("");
     setLoading(true);
-    await new Promise(r => setTimeout(r, 1600));
-    setLoading(false);
-    router.push(`/auth/verify-otp?email=${encodeURIComponent(email)}`);
+    try {
+      const res = await fetch("/api/auth/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        setError(data.message ?? "Something went wrong. Please try again.");
+        setLoading(false);
+        return;
+      }
+      router.push(`/auth/verify-otp?email=${encodeURIComponent(email)}`);
+    } catch {
+      setError("Unable to reach the server. Please check your connection and try again.");
+      setLoading(false);
+    }
   };
 
   const lifted = focused || email.length > 0;

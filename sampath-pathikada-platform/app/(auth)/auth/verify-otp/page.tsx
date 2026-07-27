@@ -68,22 +68,46 @@ function VerifyOTPContent() {
     const code = otp.join("");
     if (code.length < 6) { setError("Please enter all 6 digits."); return; }
     setError(""); setLoading(true);
-    await new Promise(r => setTimeout(r, 1600));
-    setLoading(false);
-    setSuccess(true);
-    await new Promise(r => setTimeout(r, 1200));
-    router.push(`/auth/reset-password?email=${encodeURIComponent(email)}`);
+    try {
+      const res = await fetch("/api/auth/verify-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, otp: code }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        setError(data.message ?? "Incorrect code. Please try again.");
+        setLoading(false);
+        return;
+      }
+      setLoading(false);
+      setSuccess(true);
+      window.sessionStorage.setItem(`sp-reset-token:${email}`, data.resetToken as string);
+      setTimeout(() => {
+        router.push(`/auth/reset-password?email=${encodeURIComponent(email)}`);
+      }, 900);
+    } catch {
+      setError("Unable to reach the server. Please check your connection and try again.");
+      setLoading(false);
+    }
   };
 
   const handleResend = async () => {
     if (timer > 0 || sending) return;
     setSending(true);
-    await new Promise(r => setTimeout(r, 1200));
-    setSending(false);
-    setTimer(RESEND_SECONDS);
-    setOtp(Array(6).fill(""));
-    setError("");
-    inputs.current[0]?.focus();
+    try {
+      await fetch("/api/auth/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+    } finally {
+      setSending(false);
+      setTimer(RESEND_SECONDS);
+      setOtp(Array(6).fill(""));
+      setError("");
+      inputs.current[0]?.focus();
+    }
   };
 
   const maskedEmail = email

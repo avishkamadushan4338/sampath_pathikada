@@ -325,3 +325,22 @@ model SystemSetting {
 
   @@map("system_settings")
 }
+
+// ─── Password Reset OTPs ───────────────────────────────────────────────────────
+// One row per "forgot password" request. otpHash is a SHA-256 hash of the 6-digit
+// code (not bcrypt — the code is short-lived, single-use, and already guarded by
+// rate-limiting + a max attempt count, so a fast hash is enough and keeps
+// verification instant). Superseded on every new request for the same email.
+
+model PasswordResetOtp {
+  id         String    @id @default(cuid())
+  email      String    @db.VarChar(255)
+  otpHash    String    @db.VarChar(64)
+  attempts   Int       @default(0)
+  consumedAt DateTime?
+  expiresAt  DateTime
+  createdAt  DateTime  @default(now())
+
+  @@index([email])
+  @@map("password_reset_otps")
+}
