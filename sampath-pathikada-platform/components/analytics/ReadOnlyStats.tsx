@@ -20,7 +20,7 @@ interface ReadOnlyStatsProps {
   /** Flat KPI row — use for a single group of figures. */
   stats?: ReadOnlyStat[];
   /** Sub-headed KPI rows — use when the figures split into named categories (e.g. drinking
-   *  water source's Groundwater / Pipe-borne / Other groups). Mutually exclusive with `stats`. */
+   *  water source's Groundwater / Pipe-Borne / Other groups). Mutually exclusive with `stats`. */
   groups?: ReadOnlyStatGroup[];
 }
 

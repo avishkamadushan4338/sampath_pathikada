@@ -3,8 +3,9 @@
 import * as React from "react";
 import useSWR from "swr";
 import Link from "next/link";
-import { ArrowLeft, Globe2, Home, MapPin, Users, UserCheck, Eye } from "lucide-react";
+import { ArrowLeft, ArrowUp, Globe2, Home, MapPin, Users, UserCheck, Eye } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import type { DemographicsAggregate } from "@/lib/analytics/aggregate-demographics";
 import { Bilingual } from "@/components/Bilingual";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardFooter, CardTitle } from "@/components/ui/card";
@@ -17,6 +18,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
+import { CURRENT_YEAR } from "@/lib/constants";
 import { GN_DIVISIONS } from "@/lib/registration-data";
 import { StateInstitutionsLandView } from "@/components/analytics/StateInstitutionsLandView";
 import { PhysicalEnvironmentView } from "@/components/analytics/PhysicalEnvironmentView";
@@ -41,11 +43,32 @@ interface RegistrationsResponse {
   pageSize: number;
 }
 
+interface AnalyticsGnBreakdownRow {
+  gnId: string;
+  gnName: string;
+  gnNameSi: string;
+  demographics: DemographicsAggregate | null;
+}
+
+// ✅ FIXED: Use the full DemographicsAggregate type
+interface AnalyticsResponse {
+  ok: true;
+  demographics: DemographicsAggregate;  // ✅ This includes populationByReligion and populationByEthnicity
+  gnBreakdown: AnalyticsGnBreakdownRow[];
+}
+
 const fetcher = async (url: string) => {
   const res = await fetch(url);
   const json = await res.json();
   if (!res.ok || !json.ok) throw new Error(json.message ?? "Failed to load");
   return json as RegistrationsResponse;
+};
+
+const analyticsFetcher = async (url: string) => {
+  const res = await fetch(url);
+  const json = await res.json();
+  if (!res.ok || !json.ok) throw new Error(json.message ?? "Failed to load analytics");
+  return json as AnalyticsResponse;
 };
 
 function PageSkeleton() {
@@ -65,10 +88,14 @@ function TopicCard({
   icon: Icon,
   titleEn,
   titleSi,
+  onClick,
+  buttonLabel,
 }: {
   icon: LucideIcon;
   titleEn: string;
   titleSi: string;
+  onClick?: () => void;
+  buttonLabel?: { en: string; si: string };
 }) {
   return (
     <Card className="card-lift overflow-hidden border-border/60 shadow-md">
@@ -82,9 +109,9 @@ function TopicCard({
           </CardTitle>
         </div>
         <div className="flex items-start justify-end">
-          <Button variant="outline" size="sm" className="gap-2">
+          <Button type="button" variant="outline" size="sm" className="gap-2" onClick={onClick}>
             <Eye className="size-4" />
-            <Bilingual en="View" si="බලන්න" />
+            <Bilingual en={buttonLabel?.en ?? "View"} si={buttonLabel?.si ?? "බලන්න"} />
           </Button>
         </div>
       </CardHeader>
@@ -148,6 +175,21 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
         si: "මෙම කොටස තවම ලබා ගත නොහැක. කරුණාකර වසම් තොරතුරු ප්‍රස්ථාරයට ආපසු යන්න.",
       };
 
+  const { data: analytics, error: analyticsError } = useSWR(
+    isDemographics ? `/api/analytics?year=${CURRENT_YEAR}` : null,
+    analyticsFetcher
+  );
+  const [showTotalPopulation, setShowTotalPopulation] = React.useState(false);
+  const [showGnBreakdown, setShowGnBreakdown] = React.useState(false);
+  const [showReligionDistribution, setShowReligionDistribution] = React.useState(false);
+  const [showEthnicityDistribution, setShowEthnicityDistribution] = React.useState(false);
+  const [expandedReligionRows, setExpandedReligionRows] = React.useState<Record<string, boolean>>({});
+  const gnBreakdownRef = React.useRef<HTMLDivElement | null>(null);
+
+  const toggleReligionRow = (gnId: string) => {
+    setExpandedReligionRows((prev) => ({ ...prev, [gnId]: !prev[gnId] }));
+  };
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -175,10 +217,257 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
         <HousingView />
       ) : isDemographics ? (
         <div className="space-y-4">
-          <TopicCard icon={Users} titleEn="Total Population" titleSi="මහජන සංඛ්‍යාව" />
-          <TopicCard icon={MapPin} titleEn="Population by Grama Niladhari Divisions" titleSi="ග්‍රාම නිලධාරී වසම් අනුව ජනගහනය" />
-          <TopicCard icon={Globe2} titleEn="Population Distribution by Religion" titleSi="ධර්මය අනුව ජනගහනය" />
-          <TopicCard icon={Users} titleEn="Population Distribution by Ethnicity" titleSi="ජාතිය අනුව ජනගහනය" />
+          <Card className="card-lift overflow-hidden border-border/60 shadow-md">
+            <CardHeader className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
+              <div className="flex min-w-0 items-center gap-3">
+                <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-100">
+                  <Users className="size-5" aria-hidden="true" />
+                </span>
+                <CardTitle className="min-w-0 font-display text-fluid-2xl font-semibold text-foreground">
+                  <Bilingual en="Total Population" si="මහජන සංඛ්‍යාව" />
+                </CardTitle>
+              </div>
+              <div className="flex items-start justify-end">
+                <Button variant="outline" size="sm" className="gap-2" onClick={() => setShowTotalPopulation((s) => !s)}>
+                  <Eye className="size-4" />
+                  <Bilingual en={showTotalPopulation ? "Hide" : "View"} si={showTotalPopulation ? "සඟවන්න" : "බලන්න"} />
+                </Button>
+              </div>
+            </CardHeader>
+            {showTotalPopulation && (
+              <CardContent>
+                {analyticsError ? (
+                  <div className="text-sm text-destructive">Unable to load demographics.</div>
+                ) : !analytics ? (
+                  <div className="text-sm text-muted-foreground">Loading…</div>
+                ) : (
+                  <div className="grid gap-3">
+                    <div className="grid grid-cols-2 gap-3 rounded-md border border-border bg-muted/50 p-4 text-sm md:grid-cols-4">
+                      <div>
+                        <p className="text-muted-foreground">Total Population</p>
+                        <p className="mt-1 text-fluid-lg font-semibold nums-tabular text-foreground">
+                          {analytics.demographics.totalPopulation.toLocaleString()}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Female</p>
+                        <p className="mt-1 text-fluid-lg font-semibold nums-tabular text-foreground">
+                          {analytics.demographics.female.toLocaleString()}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Male</p>
+                        <p className="mt-1 text-fluid-lg font-semibold nums-tabular text-foreground">
+                          {analytics.demographics.male.toLocaleString()}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Households</p>
+                        <p className="mt-1 text-fluid-lg font-semibold nums-tabular text-foreground">
+                          {analytics.demographics.households.total.toLocaleString()}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            )}
+          </Card>
+
+          <Card className="card-lift overflow-hidden border-border/60 shadow-md">
+            <CardHeader className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
+              <div className="flex min-w-0 items-center gap-3">
+                <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-100">
+                  <MapPin className="size-5" aria-hidden="true" />
+                </span>
+                <CardTitle className="min-w-0 font-display text-fluid-2xl font-semibold text-foreground">
+                  <Bilingual en="Population by Grama Niladhari Divisions" si="ග්‍රාම නිලධාරී වසම් අනුව ජනගහනය" />
+                </CardTitle>
+              </div>
+              <div className="flex items-start justify-end">
+                <Button variant="outline" size="sm" className="gap-2" onClick={() => setShowGnBreakdown((s) => !s)}>
+                  <Eye className="size-4" />
+                  <Bilingual en={showGnBreakdown ? "Hide" : "View"} si={showGnBreakdown ? "සඟවන්න" : "බලන්න"} />
+                </Button>
+              </div>
+            </CardHeader>
+            {showGnBreakdown && (
+              <CardContent>
+                {analyticsError ? (
+                  <div className="text-sm text-destructive">Unable to load GN division totals.</div>
+                ) : !analytics ? (
+                  <div className="text-sm text-muted-foreground">Loading…</div>
+                ) : (
+                  <div className="overflow-hidden rounded-md border border-border">
+                    <div ref={gnBreakdownRef} className="overflow-x-auto">
+                      <table className="w-full text-left text-sm">
+                        <thead className="bg-muted/40 text-muted-foreground">
+                          <tr>
+                            <th className="px-3 py-3">GN Division</th>
+                            <th className="px-3 py-3">Total Population</th>
+                            <th className="px-3 py-3">Female</th>
+                            <th className="px-3 py-3">Male</th>
+                            <th className="px-3 py-3">Families</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {analytics.gnBreakdown.map((g) => {
+                            const demo = g.demographics;
+                            return (
+                              <React.Fragment key={g.gnId}>
+                                <tr className="border-t last:border-b">
+                                  <td className="px-3 py-3 font-medium">{g.gnName}</td>
+                                  <td className="px-3 py-3">{demo ? demo.totalPopulation.toLocaleString() : "—"}</td>
+                                  <td className="px-3 py-3">{demo ? demo.female.toLocaleString() : "—"}</td>
+                                  <td className="px-3 py-3">{demo ? demo.male.toLocaleString() : "—"}</td>
+                                  <td className="px-3 py-3">{demo ? demo.households.total.toLocaleString() : "—"}</td>
+                                </tr>
+                                {demo && expandedReligionRows[g.gnId] ? (
+                                  <tr className="bg-muted/10">
+                                    <td className="p-0" colSpan={5}>
+                                      <div className="overflow-hidden rounded-b-md border border-border bg-white dark:bg-slate-950">
+                                        <div className="overflow-x-auto px-3 py-3">
+                                          <table className="w-full text-left text-sm">
+                                            <thead className="bg-muted/40 text-muted-foreground">
+                                              <tr>
+                                                <th className="px-3 py-2">Religion</th>
+                                                <th className="px-3 py-2">Female</th>
+                                                <th className="px-3 py-2">Male</th>
+                                                <th className="px-3 py-2">Total</th>
+                                              </tr>
+                                            </thead>
+                                            <tbody>
+                                              {demo.populationByReligion.map((row) => (
+                                                <tr key={row.key} className="border-t last:border-b">
+                                                  <td className="px-3 py-2">{lang === "si" ? row.si : row.en}</td>
+                                                  <td className="px-3 py-2">{row.female.toLocaleString()}</td>
+                                                  <td className="px-3 py-2">{row.male.toLocaleString()}</td>
+                                                  <td className="px-3 py-2">{row.total.toLocaleString()}</td>
+                                                </tr>
+                                              ))}
+                                            </tbody>
+                                          </table>
+                                        </div>
+                                      </div>
+                                    </td>
+                                  </tr>
+                                ) : null}
+                              </React.Fragment>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                    <div className="border-t border-border/80 bg-muted/50 px-4 py-3 text-right">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-2"
+                        onClick={() => gnBreakdownRef.current?.scrollIntoView({ behavior: "smooth" })}
+                      >
+                        <ArrowUp className="size-4" />
+                        <Bilingual en="Back to top" si="ඉහළට" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            )}
+          </Card>
+          <TopicCard
+            icon={Globe2}
+            titleEn="Population Distribution by Religion"
+            titleSi="ධර්මය අනුව ජනගහනය"
+            onClick={() => setShowReligionDistribution((value) => !value)}
+            buttonLabel={{ en: showReligionDistribution ? "Hide" : "View", si: showReligionDistribution ? "සඟවන්න" : "බලන්න" }}
+          />
+          {showReligionDistribution && (
+            <Card className="overflow-hidden rounded-md border border-border bg-card/80 shadow-sm">
+              <CardHeader>
+                <CardTitle className="font-display text-fluid-xl font-semibold text-foreground">
+                  <Bilingual en="Population Distribution by Religion" si="ධර්මය අනුව ජනගහනය" />
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {analyticsError ? (
+                  <div className="text-sm text-destructive">Unable to load religion distribution.</div>
+                ) : !analytics ? (
+                  <div className="text-sm text-muted-foreground">Loading…</div>
+                ) : (
+                  <div className="overflow-hidden rounded-md border border-border">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-sm">
+                        <thead className="bg-muted/40 text-muted-foreground">
+                          <tr>
+                            <th className="px-3 py-3">Religion</th>
+                            <th className="px-3 py-3">Female</th>
+                            <th className="px-3 py-3">Male</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {analytics.demographics.populationByReligion.map((row) => (
+                            <tr key={row.key} className="border-t last:border-b">
+                              <td className="px-3 py-3">{lang === "si" ? row.si : row.en}</td>
+                              <td className="px-3 py-3">{row.female.toLocaleString()}</td>
+                              <td className="px-3 py-3">{row.male.toLocaleString()}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+          <TopicCard
+            icon={Users}
+            titleEn="Population Distribution by Ethnicity"
+            titleSi="ජාතිය අනුව ජනගහනය"
+            onClick={() => setShowEthnicityDistribution((value) => !value)}
+            buttonLabel={{ en: showEthnicityDistribution ? "Hide" : "View", si: showEthnicityDistribution ? "සඟවන්න" : "බලන්න" }}
+          />
+          {showEthnicityDistribution && (
+            <Card className="overflow-hidden rounded-md border border-border bg-card/80 shadow-sm">
+              <CardHeader>
+                <CardTitle className="font-display text-fluid-xl font-semibold text-foreground">
+                  <Bilingual en="Population Distribution by Ethnicity" si="ජාතිය අනුව ජනගහනය" />
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {analyticsError ? (
+                  <div className="text-sm text-destructive">Unable to load ethnicity distribution.</div>
+                ) : !analytics ? (
+                  <div className="text-sm text-muted-foreground">Loading…</div>
+                ) : (
+                  <div className="overflow-hidden rounded-md border border-border">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-sm">
+                        <thead className="bg-muted/40 text-muted-foreground">
+                          <tr>
+                            <th className="px-3 py-3">Ethnicity</th>
+                            <th className="px-3 py-3">Female</th>
+                            <th className="px-3 py-3">Male</th>
+                            <th className="px-3 py-3">Total</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {analytics.demographics.populationByEthnicity.map((row) => (
+                            <tr key={row.key} className="border-t last:border-b">
+                              <td className="px-3 py-3">{lang === "si" ? row.si : row.en}</td>
+                              <td className="px-3 py-3">{row.female.toLocaleString()}</td>
+                              <td className="px-3 py-3">{row.male.toLocaleString()}</td>
+                              <td className="px-3 py-3">{row.total.toLocaleString()}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
           <TopicCard icon={Globe2} titleEn="Foreign nationals in the division" titleSi="වසමේ විදේශ ජාතිකයන්" />
           <TopicCard icon={Home} titleEn="Households" titleSi="ගෘහස්ථයන්" />
           <TopicCard icon={UserCheck} titleEn="Registered voters" titleSi="රෙජිස්ටර් කර ඇති ඡන්දදාරුවන්" />

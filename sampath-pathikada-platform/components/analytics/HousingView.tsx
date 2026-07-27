@@ -125,9 +125,11 @@ function ViewModeToggle({ value, onChange }: { value: ViewMode; onChange: (mode:
 
 /** Chart rendering for the four numeric groups — Housing Counts and Sanitation as bar charts
  *  (multi-category magnitude comparison), Electricity Access as a meter (a single ratio against
- *  a 0-100 limit is a meter, not a bar chart), Drinking Water as one ranked bar chart rather than
- *  three tiny ones. Households Without Proper Housing stays a plain figure — a lone count has no
- *  useful chart form. */
+ *  a 0-100 limit is a meter, not a bar chart), Drinking Water as three grouped bar charts.
+ *  Households Without Proper Housing stays a plain figure — a lone count has no useful chart
+ *  form. Totals are never charted alongside their own subsets (Total Households at 685 next to
+ *  Without Safe Sanitation at 18 would swamp the scale and shrink the figure that matters to an
+ *  illegible sliver) — totals go in the overview stat card instead. */
 function HousingGraphSection({ data }: { data: HousingNumericData }) {
   const { lang } = useLanguage();
   const t = (en: string, si: string) => (lang === "si" ? si : en);
@@ -157,9 +159,6 @@ function HousingGraphSection({ data }: { data: HousingNumericData }) {
         ]}
       />
 
-      {/* Total Households isn't charted alongside its own subsets — at 685 vs 18/12 it would
-          swamp the scale and shrink the two figures that actually matter to invisible slivers.
-          It's in the overview card above; only the two comparable gap counts are bar-charted. */}
       <BarCard
         titleEn="Sanitation Gaps"
         titleSi="සනීපාරක්ෂක අඩුපාඩු"
@@ -172,9 +171,6 @@ function HousingGraphSection({ data }: { data: HousingNumericData }) {
 
       <MeterCard titleEn={data.electricityTitle.en} titleSi={data.electricityTitle.si} percent={data.electricityAccessPercent} color={GOLD} />
 
-      {/* One bar chart per water-source group (rather than all 7 flattened together) — Piped
-          National (520) vs River/Canal/Tank (2) on one scale would reduce the smaller sources to
-          illegible slivers; splitting by group keeps each chart's value range legible. */}
       {DRINKING_WATER_GROUPS.map((group) => (
         <BarCard
           key={group.label.en}

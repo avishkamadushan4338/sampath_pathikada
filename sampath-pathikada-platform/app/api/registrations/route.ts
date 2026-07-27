@@ -133,7 +133,6 @@ export async function GET(req: NextRequest) {
   const baseSelect = {
     id: true, name: true, email: true, phone: true,
     nic: true, district: true, dsDivision: true,
-    localGovt: true, electoral: true, farmers: true, eduZone: true, eduDiv: true,
     status: true, rejectionNote: true, submittedAt: true, approvedAt: true,
     approvedBy: { select: { name: true } },
     verificationDocType: true,
@@ -141,9 +140,22 @@ export async function GET(req: NextRequest) {
     verificationDocBackPath: true,
   } as const;
 
+  const baseSelectGn = {
+    ...baseSelect,
+    gnDivision: true,
+    localGovt: true,
+    electoral: true,
+    farmers: true,
+    eduZone: true,
+    eduDiv: true,
+    mahaweli: true,
+  } as const;
+
+  const baseSelectDs = baseSelect;
+
   // Query only the requested table(s) in parallel
-  type GnRow = Awaited<ReturnType<typeof prisma.economicDevelopmentOfficerRegistration.findMany<{ where: typeof baseWhere; select: typeof baseSelect & { gnDivision: true } }>>>;
-  type DsRow = Awaited<ReturnType<typeof prisma.divisionalSecretariatRegistration.findMany<{ where: typeof baseWhere; select: typeof baseSelect }>>>;
+  type GnRow = Awaited<ReturnType<typeof prisma.economicDevelopmentOfficerRegistration.findMany<{ where: typeof baseWhere; select: typeof baseSelectGn }>>>;
+  type DsRow = Awaited<ReturnType<typeof prisma.divisionalSecretariatRegistration.findMany<{ where: typeof baseWhere; select: typeof baseSelectDs }>>>;
 
   // Bound each table's query to the rows we could possibly need (page * pageSize from
   // each side, worst case), instead of pulling every matching row before merging/slicing.
@@ -155,7 +167,7 @@ export async function GET(req: NextRequest) {
           where: actualWhere,
           orderBy: { submittedAt: "desc" },
           take: mergedLimit,
-          select: { ...baseSelect, gnDivision: true },
+          select: baseSelectGn,
         })
       : ([] as GnRow),
     (tableParam === "all" || tableParam === "ds")
@@ -163,7 +175,7 @@ export async function GET(req: NextRequest) {
           where: actualWhere,
           orderBy: { submittedAt: "desc" },
           take: mergedLimit,
-          select: baseSelect,
+          select: baseSelectDs,
         })
       : ([] as DsRow),
     (tableParam === "all" || tableParam === "gn")
