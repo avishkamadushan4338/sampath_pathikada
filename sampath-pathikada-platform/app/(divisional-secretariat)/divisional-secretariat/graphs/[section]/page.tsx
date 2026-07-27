@@ -161,6 +161,11 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
   const [showRegisteredVoters, setShowRegisteredVoters] = React.useState(false);
   const [expandedReligionRows, setExpandedReligionRows] = React.useState<Record<string, boolean>>({});
   const gnBreakdownRef = React.useRef<HTMLDivElement | null>(null);
+  const religionTableRef = React.useRef<HTMLDivElement | null>(null);
+  const ethnicityTableRef = React.useRef<HTMLDivElement | null>(null);
+  const foreignTableRef = React.useRef<HTMLDivElement | null>(null);
+  const householdsTableRef = React.useRef<HTMLDivElement | null>(null);
+  const votersTableRef = React.useRef<HTMLDivElement | null>(null);
 
   const gnTotals = React.useMemo(() => {
     if (!analytics) return { totalPopulation: 0, female: 0, male: 0, families: 0 };
@@ -514,7 +519,7 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
             buttonLabel={{ en: showReligionDistribution ? "Hide" : "View", si: showReligionDistribution ? "සඟවන්න" : "බලන්න" }}
           />
           {showReligionDistribution && (
-            <Card className="overflow-hidden rounded-md border border-border bg-card/80 shadow-sm">
+            <Card className="card-lift overflow-hidden border-border/60 shadow-md">
               <CardHeader>
                 <CardTitle className="font-display text-fluid-xl font-semibold text-foreground">
                   <Bilingual en="Population Distribution by Religion" si="ධර්මය අනුව ජනගහනය" />
@@ -527,7 +532,7 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
                   <div className="text-sm text-muted-foreground">Loading…</div>
                 ) : (
                   <div className="overflow-hidden rounded-md border border-border">
-                    <div className="overflow-x-auto">
+                    <div ref={religionTableRef} className="overflow-x-auto">
                       <table className="w-full text-left text-sm">
                         <thead className="bg-muted/40 text-muted-foreground">
                           <tr>
@@ -580,6 +585,17 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
                         </tfoot>
                       </table>
                     </div>
+                    <div className="border-t border-border/80 bg-muted/50 px-4 py-3 text-right">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-2"
+                        onClick={() => religionTableRef.current?.scrollIntoView({ behavior: "smooth" })}
+                      >
+                        <ArrowUp className="size-4" />
+                        <Bilingual en="Back to top" si="ඉහළට" />
+                      </Button>
+                    </div>
                   </div>
                 )}
               </CardContent>
@@ -593,7 +609,7 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
             buttonLabel={{ en: showEthnicityDistribution ? "Hide" : "View", si: showEthnicityDistribution ? "සඟවන්න" : "බලන්න" }}
           />
           {showEthnicityDistribution && (
-            <Card className="overflow-hidden rounded-md border border-border bg-card/80 shadow-sm">
+            <Card className="card-lift overflow-hidden border-border/60 shadow-md">
               <CardHeader>
                 <CardTitle className="font-display text-fluid-xl font-semibold text-foreground">
                   <Bilingual en="Population Distribution by Ethnicity" si="ජාතිය අනුව ජනගහනය" />
@@ -606,7 +622,7 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
                   <div className="text-sm text-muted-foreground">Loading…</div>
                 ) : (
                   <div className="overflow-hidden rounded-md border border-border">
-                    <div className="overflow-x-auto">
+                    <div ref={ethnicityTableRef} className="overflow-x-auto">
                       <table className="w-full text-left text-sm">
                         <thead className="bg-muted/40 text-muted-foreground">
                           <tr>
@@ -663,6 +679,17 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
                         </tfoot>
                       </table>
                     </div>
+                    <div className="border-t border-border/80 bg-muted/50 px-4 py-3 text-right">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-2"
+                        onClick={() => ethnicityTableRef.current?.scrollIntoView({ behavior: "smooth" })}
+                      >
+                        <ArrowUp className="size-4" />
+                        <Bilingual en="Back to top" si="ඉහළට" />
+                      </Button>
+                    </div>
                   </div>
                 )}
               </CardContent>
@@ -676,7 +703,7 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
             buttonLabel={{ en: showForeignNationals ? "Hide" : "View", si: showForeignNationals ? "සඟවන්න" : "බලන්න" }}
           />
           {showForeignNationals && (
-            <Card className="overflow-hidden rounded-md border border-border bg-card/80 shadow-sm">
+            <Card className="card-lift overflow-hidden border-border/60 shadow-md">
               <CardHeader>
                 <CardTitle className="font-display text-fluid-xl font-semibold text-foreground">
                   <Bilingual en="Foreign Nationals Residing in the Division" si="වසමේ පදිංචි විදේශ ජාතිකයන්" />
@@ -689,7 +716,7 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
                   <div className="text-sm text-muted-foreground">Loading…</div>
                 ) : (
                   <div className="overflow-hidden rounded-md border border-border">
-                    <div className="overflow-x-auto">
+                    <div ref={foreignTableRef} className="overflow-x-auto">
                       <table className="w-full text-left text-sm">
                         <thead className="bg-muted/40 text-muted-foreground">
                           <tr>
@@ -722,6 +749,17 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
                         </tfoot>
                       </table>
                     </div>
+                    <div className="border-t border-border/80 bg-muted/50 px-4 py-3 text-right">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-2"
+                        onClick={() => foreignTableRef.current?.scrollIntoView({ behavior: "smooth" })}
+                      >
+                        <ArrowUp className="size-4" />
+                        <Bilingual en="Back to top" si="ඉහළට" />
+                      </Button>
+                    </div>
                   </div>
                 )}
               </CardContent>
@@ -735,7 +773,7 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
             buttonLabel={{ en: showHouseholds ? "Hide" : "View", si: showHouseholds ? "සඟවන්න" : "බලන්න" }}
           />
           {showHouseholds && (
-            <Card className="overflow-hidden rounded-md border border-border bg-card/80 shadow-sm">
+            <Card className="card-lift overflow-hidden border-border/60 shadow-md">
               <CardHeader>
                 <CardTitle className="font-display text-fluid-xl font-semibold text-foreground">
                   <Bilingual en="Households in the Division" si="වසමේ ගෘහස්ථයන්" />
@@ -748,7 +786,7 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
                   <div className="text-sm text-muted-foreground">Loading…</div>
                 ) : (
                   <div className="overflow-hidden rounded-md border border-border">
-                    <div className="overflow-x-auto">
+                    <div ref={householdsTableRef} className="overflow-x-auto">
                       <table className="w-full text-left text-sm">
                         <thead className="bg-muted/40 text-muted-foreground">
                           <tr>
@@ -781,6 +819,17 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
                         </tfoot>
                       </table>
                     </div>
+                    <div className="border-t border-border/80 bg-muted/50 px-4 py-3 text-right">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-2"
+                        onClick={() => householdsTableRef.current?.scrollIntoView({ behavior: "smooth" })}
+                      >
+                        <ArrowUp className="size-4" />
+                        <Bilingual en="Back to top" si="ඉහළට" />
+                      </Button>
+                    </div>
                   </div>
                 )}
               </CardContent>
@@ -794,7 +843,7 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
             buttonLabel={{ en: showRegisteredVoters ? "Hide" : "View", si: showRegisteredVoters ? "සඟවන්න" : "බලන්න" }}
           />
           {showRegisteredVoters && (
-            <Card className="overflow-hidden rounded-md border border-border bg-card/80 shadow-sm">
+            <Card className="card-lift overflow-hidden border-border/60 shadow-md">
               <CardHeader>
                 <CardTitle className="font-display text-fluid-xl font-semibold text-foreground">
                   <Bilingual en="Registered Voters in the Division" si="වසමේ ලියාපදිංචි ඡන්දදායකයන්" />
@@ -807,7 +856,7 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
                   <div className="text-sm text-muted-foreground">Loading…</div>
                 ) : (
                   <div className="overflow-hidden rounded-md border border-border">
-                    <div className="overflow-x-auto">
+                    <div ref={votersTableRef} className="overflow-x-auto">
                       <table className="w-full text-left text-sm">
                         <thead className="bg-muted/40 text-muted-foreground">
                           <tr>
@@ -839,6 +888,17 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
                           </tr>
                         </tfoot>
                       </table>
+                    </div>
+                    <div className="border-t border-border/80 bg-muted/50 px-4 py-3 text-right">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-2"
+                        onClick={() => votersTableRef.current?.scrollIntoView({ behavior: "smooth" })}
+                      >
+                        <ArrowUp className="size-4" />
+                        <Bilingual en="Back to top" si="ඉහළට" />
+                      </Button>
                     </div>
                   </div>
                 )}
