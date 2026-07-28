@@ -366,7 +366,7 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
             <Bilingual en={description.en} si={description.si} />
           </p>
         </div>
-        <Button asChild variant="outline" size="sm">
+        <Button asChild variant="outline" className="h-11">
           <Link href="/divisional-secretariat/graphs" className="flex items-center gap-2">
             <ArrowLeft className="size-4" />
             <Bilingual en="Back to dashboard" si="පුවරුවට ආපසු" />
