@@ -6,9 +6,17 @@ import Link from "next/link";
 import { ArrowLeft, ArrowUp, Globe2, Home, MapPin, Users, UserCheck, Eye } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { DemographicsAggregate } from "@/lib/analytics/aggregate-demographics";
+import type { EmploymentAggregate } from "@/lib/analytics/aggregate-sections";
 import { Bilingual } from "@/components/Bilingual";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardFooter, CardTitle } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -57,6 +65,9 @@ interface AnalyticsGnBreakdownRow {
 interface AnalyticsResponse {
   ok: true;
   demographics: DemographicsAggregate;  // This includes populationByReligion and populationByEthnicity
+  sections: {
+    employment: EmploymentAggregate;
+  };
   gnBreakdown: AnalyticsGnBreakdownRow[];
 }
 
@@ -129,20 +140,37 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
   const section = resolvedParams.section;
   const isIdentification = section === "identification";
   const isDemographics = section === "demographics";
+  const isEmployment = section === "employment";
   const isStateInstitutionsLand = section === "state-institutions-land";
   const isPhysicalEnvironment = section === "physical-environment";
   const isHousing = section === "housing";
   const isEducation = section === "education";
+  const [employmentGnDivision, setEmploymentGnDivision] = React.useState("all");
   const showMahaweliColumn = user?.dsDivision === "hambantota-ds";
   const { data, error, isLoading } = useSWR(
     isIdentification ? "/api/registrations?role=gn&status=all&limit=100" : null,
     fetcher
   );
 
+  const employmentGnOptions = React.useMemo(() => {
+    if (!user?.dsDivision) return [];
+    return GN_DIVISIONS
+      .filter((gn) => gn.dsId === user.dsDivision)
+      .sort((a, b) => (lang === "si" ? a.si : a.en).localeCompare(lang === "si" ? b.si : b.en));
+  }, [user?.dsDivision, lang]);
+
+  React.useEffect(() => {
+    if (employmentGnDivision === "all") return;
+    const stillExists = employmentGnOptions.some((gn) => gn.id === employmentGnDivision);
+    if (!stillExists) setEmploymentGnDivision("all");
+  }, [employmentGnDivision, employmentGnOptions]);
+
   const title = isIdentification
     ? { en: "Identification", si: "හඳුනාගැනීම" }
     : isDemographics
     ? { en: "Division Demographics Overview", si: "ජනගහන සාරාංශය" }
+    : isEmployment
+    ? { en: "Employment", si: "රැකියා තොරතුරු" }
     : isStateInstitutionsLand
     ? { en: "State Institutions & Land", si: "රාජ්‍ය ආයතන හා ඉඩම්" }
     : isPhysicalEnvironment
@@ -162,6 +190,11 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
     ? {
         en: "Explore comprehensive demographic data, population distribution, and household metrics for your division.",
         si: "ඔබගේ වසම් සඳහා සම්පූර්ණ ජනගහන දත්ත, ජනගහන විනිවුදු සහ ගෘහස්ථ මැට්‍රික්ස් අධ්‍යයනය කරන්න.",
+      }
+    : isEmployment
+    ? {
+        en: "Review employment-related indicators collected from GN divisions in your DS area.",
+        si: "ඔබගේ ප්‍රාදේශීය ලේකම් කොට්ඨාසයේ ග්‍රාම නිලධාරී වසම්වලින් එකතු කළ රැකියා දර්ශක සමාලෝචනය කරන්න.",
       }
     : isStateInstitutionsLand
     ? {
@@ -188,10 +221,16 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
         si: "මෙම කොටස තවම ලබා ගත නොහැක. කරුණාකර වසම් තොරතුරු ප්‍රස්ථාරයට ආපසු යන්න.",
       };
 
-  const { data: analytics, error: analyticsError } = useSWR(
-    isDemographics ? `/api/analytics?year=${CURRENT_YEAR}` : null,
-    analyticsFetcher
-  );
+  const analyticsUrl = React.useMemo(() => {
+    if (!isDemographics && !isEmployment) return null;
+    const params = new URLSearchParams({ year: String(CURRENT_YEAR) });
+    if (isEmployment && employmentGnDivision !== "all") {
+      params.set("gnDivisions", employmentGnDivision);
+    }
+    return `/api/analytics?${params.toString()}`;
+  }, [isDemographics, isEmployment, employmentGnDivision]);
+
+  const { data: analytics, error: analyticsError } = useSWR(analyticsUrl, analyticsFetcher);
   const [showTotalPopulation, setShowTotalPopulation] = React.useState(false);
   const [showGnBreakdown, setShowGnBreakdown] = React.useState(false);
   const [showReligionDistribution, setShowReligionDistribution] = React.useState(false);
@@ -206,6 +245,217 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
   const foreignTableRef = React.useRef<HTMLDivElement | null>(null);
   const householdsTableRef = React.useRef<HTMLDivElement | null>(null);
   const votersTableRef = React.useRef<HTMLDivElement | null>(null);
+
+  const employmentEducationRows = React.useMemo(() => {
+    const employment = analytics?.sections.employment;
+
+    return [
+      {
+        en: "Number of job seekers who have received vocational training",
+        si: "වෘත්තීය පුහුණුව ලබා ඇති රැකියා අපේක්ෂකයන් සංඛ්‍යාව",
+        count: employment?.jobSeekersByEducation[0]?.count ?? 0,
+      },
+      {
+        en: "Number of job seekers with qualifications below G.C.E. O/L",
+        si: "අ.පො.ස. සාමාන්‍ය පෙළට අඩු සුදුසුකම් ඇති රැකියා අපේක්ෂකයන් සංඛ්‍යාව",
+        count: employment?.jobSeekersByEducation[1]?.count ?? 0,
+      },
+      {
+        en: "Number of people seeking employment with G.C.E. O/L passes",
+        si: "අ.පො.ස. සාමාන්‍ය පෙළ සමත් රැකියා අපේක්ෂකයන් සංඛ්‍යාව",
+        count: employment?.jobSeekersByEducation[2]?.count ?? 0,
+      },
+      {
+        en: "Number of people seeking employment after passing Advanced Level",
+        si: "අ.පො.ස. උසස් පෙළ සමත් රැකියා අපේක්ෂකයන් සංඛ්‍යාව",
+        count: employment?.jobSeekersByEducation[3]?.count ?? 0,
+      },
+      {
+        en: "Number of job seekers with bachelor's degree or higher qualifications",
+        si: "උපාධිය හෝ ඊට ඉහළ සුදුසුකම් ඇති රැකියා අපේක්ෂකයන් සංඛ්‍යාව",
+        count: employment?.jobSeekersByEducation[4]?.count ?? 0,
+      },
+      {
+        en: "Total number of persons expected to be employed",
+        si: "රැකියාවට එක්වීමට අපේක්ෂිත මුළු පුද්ගලයන් සංඛ්‍යාව",
+        count: employment?.totalJobSeekers ?? 0,
+      },
+    ];
+  }, [analytics]);
+
+  const employmentTrainingNeedRows = React.useMemo(() => {
+    const employment = analytics?.sections.employment;
+
+    return [
+      {
+        en: "Number of people with informal training who need to obtain formal, certified training but do not have the opportunity to do so (due to reasons such as increasing age)",
+        si: "අවිධිමත් පුහුණුවක් ඇති නමුත් වයස වැඩිවීම වැනි හේතු නිසා විධිමත් සහතික ලත් පුහුණුවක් ලබා ගැනීමට අවස්ථාව නොලැබෙන පුද්ගලයන් සංඛ්‍යාව",
+        enLines: [
+          "Number of people with informal training who need to obtain formal, certified training",
+          "but do not have the opportunity to do so (due to reasons such as increasing age)",
+        ],
+        siLines: [
+          "විධිමත් සහතික ලත් පුහුණුවක් ලබා ගැනීමට අවශ්‍ය අවිධිමත් පුහුණුවක් ඇති පුද්ගලයන් සංඛ්‍යාව",
+          "වයස වැඩිවීම වැනි හේතු නිසා එම අවස්ථාව නොලැබෙන අය",
+        ],
+        count: employment?.jobSeekersUnwillingBelowQualificationCount ?? 0,
+      },
+    ];
+  }, [analytics]);
+
+  const selfEmploymentActivityRows = React.useMemo(() => {
+    const sectors = analytics?.sections.employment.selfEmploymentSectors ?? [];
+    const countByLabel = new Map(sectors.map((sector) => [sector.en, sector.count]));
+
+    type SelfEmploymentActivityMapping = {
+      en: string;
+      si: string;
+      sourceLabel?: string;
+    };
+
+    const directMappings: SelfEmploymentActivityMapping[] = [
+      {
+        en: "Food production",
+        si: "ආහාර නිෂ්පාදනය",
+        sourceLabel: "Food Production",
+      },
+      {
+        en: "Sweets / Confectionery production",
+        si: "රසකැවිලි / කොන්ෆෙක්ෂනරි නිෂ්පාදනය",
+        sourceLabel: "Confectionery",
+      },
+      {
+        en: "Spices / Condiments production",
+        si: "කුළුබඩු / රසකාරක නිෂ්පාදනය",
+      },
+      {
+        en: "Rice packet preparation / production",
+        si: "බත් පැකට් සකස් කිරීම / නිෂ්පාදනය",
+      },
+      {
+        en: "Bakery products / production",
+        si: "බේකරි නිෂ්පාදන / නිෂ්පාදනය",
+        sourceLabel: "Bakery Production",
+      },
+      {
+        en: "Garment / Apparel manufacturing",
+        si: "ඇඟලුම් / ඇපරල් නිෂ්පාදනය",
+        sourceLabel: "Textile Production",
+      },
+      {
+        en: "Dressmaking / Tailoring",
+        si: "ඇඳුම් මැසීම / ටේලරින්",
+        sourceLabel: "Garment Sewing",
+      },
+      {
+        en: "Doormat production",
+        si: "පාපිස්නා නිෂ්පාදනය",
+      },
+      {
+        en: "Beeralu / Lace production",
+        si: "බීරලු / ලේස් නිෂ්පාදනය",
+        sourceLabel: "Knitting",
+      },
+      {
+        en: "Handicrafts / Ornamental items production",
+        si: "අත්කම් / අලංකාර භාණ්ඩ නිෂ්පාදනය",
+        sourceLabel: "Decorative Items",
+      },
+      {
+        en: "Coconut shell-based products",
+        si: "පොල් කටු ආශ්‍රිත නිෂ්පාදන",
+        sourceLabel: "Coconut Shell Crafts",
+      },
+      {
+        en: "Soldering works",
+        si: "පෑස්සුම් වැඩ",
+      },
+      {
+        en: "Motor vehicle repair",
+        si: "මෝටර් වාහන අලුත්වැඩියාව",
+        sourceLabel: "Auto Mechanic",
+      },
+      {
+        en: "Bicycle repair",
+        si: "බයිසිකල් අලුත්වැඩියාව",
+      },
+      {
+        en: "Masonry industry",
+        si: "පෙදරේරු කර්මාන්තය",
+        sourceLabel: "Masonry Work",
+      },
+      {
+        en: "Carpentry industry",
+        si: "වඩු කර්මාන්තය",
+        sourceLabel: "Carpentry",
+      },
+      {
+        en: "Electrical equipment repair",
+        si: "විදුලි උපකරණ අලුත්වැඩියාව",
+        sourceLabel: "Electrical Appliance Repair",
+      },
+      {
+        en: "Jewelry manufacturing",
+        si: "ස්වර්ණාභරණ නිෂ්පාදනය",
+      },
+      {
+        en: "Concrete block production",
+        si: "කොන්ක්‍රීට් බ්ලොක් නිෂ්පාදනය",
+        sourceLabel: "Brick Making",
+      },
+      {
+        en: "Cinnamon peeling",
+        si: "කුරුඳු තැලීම",
+      },
+      {
+        en: "Fish-based products (dry fish, Jaadi, etc.)",
+        si: "මාළු ආශ්‍රිත නිෂ්පාදන (කරවල, ජාඩි ආදිය)",
+        sourceLabel: "Seafood Processing",
+      },
+      {
+        en: "Fishing gear repair",
+        si: "ධීවර ආම්පන්න අලුත්වැඩියාව",
+      },
+      {
+        en: "Fish selling (via vehicles)",
+        si: "ජංගම රථ මගින් මාළු අලෙවිය",
+        sourceLabel: "Fish Transport / Other",
+      },
+    ];
+
+    const usedSourceLabels = new Set<string>();
+    const rows = directMappings.map((item) => {
+      if (item.sourceLabel) usedSourceLabels.add(item.sourceLabel);
+      return {
+        en: item.en,
+        si: item.si,
+        count: item.sourceLabel ? (countByLabel.get(item.sourceLabel) ?? 0) : 0,
+      };
+    });
+
+    const otherCount = sectors.reduce((sum, sector) => {
+      return usedSourceLabels.has(sector.en) ? sum : sum + sector.count;
+    }, 0);
+
+    rows.push({
+      en: "Other",
+      si: "වෙනත්",
+      count: otherCount,
+    });
+
+    return rows;
+  }, [analytics]);
+
+  const selfEmployedPersonRows = React.useMemo(() => {
+    const rows = analytics?.sections.employment.selfEmployedPersons.rows ?? [];
+    return rows.map((row, index) => ({
+      id: `${row.gnId}-${row.name}-${index}`,
+      field: row.sector,
+      personName: row.name,
+      telephone: row.phone ?? "—",
+      market: row.address,
+    }));
+  }, [analytics]);
 
   const gnTotals = React.useMemo(() => {
     if (!analytics) return { totalPopulation: 0, female: 0, male: 0, families: 0 };
@@ -562,7 +812,7 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
           <TopicCard
             icon={Globe2}
             titleEn="Population Distribution by Religion"
-            titleSi="ධර්මය අනුව ජනගහනය"
+            titleSi="ආගම අනුව ජනගහනය"
             onClick={() => setShowReligionDistribution((value) => !value)}
             buttonLabel={{ en: showReligionDistribution ? "Hide" : "View", si: showReligionDistribution ? "සඟවන්න" : "බලන්න" }}
           />
@@ -886,7 +1136,7 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
           <TopicCard
             icon={UserCheck}
             titleEn="Registered voters"
-            titleSi="රෙජිස්ටර් කර ඇති ඡන්දදාරුවන්"
+            titleSi="රෙජිස්ටර් කර ඇති ඡන්ද දායකයින්"
             onClick={() => setShowRegisteredVoters((value) => !value)}
             buttonLabel={{ en: showRegisteredVoters ? "Hide" : "View", si: showRegisteredVoters ? "සඟවන්න" : "බලන්න" }}
           />
@@ -952,6 +1202,166 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
                 )}
               </CardContent>
             </Card>
+          )}
+        </div>
+      ) : isEmployment ? (
+        <div className="space-y-3">
+          <h2 className="font-display text-fluid-xl font-semibold text-foreground">
+            <Bilingual en="Job Outlook" si="රැකියා ඉදිරි දැක්ම" />
+          </h2>
+          <div className="max-w-sm space-y-1">
+            <p className="text-fluid-xs font-medium text-muted-foreground">
+              <Bilingual en="Filter by GN Division" si="ග්‍රාම නිලධාරී වසම අනුව පෙරහන්න" />
+            </p>
+            <Select value={employmentGnDivision} onValueChange={setEmploymentGnDivision}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">
+                  {lang === "si" ? "සියලුම ග්‍රාම නිලධාරී වසම්" : "All GN divisions"}
+                </SelectItem>
+                {employmentGnOptions.map((gn) => (
+                  <SelectItem key={gn.id} value={gn.id}>
+                    {lang === "si" ? gn.si : gn.en}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          {analyticsError ? (
+            <div className="text-sm text-destructive">Unable to load employment data.</div>
+          ) : !analytics ? (
+            <div className="text-sm text-muted-foreground">Loading…</div>
+          ) : (
+            <>
+              <div className="overflow-hidden rounded-md border border-border">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-muted/40 hover:bg-muted/40">
+                      <TableHead>
+                        <Bilingual en="Number of people seeking employment by education" si="අධ්‍යාපනය අනුව රැකියා අපේක්ෂකයන්" />
+                      </TableHead>
+                      <TableHead>
+                        <Bilingual en="Number of Persons" si="පුද්ගලයන් සංඛ්‍යාව" />
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {employmentEducationRows.map((row) => (
+                      <TableRow key={row.en}>
+                        <TableCell className="font-medium">
+                          <Bilingual en={row.en} si={row.si} />
+                        </TableCell>
+                        <TableCell className="nums-tabular">{row.count.toLocaleString()}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+              <h3 className="pt-3 font-display text-fluid-lg font-semibold text-foreground">
+                <Bilingual
+                  en="Number of people who wish to receive vocational training but do not meet the qualifications required for vocational training"
+                  si="වෘත්තීය පුහුණුව ලබා ගැනීමට කැමති නමුත් ඒ සඳහා අවශ්‍ය සුදුසුකම් සපුරා නොමැති පුද්ගලයන් සංඛ්‍යාව"
+                />
+              </h3>
+              <div className="overflow-hidden rounded-md border border-border">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-muted/40 hover:bg-muted/40">
+                      <TableHead />
+                      <TableHead>
+                        <Bilingual en="Number of Persons" si="පුද්ගලයන් සංඛ්‍යාව" />
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {employmentTrainingNeedRows.map((row) => (
+                      <TableRow key={row.en}>
+                        <TableCell className="font-medium">
+                          <div className="space-y-1">
+                            {row.enLines.map((enLine, index) => (
+                              <div key={enLine}>
+                                <Bilingual en={enLine} si={row.siLines[index] ?? row.si} />
+                              </div>
+                            ))}
+                          </div>
+                        </TableCell>
+                        <TableCell className="nums-tabular">{row.count.toLocaleString()}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+              <h3 className="pt-3 font-display text-fluid-lg font-semibold text-foreground">
+                <Bilingual en="Self-Employment Related Information" si="ස්වයං රැකියා ආශ්‍රිත තොරතුරු" />
+              </h3>
+              <div className="overflow-hidden rounded-md border border-border">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-muted/40 hover:bg-muted/40">
+                      <TableHead>
+                        <Bilingual en="Self-Employment Activity" si="ස්වයං රැකියා ක්‍රියාකාරකම" />
+                      </TableHead>
+                      <TableHead>
+                        <Bilingual en="Number of Persons" si="පුද්ගලයන් සංඛ්‍යාව" />
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {selfEmploymentActivityRows.map((row) => (
+                      <TableRow key={row.en}>
+                        <TableCell className="font-medium">
+                          <Bilingual en={row.en} si={row.si} />
+                        </TableCell>
+                        <TableCell className="nums-tabular">{row.count.toLocaleString()}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+              <h3 className="pt-3 font-display text-fluid-lg font-semibold text-foreground">
+                <Bilingual en="Information on Persons Engaged in Self-Employment" si="ස්වයං රැකියාවල නියුතු පුද්ගලයන් පිළිබඳ තොරතුරු" />
+              </h3>
+              <div className="overflow-hidden rounded-md border border-border">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-muted/40 hover:bg-muted/40">
+                      <TableHead>
+                        <Bilingual en="Self-Employment Field" si="ස්වයං රැකියා ක්ෂේත්‍රය" />
+                      </TableHead>
+                      <TableHead>
+                        <Bilingual en="Person's Name" si="පුද්ගලයාගේ නම" />
+                      </TableHead>
+                      <TableHead>
+                        <Bilingual en="Telephone Number" si="දුරකථන අංකය" />
+                      </TableHead>
+                      <TableHead>
+                        <Bilingual en="Market" si="වෙළඳපොළ" />
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {selfEmployedPersonRows.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={4} className="py-6 text-center text-muted-foreground">
+                          <Bilingual en="No self-employed persons recorded for this division." si="මෙම වසම සඳහා ස්වයං රැකියාවල නියුතු පුද්ගලයන් සටහන් වී නොමැත." />
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      selfEmployedPersonRows.map((row) => (
+                        <TableRow key={row.id}>
+                          <TableCell className="font-medium">{row.field || "—"}</TableCell>
+                          <TableCell>{row.personName || "—"}</TableCell>
+                          <TableCell className="nums-tabular">{row.telephone}</TableCell>
+                          <TableCell>{row.market || "—"}</TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </>
           )}
         </div>
       ) : !isIdentification ? (
