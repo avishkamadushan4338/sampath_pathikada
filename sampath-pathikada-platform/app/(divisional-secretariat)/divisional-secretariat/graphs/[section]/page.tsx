@@ -298,7 +298,7 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
           "විධිමත් සහතික ලත් පුහුණුවක් ලබා ගැනීමට අවශ්‍ය අවිධිමත් පුහුණුවක් ඇති පුද්ගලයන් සංඛ්‍යාව",
           "වයස වැඩිවීම වැනි හේතු නිසා එම අවස්ථාව නොලැබෙන අය",
         ],
-        count: employment?.jobSeekersUnwillingBelowQualificationCount ?? 0,
+        count: employment?.vocationalTrainingOpportunityGapCount ?? 0,
       },
     ];
   }, [analytics]);
