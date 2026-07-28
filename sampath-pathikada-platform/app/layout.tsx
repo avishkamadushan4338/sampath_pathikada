@@ -1,6 +1,82 @@
 import type { Metadata, Viewport } from "next";
+import {
+  Inter,
+  DM_Sans,
+  Playfair_Display,
+  Cormorant_Garamond,
+  Noto_Sans_Sinhala,
+  Noto_Serif_Sinhala,
+  Yaldevi,
+} from "next/font/google";
 import Providers from "./components/Providers";
 import "./globals.css";
+
+/** Self-hosted via next/font instead of a Google Fonts <link> — removes the extra DNS/connection
+ *  round-trip to fonts.googleapis.com/fonts.gstatic.com, serves font files from this app's own
+ *  origin, and automatically generates a size-adjusted fallback font (matching x-height/advance
+ *  widths) to minimize layout shift before each webfont loads. Weight lists mirror what the
+ *  previous <link> tag requested, unchanged, to avoid dropping a weight some page still uses. */
+const inter = Inter({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700", "800"],
+  variable: "--font-inter",
+  display: "swap",
+});
+
+const dmSans = DM_Sans({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+  style: ["normal", "italic"],
+  variable: "--font-dm-sans",
+  display: "swap",
+});
+
+const playfairDisplay = Playfair_Display({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800", "900"],
+  style: ["normal", "italic"],
+  variable: "--font-playfair",
+  display: "swap",
+});
+
+const cormorantGaramond = Cormorant_Garamond({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  style: ["normal", "italic"],
+  variable: "--font-cormorant",
+  display: "swap",
+});
+
+const notoSansSinhala = Noto_Sans_Sinhala({
+  subsets: ["sinhala"],
+  weight: ["300", "400", "500", "600", "700", "800", "900"],
+  variable: "--font-noto-sans-sinhala",
+  display: "swap",
+});
+
+const notoSerifSinhala = Noto_Serif_Sinhala({
+  subsets: ["sinhala"],
+  weight: ["400", "500", "600", "700", "800"],
+  variable: "--font-noto-serif-sinhala",
+  display: "swap",
+});
+
+const yaldevi = Yaldevi({
+  subsets: ["sinhala"],
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-yaldevi",
+  display: "swap",
+});
+
+const fontVariables = [
+  inter.variable,
+  dmSans.variable,
+  playfairDisplay.variable,
+  cormorantGaramond.variable,
+  notoSansSinhala.variable,
+  notoSerifSinhala.variable,
+  yaldevi.variable,
+].join(" ");
 
 export const metadata: Metadata = {
   title: {
@@ -26,15 +102,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="si" dir="ltr" suppressHydrationWarning>
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,600;1,700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,600&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,300;1,9..40,400&family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+Sinhala:wght@300;400;500;600;700;800;900&family=Noto+Serif+Sinhala:wght@400;500;600;700;800&family=Yaldevi:wght@300;400;500;600;700;800&display=swap"
-          rel="stylesheet"
-        />
-      </head>
+    <html lang="si" dir="ltr" suppressHydrationWarning className={fontVariables}>
       <body className="min-h-dvh antialiased">
         <Providers>{children}</Providers>
       </body>

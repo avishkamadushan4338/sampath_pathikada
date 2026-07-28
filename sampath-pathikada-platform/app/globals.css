@@ -169,29 +169,31 @@
     --dur-slower: 600ms;
 
     /* ── Typography — role-based font stack ─────────────────────────────────
-       Fonts are loaded via Google Fonts <link> tags in app/layout.tsx (not
-       next/font), so these reference the literal family names directly.
-       Fallback chains are carefully ordered: matching metric fonts first so
-       layout shift is imperceptible even before the webfont loads.
+       Fonts are self-hosted via next/font/google (app/layout.tsx), each
+       exposing a CSS variable on <html> — no Google Fonts <link>, so no
+       extra DNS/connection round-trip, and next/font auto-generates a
+       size-adjusted fallback per font to minimize layout shift before the
+       webfont loads. Fallback chains still end in a generic family in case
+       a variable is ever unavailable (e.g. during static optimization).
     ──────────────────────────────────────────────────────────────────────── */
 
     /* UI chrome & body copy (English) */
-    --font-ui:       "Inter", "DM Sans", ui-sans-serif, system-ui, sans-serif;
+    --font-ui:       var(--font-inter), var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
 
     /* Editorial display headings — large sizes only */
-    --font-display:  "Playfair Display", "Cormorant Garamond", Georgia, serif;
+    --font-display:  var(--font-playfair), var(--font-cormorant), Georgia, serif;
 
     /* Data-dense tables, dashboard numbers, stat cards */
-    --font-data:     "DM Sans", "Inter", ui-sans-serif, sans-serif;
+    --font-data:     var(--font-dm-sans), var(--font-inter), ui-sans-serif, sans-serif;
 
     /* Code, IDs, submission numbers, timestamps */
     --font-mono:     "JetBrains Mono", "Fira Code", ui-monospace, monospace;
 
     /* Sinhala formal headings, PDF / print documents */
-    --font-si-serif: "Noto Serif Sinhala", serif;
+    --font-si-serif: var(--font-noto-serif-sinhala), serif;
 
     /* Sinhala UI body, labels, navigation, forms */
-    --font-si-sans:  "Noto Sans Sinhala", "Yaldevi", sans-serif;
+    --font-si-sans:  var(--font-noto-sans-sinhala), var(--font-yaldevi), sans-serif;
 
     /* Convenience aliases consumed by Tailwind utilities below */
     --font-sans:     var(--font-ui);
