@@ -183,8 +183,169 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
   const [showGnBreakdown, setShowGnBreakdown] = React.useState(false);
   const [showReligionDistribution, setShowReligionDistribution] = React.useState(false);
   const [showEthnicityDistribution, setShowEthnicityDistribution] = React.useState(false);
+  const [showForeignNationals, setShowForeignNationals] = React.useState(false);
+  const [showHouseholds, setShowHouseholds] = React.useState(false);
+  const [showRegisteredVoters, setShowRegisteredVoters] = React.useState(false);
   const [expandedReligionRows, setExpandedReligionRows] = React.useState<Record<string, boolean>>({});
   const gnBreakdownRef = React.useRef<HTMLDivElement | null>(null);
+  const religionTableRef = React.useRef<HTMLDivElement | null>(null);
+  const ethnicityTableRef = React.useRef<HTMLDivElement | null>(null);
+  const foreignTableRef = React.useRef<HTMLDivElement | null>(null);
+  const householdsTableRef = React.useRef<HTMLDivElement | null>(null);
+  const votersTableRef = React.useRef<HTMLDivElement | null>(null);
+
+  const gnTotals = React.useMemo(() => {
+    if (!analytics) return { totalPopulation: 0, female: 0, male: 0, families: 0 };
+
+    return analytics.gnBreakdown.reduce(
+      (acc, g) => {
+        const demo = g.demographics;
+        if (!demo) return acc;
+
+        acc.totalPopulation += demo.totalPopulation;
+        acc.female += demo.female;
+        acc.male += demo.male;
+        acc.families += demo.households.total;
+        return acc;
+      },
+      { totalPopulation: 0, female: 0, male: 0, families: 0 }
+    );
+  }, [analytics]);
+
+  const gnReligionTotals = React.useMemo(() => {
+    if (!analytics) return { buddhist: 0, hindu: 0, islam: 0, catholic: 0, otherChristians: 0, other: 0, collection: 0 };
+
+    return analytics.gnBreakdown.reduce((acc, g) => {
+      const demo = g.demographics;
+      if (!demo) return acc;
+
+      const counts = demo.populationByReligion.reduce(
+        (sum, row) => {
+          if (row.key === "buddhist") sum.buddhist += row.total;
+          if (row.key === "hindu") sum.hindu += row.total;
+          if (row.key === "islam") sum.islam += row.total;
+          if (row.key === "catholic") sum.catholic += row.total;
+          if (row.key === "other") sum.otherChristians += row.total;
+          return sum;
+        },
+        { buddhist: 0, hindu: 0, islam: 0, catholic: 0, otherChristians: 0 }
+      );
+
+      const collection = counts.buddhist + counts.hindu + counts.islam + counts.catholic + counts.otherChristians;
+      acc.buddhist += counts.buddhist;
+      acc.hindu += counts.hindu;
+      acc.islam += counts.islam;
+      acc.catholic += counts.catholic;
+      acc.otherChristians += counts.otherChristians;
+      acc.other += Math.max(0, demo.totalPopulation - collection);
+      acc.collection += collection;
+      return acc;
+    }, {
+      buddhist: 0,
+      hindu: 0,
+      islam: 0,
+      catholic: 0,
+      otherChristians: 0,
+      other: 0,
+      collection: 0,
+    });
+  }, [analytics]);
+
+  const gnEthnicityTotals = React.useMemo(() => {
+    if (!analytics) return {
+      sinhala: 0,
+      sriLankanTamil: 0,
+      indianTamil: 0,
+      sriLankanYonaka: 0,
+      burgher: 0,
+      malay: 0,
+      other: 0,
+      collection: 0,
+    };
+
+    return analytics.gnBreakdown.reduce((acc, g) => {
+      const demo = g.demographics;
+      if (!demo) return acc;
+
+      const sinhala = demo.populationByEthnicity.find((row) => row.key === "sinhala")?.total ?? 0;
+      const tamil = demo.populationByEthnicity.find((row) => row.key === "tamil")?.total ?? 0;
+      const muslim = demo.populationByEthnicity.find((row) => row.key === "muslim")?.total ?? 0;
+      const malay = demo.populationByEthnicity.find((row) => row.key === "malay")?.total ?? 0;
+      const burgher = demo.populationByEthnicity.find((row) => row.key === "burgher")?.total ?? 0;
+      const other = demo.populationByEthnicity.find((row) => row.key === "other")?.total ?? 0;
+      const collection = sinhala + tamil + muslim + malay + burgher + other;
+
+      acc.sinhala += sinhala;
+      acc.sriLankanTamil += tamil;
+      acc.indianTamil += 0;
+      acc.sriLankanYonaka += muslim;
+      acc.burgher += burgher;
+      acc.malay += malay;
+      acc.other += other;
+      acc.collection += collection;
+      return acc;
+    }, {
+      sinhala: 0,
+      sriLankanTamil: 0,
+      indianTamil: 0,
+      sriLankanYonaka: 0,
+      burgher: 0,
+      malay: 0,
+      other: 0,
+      collection: 0,
+    });
+  }, [analytics]);
+
+  const gnForeignNationalsTotals = React.useMemo(() => {
+    if (!analytics) return { female: 0, male: 0, collection: 0 };
+
+    return analytics.gnBreakdown.reduce(
+      (acc, g) => {
+        const foreign = g.demographics?.foreignNationals;
+        if (!foreign) return acc;
+
+        acc.female += foreign.female;
+        acc.male += foreign.male;
+        acc.collection += foreign.total;
+        return acc;
+      },
+      { female: 0, male: 0, collection: 0 }
+    );
+  }, [analytics]);
+
+  const gnHouseholdsTotals = React.useMemo(() => {
+    if (!analytics) return { totalHouseholds: 0, femaleHeadedHouseholds: 0, displacedHouseholds: 0 };
+
+    return analytics.gnBreakdown.reduce(
+      (acc, g) => {
+        const households = g.demographics?.households;
+        if (!households) return acc;
+
+        acc.totalHouseholds += households.total;
+        acc.femaleHeadedHouseholds += households.femaleHeaded;
+        acc.displacedHouseholds += households.displaced;
+        return acc;
+      },
+      { totalHouseholds: 0, femaleHeadedHouseholds: 0, displacedHouseholds: 0 }
+    );
+  }, [analytics]);
+
+  const gnRegisteredVotersTotals = React.useMemo(() => {
+    if (!analytics) return { female: 0, male: 0, total: 0 };
+
+    return analytics.gnBreakdown.reduce(
+      (acc, g) => {
+        const voters = g.demographics?.registeredVoters;
+        if (!voters) return acc;
+
+        acc.female += voters.female;
+        acc.male += voters.male;
+        acc.total += voters.total;
+        return acc;
+      },
+      { female: 0, male: 0, total: 0 }
+    );
+  }, [analytics]);
 
   const toggleReligionRow = (gnId: string) => {
     setExpandedReligionRows((prev) => ({ ...prev, [gnId]: !prev[gnId] }));
@@ -356,6 +517,15 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
                             );
                           })}
                         </tbody>
+                        <tfoot className="bg-muted/40 text-muted-foreground">
+                          <tr className="border-t">
+                            <td className="px-3 py-3 font-semibold">Totals</td>
+                            <td className="px-3 py-3 font-semibold">{gnTotals.totalPopulation.toLocaleString()}</td>
+                            <td className="px-3 py-3 font-semibold">{gnTotals.female.toLocaleString()}</td>
+                            <td className="px-3 py-3 font-semibold">{gnTotals.male.toLocaleString()}</td>
+                            <td className="px-3 py-3 font-semibold">{gnTotals.families.toLocaleString()}</td>
+                          </tr>
+                        </tfoot>
                       </table>
                     </div>
                     <div className="border-t border-border/80 bg-muted/50 px-4 py-3 text-right">
@@ -382,7 +552,7 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
             buttonLabel={{ en: showReligionDistribution ? "Hide" : "View", si: showReligionDistribution ? "සඟවන්න" : "බලන්න" }}
           />
           {showReligionDistribution && (
-            <Card className="overflow-hidden rounded-md border border-border bg-card/80 shadow-sm">
+            <Card className="card-lift overflow-hidden border-border/60 shadow-md">
               <CardHeader>
                 <CardTitle className="font-display text-fluid-xl font-semibold text-foreground">
                   <Bilingual en="Population Distribution by Religion" si="ධර්මය අනුව ජනගහනය" />
@@ -395,25 +565,69 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
                   <div className="text-sm text-muted-foreground">Loading…</div>
                 ) : (
                   <div className="overflow-hidden rounded-md border border-border">
-                    <div className="overflow-x-auto">
+                    <div ref={religionTableRef} className="overflow-x-auto">
                       <table className="w-full text-left text-sm">
                         <thead className="bg-muted/40 text-muted-foreground">
                           <tr>
-                            <th className="px-3 py-3">Religion</th>
-                            <th className="px-3 py-3">Female</th>
-                            <th className="px-3 py-3">Male</th>
+                            <th className="px-3 py-3">GN Division</th>
+                            <th className="px-3 py-3">Buddhist</th>
+                            <th className="px-3 py-3">Hindu</th>
+                            <th className="px-3 py-3">Islam</th>
+                            <th className="px-3 py-3">Roman Catholic</th>
+                            <th className="px-3 py-3">Other Christians</th>
+                            <th className="px-3 py-3">Other</th>
+                            <th className="px-3 py-3">Collection</th>
                           </tr>
                         </thead>
                         <tbody>
-                          {analytics.demographics.populationByReligion.map((row) => (
-                            <tr key={row.key} className="border-t last:border-b">
-                              <td className="px-3 py-3">{lang === "si" ? row.si : row.en}</td>
-                              <td className="px-3 py-3">{row.female.toLocaleString()}</td>
-                              <td className="px-3 py-3">{row.male.toLocaleString()}</td>
-                            </tr>
-                          ))}
+                          {analytics.gnBreakdown.map((gn) => {
+                            const demo = gn.demographics;
+                            const buddhist = demo?.populationByReligion.find((row) => row.key === "buddhist")?.total ?? 0;
+                            const hindu = demo?.populationByReligion.find((row) => row.key === "hindu")?.total ?? 0;
+                            const islam = demo?.populationByReligion.find((row) => row.key === "islam")?.total ?? 0;
+                            const catholic = demo?.populationByReligion.find((row) => row.key === "catholic")?.total ?? 0;
+                            const otherChristians = demo?.populationByReligion.find((row) => row.key === "other")?.total ?? 0;
+                            const collection = buddhist + hindu + islam + catholic + otherChristians;
+                            const other = demo ? Math.max(0, demo.totalPopulation - collection) : 0;
+
+                            return (
+                              <tr key={gn.gnId} className="border-t last:border-b">
+                                <td className="px-3 py-3 font-medium">{gn.gnName}</td>
+                                <td className="px-3 py-3">{demo ? buddhist.toLocaleString() : "—"}</td>
+                                <td className="px-3 py-3">{demo ? hindu.toLocaleString() : "—"}</td>
+                                <td className="px-3 py-3">{demo ? islam.toLocaleString() : "—"}</td>
+                                <td className="px-3 py-3">{demo ? catholic.toLocaleString() : "—"}</td>
+                                <td className="px-3 py-3">{demo ? otherChristians.toLocaleString() : "—"}</td>
+                                <td className="px-3 py-3">{demo ? other.toLocaleString() : "—"}</td>
+                                <td className="px-3 py-3">{demo ? collection.toLocaleString() : "—"}</td>
+                              </tr>
+                            );
+                          })}
                         </tbody>
+                        <tfoot className="bg-muted/40 text-muted-foreground">
+                          <tr className="border-t">
+                            <td className="px-3 py-3 font-semibold">Totals</td>
+                            <td className="px-3 py-3 font-semibold">{gnReligionTotals.buddhist.toLocaleString()}</td>
+                            <td className="px-3 py-3 font-semibold">{gnReligionTotals.hindu.toLocaleString()}</td>
+                            <td className="px-3 py-3 font-semibold">{gnReligionTotals.islam.toLocaleString()}</td>
+                            <td className="px-3 py-3 font-semibold">{gnReligionTotals.catholic.toLocaleString()}</td>
+                            <td className="px-3 py-3 font-semibold">{gnReligionTotals.otherChristians.toLocaleString()}</td>
+                            <td className="px-3 py-3 font-semibold">{gnReligionTotals.other.toLocaleString()}</td>
+                            <td className="px-3 py-3 font-semibold">{gnReligionTotals.collection.toLocaleString()}</td>
+                          </tr>
+                        </tfoot>
                       </table>
+                    </div>
+                    <div className="border-t border-border/80 bg-muted/50 px-4 py-3 text-right">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-2"
+                        onClick={() => religionTableRef.current?.scrollIntoView({ behavior: "smooth" })}
+                      >
+                        <ArrowUp className="size-4" />
+                        <Bilingual en="Back to top" si="ඉහළට" />
+                      </Button>
                     </div>
                   </div>
                 )}
@@ -428,7 +642,7 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
             buttonLabel={{ en: showEthnicityDistribution ? "Hide" : "View", si: showEthnicityDistribution ? "සඟවන්න" : "බලන්න" }}
           />
           {showEthnicityDistribution && (
-            <Card className="overflow-hidden rounded-md border border-border bg-card/80 shadow-sm">
+            <Card className="card-lift overflow-hidden border-border/60 shadow-md">
               <CardHeader>
                 <CardTitle className="font-display text-fluid-xl font-semibold text-foreground">
                   <Bilingual en="Population Distribution by Ethnicity" si="ජාතිය අනුව ජනගහනය" />
@@ -441,36 +655,289 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
                   <div className="text-sm text-muted-foreground">Loading…</div>
                 ) : (
                   <div className="overflow-hidden rounded-md border border-border">
-                    <div className="overflow-x-auto">
+                    <div ref={ethnicityTableRef} className="overflow-x-auto">
                       <table className="w-full text-left text-sm">
                         <thead className="bg-muted/40 text-muted-foreground">
                           <tr>
-                            <th className="px-3 py-3">Ethnicity</th>
-                            <th className="px-3 py-3">Female</th>
-                            <th className="px-3 py-3">Male</th>
-                            <th className="px-3 py-3">Total</th>
+                            <th className="px-3 py-3">GN Division</th>
+                            <th className="px-3 py-3">Sinhala</th>
+                            <th className="px-3 py-3">Sri Lankan Tamil</th>
+                            <th className="px-3 py-3">Indian Tamil</th>
+                            <th className="px-3 py-3">Sri Lankan Yonaka</th>
+                            <th className="px-3 py-3">Burger</th>
+                            <th className="px-3 py-3">Malay</th>
+                            <th className="px-3 py-3">Other</th>
+                            <th className="px-3 py-3">Collection</th>
                           </tr>
                         </thead>
                         <tbody>
-                          {analytics.demographics.populationByEthnicity.map((row) => (
-                            <tr key={row.key} className="border-t last:border-b">
-                              <td className="px-3 py-3">{lang === "si" ? row.si : row.en}</td>
-                              <td className="px-3 py-3">{row.female.toLocaleString()}</td>
-                              <td className="px-3 py-3">{row.male.toLocaleString()}</td>
-                              <td className="px-3 py-3">{row.total.toLocaleString()}</td>
-                            </tr>
-                          ))}
+                          {analytics.gnBreakdown.map((gn) => {
+                            const demo = gn.demographics;
+                            const sinhala = demo?.populationByEthnicity.find((row) => row.key === "sinhala")?.total ?? 0;
+                            const sriLankanTamil = demo?.populationByEthnicity.find((row) => row.key === "tamil")?.total ?? 0;
+                            const indianTamil = 0;
+                            const sriLankanYonaka = demo?.populationByEthnicity.find((row) => row.key === "muslim")?.total ?? 0;
+                            const burgher = demo?.populationByEthnicity.find((row) => row.key === "burgher")?.total ?? 0;
+                            const malay = demo?.populationByEthnicity.find((row) => row.key === "malay")?.total ?? 0;
+                            const other = demo?.populationByEthnicity.find((row) => row.key === "other")?.total ?? 0;
+                            const collection = sinhala + sriLankanTamil + indianTamil + sriLankanYonaka + burgher + malay + other;
+
+                            return (
+                              <tr key={gn.gnId} className="border-t last:border-b">
+                                <td className="px-3 py-3 font-medium">{gn.gnName}</td>
+                                <td className="px-3 py-3">{demo ? sinhala.toLocaleString() : "—"}</td>
+                                <td className="px-3 py-3">{demo ? sriLankanTamil.toLocaleString() : "—"}</td>
+                                <td className="px-3 py-3">{demo ? indianTamil.toLocaleString() : "—"}</td>
+                                <td className="px-3 py-3">{demo ? sriLankanYonaka.toLocaleString() : "—"}</td>
+                                <td className="px-3 py-3">{demo ? burgher.toLocaleString() : "—"}</td>
+                                <td className="px-3 py-3">{demo ? malay.toLocaleString() : "—"}</td>
+                                <td className="px-3 py-3">{demo ? other.toLocaleString() : "—"}</td>
+                                <td className="px-3 py-3">{demo ? collection.toLocaleString() : "—"}</td>
+                              </tr>
+                            );
+                          })}
                         </tbody>
+                        <tfoot className="bg-muted/40 text-muted-foreground">
+                          <tr className="border-t">
+                            <td className="px-3 py-3 font-semibold">Totals</td>
+                            <td className="px-3 py-3 font-semibold">{gnEthnicityTotals.sinhala.toLocaleString()}</td>
+                            <td className="px-3 py-3 font-semibold">{gnEthnicityTotals.sriLankanTamil.toLocaleString()}</td>
+                            <td className="px-3 py-3 font-semibold">{gnEthnicityTotals.indianTamil.toLocaleString()}</td>
+                            <td className="px-3 py-3 font-semibold">{gnEthnicityTotals.sriLankanYonaka.toLocaleString()}</td>
+                            <td className="px-3 py-3 font-semibold">{gnEthnicityTotals.burgher.toLocaleString()}</td>
+                            <td className="px-3 py-3 font-semibold">{gnEthnicityTotals.malay.toLocaleString()}</td>
+                            <td className="px-3 py-3 font-semibold">{gnEthnicityTotals.other.toLocaleString()}</td>
+                            <td className="px-3 py-3 font-semibold">{gnEthnicityTotals.collection.toLocaleString()}</td>
+                          </tr>
+                        </tfoot>
                       </table>
+                    </div>
+                    <div className="border-t border-border/80 bg-muted/50 px-4 py-3 text-right">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-2"
+                        onClick={() => ethnicityTableRef.current?.scrollIntoView({ behavior: "smooth" })}
+                      >
+                        <ArrowUp className="size-4" />
+                        <Bilingual en="Back to top" si="ඉහළට" />
+                      </Button>
                     </div>
                   </div>
                 )}
               </CardContent>
             </Card>
           )}
-          <TopicCard icon={Globe2} titleEn="Foreign nationals in the division" titleSi="වසමේ විදේශ ජාතිකයන්" />
-          <TopicCard icon={Home} titleEn="Households" titleSi="ගෘහස්ථයන්" />
-          <TopicCard icon={UserCheck} titleEn="Registered voters" titleSi="රෙජිස්ටර් කර ඇති ඡන්දදාරුවන්" />
+          <TopicCard
+            icon={Globe2}
+            titleEn="Foreign nationals in the division"
+            titleSi="වසමේ විදේශ ජාතිකයන්"
+            onClick={() => setShowForeignNationals((value) => !value)}
+            buttonLabel={{ en: showForeignNationals ? "Hide" : "View", si: showForeignNationals ? "සඟවන්න" : "බලන්න" }}
+          />
+          {showForeignNationals && (
+            <Card className="card-lift overflow-hidden border-border/60 shadow-md">
+              <CardHeader>
+                <CardTitle className="font-display text-fluid-xl font-semibold text-foreground">
+                  <Bilingual en="Foreign Nationals Residing in the Division" si="වසමේ පදිංචි විදේශ ජාතිකයන්" />
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {analyticsError ? (
+                  <div className="text-sm text-destructive">Unable to load foreign nationals data.</div>
+                ) : !analytics ? (
+                  <div className="text-sm text-muted-foreground">Loading…</div>
+                ) : (
+                  <div className="overflow-hidden rounded-md border border-border">
+                    <div ref={foreignTableRef} className="overflow-x-auto">
+                      <table className="w-full text-left text-sm">
+                        <thead className="bg-muted/40 text-muted-foreground">
+                          <tr>
+                            <th className="px-3 py-3">GN Division</th>
+                            <th className="px-3 py-3">Female</th>
+                            <th className="px-3 py-3">Male</th>
+                            <th className="px-3 py-3">Collection</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {analytics.gnBreakdown.map((gn) => {
+                            const foreign = gn.demographics?.foreignNationals;
+                            return (
+                              <tr key={gn.gnId} className="border-t last:border-b">
+                                <td className="px-3 py-3 font-medium">{gn.gnName}</td>
+                                <td className="px-3 py-3">{foreign ? foreign.female.toLocaleString() : "—"}</td>
+                                <td className="px-3 py-3">{foreign ? foreign.male.toLocaleString() : "—"}</td>
+                                <td className="px-3 py-3">{foreign ? foreign.total.toLocaleString() : "—"}</td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                        <tfoot className="bg-muted/40 text-muted-foreground">
+                          <tr className="border-t">
+                            <td className="px-3 py-3 font-semibold">Totals</td>
+                            <td className="px-3 py-3 font-semibold">{gnForeignNationalsTotals.female.toLocaleString()}</td>
+                            <td className="px-3 py-3 font-semibold">{gnForeignNationalsTotals.male.toLocaleString()}</td>
+                            <td className="px-3 py-3 font-semibold">{gnForeignNationalsTotals.collection.toLocaleString()}</td>
+                          </tr>
+                        </tfoot>
+                      </table>
+                    </div>
+                    <div className="border-t border-border/80 bg-muted/50 px-4 py-3 text-right">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-2"
+                        onClick={() => foreignTableRef.current?.scrollIntoView({ behavior: "smooth" })}
+                      >
+                        <ArrowUp className="size-4" />
+                        <Bilingual en="Back to top" si="ඉහළට" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+          <TopicCard
+            icon={Home}
+            titleEn="Households"
+            titleSi="ගෘහස්ථයන්"
+            onClick={() => setShowHouseholds((value) => !value)}
+            buttonLabel={{ en: showHouseholds ? "Hide" : "View", si: showHouseholds ? "සඟවන්න" : "බලන්න" }}
+          />
+          {showHouseholds && (
+            <Card className="card-lift overflow-hidden border-border/60 shadow-md">
+              <CardHeader>
+                <CardTitle className="font-display text-fluid-xl font-semibold text-foreground">
+                  <Bilingual en="Households in the Division" si="වසමේ ගෘහස්ථයන්" />
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {analyticsError ? (
+                  <div className="text-sm text-destructive">Unable to load households data.</div>
+                ) : !analytics ? (
+                  <div className="text-sm text-muted-foreground">Loading…</div>
+                ) : (
+                  <div className="overflow-hidden rounded-md border border-border">
+                    <div ref={householdsTableRef} className="overflow-x-auto">
+                      <table className="w-full text-left text-sm">
+                        <thead className="bg-muted/40 text-muted-foreground">
+                          <tr>
+                            <th className="px-3 py-3">GN Division</th>
+                            <th className="px-3 py-3">Total Households</th>
+                            <th className="px-3 py-3">Female-Headed Households</th>
+                            <th className="px-3 py-3">Displaced Households</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {analytics.gnBreakdown.map((gn) => {
+                            const households = gn.demographics?.households;
+                            return (
+                              <tr key={gn.gnId} className="border-t last:border-b">
+                                <td className="px-3 py-3 font-medium">{gn.gnName}</td>
+                                <td className="px-3 py-3">{households ? households.total.toLocaleString() : "—"}</td>
+                                <td className="px-3 py-3">{households ? households.femaleHeaded.toLocaleString() : "—"}</td>
+                                <td className="px-3 py-3">{households ? households.displaced.toLocaleString() : "—"}</td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                        <tfoot className="bg-muted/40 text-muted-foreground">
+                          <tr className="border-t">
+                            <td className="px-3 py-3 font-semibold">Totals</td>
+                            <td className="px-3 py-3 font-semibold">{gnHouseholdsTotals.totalHouseholds.toLocaleString()}</td>
+                            <td className="px-3 py-3 font-semibold">{gnHouseholdsTotals.femaleHeadedHouseholds.toLocaleString()}</td>
+                            <td className="px-3 py-3 font-semibold">{gnHouseholdsTotals.displacedHouseholds.toLocaleString()}</td>
+                          </tr>
+                        </tfoot>
+                      </table>
+                    </div>
+                    <div className="border-t border-border/80 bg-muted/50 px-4 py-3 text-right">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-2"
+                        onClick={() => householdsTableRef.current?.scrollIntoView({ behavior: "smooth" })}
+                      >
+                        <ArrowUp className="size-4" />
+                        <Bilingual en="Back to top" si="ඉහළට" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+          <TopicCard
+            icon={UserCheck}
+            titleEn="Registered voters"
+            titleSi="රෙජිස්ටර් කර ඇති ඡන්දදාරුවන්"
+            onClick={() => setShowRegisteredVoters((value) => !value)}
+            buttonLabel={{ en: showRegisteredVoters ? "Hide" : "View", si: showRegisteredVoters ? "සඟවන්න" : "බලන්න" }}
+          />
+          {showRegisteredVoters && (
+            <Card className="card-lift overflow-hidden border-border/60 shadow-md">
+              <CardHeader>
+                <CardTitle className="font-display text-fluid-xl font-semibold text-foreground">
+                  <Bilingual en="Registered Voters in the Division" si="වසමේ ලියාපදිංචි ඡන්දදායකයන්" />
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {analyticsError ? (
+                  <div className="text-sm text-destructive">Unable to load registered voters data.</div>
+                ) : !analytics ? (
+                  <div className="text-sm text-muted-foreground">Loading…</div>
+                ) : (
+                  <div className="overflow-hidden rounded-md border border-border">
+                    <div ref={votersTableRef} className="overflow-x-auto">
+                      <table className="w-full text-left text-sm">
+                        <thead className="bg-muted/40 text-muted-foreground">
+                          <tr>
+                            <th className="px-3 py-3">GN Division</th>
+                            <th className="px-3 py-3">Female</th>
+                            <th className="px-3 py-3">Male</th>
+                            <th className="px-3 py-3">Collection</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {analytics.gnBreakdown.map((gn) => {
+                            const voters = gn.demographics?.registeredVoters;
+                            return (
+                              <tr key={gn.gnId} className="border-t last:border-b">
+                                <td className="px-3 py-3 font-medium">{gn.gnName}</td>
+                                <td className="px-3 py-3">{voters ? voters.female.toLocaleString() : "—"}</td>
+                                <td className="px-3 py-3">{voters ? voters.male.toLocaleString() : "—"}</td>
+                                <td className="px-3 py-3">{voters ? voters.total.toLocaleString() : "—"}</td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                        <tfoot className="bg-muted/40 text-muted-foreground">
+                          <tr className="border-t">
+                            <td className="px-3 py-3 font-semibold">Totals</td>
+                            <td className="px-3 py-3 font-semibold">{gnRegisteredVotersTotals.female.toLocaleString()}</td>
+                            <td className="px-3 py-3 font-semibold">{gnRegisteredVotersTotals.male.toLocaleString()}</td>
+                            <td className="px-3 py-3 font-semibold">{gnRegisteredVotersTotals.total.toLocaleString()}</td>
+                          </tr>
+                        </tfoot>
+                      </table>
+                    </div>
+                    <div className="border-t border-border/80 bg-muted/50 px-4 py-3 text-right">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-2"
+                        onClick={() => votersTableRef.current?.scrollIntoView({ behavior: "smooth" })}
+                      >
+                        <ArrowUp className="size-4" />
+                        <Bilingual en="Back to top" si="ඉහළට" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
         </div>
       ) : !isIdentification ? (
         <Card>
