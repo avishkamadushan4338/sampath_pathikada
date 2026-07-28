@@ -6,6 +6,7 @@ import Link from "next/link";
 import { ArrowLeft, ArrowUp, Globe2, Home, MapPin, Users, UserCheck, Eye } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { DemographicsAggregate } from "@/lib/analytics/aggregate-demographics";
+import type { EmploymentAggregate } from "@/lib/analytics/aggregate-sections";
 import { Bilingual } from "@/components/Bilingual";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardFooter, CardTitle } from "@/components/ui/card";
@@ -56,6 +57,9 @@ interface AnalyticsGnBreakdownRow {
 interface AnalyticsResponse {
   ok: true;
   demographics: DemographicsAggregate;  // This includes populationByReligion and populationByEthnicity
+  sections: {
+    employment: EmploymentAggregate;
+  };
   gnBreakdown: AnalyticsGnBreakdownRow[];
 }
 
@@ -128,6 +132,7 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
   const section = resolvedParams.section;
   const isIdentification = section === "identification";
   const isDemographics = section === "demographics";
+  const isEmployment = section === "employment";
   const isStateInstitutionsLand = section === "state-institutions-land";
   const isPhysicalEnvironment = section === "physical-environment";
   const isHousing = section === "housing";
@@ -141,6 +146,8 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
     ? { en: "Identification", si: "හඳුනාගැනීම" }
     : isDemographics
     ? { en: "Division Demographics Overview", si: "ජනගහන සාරාංශය" }
+    : isEmployment
+    ? { en: "Employment", si: "රැකියා තොරතුරු" }
     : isStateInstitutionsLand
     ? { en: "State Institutions & Land", si: "රාජ්‍ය ආයතන හා ඉඩම්" }
     : isPhysicalEnvironment
@@ -158,6 +165,11 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
     ? {
         en: "Explore comprehensive demographic data, population distribution, and household metrics for your division.",
         si: "ඔබගේ වසම් සඳහා සම්පූර්ණ ජනගහන දත්ත, ජනගහන විනිවුදු සහ ගෘහස්ථ මැට්‍රික්ස් අධ්‍යයනය කරන්න.",
+      }
+    : isEmployment
+    ? {
+        en: "Review employment-related indicators collected from GN divisions in your DS area.",
+        si: "ඔබගේ ප්‍රාදේශීය ලේකම් කොට්ඨාසයේ ග්‍රාම නිලධාරී වසම්වලින් එකතු කළ රැකියා දර්ශක සමාලෝචනය කරන්න.",
       }
     : isStateInstitutionsLand
     ? {
@@ -180,7 +192,7 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
       };
 
   const { data: analytics, error: analyticsError } = useSWR(
-    isDemographics ? `/api/analytics?year=${CURRENT_YEAR}` : null,
+    isDemographics || isEmployment ? `/api/analytics?year=${CURRENT_YEAR}` : null,
     analyticsFetcher
   );
   const [showTotalPopulation, setShowTotalPopulation] = React.useState(false);
@@ -197,6 +209,55 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
   const foreignTableRef = React.useRef<HTMLDivElement | null>(null);
   const householdsTableRef = React.useRef<HTMLDivElement | null>(null);
   const votersTableRef = React.useRef<HTMLDivElement | null>(null);
+
+  const employmentEducationRows = React.useMemo(() => {
+    const employment = analytics?.sections.employment;
+
+    return [
+      {
+        en: "Number of job seekers who have received vocational training",
+        si: "වෘත්තීය පුහුණුව ලබා ඇති රැකියා අපේක්ෂකයන් සංඛ්‍යාව",
+        count: employment?.jobSeekersByEducation[0]?.count ?? 0,
+      },
+      {
+        en: "Number of job seekers with qualifications below G.C.E. O/L",
+        si: "අ.පො.ස. සාමාන්‍ය පෙළට අඩු සුදුසුකම් ඇති රැකියා අපේක්ෂකයන් සංඛ්‍යාව",
+        count: employment?.jobSeekersByEducation[1]?.count ?? 0,
+      },
+      {
+        en: "Number of people seeking employment with G.C.E. O/L passes",
+        si: "අ.පො.ස. සාමාන්‍ය පෙළ සමත් රැකියා අපේක්ෂකයන් සංඛ්‍යාව",
+        count: employment?.jobSeekersByEducation[2]?.count ?? 0,
+      },
+      {
+        en: "Number of people seeking employment after passing Advanced Level",
+        si: "අ.පො.ස. උසස් පෙළ සමත් රැකියා අපේක්ෂකයන් සංඛ්‍යාව",
+        count: employment?.jobSeekersByEducation[3]?.count ?? 0,
+      },
+      {
+        en: "Number of job seekers with bachelor's degree or higher qualifications",
+        si: "උපාධිය හෝ ඊට ඉහළ සුදුසුකම් ඇති රැකියා අපේක්ෂකයන් සංඛ්‍යාව",
+        count: employment?.jobSeekersByEducation[4]?.count ?? 0,
+      },
+      {
+        en: "Total number of persons expected to be employed",
+        si: "රැකියාවට එක්වීමට අපේක්ෂිත මුළු පුද්ගලයන් සංඛ්‍යාව",
+        count: employment?.totalJobSeekers ?? 0,
+      },
+    ];
+  }, [analytics]);
+
+  const employmentTrainingNeedRows = React.useMemo(() => {
+    const employment = analytics?.sections.employment;
+
+    return [
+      {
+        en: "Number of people with informal training who need to obtain formal, certified training but do not have the opportunity to do so (due to reasons such as increasing age)",
+        si: "අවිධිමත් පුහුණුවක් ඇති නමුත් වයස වැඩිවීම වැනි හේතු නිසා විධිමත් සහතික ලත් පුහුණුවක් ලබා ගැනීමට අවස්ථාව නොලැබෙන පුද්ගලයන් සංඛ්‍යාව",
+        count: employment?.jobSeekersUnwillingBelowQualificationCount ?? 0,
+      },
+    ];
+  }, [analytics]);
 
   const gnTotals = React.useMemo(() => {
     if (!analytics) return { totalPopulation: 0, female: 0, male: 0, families: 0 };
@@ -941,6 +1002,72 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
                 )}
               </CardContent>
             </Card>
+          )}
+        </div>
+      ) : isEmployment ? (
+        <div className="space-y-3">
+          <h2 className="font-display text-fluid-xl font-semibold text-foreground">
+            <Bilingual en="Job Outlook" si="රැකියා ඉදිරි දැක්ම" />
+          </h2>
+          {analyticsError ? (
+            <div className="text-sm text-destructive">Unable to load employment data.</div>
+          ) : !analytics ? (
+            <div className="text-sm text-muted-foreground">Loading…</div>
+          ) : (
+            <>
+              <div className="overflow-hidden rounded-md border border-border">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-muted/40 hover:bg-muted/40">
+                      <TableHead>
+                        <Bilingual en="Number of people seeking employment by education" si="අධ්‍යාපනය අනුව රැකියා අපේක්ෂකයන්" />
+                      </TableHead>
+                      <TableHead>
+                        <Bilingual en="Number of Persons" si="පුද්ගලයන් සංඛ්‍යාව" />
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {employmentEducationRows.map((row) => (
+                      <TableRow key={row.en}>
+                        <TableCell className="font-medium">
+                          <Bilingual en={row.en} si={row.si} />
+                        </TableCell>
+                        <TableCell className="nums-tabular">{row.count.toLocaleString()}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+              <h3 className="pt-3 font-display text-fluid-lg font-semibold text-foreground">
+                <Bilingual
+                  en="Number of people who wish to receive vocational training but do not meet the qualifications required for vocational training"
+                  si="වෘත්තීය පුහුණුව ලබා ගැනීමට කැමති නමුත් ඒ සඳහා අවශ්‍ය සුදුසුකම් සපුරා නොමැති පුද්ගලයන් සංඛ්‍යාව"
+                />
+              </h3>
+              <div className="overflow-hidden rounded-md border border-border">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-muted/40 hover:bg-muted/40">
+                      <TableHead />
+                      <TableHead>
+                        <Bilingual en="Number of Persons" si="පුද්ගලයන් සංඛ්‍යාව" />
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {employmentTrainingNeedRows.map((row) => (
+                      <TableRow key={row.en}>
+                        <TableCell className="font-medium">
+                          <Bilingual en={row.en} si={row.si} />
+                        </TableCell>
+                        <TableCell className="nums-tabular">{row.count.toLocaleString()}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </>
           )}
         </div>
       ) : !isIdentification ? (
