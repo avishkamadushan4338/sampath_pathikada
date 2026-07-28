@@ -60,6 +60,13 @@ export function RepeatableTable<T extends FieldValues>({
   const { fields, append, remove } = useFieldArray({ control, name });
   const [pendingDeleteIndex, setPendingDeleteIndex] = useState<number | null>(null);
 
+  /** Past ~5 columns, a horizontal table forces every input into a sliver too narrow to read
+   *  or type into (school names, multi-word select options), no matter how wide the screen is —
+   *  it's not a viewport problem, it's a "too many fields for one row" problem. So heavy rows
+   *  always render as the labeled-card layout instead of only falling back to it on narrow
+   *  containers; simpler rows keep the space-efficient table on wide containers. */
+  const useCardLayout = columns.length >= 6;
+
   function requestRemove(index: number) {
     const row = watch(`${name}.${index}` as never) as unknown as Record<string, unknown>;
     if (row && hasAnyValue(row)) {
@@ -94,7 +101,7 @@ export function RepeatableTable<T extends FieldValues>({
         type={column.type === "number" ? "number" : "text"}
         inputMode={column.type === "number" ? "numeric" : undefined}
         placeholder={column.placeholder ? (lang === "si" ? column.placeholder.si : column.placeholder.en) : undefined}
-        className="text-fluid-sm"
+        className="min-w-32 text-fluid-sm"
         {...register(fieldName as never)}
       />
     );
@@ -111,8 +118,9 @@ export function RepeatableTable<T extends FieldValues>({
       {/* @container lets rows reflow to cards independently of viewport width —
           matters because sidebar collapse changes available width, not just screen size. */}
       <div className="@container">
-        {/* Wide layout: real table */}
-        <div className="hidden overflow-x-auto rounded-lg border border-border @2xl:block">
+        {/* Wide layout: real table — skipped entirely for heavy (6+ column) rows, which always
+            use the card layout below instead. */}
+        <div className={cn("overflow-x-auto rounded-lg border border-border", useCardLayout ? "hidden" : "hidden @2xl:block")}>
           <table className="w-full border-collapse text-fluid-sm">
             <thead>
               <tr className="border-b border-border bg-muted/50">
@@ -152,11 +160,14 @@ export function RepeatableTable<T extends FieldValues>({
           </table>
         </div>
 
-        {/* Narrow layout: stacked cards */}
-        <div className="flex flex-col gap-3 @2xl:hidden">
+        {/* Card layout: always used for heavy (6+ column) rows, and as the narrow-container
+            fallback otherwise. Each field gets its own labeled auto-fit grid cell instead of a
+            single cramped column, so a 9-10 field row wraps into a readable mini-form instead
+            of either a crushed table row or an unnecessarily tall single-column stack. */}
+        <div className={cn("flex flex-col gap-3", !useCardLayout && "@2xl:hidden")}>
           {fields.map((field, index) => (
             <div key={field.id} className="rounded-lg border border-border bg-card p-3">
-              <div className="flex flex-col gap-3">
+              <div className="grid grid-cols-[repeat(auto-fit,minmax(160px,1fr))] gap-3">
                 {columns.map((col) => (
                   <div key={col.key} className="flex flex-col gap-1">
                     <span lang={lang} className={cn("text-fluid-xs font-medium text-muted-foreground", lang === "si" && "font-si")}>
@@ -230,7 +241,7 @@ function SelectField({
 
   return (
     <Select value={value ?? ""} onValueChange={(v) => setValue(fieldName as never, v as never, { shouldDirty: true })}>
-      <SelectTrigger className="text-fluid-sm">
+      <SelectTrigger className="min-w-32 text-fluid-sm">
         <SelectValue />
       </SelectTrigger>
       <SelectContent>

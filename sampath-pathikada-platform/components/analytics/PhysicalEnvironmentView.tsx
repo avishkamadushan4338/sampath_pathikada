@@ -2,12 +2,27 @@
 
 import { GnScopedSectionView } from "@/components/analytics/GnScopedSectionView";
 import { ReadOnlyTable } from "@/components/analytics/ReadOnlyTable";
+import { ReadOnlyStats } from "@/components/analytics/ReadOnlyStats";
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { physicalEnvironmentDict } from "@/lib/i18n/sections/physical-environment";
 
 const OCCURRED_OPTIONS = [
   { value: "yes", label: { en: "Yes", si: "ඔව්" } },
   { value: "no", label: { en: "No", si: "නැත" } },
 ];
+
+const HAZARD_TYPE_LABELS: Record<string, { en: string; si: string }> = {
+  flood: { en: "Flood", si: "ගංවතුර" },
+  drought: { en: "Drought", si: "නියඟය" },
+  landslide: { en: "Landslide", si: "නායයෑම" },
+  deforestation: { en: "Deforestation", si: "වන විනාශය" },
+  waterSourceDepletion: { en: "Water Source Depletion", si: "ජල මූලාශ්‍ර සිඳී යාම" },
+  unauthorizedLandFilling: { en: "Unauthorized Land-Filling / Construction", si: "අනුමැතියක් නොමැතිව බිම් ගොඩ කිරීම හා ඉදිකිරීම" },
+  unauthorizedWasteDisposal: { en: "Unauthorized Waste Disposal", si: "කැළිකසළ බැහැර කිරීම (අනුමැතියක් රහිතව)" },
+  wildElephantConflict: { en: "Wild Elephant Conflict", si: "වන අලි ගැටළුව" },
+  coastalErosion: { en: "Coastal Erosion", si: "වෙරළ ඛාදනය" },
+  illegalSandMining: { en: "Illegal Sand Mining / Dumping", si: "අනවසර වැලි ගොඩදැමීම" },
+};
 
 const FREQUENCY_OPTIONS = [
   { value: "seasonal", label: { en: "Seasonal", si: "සෘතුමය" } },
@@ -18,6 +33,7 @@ const FREQUENCY_OPTIONS = [
  *  environmentally sensitive zones, natural resources, hazards, safe/evacuation locations, and
  *  existing/proposed tourist sites for whichever GN division the DS searches or selects. */
 export function PhysicalEnvironmentView() {
+  const { lang } = useLanguage();
   return (
     <GnScopedSectionView
       prompt={{
@@ -50,6 +66,7 @@ export function PhysicalEnvironmentView() {
               title={physicalEnvironmentDict.fields.naturalResources}
               columns={[
                 { key: "resource", label: { en: "Resource", si: "සම්පත" } },
+                { key: "utilizedForProduction", label: { en: "Used for Production?", si: "නිෂ්පාදනයට යොදාගෙන තිබේද" }, options: OCCURRED_OPTIONS },
                 { key: "notes", label: { en: "Notes", si: "සටහන්" } },
               ]}
               rows={section?.naturalResources ?? []}
@@ -57,13 +74,28 @@ export function PhysicalEnvironmentView() {
             <ReadOnlyTable
               title={physicalEnvironmentDict.fields.hazards}
               columns={[
-                { key: "type", label: { en: "Hazard Type", si: "ආපදා වර්ගය" } },
+                {
+                  key: "type",
+                  label: { en: "Hazard Type", si: "ආපදා වර්ගය" },
+                  options: Object.entries(HAZARD_TYPE_LABELS).map(([value, label]) => ({ value, label })),
+                },
                 { key: "occurred", label: { en: "Occurred?", si: "සිදුවී ඇත්ද?" }, options: OCCURRED_OPTIONS },
                 { key: "frequency", label: { en: "Frequency", si: "සංඛ්‍යාතය" } },
-                { key: "cause", label: { en: "Cause", si: "හේතුව" } },
                 { key: "mitigationProposal", label: { en: "Mitigation Proposal", si: "අවම කිරීමේ යෝජනාව" } },
               ]}
               rows={section?.hazards ?? []}
+            />
+            <ReadOnlyStats
+              title={physicalEnvironmentDict.fields.safeLocationsIdentified}
+              stats={[
+                {
+                  key: "value",
+                  label: { en: "Identified?", si: "හඳුනාගෙන තිබේද" },
+                  value: section?.safeLocationsIdentified
+                    ? OCCURRED_OPTIONS.find((o) => o.value === section.safeLocationsIdentified)?.label[lang]
+                    : undefined,
+                },
+              ]}
             />
             <ReadOnlyTable
               title={physicalEnvironmentDict.fields.safeLocations}

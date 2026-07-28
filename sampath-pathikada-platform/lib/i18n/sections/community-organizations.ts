@@ -10,5 +10,6 @@ export const communityOrganizationsDict: SectionDictionary<keyof CommunityOrgani
   fields: {
     organizationCounts: { en: "Organization Counts by Type", si: "වර්ගය අනුව සංවිධාන ගණන" },
     organizationDirectory: { en: "Organization Directory", si: "සංවිධාන නාමාවලිය" },
+    cooperativeSocieties: { en: "Active Cooperative Societies", si: "ක්‍රියාත්මක සමුපකාර සමිති" },
   },
 };

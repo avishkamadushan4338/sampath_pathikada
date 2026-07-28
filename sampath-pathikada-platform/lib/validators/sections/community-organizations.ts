@@ -11,8 +11,8 @@ const ORGANIZATION_TYPES = [
   "elders-society",
   "childrens-society",
   "samurdhi-society",
-  "friendly-society-or-burial-fund",
-  "govt-non-departmental-org",
+  "friend-organization",
+  "ngo-committee",
   "farmer-society",
   "religious-society",
   "sanasa-society",
@@ -21,7 +21,7 @@ const ORGANIZATION_TYPES = [
 ] as const;
 
 export const organizationCountRowSchema = z.object({
-  label: z.string().min(1),
+  type: z.enum(ORGANIZATION_TYPES),
   count: z.coerce.number().int().min(0).default(0),
 });
 
@@ -29,11 +29,19 @@ export const organizationDirectoryRowSchema = z.object({
   name: z.string().min(1, "Name is required"),
   address: z.string().min(1, "Address is required"),
   type: z.string().min(1, "Type is required"),
+  memberCount: z.coerce.number().int().min(0).optional(),
+  identifiedNeeds: z.string().optional(),
+});
+
+export const cooperativeSocietyRowSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  address: z.string().min(1, "Address is required"),
 });
 
 export const communityOrganizationsSchemaStrict = z.object({
   organizationCounts: z.array(organizationCountRowSchema).length(ORGANIZATION_TYPES.length),
   organizationDirectory: z.array(organizationDirectoryRowSchema).default([]),
+  cooperativeSocieties: z.array(cooperativeSocietyRowSchema).default([]),
 });
 
 export type CommunityOrganizationsData = z.infer<typeof communityOrganizationsSchemaStrict>;
@@ -41,6 +49,7 @@ export type CommunityOrganizationsData = z.infer<typeof communityOrganizationsSc
 export const communityOrganizationsSchemaPartial = z.object({
   organizationCounts: z.array(organizationCountRowSchema.partial()).optional(),
   organizationDirectory: z.array(organizationDirectoryRowSchema.partial()).optional(),
+  cooperativeSocieties: z.array(cooperativeSocietyRowSchema.partial()).optional(),
 });
 
 export { ORGANIZATION_TYPES };

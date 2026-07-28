@@ -10,12 +10,12 @@ export const stateInstitutionsLandDict: SectionDictionary<keyof StateInstitution
   fields: {
     stateInstitutions: { en: "State Institutions in the Division", si: "වසම තුළ පිහිටි රාජ්‍ය ආයතන" },
     illegalStructures: {
-      en: "Unauthorized Structures on Encroached State Land",
-      si: "අත්‍යවශ්‍ය නොවන ලෙස ඉදිකර ඇති නීති විරෝධී ගොඩනැගිලි",
+      en: "Buildings on State Land Not Formally Maintained",
+      si: "විධිමත් ලෙස පවත්වාගෙන යනු නොලබන රජයේ ඉඩම්වල ඉදිකර ඇති ගොඩනැගිලි",
     },
     developmentProjects: {
-      en: "Ongoing / New Development Projects on State Land",
-      si: "රජයේ ඉඩම්වල ක්‍රියාත්මක වන/නව සංවර්ධන ව්‍යාපෘති",
+      en: "Abandoned / Halted Government Projects",
+      si: "අතරමං වූ / නවතාදමා ඇති ව්‍යාපෘති (රජයට අයත් ඉදි කිරීම්)",
     },
   },
 };

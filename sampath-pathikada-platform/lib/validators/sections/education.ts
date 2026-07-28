@@ -1,15 +1,17 @@
 import { z } from "zod";
-import { yesNo } from "@/lib/validators/common";
+import { yesNo, sexCountSchema } from "@/lib/validators/common";
 
 /* ── §6 අධ්‍යාපනය — Education ─────────────────────────────────────────────── */
 
 const TERTIARY_TYPES = ["university-college", "university", "tech-institute", "private-university"] as const;
 const PRESCHOOL_FACILITY_TYPES = ["govt", "private"] as const;
+const DHAMMA_TYPES = ["buddhist", "islam", "hindu", "christian"] as const;
 
 export const schoolFacilityRowSchema = z.object({
   schoolName: z.string().min(1, "School name is required"),
   accommodationAvailable: yesNo,
-  teacherCount: z.coerce.number().int().min(0).default(0),
+  teachersFemale: z.coerce.number().int().min(0).default(0),
+  teachersMale: z.coerce.number().int().min(0).default(0),
   studentsFemale: z.coerce.number().int().min(0).default(0),
   studentsMale: z.coerce.number().int().min(0).default(0),
   waterFacility: yesNo,
@@ -19,7 +21,18 @@ export const schoolFacilityRowSchema = z.object({
 
 export const specialAttentionSchoolRowSchema = z.object({
   schoolName: z.string().min(1, "School name is required"),
-  reason: z.string().min(1, "Reason is required"),
+  teachersFemale: z.coerce.number().int().min(0).default(0),
+  teachersMale: z.coerce.number().int().min(0).default(0),
+  studentsFemale: z.coerce.number().int().min(0).default(0),
+  studentsMale: z.coerce.number().int().min(0).default(0),
+  developmentNeeds: z.string().min(1, "Development needs is required"),
+});
+
+export const closedSchoolRowSchema = z.object({
+  schoolName: z.string().min(1, "School name is required"),
+  yearClosed: z.coerce.number().int().min(0).default(0),
+  buildingCount: z.coerce.number().int().min(0).default(0),
+  buildingsUsable: yesNo,
 });
 
 export const privateInternationalSchoolRowSchema = z.object({
@@ -31,7 +44,14 @@ export const privateInternationalSchoolRowSchema = z.object({
 export const pirivenaRowSchema = z.object({
   name: z.string().min(1, "Name is required"),
   type: z.string().min(1, "Type is required"),
-  studentCount: z.coerce.number().int().min(0).default(0),
+  boardingFacility: yesNo,
+  teachersFemale: z.coerce.number().int().min(0).default(0),
+  teachersMale: z.coerce.number().int().min(0).default(0),
+  studentsFemale: z.coerce.number().int().min(0).default(0),
+  studentsMale: z.coerce.number().int().min(0).default(0),
+  waterFacility: yesNo,
+  sanitationFacility: yesNo,
+  sportsGround: yesNo,
 });
 
 export const vocationalInstituteRowSchema = z.object({
@@ -40,14 +60,17 @@ export const vocationalInstituteRowSchema = z.object({
 
 export const preschoolRowSchema = z.object({
   name: z.string().min(1, "Name is required"),
+  address: z.string().min(1, "Address is required"),
   facilityType: z.enum(PRESCHOOL_FACILITY_TYPES),
   teacherCount: z.coerce.number().int().min(0).default(0),
   studentCount: z.coerce.number().int().min(0).default(0),
 });
 
-export const dhammaEducationCountSchema = z.object({
-  schools: z.coerce.number().int().min(0).default(0),
-  students: z.coerce.number().int().min(0).default(0),
+export const dhammaEducationInstitutionRowSchema = z.object({
+  institutionName: z.string().min(1, "Institution name is required"),
+  type: z.enum(DHAMMA_TYPES),
+  teacherCount: z.coerce.number().int().min(0).default(0),
+  studentCount: z.coerce.number().int().min(0).default(0),
 });
 
 export const tertiaryInstitutionRowSchema = z.object({
@@ -56,7 +79,8 @@ export const tertiaryInstitutionRowSchema = z.object({
 });
 
 export const tuitionCenterRowSchema = z.object({
-  name: z.string().min(1, "Name is required"),
+  registrationNumber: z.string().min(1, "Registration number is required"),
+  nameAndAddress: z.string().min(1, "Name and address is required"),
 });
 
 export const educationSchemaStrict = z.object({
@@ -67,6 +91,9 @@ export const educationSchemaStrict = z.object({
     vocationalTrainingInstitutes: z.coerce.number().int().min(0).default(0),
     registeredPreschoolsGovt: z.coerce.number().int().min(0).default(0),
     registeredPreschoolsPrivate: z.coerce.number().int().min(0).default(0),
+    dhammaEducationInstitutions: z.coerce.number().int().min(0).default(0),
+    higherEducationInstitutions: z.coerce.number().int().min(0).default(0),
+    tuitionCenterInstitutions: z.coerce.number().int().min(0).default(0),
   }),
   schoolCountsByType: z.object({
     nationalSchools: z.coerce.number().int().min(0).default(0),
@@ -77,20 +104,16 @@ export const educationSchemaStrict = z.object({
   }),
   schoolFacilities: z.array(schoolFacilityRowSchema).default([]),
   specialAttentionSchools: z.array(specialAttentionSchoolRowSchema).default([]),
+  closedSchools: z.array(closedSchoolRowSchema).default([]),
   privateInternationalSchools: z.array(privateInternationalSchoolRowSchema).default([]),
   pirivenas: z.array(pirivenaRowSchema).default([]),
   vocationalInstitutes: z.array(vocationalInstituteRowSchema).default([]),
   preschools: z.array(preschoolRowSchema).default([]),
-  dhammaEducation: z.object({
-    buddhist: dhammaEducationCountSchema,
-    islam: dhammaEducationCountSchema,
-    hindu: dhammaEducationCountSchema,
-    christian: dhammaEducationCountSchema,
-  }),
+  dhammaEducationInstitutions: z.array(dhammaEducationInstitutionRowSchema).default([]),
   tertiaryInstitutions: z.array(tertiaryInstitutionRowSchema).default([]),
   tuitionCenters: z.array(tuitionCenterRowSchema).default([]),
-  outOfSchoolChildrenCount: z.coerce.number().int().min(0).default(0),
-  marriedOrCohabitingMinorsCount: z.coerce.number().int().min(0).default(0),
+  outOfSchoolChildren: sexCountSchema,
+  childrenInProbationOrDetention: sexCountSchema,
 });
 
 export type EducationData = z.infer<typeof educationSchemaStrict>;
@@ -104,6 +127,9 @@ export const educationSchemaPartial = z.object({
       vocationalTrainingInstitutes: z.coerce.number().int().min(0).optional(),
       registeredPreschoolsGovt: z.coerce.number().int().min(0).optional(),
       registeredPreschoolsPrivate: z.coerce.number().int().min(0).optional(),
+      dhammaEducationInstitutions: z.coerce.number().int().min(0).optional(),
+      higherEducationInstitutions: z.coerce.number().int().min(0).optional(),
+      tuitionCenterInstitutions: z.coerce.number().int().min(0).optional(),
     })
     .optional(),
   schoolCountsByType: z
@@ -117,22 +143,16 @@ export const educationSchemaPartial = z.object({
     .optional(),
   schoolFacilities: z.array(schoolFacilityRowSchema.partial()).optional(),
   specialAttentionSchools: z.array(specialAttentionSchoolRowSchema.partial()).optional(),
+  closedSchools: z.array(closedSchoolRowSchema.partial()).optional(),
   privateInternationalSchools: z.array(privateInternationalSchoolRowSchema.partial()).optional(),
   pirivenas: z.array(pirivenaRowSchema.partial()).optional(),
   vocationalInstitutes: z.array(vocationalInstituteRowSchema.partial()).optional(),
   preschools: z.array(preschoolRowSchema.partial()).optional(),
-  dhammaEducation: z
-    .object({
-      buddhist: dhammaEducationCountSchema.partial().optional(),
-      islam: dhammaEducationCountSchema.partial().optional(),
-      hindu: dhammaEducationCountSchema.partial().optional(),
-      christian: dhammaEducationCountSchema.partial().optional(),
-    })
-    .optional(),
+  dhammaEducationInstitutions: z.array(dhammaEducationInstitutionRowSchema.partial()).optional(),
   tertiaryInstitutions: z.array(tertiaryInstitutionRowSchema.partial()).optional(),
   tuitionCenters: z.array(tuitionCenterRowSchema.partial()).optional(),
-  outOfSchoolChildrenCount: z.coerce.number().int().min(0).optional(),
-  marriedOrCohabitingMinorsCount: z.coerce.number().int().min(0).optional(),
+  outOfSchoolChildren: sexCountSchema.partial().optional(),
+  childrenInProbationOrDetention: sexCountSchema.partial().optional(),
 });
 
-export { TERTIARY_TYPES, PRESCHOOL_FACILITY_TYPES };
+export { TERTIARY_TYPES, PRESCHOOL_FACILITY_TYPES, DHAMMA_TYPES };

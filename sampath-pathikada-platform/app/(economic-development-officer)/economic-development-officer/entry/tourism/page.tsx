@@ -1,34 +1,20 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 import { SectionForm } from "@/components/forms/SectionForm";
 import { RepeatableTable, type RepeatableColumn } from "@/components/forms/RepeatableTable";
 import { useSubmission, useSaveSection } from "@/hooks/use-submission";
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { tourismDict } from "@/lib/i18n/sections/tourism";
-import { tourismSchemaPartial, GUEST_ACCOMMODATION_TYPES } from "@/lib/validators/sections/tourism";
+import { tourismSchemaPartial, GUEST_ACCOMMODATION_TYPES, HOTEL_CATEGORIES } from "@/lib/validators/sections/tourism";
 import { z } from "zod";
 
 const CURRENT_YEAR = 2026;
 
 type TourismDraft = z.infer<typeof tourismSchemaPartial>;
-
-const EMPTY_VALUES: TourismDraft = {
-  hotelInventory: [],
-  guestAccommodations: [],
-  otherAccommodations: [],
-};
-
-const STAR_GRADE_OPTIONS = [
-  { value: "1-star", label: { en: "1 Star", si: "තරු 1" } },
-  { value: "2-star", label: { en: "2 Star", si: "තරු 2" } },
-  { value: "3-star", label: { en: "3 Star", si: "තරු 3" } },
-  { value: "4-star", label: { en: "4 Star", si: "තරු 4" } },
-  { value: "5-star", label: { en: "5 Star", si: "තරු 5" } },
-  { value: "unclassified", label: { en: "Unclassified", si: "වර්ගීකරණය නොකළ" } },
-];
 
 const GUEST_ACCOMMODATION_TYPE_LABELS: Record<(typeof GUEST_ACCOMMODATION_TYPES)[number], { en: string; si: string }> = {
   guesthouse: { en: "Guest House", si: "ගෙස්ට් හවුස්" },
@@ -36,21 +22,55 @@ const GUEST_ACCOMMODATION_TYPE_LABELS: Record<(typeof GUEST_ACCOMMODATION_TYPES)
   homestay: { en: "Homestay", si: "හෝම්ස්ටේ" },
 };
 
+const HOTEL_CATEGORY_LABELS: Record<(typeof HOTEL_CATEGORIES)[number], { en: string; si: string }> = {
+  "star-graded": { en: "Star-Graded Hotels", si: "තරු පන්තියේ හෝටල්" },
+  "non-star-graded": { en: "Non-Star-Graded Hotels", si: "තරු පන්තියේ නොවන හෝටල්" },
+  "guest-houses": { en: "Guest Houses", si: "ගෙස්ට් හවුස්" },
+  "villa-homestay": { en: "Villas / Homestays", si: "විලා/හෝම්ස්ටේ" },
+  "conference-centers": { en: "Conference / Meeting Centers", si: "සම්මේලන මධ්‍යස්ථාන" },
+};
+
+function buildEmptyValues(lang: "en" | "si"): TourismDraft {
+  return {
+    hotelInventory: HOTEL_CATEGORIES.map((category) => ({
+      category,
+      categoryLabel: HOTEL_CATEGORY_LABELS[category][lang],
+      hotelCount: 0,
+      roomCount: 0,
+    })),
+    guestAccommodations: [],
+    otherAccommodations: [],
+  };
+}
+
+function mergeWithSaved(empty: TourismDraft, saved: TourismDraft): TourismDraft {
+  return {
+    ...empty,
+    ...saved,
+    hotelInventory: empty.hotelInventory?.map((row, i) => ({ ...row, ...saved.hotelInventory?.[i] })),
+  };
+}
+
 export default function TourismPage() {
+  const { lang } = useLanguage();
   const { submission, isLoading } = useSubmission(CURRENT_YEAR);
   const { saveSection, status, errorMessage } = useSaveSection(CURRENT_YEAR);
 
+  const emptyValues = useMemo(() => buildEmptyValues(lang), [lang]);
+
   const form = useForm<TourismDraft>({
     resolver: zodResolver(tourismSchemaPartial),
-    defaultValues: EMPTY_VALUES,
+    defaultValues: emptyValues,
   });
 
   useEffect(() => {
     if (submission?.data.tourism) {
-      form.reset({ ...EMPTY_VALUES, ...submission.data.tourism });
+      form.reset(mergeWithSaved(emptyValues, submission.data.tourism));
+    } else {
+      form.reset(emptyValues);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [submission]);
+  }, [submission, emptyValues]);
 
   async function handleSave(values: TourismDraft) {
     await saveSection("tourism", values);
@@ -65,12 +85,7 @@ export default function TourismPage() {
   }
 
   const hotelInventoryColumns: RepeatableColumn[] = [
-    {
-      key: "starGrade",
-      label: { en: "Star Grade", si: "තරු ශ්‍රේණිය" },
-      type: "select",
-      options: STAR_GRADE_OPTIONS,
-    },
+    { key: "categoryLabel", label: { en: "Category", si: "වර්ගය" }, type: "readonly" },
     { key: "hotelCount", label: { en: "Number of Hotels", si: "හෝටල් සංඛ්‍යාව" }, type: "number" },
     { key: "roomCount", label: { en: "Number of Rooms", si: "කාමර සංඛ්‍යාව" }, type: "number" },
   ];
@@ -108,7 +123,13 @@ export default function TourismPage() {
           name="hotelInventory"
           title={tourismDict.fields.hotelInventory}
           columns={hotelInventoryColumns}
-          emptyRowFactory={() => ({ starGrade: "", hotelCount: 0, roomCount: 0 })}
+          fixedRows
+          emptyRowFactory={() => ({
+            category: HOTEL_CATEGORIES[0],
+            categoryLabel: HOTEL_CATEGORY_LABELS[HOTEL_CATEGORIES[0]][lang],
+            hotelCount: 0,
+            roomCount: 0,
+          })}
         />
       </div>
 

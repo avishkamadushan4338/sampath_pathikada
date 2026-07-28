@@ -12,58 +12,80 @@ import { Input } from "@/components/ui/input";
 import { useSubmission, useSaveSection } from "@/hooks/use-submission";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { employmentDict } from "@/lib/i18n/sections/employment";
-import { employmentSchemaPartial, SELF_EMPLOYMENT_SECTORS } from "@/lib/validators/sections/employment";
+import {
+  employmentSchemaPartial,
+  SELF_EMPLOYMENT_SECTORS,
+  MARKETPLACES,
+  JOB_SEEKER_EDUCATION_LEVELS,
+} from "@/lib/validators/sections/employment";
 
 const CURRENT_YEAR = 2026;
 
 type EmploymentDraft = z.infer<typeof employmentSchemaPartial>;
 
-const JOB_SEEKER_EDUCATION_LABELS: { en: string; si: string }[] = [
-  { en: "Vocational Training", si: "වෘත්තීය පුහුණුව ලත්" },
-  { en: "Below O/L", si: "සාමාන්‍ය පෙළට අඩු" },
-  { en: "O/L Pass", si: "සාමාන්‍ය පෙළ සමත්" },
-  { en: "A/L Pass", si: "උසස් පෙළ සමත්" },
-  { en: "Degree and Above", si: "උපාධි සහ ඊට වැඩි" },
-];
+const JOB_SEEKER_EDUCATION_LABELS: Record<(typeof JOB_SEEKER_EDUCATION_LEVELS)[number], { en: string; si: string }> = {
+  "vocational-training": { en: "Vocational Training", si: "වෘත්තීය පුහුණුව ලත්" },
+  "below-ol": { en: "Below O/L", si: "සාමාන්‍ය පෙළට අඩු" },
+  "ol-pass": { en: "O/L Pass", si: "සාමාන්‍ය පෙළ සමත්" },
+  "al-pass": { en: "A/L Pass", si: "උසස් පෙළ සමත්" },
+  "degree-and-above": { en: "Degree and Above", si: "උපාධි සහ ඊට වැඩි" },
+};
 
 const SELF_EMPLOYMENT_SECTOR_LABELS: Record<(typeof SELF_EMPLOYMENT_SECTORS)[number], { en: string; si: string }> = {
   "food-production": { en: "Food Production", si: "ආහාර නිෂ්පාදනය" },
-  confectionery: { en: "Confectionery", si: "රසකැවිලි නිෂ්පාදනය" },
-  "furniture-production": { en: "Furniture Production", si: "ගෘහ භාණ්ඩ නිෂ්පාදනය" },
-  "textile-production": { en: "Textile Production", si: "රෙදිපිළි නිෂ්පාදනය" },
-  "bakery-production": { en: "Bakery Production", si: "බේකරි නිෂ්පාදනය" },
-  knitting: { en: "Knitting", si: "රෙදි වියන කර්මාන්තය" },
-  "garment-sewing": { en: "Garment Sewing", si: "ඇඟලුම් මැසීම" },
-  "cleaning-products": { en: "Cleaning Products", si: "සුද්ධිකාරක නිෂ්පාදන" },
-  "beverage-juice": { en: "Beverages / Juice Production", si: "පාන වර්ග/යුෂ නිෂ්පාදනය" },
-  "decorative-items": { en: "Decorative Items", si: "අලංකාර ද්‍රව්‍ය නිෂ්පාදනය" },
-  "coconut-shell-crafts": { en: "Coconut Shell Crafts", si: "පොල් කටු අත්කම්" },
-  "masonry-work": { en: "Masonry Work", si: "ගෙතුම් කර්මාන්තය" },
-  "auto-mechanic": { en: "Auto Mechanic", si: "මෝටර් රථ අලුත්වැඩියා" },
-  "footwear-repair": { en: "Footwear Repair", si: "පාවහන් අලුත්වැඩියා" },
-  "welding-shop": { en: "Welding Shop", si: "වෙල්ඩින් කර්මාන්තය" },
+  "confectionery-production": { en: "Confectionery Production", si: "රසකැවිලි නිෂ්පාදනය" },
+  "spice-production": { en: "Spice Production", si: "කුළුබඩු නිෂ්පාදනය" },
+  "rice-parcel-production": { en: "Rice-Parcel Production", si: "බත් පාර්සල් නිෂ්පාදනය" },
+  "bakery-production": { en: "Bakery Production", si: "බේකරි නිෂ්පාදන" },
+  "garment-knitwear-production": { en: "Garment / Knitwear Production", si: "ඇහළුම් නිෂ්පාදන" },
+  dressmaking: { en: "Dressmaking / Sewing", si: "ඇදුම් මැසීම" },
+  "cleaning-products-production": { en: "Cleaning Products Production", si: "පාහිසි නිෂ්පාදනය" },
+  "beverage-soda-production": { en: "Beverage / Soda Production", si: "බීරලු/සෝඩා නිෂ්පාදනය" },
+  "decorative-items-production": { en: "Decorative Items Production", si: "විසිතුරු භාණ්ඩ නිෂ්පාදනය" },
+  "coconut-shell-production": { en: "Coconut-Shell Related Production", si: "පොල්කටු ආශ්‍රිත නිෂ්පාදන" },
+  "masonry-work": { en: "Masonry Work", si: "පැස්සුම් වැඩ" },
+  "motor-vehicle-repair": { en: "Motor Vehicle Repair", si: "මෝටර් රථ කාර්මික වැඩියාව" },
+  "bicycle-repair": { en: "Bicycle Repair", si: "පාපැදි කාර්මික වැඩියාව" },
+  "traditional-craft-work": { en: "Traditional Craft Work", si: "පෙදරේරු කර්මාන්තය" },
   carpentry: { en: "Carpentry", si: "වඩු කර්මාන්තය" },
-  "electrical-appliance-repair": { en: "Electrical Appliance Repair", si: "විදුලි උපකරණ අලුත්වැඩියා" },
-  "cosmetics-production": { en: "Cosmetics Production", si: "සුරූපිතා (කොස්මෙටික්) නිෂ්පාදනය" },
-  floriculture: { en: "Floriculture", si: "මල් වගාව" },
-  "brick-making": { en: "Brick Making", si: "ගඩොල් නිෂ්පාදනය" },
-  "seafood-processing": { en: "Seafood Processing", si: "මුහුදු ආහාර සැකසීම" },
-  "traditional-boat-building": { en: "Traditional Boat Building", si: "සම්ප්‍රදායික බෝට්ටු නිෂ්පාදනය" },
-  "fish-transport-other": { en: "Fish Transport / Other", si: "මාළු ප්‍රවාහනය/වෙනත්" },
+  "electrical-appliance-repair": { en: "Electrical Appliance Repair", si: "විදුලිඋපකරණ කාර්මික වැඩියාව" },
+  "jewelry-production": { en: "Jewelry / Ornaments Production", si: "ස්වර්ණාභරණ නිෂ්පාදනය" },
+  "floriculture-production": { en: "Floriculture Production", si: "ෆ්ලෝරිකල්චර් නිෂ්පාදනය" },
+  "cinnamon-peeling": { en: "Cinnamon Peeling", si: "කුරුදු තැලීම" },
+  "fish-related-production": { en: "Fish-Related Production (Dried Fish / Jars)", si: "මාළු ආශ්‍රිත නිෂ්පාදන (කරවල/ජාඩි)" },
+  "fishing-gear-repair": { en: "Fishing Gear / Net Repair", si: "දිවර ආම්පන්න අළුත්වැඩියාව" },
+  "fish-trade": { en: "Fish Trade (Mobile Vehicle)", si: "මාළු වෙළදාම (ජංගම රථ මගින්)" },
+};
+
+const MARKETPLACE_LABELS: Record<(typeof MARKETPLACES)[number], { en: string; si: string }> = {
+  local: { en: "Local", si: "දේශීය" },
+  national: { en: "National", si: "ජාතික" },
+  international: { en: "International", si: "ජාත්‍යන්තර" },
 };
 
 function buildEmptyValues(lang: "en" | "si"): EmploymentDraft {
   return {
-    jobSeekersByEducation: JOB_SEEKER_EDUCATION_LABELS.map((labelObj) => ({
-      label: labelObj[lang],
+    jobSeekersByEducation: JOB_SEEKER_EDUCATION_LEVELS.map((level) => ({
+      level,
+      levelLabel: JOB_SEEKER_EDUCATION_LABELS[level][lang],
       count: 0,
     })),
-    jobSeekersUnwillingBelowQualificationCount: 0,
+    vocationalTrainingOpportunityGapCount: 0,
     selfEmploymentSectors: SELF_EMPLOYMENT_SECTORS.map((sector) => ({
-      label: SELF_EMPLOYMENT_SECTOR_LABELS[sector][lang],
+      sector,
+      sectorLabel: SELF_EMPLOYMENT_SECTOR_LABELS[sector][lang],
       count: 0,
     })),
     selfEmployedPersons: [],
+  };
+}
+
+function mergeWithSaved(empty: EmploymentDraft, saved: EmploymentDraft): EmploymentDraft {
+  return {
+    ...empty,
+    ...saved,
+    jobSeekersByEducation: empty.jobSeekersByEducation?.map((row, i) => ({ ...row, ...saved.jobSeekersByEducation?.[i] })),
+    selfEmploymentSectors: empty.selfEmploymentSectors?.map((row, i) => ({ ...row, ...saved.selfEmploymentSectors?.[i] })),
   };
 }
 
@@ -72,6 +94,12 @@ const selfEmployedPersonColumns: RepeatableColumn[] = [
   { key: "address", label: { en: "Address", si: "ලිපිනය" }, type: "text" },
   { key: "phone", label: { en: "Phone", si: "දුරකථන අංකය" }, type: "text" },
   { key: "sector", label: { en: "Sector / Field", si: "ක්ෂේත්‍රය" }, type: "text" },
+  {
+    key: "marketplace",
+    label: { en: "Marketplace", si: "වෙළඳපොල" },
+    type: "select",
+    options: MARKETPLACES.map((m) => ({ value: m, label: MARKETPLACE_LABELS[m] })),
+  },
 ];
 
 export default function EmploymentPage() {
@@ -88,7 +116,7 @@ export default function EmploymentPage() {
 
   useEffect(() => {
     if (submission?.data.employment) {
-      form.reset({ ...emptyValues, ...submission.data.employment });
+      form.reset(mergeWithSaved(emptyValues, submission.data.employment));
     } else {
       form.reset(emptyValues);
     }
@@ -108,12 +136,12 @@ export default function EmploymentPage() {
   }
 
   const jobSeekerColumns: RepeatableColumn[] = [
-    { key: "label", label: { en: "Education Level", si: "අධ්‍යාපන මට්ටම" }, type: "readonly" },
+    { key: "levelLabel", label: { en: "Education Level", si: "අධ්‍යාපන මට්ටම" }, type: "readonly" },
     { key: "count", label: { en: "Count", si: "සංඛ්‍යාව" }, type: "number" },
   ];
 
   const selfEmploymentSectorColumns: RepeatableColumn[] = [
-    { key: "label", label: { en: "Sector", si: "ක්ෂේත්‍රය" }, type: "readonly" },
+    { key: "sectorLabel", label: { en: "Sector", si: "ක්ෂේත්‍රය" }, type: "readonly" },
     { key: "count", label: { en: "Count", si: "සංඛ්‍යාව" }, type: "number" },
   ];
 
@@ -133,14 +161,18 @@ export default function EmploymentPage() {
           title={employmentDict.fields.jobSeekersByEducation}
           columns={jobSeekerColumns}
           fixedRows
-          emptyRowFactory={() => ({ label: JOB_SEEKER_EDUCATION_LABELS[0][lang], count: 0 })}
+          emptyRowFactory={() => ({
+            level: JOB_SEEKER_EDUCATION_LEVELS[0],
+            levelLabel: JOB_SEEKER_EDUCATION_LABELS[JOB_SEEKER_EDUCATION_LEVELS[0]][lang],
+            count: 0,
+          })}
         />
       </div>
 
       <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4 border-t border-border pt-6">
         <FieldWrapper
-          name="jobSeekersUnwillingBelowQualificationCount"
-          label={employmentDict.fields.jobSeekersUnwillingBelowQualificationCount}
+          name="vocationalTrainingOpportunityGapCount"
+          label={employmentDict.fields.vocationalTrainingOpportunityGapCount}
         >
           {({ id, describedBy, invalid }) => (
             <Input
@@ -149,7 +181,7 @@ export default function EmploymentPage() {
               inputMode="numeric"
               aria-describedby={describedBy}
               aria-invalid={invalid}
-              {...form.register("jobSeekersUnwillingBelowQualificationCount")}
+              {...form.register("vocationalTrainingOpportunityGapCount")}
             />
           )}
         </FieldWrapper>
@@ -161,7 +193,11 @@ export default function EmploymentPage() {
           title={employmentDict.fields.selfEmploymentSectors}
           columns={selfEmploymentSectorColumns}
           fixedRows
-          emptyRowFactory={() => ({ label: SELF_EMPLOYMENT_SECTOR_LABELS[SELF_EMPLOYMENT_SECTORS[0]][lang], count: 0 })}
+          emptyRowFactory={() => ({
+            sector: SELF_EMPLOYMENT_SECTORS[0],
+            sectorLabel: SELF_EMPLOYMENT_SECTOR_LABELS[SELF_EMPLOYMENT_SECTORS[0]][lang],
+            count: 0,
+          })}
         />
       </div>
 
@@ -170,7 +206,7 @@ export default function EmploymentPage() {
           name="selfEmployedPersons"
           title={employmentDict.fields.selfEmployedPersons}
           columns={selfEmployedPersonColumns}
-          emptyRowFactory={() => ({ name: "", address: "", phone: "", sector: "" })}
+          emptyRowFactory={() => ({ name: "", address: "", phone: "", sector: "", marketplace: "local" })}
         />
       </div>
     </SectionForm>

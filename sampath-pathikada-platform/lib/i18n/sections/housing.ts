@@ -12,8 +12,11 @@ export const housingDict: SectionDictionary<keyof HousingData & string> = {
     householdsWithoutHousing: { en: "Households Without Proper Housing", si: "නිසි නිවාසයක් නොමැති ගෘහ ඒකක" },
     sanitation: { en: "Sanitation", si: "සනීපාරක්ෂක පහසුකම්" },
     drinkingWaterSource: { en: "Source of Drinking Water", si: "පානීය ජල මූලාශ්‍රය" },
-    underservedAreas: { en: "Areas with Inadequate Housing Facilities", si: "ප්‍රමාණවත් නිවාස පහසුකම් නොමැති ප්‍රදේශ" },
-    electricityAccessPercent: { en: "Electricity Access (%)", si: "විදුලි පහසුකම් ලැබෙන ප්‍රතිශතය (%)" },
+    underservedAreas: {
+      en: "Areas Facing Difficulty Accessing Safe Drinking Water",
+      si: "සෞඛ්‍යාරක්ෂිත පානීය ජලය ලබා ගැනීමට දුෂ්කරතා ඇති ප්‍රදේශ",
+    },
+    electricityAccess: { en: "Electricity Facility Distribution", si: "විදුලි බලපහසුකම් ව්‍යාප්තිය" },
     communityWaterProjects: { en: "Community Drinking Water Projects", si: "ප්‍රජා පානීය ජල ව්‍යාපෘති" },
   },
 };

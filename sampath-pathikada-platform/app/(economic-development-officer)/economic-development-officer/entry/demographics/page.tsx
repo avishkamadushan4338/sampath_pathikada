@@ -51,8 +51,9 @@ const RELIGION_LABELS: Record<(typeof RELIGIONS)[number], { en: string; si: stri
 };
 
 const DISABILITY_LABELS: Record<(typeof DISABILITY_TYPES)[number], { en: string; si: string }> = {
-  mentalIllness: { en: "Mental Illness", si: "මානසික රෝග" },
-  intellectualDisability: { en: "Intellectual Disability", si: "බුද්ධි ආබාධ" },
+  mentalIllness: { en: "Mental Illness (Insane)", si: "මානසික ආබාධ (උමතු)" },
+  intellectualDisability: { en: "Intellectual Disability", si: "මන්ද මානසික" },
+  paralysis: { en: "Paralysis", si: "අංශභාගය" },
   speechImpairment: { en: "Speech Impairment", si: "කථන ආබාධ" },
   hearingImpairment: { en: "Hearing Impairment", si: "ශ්‍රවණ ආබාධ" },
   visualImpairment: { en: "Visual Impairment", si: "දෘෂ්ටි ආබාධ" },

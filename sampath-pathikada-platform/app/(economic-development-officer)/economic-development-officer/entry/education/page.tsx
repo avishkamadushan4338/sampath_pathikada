@@ -1,12 +1,15 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 import { SectionForm } from "@/components/forms/SectionForm";
 import { FieldWrapper } from "@/components/forms/FormField";
 import { RepeatableTable, type RepeatableColumn } from "@/components/forms/RepeatableTable";
+import { CollapsibleFieldGroup, hasAnyNonZero, entryCountLabel } from "@/components/forms/CollapsibleFieldGroup";
+import { Accordion } from "@/components/ui/accordion";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useSubmission, useSaveSection } from "@/hooks/use-submission";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
@@ -15,8 +18,8 @@ import {
   educationSchemaPartial,
   TERTIARY_TYPES,
   PRESCHOOL_FACILITY_TYPES,
+  DHAMMA_TYPES,
 } from "@/lib/validators/sections/education";
-import { cn } from "@/lib/utils";
 import type { z } from "zod";
 
 const CURRENT_YEAR = 2026;
@@ -31,6 +34,9 @@ const EMPTY_VALUES: EducationDraft = {
     vocationalTrainingInstitutes: 0,
     registeredPreschoolsGovt: 0,
     registeredPreschoolsPrivate: 0,
+    dhammaEducationInstitutions: 0,
+    higherEducationInstitutions: 0,
+    tuitionCenterInstitutions: 0,
   },
   schoolCountsByType: {
     nationalSchools: 0,
@@ -41,20 +47,16 @@ const EMPTY_VALUES: EducationDraft = {
   },
   schoolFacilities: [],
   specialAttentionSchools: [],
+  closedSchools: [],
   privateInternationalSchools: [],
   pirivenas: [],
   vocationalInstitutes: [],
   preschools: [],
-  dhammaEducation: {
-    buddhist: { schools: 0, students: 0 },
-    islam: { schools: 0, students: 0 },
-    hindu: { schools: 0, students: 0 },
-    christian: { schools: 0, students: 0 },
-  },
+  dhammaEducationInstitutions: [],
   tertiaryInstitutions: [],
   tuitionCenters: [],
-  outOfSchoolChildrenCount: 0,
-  marriedOrCohabitingMinorsCount: 0,
+  outOfSchoolChildren: { female: 0, male: 0 },
+  childrenInProbationOrDetention: { female: 0, male: 0 },
 };
 
 const YES_NO_OPTIONS = [
@@ -74,10 +76,43 @@ const PRESCHOOL_FACILITY_TYPE_LABELS: Record<(typeof PRESCHOOL_FACILITY_TYPES)[n
   private: { en: "Private", si: "පෞද්ගලික" },
 };
 
+const DHAMMA_TYPE_LABELS: Record<(typeof DHAMMA_TYPES)[number], { en: string; si: string }> = {
+  buddhist: { en: "Buddhist", si: "බෞද්ධ" },
+  islam: { en: "Islam", si: "ඉස්ලාම්" },
+  hindu: { en: "Hindu", si: "හින්දු" },
+  christian: { en: "Christian", si: "ක්‍රිස්තියානි" },
+};
+
+/** Order matches the on-screen accordion — also doubles as the field-name list for the
+ *  quick-jump strip and for mapping `form.formState.errors` keys back to which section owns
+ *  them (each id is exactly the top-level EducationData field name it renders). */
+const SECTION_IDS = [
+  "institutionCounts",
+  "schoolCountsByType",
+  "schoolFacilities",
+  "specialAttentionSchools",
+  "closedSchools",
+  "privateInternationalSchools",
+  "pirivenas",
+  "vocationalInstitutes",
+  "preschools",
+  "dhammaEducationInstitutions",
+  "tertiaryInstitutions",
+  "tuitionCenters",
+  "outOfSchoolChildren",
+  "childrenInProbationOrDetention",
+] as const;
+
+function listMeta(rows: unknown[] | undefined) {
+  const count = rows?.length ?? 0;
+  return { status: (count > 0 ? "filled" : "empty") as "filled" | "empty", countLabel: entryCountLabel(count) };
+}
+
 export default function EducationPage() {
   const { lang } = useLanguage();
   const { submission, isLoading } = useSubmission(CURRENT_YEAR);
   const { saveSection, status, errorMessage } = useSaveSection(CURRENT_YEAR);
+  const [openItems, setOpenItems] = useState<string[]>(() => [...SECTION_IDS]);
 
   const form = useForm<EducationDraft>({
     resolver: zodResolver(educationSchemaPartial),
@@ -91,6 +126,16 @@ export default function EducationPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [submission]);
 
+  // A validation error in a collapsed section would otherwise be invisible — force those
+  // sections open whenever a submit attempt surfaces errors in them.
+  useEffect(() => {
+    if (form.formState.submitCount === 0) return;
+    const errorKeys = Object.keys(form.formState.errors);
+    if (errorKeys.length === 0) return;
+    setOpenItems((prev) => Array.from(new Set([...prev, ...errorKeys])));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.formState.submitCount]);
+
   async function handleSave(values: EducationDraft) {
     await saveSection("education", values);
   }
@@ -103,6 +148,13 @@ export default function EducationPage() {
     );
   }
 
+  function jumpTo(id: string) {
+    setOpenItems((prev) => (prev.includes(id) ? prev : [...prev, id]));
+    document.getElementById(`section-${id}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  const watched = form.watch();
+
   const schoolFacilityColumns: RepeatableColumn[] = [
     { key: "schoolName", label: { en: "School Name", si: "පාසලේ නම" }, type: "text" },
     {
@@ -111,7 +163,8 @@ export default function EducationPage() {
       type: "select",
       options: YES_NO_OPTIONS,
     },
-    { key: "teacherCount", label: { en: "Teacher Count", si: "ගුරු සංඛ්‍යාව" }, type: "number" },
+    { key: "teachersFemale", label: { en: "Teachers (Female)", si: "ගුරුවරු (ස්ත්‍රී)" }, type: "number" },
+    { key: "teachersMale", label: { en: "Teachers (Male)", si: "ගුරුවරු (පුරුෂ)" }, type: "number" },
     { key: "studentsFemale", label: { en: "Students (Female)", si: "සිසුන් (ගැහැණු)" }, type: "number" },
     { key: "studentsMale", label: { en: "Students (Male)", si: "සිසුන් (පිරිමි)" }, type: "number" },
     {
@@ -122,7 +175,7 @@ export default function EducationPage() {
     },
     {
       key: "sanitationFacility",
-      label: { en: "Sanitation Facility", si: "සනීපාරක්ෂක පහසුකම්" },
+      label: { en: "Sanitation Facility", si: "වැසිකිලි පහසුකම්" },
       type: "select",
       options: YES_NO_OPTIONS,
     },
@@ -136,7 +189,23 @@ export default function EducationPage() {
 
   const specialAttentionSchoolColumns: RepeatableColumn[] = [
     { key: "schoolName", label: { en: "School Name", si: "පාසලේ නම" }, type: "text" },
-    { key: "reason", label: { en: "Reason", si: "හේතුව" }, type: "text" },
+    { key: "teachersFemale", label: { en: "Teachers (Female)", si: "ගුරුවරු (ස්ත්‍රී)" }, type: "number" },
+    { key: "teachersMale", label: { en: "Teachers (Male)", si: "ගුරුවරු (පුරුෂ)" }, type: "number" },
+    { key: "studentsFemale", label: { en: "Students (Female)", si: "සිසුන් (ගැහැණු)" }, type: "number" },
+    { key: "studentsMale", label: { en: "Students (Male)", si: "සිසුන් (පිරිමි)" }, type: "number" },
+    { key: "developmentNeeds", label: { en: "Development Needs", si: "සංවර්ධන අවශ්‍යතා" }, type: "text" },
+  ];
+
+  const closedSchoolColumns: RepeatableColumn[] = [
+    { key: "schoolName", label: { en: "School Name", si: "පාසලේ නම" }, type: "text" },
+    { key: "yearClosed", label: { en: "Year Closed", si: "වැසීගිය වර්ෂය" }, type: "number" },
+    { key: "buildingCount", label: { en: "Existing Buildings", si: "පවතින ගොඩනැගිලි සංඛ්‍යාව" }, type: "number" },
+    {
+      key: "buildingsUsable",
+      label: { en: "Buildings Currently Usable", si: "ගොඩනැගිලි දැනට භාවිත කළ හැකිද" },
+      type: "select",
+      options: YES_NO_OPTIONS,
+    },
   ];
 
   const privateInternationalSchoolColumns: RepeatableColumn[] = [
@@ -148,7 +217,34 @@ export default function EducationPage() {
   const pirivenaColumns: RepeatableColumn[] = [
     { key: "name", label: { en: "Name", si: "නම" }, type: "text" },
     { key: "type", label: { en: "Type", si: "වර්ගය" }, type: "text" },
-    { key: "studentCount", label: { en: "Student Count", si: "සිසු සංඛ්‍යාව" }, type: "number" },
+    {
+      key: "boardingFacility",
+      label: { en: "Boarding Facility", si: "නේවාසික පහසුකම්" },
+      type: "select",
+      options: YES_NO_OPTIONS,
+    },
+    { key: "teachersFemale", label: { en: "Teachers (Female)", si: "ගුරුවරු (ස්ත්‍රී)" }, type: "number" },
+    { key: "teachersMale", label: { en: "Teachers (Male)", si: "ගුරුවරු (පුරුෂ)" }, type: "number" },
+    { key: "studentsFemale", label: { en: "Students (Female)", si: "සිසුන් (ගැහැණු)" }, type: "number" },
+    { key: "studentsMale", label: { en: "Students (Male)", si: "සිසුන් (පිරිමි)" }, type: "number" },
+    {
+      key: "waterFacility",
+      label: { en: "Water Facility", si: "ජල පහසුකම්" },
+      type: "select",
+      options: YES_NO_OPTIONS,
+    },
+    {
+      key: "sanitationFacility",
+      label: { en: "Sanitation Facility", si: "වැසිකිලි පහසුකම්" },
+      type: "select",
+      options: YES_NO_OPTIONS,
+    },
+    {
+      key: "sportsGround",
+      label: { en: "Sports Ground", si: "ක්‍රීඩා පිටිය" },
+      type: "select",
+      options: YES_NO_OPTIONS,
+    },
   ];
 
   const vocationalInstituteColumns: RepeatableColumn[] = [
@@ -157,11 +253,24 @@ export default function EducationPage() {
 
   const preschoolColumns: RepeatableColumn[] = [
     { key: "name", label: { en: "Name", si: "නම" }, type: "text" },
+    { key: "address", label: { en: "Address", si: "ලිපිනය" }, type: "text" },
     {
       key: "facilityType",
       label: { en: "Facility Type", si: "පහසුකම් වර්ගය" },
       type: "select",
       options: PRESCHOOL_FACILITY_TYPES.map((t) => ({ value: t, label: PRESCHOOL_FACILITY_TYPE_LABELS[t] })),
+    },
+    { key: "teacherCount", label: { en: "Teacher Count", si: "ගුරු සංඛ්‍යාව" }, type: "number" },
+    { key: "studentCount", label: { en: "Student Count", si: "සිසු සංඛ්‍යාව" }, type: "number" },
+  ];
+
+  const dhammaEducationInstitutionColumns: RepeatableColumn[] = [
+    { key: "institutionName", label: { en: "Institution Name", si: "ආයතනයේ නම" }, type: "text" },
+    {
+      key: "type",
+      label: { en: "Type", si: "වර්ගය" },
+      type: "select",
+      options: DHAMMA_TYPES.map((t) => ({ value: t, label: DHAMMA_TYPE_LABELS[t] })),
     },
     { key: "teacherCount", label: { en: "Teacher Count", si: "ගුරු සංඛ්‍යාව" }, type: "number" },
     { key: "studentCount", label: { en: "Student Count", si: "සිසු සංඛ්‍යාව" }, type: "number" },
@@ -178,10 +287,20 @@ export default function EducationPage() {
   ];
 
   const tuitionCenterColumns: RepeatableColumn[] = [
-    { key: "name", label: { en: "Name", si: "නම" }, type: "text" },
+    { key: "registrationNumber", label: { en: "Registration Number", si: "ලියාපදිංචි අංකය" }, type: "text" },
+    { key: "nameAndAddress", label: { en: "Name and Address", si: "නම හා ලිපිනය" }, type: "text" },
   ];
 
-  const headingClass = cn("text-fluid-lg font-semibold text-foreground", lang === "si" && "font-si-heading");
+  const schoolFacilitiesMeta = listMeta(watched.schoolFacilities);
+  const specialAttentionSchoolsMeta = listMeta(watched.specialAttentionSchools);
+  const closedSchoolsMeta = listMeta(watched.closedSchools);
+  const privateInternationalSchoolsMeta = listMeta(watched.privateInternationalSchools);
+  const pirivenasMeta = listMeta(watched.pirivenas);
+  const vocationalInstitutesMeta = listMeta(watched.vocationalInstitutes);
+  const preschoolsMeta = listMeta(watched.preschools);
+  const dhammaEducationInstitutionsMeta = listMeta(watched.dhammaEducationInstitutions);
+  const tertiaryInstitutionsMeta = listMeta(watched.tertiaryInstitutions);
+  const tuitionCentersMeta = listMeta(watched.tuitionCenters);
 
   return (
     <SectionForm
@@ -193,248 +312,243 @@ export default function EducationPage() {
       saveErrorMessage={errorMessage}
       onSaveDraft={handleSave}
     >
-      <div className="flex flex-col gap-2">
-        <h2 lang={lang} className={headingClass}>
-          {educationDict.fields.institutionCounts[lang]}
-        </h2>
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4">
-          <FieldWrapper name="institutionCounts.govtSchools" label={{ en: "Government Schools", si: "රාජ්‍ය පාසල්" }}>
-            {({ id, describedBy, invalid }) => (
-              <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("institutionCounts.govtSchools")} />
-            )}
-          </FieldWrapper>
-          <FieldWrapper name="institutionCounts.privateOrInternationalSchools" label={{ en: "Private / International Schools", si: "පෞද්ගලික / ජාත්‍යන්තර පාසල්" }}>
-            {({ id, describedBy, invalid }) => (
-              <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("institutionCounts.privateOrInternationalSchools")} />
-            )}
-          </FieldWrapper>
-          <FieldWrapper name="institutionCounts.pirivenas" label={{ en: "Pirivenas", si: "පිරිවෙන්" }}>
-            {({ id, describedBy, invalid }) => (
-              <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("institutionCounts.pirivenas")} />
-            )}
-          </FieldWrapper>
-          <FieldWrapper name="institutionCounts.vocationalTrainingInstitutes" label={{ en: "Vocational Training Institutes", si: "වෘත්තීය පුහුණු ආයතන" }}>
-            {({ id, describedBy, invalid }) => (
-              <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("institutionCounts.vocationalTrainingInstitutes")} />
-            )}
-          </FieldWrapper>
-          <FieldWrapper name="institutionCounts.registeredPreschoolsGovt" label={{ en: "Registered Preschools (Govt)", si: "ලියාපදිංචි පෙර පාසල් (රාජ්‍ය)" }}>
-            {({ id, describedBy, invalid }) => (
-              <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("institutionCounts.registeredPreschoolsGovt")} />
-            )}
-          </FieldWrapper>
-          <FieldWrapper name="institutionCounts.registeredPreschoolsPrivate" label={{ en: "Registered Preschools (Private)", si: "ලියාපදිංචි පෙර පාසල් (පෞද්ගලික)" }}>
-            {({ id, describedBy, invalid }) => (
-              <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("institutionCounts.registeredPreschoolsPrivate")} />
-            )}
-          </FieldWrapper>
-        </div>
+      {/* Quick-jump strip: 14 subsections is too many to scroll through blind — this lets an
+          officer land directly on (and auto-open) whichever one they came here to fill in. */}
+      <div className="-mx-1 flex flex-nowrap gap-2 overflow-x-auto px-1 pb-1 lg:flex-wrap lg:overflow-x-visible">
+        {SECTION_IDS.map((id) => (
+          <Button
+            key={id}
+            type="button"
+            variant="outline"
+            size="sm"
+            className="shrink-0 rounded-full"
+            data-section-id={id}
+            onClick={() => jumpTo(id)}
+          >
+            {lang === "si" ? educationDict.fields[id].si : educationDict.fields[id].en}
+          </Button>
+        ))}
       </div>
 
-      <div className="flex flex-col gap-2 border-t border-border pt-6">
-        <h2 lang={lang} className={headingClass}>
-          {educationDict.fields.schoolCountsByType[lang]}
-        </h2>
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4">
-          <FieldWrapper name="schoolCountsByType.nationalSchools" label={{ en: "National Schools", si: "ජාතික පාසල්" }}>
-            {({ id, describedBy, invalid }) => (
-              <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("schoolCountsByType.nationalSchools")} />
-            )}
-          </FieldWrapper>
-          <FieldWrapper name="schoolCountsByType.type1AB" label={{ en: "Type 1AB", si: "වර්ගය 1AB" }}>
-            {({ id, describedBy, invalid }) => (
-              <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("schoolCountsByType.type1AB")} />
-            )}
-          </FieldWrapper>
-          <FieldWrapper name="schoolCountsByType.type1C" label={{ en: "Type 1C", si: "වර්ගය 1C" }}>
-            {({ id, describedBy, invalid }) => (
-              <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("schoolCountsByType.type1C")} />
-            )}
-          </FieldWrapper>
-          <FieldWrapper name="schoolCountsByType.type2" label={{ en: "Type 2", si: "වර්ගය 2" }}>
-            {({ id, describedBy, invalid }) => (
-              <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("schoolCountsByType.type2")} />
-            )}
-          </FieldWrapper>
-          <FieldWrapper name="schoolCountsByType.type3" label={{ en: "Type 3", si: "වර්ගය 3" }}>
-            {({ id, describedBy, invalid }) => (
-              <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("schoolCountsByType.type3")} />
-            )}
-          </FieldWrapper>
-        </div>
-      </div>
-
-      <div className="border-t border-border pt-6">
-        <RepeatableTable
-          name="schoolFacilities"
-          title={educationDict.fields.schoolFacilities}
-          columns={schoolFacilityColumns}
-          emptyRowFactory={() => ({
-            schoolName: "",
-            accommodationAvailable: "no",
-            teacherCount: 0,
-            studentsFemale: 0,
-            studentsMale: 0,
-            waterFacility: "no",
-            sanitationFacility: "no",
-            sportsGround: "no",
-          })}
-        />
-      </div>
-
-      <div className="border-t border-border pt-6">
-        <RepeatableTable
-          name="specialAttentionSchools"
-          title={educationDict.fields.specialAttentionSchools}
-          columns={specialAttentionSchoolColumns}
-          emptyRowFactory={() => ({ schoolName: "", reason: "" })}
-        />
-      </div>
-
-      <div className="border-t border-border pt-6">
-        <RepeatableTable
-          name="privateInternationalSchools"
-          title={educationDict.fields.privateInternationalSchools}
-          columns={privateInternationalSchoolColumns}
-          emptyRowFactory={() => ({ name: "", teacherCount: 0, studentCount: 0 })}
-        />
-      </div>
-
-      <div className="border-t border-border pt-6">
-        <RepeatableTable
-          name="pirivenas"
-          title={educationDict.fields.pirivenas}
-          columns={pirivenaColumns}
-          emptyRowFactory={() => ({ name: "", type: "", studentCount: 0 })}
-        />
-      </div>
-
-      <div className="border-t border-border pt-6">
-        <RepeatableTable
-          name="vocationalInstitutes"
-          title={educationDict.fields.vocationalInstitutes}
-          columns={vocationalInstituteColumns}
-          emptyRowFactory={() => ({ name: "" })}
-        />
-      </div>
-
-      <div className="border-t border-border pt-6">
-        <RepeatableTable
-          name="preschools"
-          title={educationDict.fields.preschools}
-          columns={preschoolColumns}
-          emptyRowFactory={() => ({ name: "", facilityType: "govt", teacherCount: 0, studentCount: 0 })}
-        />
-      </div>
-
-      <div className="flex flex-col gap-4 border-t border-border pt-6">
-        <h2 lang={lang} className={headingClass}>
-          {educationDict.fields.dhammaEducation[lang]}
-        </h2>
-
-        <div className="flex flex-col gap-2">
-          <h3 lang={lang} className={cn("text-fluid-base font-medium text-foreground", lang === "si" && "font-si")}>
-            {lang === "si" ? "බුද්ධාගම" : "Buddhist"}
-          </h3>
+      <Accordion type="multiple" value={openItems} onValueChange={setOpenItems} className="flex flex-col">
+        <CollapsibleFieldGroup value="institutionCounts" title={educationDict.fields.institutionCounts} status={hasAnyNonZero(watched.institutionCounts) ? "filled" : "empty"}>
           <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4">
-            <FieldWrapper name="dhammaEducation.buddhist.schools" label={{ en: "Schools", si: "පාසල් සංඛ්‍යාව" }}>
+            <FieldWrapper name="institutionCounts.govtSchools" label={{ en: "Government Schools", si: "රාජ්‍ය පාසල්" }}>
               {({ id, describedBy, invalid }) => (
-                <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("dhammaEducation.buddhist.schools")} />
+                <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("institutionCounts.govtSchools")} />
               )}
             </FieldWrapper>
-            <FieldWrapper name="dhammaEducation.buddhist.students" label={{ en: "Students", si: "සිසුන් සංඛ්‍යාව" }}>
+            <FieldWrapper name="institutionCounts.privateOrInternationalSchools" label={{ en: "Private / International Schools", si: "පෞද්ගලික / ජාත්‍යන්තර පාසල්" }}>
               {({ id, describedBy, invalid }) => (
-                <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("dhammaEducation.buddhist.students")} />
+                <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("institutionCounts.privateOrInternationalSchools")} />
+              )}
+            </FieldWrapper>
+            <FieldWrapper name="institutionCounts.pirivenas" label={{ en: "Pirivenas", si: "පිරිවෙන්" }}>
+              {({ id, describedBy, invalid }) => (
+                <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("institutionCounts.pirivenas")} />
+              )}
+            </FieldWrapper>
+            <FieldWrapper name="institutionCounts.vocationalTrainingInstitutes" label={{ en: "Vocational Training Institutes", si: "වෘත්තීය පුහුණු ආයතන" }}>
+              {({ id, describedBy, invalid }) => (
+                <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("institutionCounts.vocationalTrainingInstitutes")} />
+              )}
+            </FieldWrapper>
+            <FieldWrapper name="institutionCounts.registeredPreschoolsGovt" label={{ en: "Registered Preschools (Govt)", si: "ලියාපදිංචි පෙර පාසල් (රාජ්‍ය)" }}>
+              {({ id, describedBy, invalid }) => (
+                <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("institutionCounts.registeredPreschoolsGovt")} />
+              )}
+            </FieldWrapper>
+            <FieldWrapper name="institutionCounts.registeredPreschoolsPrivate" label={{ en: "Registered Preschools (Private)", si: "ලියාපදිංචි පෙර පාසල් (පෞද්ගලික)" }}>
+              {({ id, describedBy, invalid }) => (
+                <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("institutionCounts.registeredPreschoolsPrivate")} />
+              )}
+            </FieldWrapper>
+            <FieldWrapper name="institutionCounts.dhammaEducationInstitutions" label={{ en: "Dhamma Education Institutions", si: "දහම් අධ්‍යාපනය ලබාදෙන ආයතන" }}>
+              {({ id, describedBy, invalid }) => (
+                <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("institutionCounts.dhammaEducationInstitutions")} />
+              )}
+            </FieldWrapper>
+            <FieldWrapper name="institutionCounts.higherEducationInstitutions" label={{ en: "Higher Education Institutions", si: "උසස් අධ්‍යාපන ආයතන" }}>
+              {({ id, describedBy, invalid }) => (
+                <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("institutionCounts.higherEducationInstitutions")} />
+              )}
+            </FieldWrapper>
+            <FieldWrapper name="institutionCounts.tuitionCenterInstitutions" label={{ en: "Tuition Class Institutions", si: "උපකාරක පන්ති පවත්වන ආයතන" }}>
+              {({ id, describedBy, invalid }) => (
+                <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("institutionCounts.tuitionCenterInstitutions")} />
               )}
             </FieldWrapper>
           </div>
-        </div>
+        </CollapsibleFieldGroup>
 
-        <div className="flex flex-col gap-2">
-          <h3 lang={lang} className={cn("text-fluid-base font-medium text-foreground", lang === "si" && "font-si")}>
-            {lang === "si" ? "ඉස්ලාම්" : "Islam"}
-          </h3>
+        <CollapsibleFieldGroup value="schoolCountsByType" title={educationDict.fields.schoolCountsByType} status={hasAnyNonZero(watched.schoolCountsByType) ? "filled" : "empty"}>
           <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4">
-            <FieldWrapper name="dhammaEducation.islam.schools" label={{ en: "Schools", si: "පාසල් සංඛ්‍යාව" }}>
+            <FieldWrapper name="schoolCountsByType.nationalSchools" label={{ en: "National Schools", si: "ජාතික පාසල්" }}>
               {({ id, describedBy, invalid }) => (
-                <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("dhammaEducation.islam.schools")} />
+                <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("schoolCountsByType.nationalSchools")} />
               )}
             </FieldWrapper>
-            <FieldWrapper name="dhammaEducation.islam.students" label={{ en: "Students", si: "සිසුන් සංඛ්‍යාව" }}>
+            <FieldWrapper name="schoolCountsByType.type1AB" label={{ en: "Type 1AB", si: "වර්ගය 1AB" }}>
               {({ id, describedBy, invalid }) => (
-                <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("dhammaEducation.islam.students")} />
+                <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("schoolCountsByType.type1AB")} />
+              )}
+            </FieldWrapper>
+            <FieldWrapper name="schoolCountsByType.type1C" label={{ en: "Type 1C", si: "වර්ගය 1C" }}>
+              {({ id, describedBy, invalid }) => (
+                <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("schoolCountsByType.type1C")} />
+              )}
+            </FieldWrapper>
+            <FieldWrapper name="schoolCountsByType.type2" label={{ en: "Type 2", si: "වර්ගය 2" }}>
+              {({ id, describedBy, invalid }) => (
+                <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("schoolCountsByType.type2")} />
+              )}
+            </FieldWrapper>
+            <FieldWrapper name="schoolCountsByType.type3" label={{ en: "Type 3", si: "වර්ගය 3" }}>
+              {({ id, describedBy, invalid }) => (
+                <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("schoolCountsByType.type3")} />
               )}
             </FieldWrapper>
           </div>
-        </div>
+        </CollapsibleFieldGroup>
 
-        <div className="flex flex-col gap-2">
-          <h3 lang={lang} className={cn("text-fluid-base font-medium text-foreground", lang === "si" && "font-si")}>
-            {lang === "si" ? "හින්දු" : "Hindu"}
-          </h3>
+        <CollapsibleFieldGroup value="schoolFacilities" title={educationDict.fields.schoolFacilities} status={schoolFacilitiesMeta.status} countLabel={schoolFacilitiesMeta.countLabel}>
+          <RepeatableTable
+            name="schoolFacilities"
+            columns={schoolFacilityColumns}
+            emptyRowFactory={() => ({
+              schoolName: "",
+              accommodationAvailable: "no",
+              teachersFemale: 0,
+              teachersMale: 0,
+              studentsFemale: 0,
+              studentsMale: 0,
+              waterFacility: "no",
+              sanitationFacility: "no",
+              sportsGround: "no",
+            })}
+          />
+        </CollapsibleFieldGroup>
+
+        <CollapsibleFieldGroup value="specialAttentionSchools" title={educationDict.fields.specialAttentionSchools} status={specialAttentionSchoolsMeta.status} countLabel={specialAttentionSchoolsMeta.countLabel}>
+          <RepeatableTable
+            name="specialAttentionSchools"
+            columns={specialAttentionSchoolColumns}
+            emptyRowFactory={() => ({
+              schoolName: "",
+              teachersFemale: 0,
+              teachersMale: 0,
+              studentsFemale: 0,
+              studentsMale: 0,
+              developmentNeeds: "",
+            })}
+          />
+        </CollapsibleFieldGroup>
+
+        <CollapsibleFieldGroup value="closedSchools" title={educationDict.fields.closedSchools} status={closedSchoolsMeta.status} countLabel={closedSchoolsMeta.countLabel}>
+          <RepeatableTable
+            name="closedSchools"
+            columns={closedSchoolColumns}
+            emptyRowFactory={() => ({ schoolName: "", yearClosed: 0, buildingCount: 0, buildingsUsable: "no" })}
+          />
+        </CollapsibleFieldGroup>
+
+        <CollapsibleFieldGroup value="privateInternationalSchools" title={educationDict.fields.privateInternationalSchools} status={privateInternationalSchoolsMeta.status} countLabel={privateInternationalSchoolsMeta.countLabel}>
+          <RepeatableTable
+            name="privateInternationalSchools"
+            columns={privateInternationalSchoolColumns}
+            emptyRowFactory={() => ({ name: "", teacherCount: 0, studentCount: 0 })}
+          />
+        </CollapsibleFieldGroup>
+
+        <CollapsibleFieldGroup value="pirivenas" title={educationDict.fields.pirivenas} status={pirivenasMeta.status} countLabel={pirivenasMeta.countLabel}>
+          <RepeatableTable
+            name="pirivenas"
+            columns={pirivenaColumns}
+            emptyRowFactory={() => ({
+              name: "",
+              type: "",
+              boardingFacility: "no",
+              teachersFemale: 0,
+              teachersMale: 0,
+              studentsFemale: 0,
+              studentsMale: 0,
+              waterFacility: "no",
+              sanitationFacility: "no",
+              sportsGround: "no",
+            })}
+          />
+        </CollapsibleFieldGroup>
+
+        <CollapsibleFieldGroup value="vocationalInstitutes" title={educationDict.fields.vocationalInstitutes} status={vocationalInstitutesMeta.status} countLabel={vocationalInstitutesMeta.countLabel}>
+          <RepeatableTable
+            name="vocationalInstitutes"
+            columns={vocationalInstituteColumns}
+            emptyRowFactory={() => ({ name: "" })}
+          />
+        </CollapsibleFieldGroup>
+
+        <CollapsibleFieldGroup value="preschools" title={educationDict.fields.preschools} status={preschoolsMeta.status} countLabel={preschoolsMeta.countLabel}>
+          <RepeatableTable
+            name="preschools"
+            columns={preschoolColumns}
+            emptyRowFactory={() => ({ name: "", address: "", facilityType: "govt", teacherCount: 0, studentCount: 0 })}
+          />
+        </CollapsibleFieldGroup>
+
+        <CollapsibleFieldGroup value="dhammaEducationInstitutions" title={educationDict.fields.dhammaEducationInstitutions} status={dhammaEducationInstitutionsMeta.status} countLabel={dhammaEducationInstitutionsMeta.countLabel}>
+          <RepeatableTable
+            name="dhammaEducationInstitutions"
+            columns={dhammaEducationInstitutionColumns}
+            emptyRowFactory={() => ({ institutionName: "", type: "buddhist", teacherCount: 0, studentCount: 0 })}
+          />
+        </CollapsibleFieldGroup>
+
+        <CollapsibleFieldGroup value="tertiaryInstitutions" title={educationDict.fields.tertiaryInstitutions} status={tertiaryInstitutionsMeta.status} countLabel={tertiaryInstitutionsMeta.countLabel}>
+          <RepeatableTable
+            name="tertiaryInstitutions"
+            columns={tertiaryInstitutionColumns}
+            emptyRowFactory={() => ({ name: "", type: "university" })}
+          />
+        </CollapsibleFieldGroup>
+
+        <CollapsibleFieldGroup value="tuitionCenters" title={educationDict.fields.tuitionCenters} status={tuitionCentersMeta.status} countLabel={tuitionCentersMeta.countLabel}>
+          <RepeatableTable
+            name="tuitionCenters"
+            columns={tuitionCenterColumns}
+            emptyRowFactory={() => ({ registrationNumber: "", nameAndAddress: "" })}
+          />
+        </CollapsibleFieldGroup>
+
+        <CollapsibleFieldGroup value="outOfSchoolChildren" title={educationDict.fields.outOfSchoolChildren} status={hasAnyNonZero(watched.outOfSchoolChildren) ? "filled" : "empty"}>
           <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4">
-            <FieldWrapper name="dhammaEducation.hindu.schools" label={{ en: "Schools", si: "පාසල් සංඛ්‍යාව" }}>
+            <FieldWrapper name="outOfSchoolChildren.female" label={{ en: "Female", si: "ගැහැණු" }}>
               {({ id, describedBy, invalid }) => (
-                <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("dhammaEducation.hindu.schools")} />
+                <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("outOfSchoolChildren.female")} />
               )}
             </FieldWrapper>
-            <FieldWrapper name="dhammaEducation.hindu.students" label={{ en: "Students", si: "සිසුන් සංඛ්‍යාව" }}>
+            <FieldWrapper name="outOfSchoolChildren.male" label={{ en: "Male", si: "පිරිමි" }}>
               {({ id, describedBy, invalid }) => (
-                <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("dhammaEducation.hindu.students")} />
+                <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("outOfSchoolChildren.male")} />
               )}
             </FieldWrapper>
           </div>
-        </div>
+        </CollapsibleFieldGroup>
 
-        <div className="flex flex-col gap-2">
-          <h3 lang={lang} className={cn("text-fluid-base font-medium text-foreground", lang === "si" && "font-si")}>
-            {lang === "si" ? "ක්‍රිස්තියානි" : "Christian"}
-          </h3>
+        <CollapsibleFieldGroup value="childrenInProbationOrDetention" title={educationDict.fields.childrenInProbationOrDetention} status={hasAnyNonZero(watched.childrenInProbationOrDetention) ? "filled" : "empty"}>
           <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4">
-            <FieldWrapper name="dhammaEducation.christian.schools" label={{ en: "Schools", si: "පාසල් සංඛ්‍යාව" }}>
+            <FieldWrapper name="childrenInProbationOrDetention.female" label={{ en: "Female", si: "ගැහැණු" }}>
               {({ id, describedBy, invalid }) => (
-                <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("dhammaEducation.christian.schools")} />
+                <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("childrenInProbationOrDetention.female")} />
               )}
             </FieldWrapper>
-            <FieldWrapper name="dhammaEducation.christian.students" label={{ en: "Students", si: "සිසුන් සංඛ්‍යාව" }}>
+            <FieldWrapper name="childrenInProbationOrDetention.male" label={{ en: "Male", si: "පිරිමි" }}>
               {({ id, describedBy, invalid }) => (
-                <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("dhammaEducation.christian.students")} />
+                <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("childrenInProbationOrDetention.male")} />
               )}
             </FieldWrapper>
           </div>
-        </div>
-      </div>
-
-      <div className="border-t border-border pt-6">
-        <RepeatableTable
-          name="tertiaryInstitutions"
-          title={educationDict.fields.tertiaryInstitutions}
-          columns={tertiaryInstitutionColumns}
-          emptyRowFactory={() => ({ name: "", type: "university" })}
-        />
-      </div>
-
-      <div className="border-t border-border pt-6">
-        <RepeatableTable
-          name="tuitionCenters"
-          title={educationDict.fields.tuitionCenters}
-          columns={tuitionCenterColumns}
-          emptyRowFactory={() => ({ name: "" })}
-        />
-      </div>
-
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4 border-t border-border pt-6">
-        <FieldWrapper name="outOfSchoolChildrenCount" label={educationDict.fields.outOfSchoolChildrenCount}>
-          {({ id, describedBy, invalid }) => (
-            <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("outOfSchoolChildrenCount")} />
-          )}
-        </FieldWrapper>
-        <FieldWrapper name="marriedOrCohabitingMinorsCount" label={educationDict.fields.marriedOrCohabitingMinorsCount}>
-          {({ id, describedBy, invalid }) => (
-            <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("marriedOrCohabitingMinorsCount")} />
-          )}
-        </FieldWrapper>
-      </div>
+        </CollapsibleFieldGroup>
+      </Accordion>
     </SectionForm>
   );
 }

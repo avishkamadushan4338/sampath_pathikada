@@ -24,6 +24,7 @@ import { GN_DIVISIONS } from "@/lib/registration-data";
 import { StateInstitutionsLandView } from "@/components/analytics/StateInstitutionsLandView";
 import { PhysicalEnvironmentView } from "@/components/analytics/PhysicalEnvironmentView";
 import { HousingView } from "@/components/analytics/HousingView";
+import { EducationView } from "@/components/analytics/EducationView";
 
 interface RegistrationRow {
   id: string;
@@ -131,6 +132,7 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
   const isStateInstitutionsLand = section === "state-institutions-land";
   const isPhysicalEnvironment = section === "physical-environment";
   const isHousing = section === "housing";
+  const isEducation = section === "education";
   const showMahaweliColumn = user?.dsDivision === "hambantota-ds";
   const { data, error, isLoading } = useSWR(
     isIdentification ? "/api/registrations?role=gn&status=all&limit=100" : null,
@@ -147,6 +149,8 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
     ? { en: "Physical & Environment", si: "භෞතික හා පාරිසරික තොරතුරු" }
     : isHousing
     ? { en: "Housing", si: "නිවාස තොරතුරු" }
+    : isEducation
+    ? { en: "Education", si: "අධ්‍යාපනය" }
     : { en: "Section details", si: "සැකිලි විස්තර" };
 
   const description = isIdentification
@@ -173,6 +177,11 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
     ? {
         en: "Search or select a GN division to view its housing stock, sanitation, drinking water sources, and electricity access data.",
         si: "නිවාස ප්‍රමාණය, සනීපාරක්ෂක පහසුකම්, පානීය ජල මූලාශ්‍ර සහ විදුලි පහසුකම් දත්ත බැලීමට ග්‍රාම නිලධාරී වසමක් සොයන්න හෝ තෝරන්න.",
+      }
+    : isEducation
+    ? {
+        en: "Search or select a GN division to view its schools, preschools, tertiary institutions, and education-related facilities.",
+        si: "පාසල්, පෙර පාසල්, තෘතීයික අධ්‍යාපන ආයතන සහ අධ්‍යාපන පහසුකම් දත්ත බැලීමට ග්‍රාම නිලධාරී වසමක් සොයන්න හෝ තෝරන්න.",
       }
     : {
         en: "This section is not available yet. Please return to the division information overview.",
@@ -380,6 +389,8 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
         <PhysicalEnvironmentView />
       ) : isHousing ? (
         <HousingView />
+      ) : isEducation ? (
+        <EducationView />
       ) : isDemographics ? (
         <div className="space-y-4">
           <Card className="card-lift overflow-hidden border-border/60 shadow-md">

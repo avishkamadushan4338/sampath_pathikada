@@ -21,8 +21,12 @@ export const educationDict: SectionDictionary<keyof EducationData & string> = {
       si: "පාසල් පහසුකම්",
     },
     specialAttentionSchools: {
-      en: "Schools Requiring Special Attention",
-      si: "විශේෂ අවධානය අවශ්‍ය පාසල්",
+      en: "Schools for Special Needs Students",
+      si: "විශේෂ අවශ්‍යතා ඇති අය සඳහා පිහිටුවා ඇති ඒකක සහිත පාසල්",
+    },
+    closedSchools: {
+      en: "Schools Closed in the Last 5 Years",
+      si: "පසුගිය වසර 5 ඇතුළත වැසීගිය පාසල්",
     },
     privateInternationalSchools: {
       en: "Private / International Schools",
@@ -40,9 +44,9 @@ export const educationDict: SectionDictionary<keyof EducationData & string> = {
       en: "Preschools",
       si: "පෙර පාසල්",
     },
-    dhammaEducation: {
-      en: "Dhamma Education (by Religion)",
-      si: "ධර්ම පාසල් අධ්‍යාපනය (ආගම අනුව)",
+    dhammaEducationInstitutions: {
+      en: "Dhamma Education Institutions",
+      si: "දහම් අධ්‍යාපනය ලබාදෙන ආයතන",
     },
     tertiaryInstitutions: {
       en: "Tertiary Institutions",
@@ -52,13 +56,13 @@ export const educationDict: SectionDictionary<keyof EducationData & string> = {
       en: "Tuition Centers",
       si: "පෞද්ගලික ඉගැන්වීම් පන්ති (ටියුෂන් මධ්‍යස්ථාන)",
     },
-    outOfSchoolChildrenCount: {
-      en: "Number of Out-of-School Children",
-      si: "පාසැලෙන් බැහැර දරුවන් සංඛ්‍යාව",
+    outOfSchoolChildren: {
+      en: "Out-of-School Children (Ages 5–14)",
+      si: "පාසැලෙන් බැහැර දරුවන් (අවු. 5-14)",
     },
-    marriedOrCohabitingMinorsCount: {
-      en: "Number of Married / Cohabiting Minors",
-      si: "විවාහ වූ / සමඟ ජීවත් වන අවු. 18ට අඩු අය සංඛ්‍යාව",
+    childrenInProbationOrDetention: {
+      en: "Children in Probation / Detention Custody (Under 18)",
+      si: "පරිවාසගත හෝ බන්ධනාගාරගත ළමුන් (අවු. 18ට අඩු)",
     },
   },
 };

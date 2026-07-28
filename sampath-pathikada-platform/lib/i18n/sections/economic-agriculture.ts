@@ -8,65 +8,33 @@ export const economicAgricultureDict: SectionDictionary<keyof EconomicAgricultur
     si: "වසම තුළ ඉඩම් භාවිතය, කෘෂිකර්මාන්තය, සත්ත්ව පාලනය, ධීවර කර්මාන්තය සහ කර්මාන්ත පිළිබඳ තොරතුරු.",
   },
   fields: {
-    landUse: {
-      en: "Land Use",
-      si: "ඉඩම් භාවිතය",
-    },
+    landUse: { en: "Land Use", si: "ඉඩම් භාවිතය හා කෘෂිකාර්මික තොරතුරු" },
     animalHusbandryCounts: {
-      en: "Animal Husbandry Counts",
-      si: "සත්ත්ව පාලන ගණන්",
+      en: "Commercial Cultivation (Flowers / Greenhouse / Beekeeping)",
+      si: "වාණිජ මට්ටමින් වගාවන් සිදු කරන පුද්ගලයින් සංඛ්‍යාව",
     },
     animalHusbandryDirectory: {
-      en: "Animal Husbandry Directory",
-      si: "සත්ත්ව පාලන ආයතන නාමාවලිය",
+      en: "Commercial Cultivation Directory",
+      si: "වගාවන් සිදු කරන පුද්ගලයින් විස්තර",
     },
-    specialEconomicActivities: {
-      en: "Special Economic Activities",
-      si: "විශේෂ ආර්ථික ක්‍රියාකාරකම්",
-    },
-    abandonedPaddyLand: {
-      en: "Abandoned Paddy Land",
-      si: "අතහැර දැමූ කුඹුරු ඉඩම්",
-    },
-    agriMachinery: {
-      en: "Agricultural Machinery",
-      si: "කෘෂිකාර්මික යන්ත්‍රෝපකරණ",
-    },
-    forestDamage: {
-      en: "Forest Damage",
-      si: "වන විනාශය",
-    },
-    livestockFarms: {
-      en: "Livestock Farms",
-      si: "පශු සම්පත් ගොවිපොළවල්",
-    },
-    industries: {
-      en: "Industries",
-      si: "කර්මාන්ත",
-    },
-    marineFisheries: {
-      en: "Marine Fisheries",
-      si: "මුහුදු ධීවර කර්මාන්තය",
-    },
-    inlandFisheries: {
-      en: "Inland Fisheries",
-      si: "අභ්‍යන්තර ධීවර කර්මාන්තය",
-    },
-    fishLandingSites: {
-      en: "Fish Landing Sites",
-      si: "මාළු ගොඩබෑම් ස්ථාන",
-    },
-    saltProductionPresent: {
-      en: "Salt Production Present",
-      si: "ලුණු නිෂ්පාදනය පවතී ද",
-    },
-    saltProductionDirectory: {
-      en: "Salt Production Directory",
-      si: "ලුණු නිෂ්පාදන ස්ථාන නාමාවලිය",
-    },
-    teaEstates: {
-      en: "Tea Estates",
-      si: "තේ වතුවල",
-    },
+    specialEconomicActivities: { en: "Area-Specific / Special Economic Activities", si: "ප්‍රදේශයට ආවේණික / විශේෂිත ආර්ථික කටයුතු" },
+    abandonedPaddyLand: { en: "Abandoned Paddy Land (Last 5 Years)", si: "පුරන් කුඹුරු බිම් ප්‍රමාණය" },
+    agriMachinery: { en: "Agricultural Machinery & Equipment", si: "කෘෂිකාර්මික උපකරණ හා යන්ත්‍රෝපකරණ" },
+    forestDamage: { en: "Crop / Forest Damage", si: "වගා හානි පිළිබඳ තොරතුරු" },
+    livestockFarms: { en: "Commercial Livestock Farms", si: "වාණිජ මට්ටමින් සත්ත්ව පාලනයේ යෙදෙන පවුල්" },
+    industryCounts: { en: "Industry Counts", si: "කර්මාන්ත ගණන් (ගෘහස්ථ/සේවක 5ට අඩු/සේවක 5ට වැඩි)" },
+    industries: { en: "Industry Directory", si: "කර්මාන්ත විස්තර" },
+    marineFisheries: { en: "Marine Fisheries", si: "මුහුදු ධීවර කර්මාන්තය" },
+    marineFisheriesSocieties: { en: "Marine Fisheries Societies", si: "මුහුදු ධීවර සමිති" },
+    inlandFisheries: { en: "Inland Fisheries", si: "අභ්‍යන්තර ධීවර කර්මාන්තය" },
+    inlandFisheriesSocieties: { en: "Inland Fisheries Societies", si: "අභ්‍යන්තර ධීවර සමිති" },
+    inlandWaterBodies: { en: "Water Bodies Used for Inland Fishing", si: "අභ්‍යන්තර ධීවර කර්මාන්තය සිදුකරන වැව්/ජලාශ" },
+    aquacultureDirectory: { en: "Aquaculture Directory", si: "ජලජීවී වගාව" },
+    ornamentalFishDirectory: { en: "Ornamental Fish Farming Directory", si: "විසිතුරු මත්ස්‍ය වගාව" },
+    fishLandingSitePresent: { en: "Fish Landing Sites / Harbors Present?", si: "ධීවර වරාය/ධීවර තොටුපොළ පිහිටා තිබේද?" },
+    fishLandingSites: { en: "Fish Landing Sites / Harbors", si: "ධීවර වරාය/ධීවර තොටුපොළ විස්තර" },
+    iceProductionPresent: { en: "Ice Production Factories Present?", si: "අයිස් නිෂ්පාදනාගාර පිහිටා තිබේද?" },
+    iceProductionDirectory: { en: "Ice Production Factories", si: "අයිස් නිෂ්පාදනාගාර විස්තර" },
+    teaEstates: { en: "Tea Estates", si: "තේ වතු පිළිබඳ විස්තර" },
   },
 };

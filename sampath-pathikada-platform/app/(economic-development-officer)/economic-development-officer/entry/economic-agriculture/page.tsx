@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
@@ -19,7 +19,18 @@ import {
 import { useSubmission, useSaveSection } from "@/hooks/use-submission";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { economicAgricultureDict } from "@/lib/i18n/sections/economic-agriculture";
-import { economicAgricultureSchemaPartial, INDUSTRY_SIZES } from "@/lib/validators/sections/economic-agriculture";
+import {
+  economicAgricultureSchemaPartial,
+  LAND_USE_TYPES,
+  FLORAL_CULTIVATION_TYPES,
+  MARKETPLACES,
+  AGRI_MACHINERY_TYPES,
+  CROP_DAMAGE_TYPES,
+  TEA_ESTATE_OWNERSHIP,
+  FISH_SITE_TYPES,
+  WATER_TYPES,
+  INLAND_WATER_BODY_TYPES,
+} from "@/lib/validators/sections/economic-agriculture";
 import { cn } from "@/lib/utils";
 import type { z } from "zod";
 
@@ -27,67 +38,160 @@ const CURRENT_YEAR = 2026;
 
 type EconomicAgricultureDraft = z.infer<typeof economicAgricultureSchemaPartial>;
 
-const EMPTY_VALUES: EconomicAgricultureDraft = {
-  landUse: [],
-  animalHusbandryCounts: {
-    cattleFarming: 0,
-    beekeeping: 0,
-  },
-  animalHusbandryDirectory: [],
-  specialEconomicActivities: [],
-  abandonedPaddyLand: {
-    extentHectares: 0,
-    canBeReactivatedExtent: 0,
-    reason: "",
-    actionPlan: "",
-  },
-  agriMachinery: [],
-  forestDamage: [],
-  livestockFarms: [],
-  industries: [],
-  marineFisheries: {
-    householdCount: 0,
-    activeFishermenCount: 0,
-    societyCount: 0,
-  },
-  inlandFisheries: {
-    householdCount: 0,
-    activeFishermenCount: 0,
-    societyCount: 0,
-  },
-  fishLandingSites: [],
-  saltProductionPresent: "no",
-  saltProductionDirectory: [],
-  teaEstates: [],
-};
-
 const YES_NO_OPTIONS = [
   { value: "yes", label: { en: "Yes", si: "ඔව්" } },
   { value: "no", label: { en: "No", si: "නැත" } },
 ];
 
-const INDUSTRY_SIZE_LABELS: Record<(typeof INDUSTRY_SIZES)[number], { en: string; si: string }> = {
-  household: { en: "Household", si: "ගෘහස්ථ" },
-  small: { en: "Small", si: "කුඩා" },
-  large: { en: "Large", si: "විශාල" },
+const LAND_USE_LABELS: Record<(typeof LAND_USE_TYPES)[number], { en: string; si: string }> = {
+  forest: { en: "Forest", si: "වනාන්තර" },
+  "paddy-cultivation": { en: "Paddy Cultivation", si: "වී වගාව" },
+  "abandoned-paddy": { en: "Abandoned Paddy Land", si: "පුරන් කුඹුරු" },
+  "agri-land-tea": { en: "Agricultural Land - Tea", si: "කෘෂිකාර්මික ඉඩම් - තේ" },
+  "agri-land-coconut": { en: "Agricultural Land - Coconut", si: "කෘෂිකාර්මික ඉඩම් - පොල්" },
+  "agri-land-rubber": { en: "Agricultural Land - Rubber", si: "කෘෂිකාර්මික ඉඩම් - රබර්" },
+  cinnamon: { en: "Cinnamon", si: "කුරුඳු" },
+  pepper: { en: "Pepper", si: "ගම්මිරිස්" },
+  coffee: { en: "Coffee", si: "කෝපි" },
+  vegetables: { en: "Vegetables", si: "එළවළු" },
+  fruits: { en: "Fruits", si: "පලතුරු" },
+  "tuber-crops": { en: "Tuber Crops", si: "අල බෝග වගාව" },
+  "supplementary-food-crops": { en: "Supplementary Food Crops", si: "අතිරේක ආහාර බෝග" },
+  "inland-reservoirs": { en: "Inland Reservoirs", si: "අභ්‍යන්තර ජලාශ" },
+  "roads-sports-homegardens": { en: "Roads / Sports Grounds / Home Gardens", si: "මාර්ග/ක්‍රීඩා භූමි/ගෙවතු වගාව" },
+  "scrub-chena-barren": { en: "Scrubland / Chena / Barren Land", si: "ඵලදු කැළෑ/හේන්/මුඩු බිම" },
+  "ornamental-nurseries": { en: "Ornamental Plant Nurseries", si: "විසිතුරු පැල තවාන්" },
+  "plantation-crop-nurseries": { en: "Plantation Crop Nurseries", si: "වැවිලි බෝග පැල තවාන්" },
+  "aquaculture-land": { en: "Aquaculture Land", si: "ජල ජීවි වගාව" },
 };
+
+const FLORAL_CULTIVATION_LABELS: Record<(typeof FLORAL_CULTIVATION_TYPES)[number], { en: string; si: string }> = {
+  "floor-flower-cultivation": { en: "Floor Flower Cultivation", si: "බිම් මල් වගාව" },
+  "greenhouse-cultivation": { en: "Protected Greenhouse Cultivation", si: "ආරක්ෂිත ගෘහකුළ වගාව" },
+  beekeeping: { en: "Beekeeping", si: "මීමැසි පාලනය" },
+};
+
+const MARKETPLACE_LABELS: Record<(typeof MARKETPLACES)[number], { en: string; si: string }> = {
+  local: { en: "Local", si: "දේශීය" },
+  national: { en: "National", si: "ජාතික" },
+  international: { en: "International", si: "ජාත්‍යන්තර" },
+};
+
+const AGRI_MACHINERY_LABELS: Record<(typeof AGRI_MACHINERY_TYPES)[number], { en: string; si: string }> = {
+  "two-wheel-tractor": { en: "2-Wheel Tractor", si: "රෝද දෙකේ ට්‍රැක්ටර්" },
+  "two-wheel-tractor-rotavator": { en: "2-Wheel Tractor + Rotavator", si: "රෝද දෙකේ ට්‍රැක්ටර් රොටවේටර්" },
+  "two-wheel-tractor-mouldboard-plough": { en: "2-Wheel Tractor + Mould Board Plough", si: "රෝද දෙකේ ට්‍රැක්ටර් මෝල්ඩ් බෝඩ් නගුල" },
+  "four-wheel-tractor": { en: "4-Wheel Tractor", si: "රෝද හතරේ ට්‍රැක්ටර්" },
+  "four-wheel-tractor-rotavator": { en: "4-Wheel Tractor + Rotavator", si: "රෝද හතරේ ට්‍රැක්ටර් රොටවේටර්" },
+  "four-wheel-tractor-disc-plough": { en: "4-Wheel Tractor + Disc Plough", si: "රෝද හතරේ ට්‍රැක්ටර් ඩිස්ක් නගුල" },
+  "water-pump": { en: "Water Pump", si: "වතුර පොම්ප" },
+  transplanter: { en: "Transplanter", si: "නෙළුම් සිටුවන යන්ත්‍ර" },
+  weeder: { en: "Weeder", si: "වල් නෙළීම් කර" },
+  harvester: { en: "Harvester", si: "අස්වනු නෙළන යන්ත්‍ර" },
+  "power-sprayer": { en: "Power Sprayer", si: "බලවේග දියර ඉසින යන්ත්‍ර" },
+  "sprinkler-irrigation": { en: "Sprinkler Irrigation Equipment", si: "වර්ෂණ ජලාපවහන යන්ත්‍ර" },
+  "water-spraying-equipment": { en: "Water Spraying Equipment", si: "ජල විජලන යන්ත්‍ර" },
+  "grass-cutter": { en: "Grass Cutter", si: "තෘණ නෙළන යන්ත්‍ර" },
+  "food-processing-equipment": { en: "Food Processing Equipment", si: "ආහාර විජලන යන්ත්‍ර" },
+  "paddy-dryer-parboiling": { en: "Paddy Dryer / Parboiling Equipment", si: "බිම් මට්ටමේ මාධ්‍ය හිරවුම් යන්ත්‍ර" },
+  "paddy-miller": { en: "Paddy Miller", si: "බිම් මට්ටමේ මාධ්‍ය මාළු ම යන්ත්‍ර" },
+  "chena-planting-equipment": { en: "Chena Planting Equipment", si: "පෑළ සිටුවන යන්ත්‍ර" },
+  "paddy-winnower": { en: "Paddy Winnower", si: "වී වේළන යන්ත්‍ර" },
+  "oil-mill": { en: "Oil Mill", si: "තෙල් මෝල්" },
+  "rubber-mill": { en: "Rubber Mill", si: "රබර් මෝල්" },
+  "paddy-mill": { en: "Paddy Mill", si: "වී මෝල්" },
+  other: { en: "Other", si: "වෙනත්" },
+};
+
+const CROP_DAMAGE_LABELS: Record<(typeof CROP_DAMAGE_TYPES)[number], { en: string; si: string }> = {
+  "elephant-conflict": { en: "Wild Elephant Conflict", si: "අලි ගැටළුව/අලි මිනිස් ගැටුම" },
+  "wildlife-damage": { en: "Monkey / Porcupine / Wild Boar Damage", si: "රිලව්/වඳුරන්/දඬුලේණා/ඌරා ආදී වන හානි" },
+  "peacock-damage": { en: "Peacock Damage", si: "මොණර හානිය" },
+  "flood-damage": { en: "Flood Damage", si: "ගංවතුර හානිය" },
+  drought: { en: "Drought", si: "නියඟය" },
+  "pest-disease": { en: "Pest & Disease Conditions", si: "කෘමි උවදුරු හා රෝග තත්ත්ව" },
+  other: { en: "Other", si: "වෙනත්" },
+};
+
+const TEA_ESTATE_OWNERSHIP_LABELS: Record<(typeof TEA_ESTATE_OWNERSHIP)[number], { en: string; si: string }> = {
+  govt: { en: "Government-Owned", si: "රජයට අයත්" },
+  "private-company": { en: "Jointly-Owned Private Company", si: "පුද්ගලික වතු සමාගම්" },
+  private: { en: "Private", si: "පුද්ගලික" },
+};
+
+const FISH_SITE_TYPE_LABELS: Record<(typeof FISH_SITE_TYPES)[number], { en: string; si: string }> = {
+  "landing-site": { en: "Fish Landing Site", si: "ධීවර තොටුපොළ" },
+  harbor: { en: "Fish Harbor", si: "ධීවර වරාය" },
+};
+
+const WATER_TYPE_LABELS: Record<(typeof WATER_TYPES)[number], { en: string; si: string }> = {
+  marine: { en: "Marine", si: "මුහුදු" },
+  inland: { en: "Inland", si: "අභ්‍යන්තර" },
+};
+
+const INLAND_WATER_BODY_TYPE_LABELS: Record<(typeof INLAND_WATER_BODY_TYPES)[number], { en: string; si: string }> = {
+  perennial: { en: "Perennial", si: "නිත්‍ය" },
+  seasonal: { en: "Seasonal", si: "කාලීන" },
+};
+
+function buildEmptyValues(lang: "en" | "si"): EconomicAgricultureDraft {
+  return {
+    landUse: LAND_USE_TYPES.map((type) => ({ landType: type, extentHectares: 0 })),
+    animalHusbandryCounts: FLORAL_CULTIVATION_TYPES.map((type) => ({ type, count: 0 })),
+    animalHusbandryDirectory: [],
+    specialEconomicActivities: [],
+    abandonedPaddyLand: { extentAcres: 0, canBeReactivatedExtent: 0, reason: "", actionPlan: "" },
+    agriMachinery: AGRI_MACHINERY_TYPES.map((type) => ({ type, count: 0 })),
+    forestDamage: CROP_DAMAGE_TYPES.map((type) => ({ type, present: "no" })),
+    livestockFarms: [],
+    industryCounts: { householdIndustry: 0, under5Employees: 0, over5Employees: 0 },
+    industries: [],
+    marineFisheries: { householdCount: 0, fishingPopulation: 0, activeFishermenCount: 0, societyCount: 0 },
+    marineFisheriesSocieties: [],
+    inlandFisheries: { householdCount: 0, fishingPopulation: 0, activeFishermenCount: 0, societyCount: 0 },
+    inlandFisheriesSocieties: [],
+    inlandWaterBodies: [],
+    aquacultureDirectory: [],
+    ornamentalFishDirectory: [],
+    fishLandingSitePresent: "no",
+    fishLandingSites: [],
+    iceProductionPresent: "no",
+    iceProductionDirectory: [],
+    teaEstates: [],
+  };
+}
+
+function mergeWithSaved(empty: EconomicAgricultureDraft, saved: EconomicAgricultureDraft): EconomicAgricultureDraft {
+  return {
+    ...empty,
+    ...saved,
+    landUse: empty.landUse?.map((row, i) => ({ ...row, ...saved.landUse?.[i] })),
+    animalHusbandryCounts: empty.animalHusbandryCounts?.map((row, i) => ({ ...row, ...saved.animalHusbandryCounts?.[i] })),
+    agriMachinery: empty.agriMachinery?.map((row, i) => ({ ...row, ...saved.agriMachinery?.[i] })),
+    forestDamage: empty.forestDamage?.map((row, i) => ({ ...row, ...saved.forestDamage?.[i] })),
+  };
+}
 
 export default function EconomicAgriculturePage() {
   const { lang } = useLanguage();
   const { submission, isLoading } = useSubmission(CURRENT_YEAR);
   const { saveSection, status, errorMessage } = useSaveSection(CURRENT_YEAR);
 
+  const emptyValues = useMemo(() => buildEmptyValues(lang), [lang]);
+
   const form = useForm<EconomicAgricultureDraft>({
     resolver: zodResolver(economicAgricultureSchemaPartial),
-    defaultValues: EMPTY_VALUES,
+    defaultValues: emptyValues,
   });
 
   useEffect(() => {
     if (submission?.data.economicAgriculture) {
-      form.reset({ ...EMPTY_VALUES, ...submission.data.economicAgriculture });
+      form.reset(mergeWithSaved(emptyValues, submission.data.economicAgriculture));
+    } else {
+      form.reset(emptyValues);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [submission]);
+  }, [submission, emptyValues]);
 
   async function handleSave(values: EconomicAgricultureDraft) {
     await saveSection("economicAgriculture", values);
@@ -102,71 +206,130 @@ export default function EconomicAgriculturePage() {
   }
 
   const landUseColumns: RepeatableColumn[] = [
-    { key: "landType", label: { en: "Land Type", si: "ඉඩම් වර්ගය" }, type: "text" },
+    { key: "landTypeLabel", label: { en: "Land Type", si: "ඉඩම් වර්ගය" }, type: "readonly" },
     { key: "extentHectares", label: { en: "Extent (Hectares)", si: "ප්‍රමාණය (හෙක්ටයාර)" }, type: "number" },
+  ];
+
+  const animalHusbandryCountColumns: RepeatableColumn[] = [
+    { key: "typeLabel", label: { en: "Cultivation Type", si: "වගා වර්ගය" }, type: "readonly" },
+    { key: "count", label: { en: "Count", si: "ගණන" }, type: "number" },
   ];
 
   const animalHusbandryDirectoryColumns: RepeatableColumn[] = [
     { key: "name", label: { en: "Name", si: "නම" }, type: "text" },
     { key: "address", label: { en: "Address", si: "ලිපිනය" }, type: "text" },
     { key: "phone", label: { en: "Phone", si: "දුරකථන අංකය" }, type: "text" },
-    { key: "type", label: { en: "Type", si: "වර්ගය" }, type: "text" },
+    {
+      key: "type",
+      label: { en: "Type", si: "වර්ගය" },
+      type: "select",
+      options: FLORAL_CULTIVATION_TYPES.map((t) => ({ value: t, label: FLORAL_CULTIVATION_LABELS[t] })),
+    },
+    {
+      key: "marketplace",
+      label: { en: "Marketplace", si: "වෙළඳපොල" },
+      type: "select",
+      options: MARKETPLACES.map((m) => ({ value: m, label: MARKETPLACE_LABELS[m] })),
+    },
   ];
 
   const specialEconomicActivityColumns: RepeatableColumn[] = [
-    { key: "activity", label: { en: "Activity", si: "ක්‍රියාකාරකම" }, type: "text" },
-    { key: "description", label: { en: "Description", si: "විස්තරය" }, type: "text" },
-    { key: "beneficiaries", label: { en: "Beneficiaries", si: "ප්‍රතිලාභීන්" }, type: "text" },
+    { key: "activity", label: { en: "Activity", si: "ආර්ථික කටයුත්ත" }, type: "text" },
+    { key: "natureOfActivity", label: { en: "Nature / Scope", si: "ආර්ථික කටයුත්තේ ස්වභාවය" }, type: "text" },
+    { key: "resourceOrProductUsed", label: { en: "Resource / Product Used", si: "යොදාගන්නා ස්වභාවික සම්පත්/නිෂ්පාදනය" }, type: "text" },
   ];
 
   const agriMachineryColumns: RepeatableColumn[] = [
-    { key: "label", label: { en: "Machinery", si: "යන්ත්‍රෝපකරණය" }, type: "text" },
+    { key: "typeLabel", label: { en: "Equipment", si: "යන්ත්‍රෝපකරණය" }, type: "readonly" },
     { key: "count", label: { en: "Count", si: "ගණන" }, type: "number" },
   ];
 
   const forestDamageColumns: RepeatableColumn[] = [
-    { key: "label", label: { en: "Type of Damage", si: "විනාශයේ වර්ගය" }, type: "text" },
-    {
-      key: "present",
-      label: { en: "Present", si: "පවතී ද" },
-      type: "select",
-      options: YES_NO_OPTIONS,
-    },
+    { key: "typeLabel", label: { en: "Type of Damage", si: "හානියේ ස්වභාවය" }, type: "readonly" },
+    { key: "present", label: { en: "Present", si: "ඇත/නැත" }, type: "select", options: YES_NO_OPTIONS },
   ];
 
   const livestockFarmColumns: RepeatableColumn[] = [
     { key: "name", label: { en: "Name", si: "නම" }, type: "text" },
     { key: "address", label: { en: "Address", si: "ලිපිනය" }, type: "text" },
-    { key: "animalType", label: { en: "Animal Type", si: "සත්ව වර්ගය" }, type: "text" },
-    { key: "count", label: { en: "Count", si: "ගණන" }, type: "number" },
+    { key: "phone", label: { en: "Phone", si: "දුරකථන අංකය" }, type: "text" },
+    { key: "cattle", label: { en: "Cattle", si: "ගවයන්" }, type: "number" },
+    { key: "layerChickens", label: { en: "Layer Chickens", si: "බිත්තර සඳහා කුකුළන්" }, type: "number" },
+    { key: "broilerChickens", label: { en: "Broiler Chickens", si: "මස් සඳහා කුකුළන්" }, type: "number" },
+    { key: "goats", label: { en: "Goats", si: "එළුවන්" }, type: "number" },
+    { key: "pigs", label: { en: "Pigs", si: "ඌරන්" }, type: "number" },
+    { key: "peacock", label: { en: "Peacock / Turkey", si: "තුරාවන්" }, type: "number" },
+    { key: "other", label: { en: "Other", si: "වෙනත්" }, type: "number" },
   ];
 
   const industryColumns: RepeatableColumn[] = [
     { key: "name", label: { en: "Name", si: "නම" }, type: "text" },
-    { key: "productType", label: { en: "Product Type", si: "නිෂ්පාදන වර්ගය" }, type: "text" },
+    { key: "productionType", label: { en: "Production Type", si: "නිෂ්පාදන වර්ගය" }, type: "text" },
     { key: "employeeCount", label: { en: "Employee Count", si: "සේවක සංඛ්‍යාව" }, type: "number" },
+    { key: "phone", label: { en: "Phone", si: "දුරකථන අංකය" }, type: "text" },
     {
-      key: "size",
-      label: { en: "Size", si: "ප්‍රමාණය" },
+      key: "marketplace",
+      label: { en: "Marketplace", si: "වෙළඳපොල" },
       type: "select",
-      options: INDUSTRY_SIZES.map((s) => ({ value: s, label: INDUSTRY_SIZE_LABELS[s] })),
+      options: MARKETPLACES.map((m) => ({ value: m, label: MARKETPLACE_LABELS[m] })),
     },
+  ];
+
+  const fisheriesSocietyColumns: RepeatableColumn[] = [
+    { key: "name", label: { en: "Society Name", si: "සමිතියේ නම" }, type: "text" },
+    { key: "address", label: { en: "Address", si: "ලිපිනය" }, type: "text" },
+    { key: "memberCount", label: { en: "Member Count", si: "සාමාජික ගණන" }, type: "number" },
+  ];
+
+  const inlandWaterBodyColumns: RepeatableColumn[] = [
+    { key: "name", label: { en: "Name of Tank / Reservoir", si: "වැව/ජලාශයේ නම" }, type: "text" },
+    {
+      key: "type",
+      label: { en: "Type", si: "වර්ගය" },
+      type: "select",
+      options: INLAND_WATER_BODY_TYPES.map((t) => ({ value: t, label: INLAND_WATER_BODY_TYPE_LABELS[t] })),
+    },
+  ];
+
+  const namePhoneColumns: RepeatableColumn[] = [
+    { key: "name", label: { en: "Name", si: "නම" }, type: "text" },
+    { key: "address", label: { en: "Address", si: "ලිපිනය" }, type: "text" },
+    { key: "phone", label: { en: "Phone", si: "දුරකථන අංකය" }, type: "text" },
   ];
 
   const fishLandingSiteColumns: RepeatableColumn[] = [
     { key: "name", label: { en: "Name", si: "නම" }, type: "text" },
-    { key: "location", label: { en: "Location", si: "ස්ථානය" }, type: "text" },
+    { key: "address", label: { en: "Address", si: "ලිපිනය" }, type: "text" },
+    {
+      key: "siteType",
+      label: { en: "Site Type", si: "වර්ගය" },
+      type: "select",
+      options: FISH_SITE_TYPES.map((t) => ({ value: t, label: FISH_SITE_TYPE_LABELS[t] })),
+    },
+    {
+      key: "waterType",
+      label: { en: "Marine / Inland", si: "මුහුදු/අභ්‍යන්තර" },
+      type: "select",
+      options: WATER_TYPES.map((t) => ({ value: t, label: WATER_TYPE_LABELS[t] })),
+    },
   ];
 
-  const saltProductionColumns: RepeatableColumn[] = [
+  const nameAddressColumns: RepeatableColumn[] = [
     { key: "name", label: { en: "Name", si: "නම" }, type: "text" },
-    { key: "location", label: { en: "Location", si: "ස්ථානය" }, type: "text" },
+    { key: "address", label: { en: "Address", si: "ලිපිනය" }, type: "text" },
   ];
 
   const teaEstateColumns: RepeatableColumn[] = [
     { key: "name", label: { en: "Name", si: "නම" }, type: "text" },
-    { key: "extentHectares", label: { en: "Extent (Hectares)", si: "ප්‍රමාණය (හෙක්ටයාර)" }, type: "number" },
-    { key: "ownership", label: { en: "Ownership", si: "හිමිකාරිත්වය" }, type: "text" },
+    {
+      key: "ownership",
+      label: { en: "Ownership", si: "හිමිකාරිත්වය" },
+      type: "select",
+      options: TEA_ESTATE_OWNERSHIP.map((o) => ({ value: o, label: TEA_ESTATE_OWNERSHIP_LABELS[o] })),
+    },
+    { key: "extentAcres", label: { en: "Extent (Acres)", si: "ප්‍රමාණය (අක්කර)" }, type: "number" },
+    { key: "employeesFemale", label: { en: "Employees - Female", si: "සේවකයන් - ස්ත්‍රී" }, type: "number" },
+    { key: "employeesMale", label: { en: "Employees - Male", si: "සේවකයන් - පුරුෂ" }, type: "number" },
   ];
 
   const headingClass = cn("text-fluid-lg font-semibold text-foreground", lang === "si" && "font-si-heading");
@@ -186,26 +349,23 @@ export default function EconomicAgriculturePage() {
           name="landUse"
           title={economicAgricultureDict.fields.landUse}
           columns={landUseColumns}
-          emptyRowFactory={() => ({ landType: "", extentHectares: 0 })}
+          fixedRows
+          emptyRowFactory={() => ({ landType: LAND_USE_TYPES[0], landTypeLabel: LAND_USE_LABELS[LAND_USE_TYPES[0]][lang], extentHectares: 0 })}
         />
       </div>
 
-      <div className="flex flex-col gap-2 border-t border-border pt-6">
-        <h2 lang={lang} className={headingClass}>
-          {economicAgricultureDict.fields.animalHusbandryCounts[lang]}
-        </h2>
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4">
-          <FieldWrapper name="animalHusbandryCounts.cattleFarming" label={{ en: "Cattle Farming", si: "ගවපාලනය" }}>
-            {({ id, describedBy, invalid }) => (
-              <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("animalHusbandryCounts.cattleFarming")} />
-            )}
-          </FieldWrapper>
-          <FieldWrapper name="animalHusbandryCounts.beekeeping" label={{ en: "Beekeeping", si: "මී මැසි පාලනය" }}>
-            {({ id, describedBy, invalid }) => (
-              <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("animalHusbandryCounts.beekeeping")} />
-            )}
-          </FieldWrapper>
-        </div>
+      <div className="border-t border-border pt-6">
+        <RepeatableTable
+          name="animalHusbandryCounts"
+          title={economicAgricultureDict.fields.animalHusbandryCounts}
+          columns={animalHusbandryCountColumns}
+          fixedRows
+          emptyRowFactory={() => ({
+            type: FLORAL_CULTIVATION_TYPES[0],
+            typeLabel: FLORAL_CULTIVATION_LABELS[FLORAL_CULTIVATION_TYPES[0]][lang],
+            count: 0,
+          })}
+        />
       </div>
 
       <div className="border-t border-border pt-6">
@@ -213,7 +373,7 @@ export default function EconomicAgriculturePage() {
           name="animalHusbandryDirectory"
           title={economicAgricultureDict.fields.animalHusbandryDirectory}
           columns={animalHusbandryDirectoryColumns}
-          emptyRowFactory={() => ({ name: "", address: "", phone: "", type: "" })}
+          emptyRowFactory={() => ({ name: "", address: "", phone: "", type: FLORAL_CULTIVATION_TYPES[0], marketplace: "local" })}
         />
       </div>
 
@@ -222,7 +382,7 @@ export default function EconomicAgriculturePage() {
           name="specialEconomicActivities"
           title={economicAgricultureDict.fields.specialEconomicActivities}
           columns={specialEconomicActivityColumns}
-          emptyRowFactory={() => ({ activity: "", description: "", beneficiaries: "" })}
+          emptyRowFactory={() => ({ activity: "", natureOfActivity: "", resourceOrProductUsed: "" })}
         />
       </div>
 
@@ -231,9 +391,9 @@ export default function EconomicAgriculturePage() {
           {economicAgricultureDict.fields.abandonedPaddyLand[lang]}
         </h2>
         <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4">
-          <FieldWrapper name="abandonedPaddyLand.extentHectares" label={{ en: "Extent (Hectares)", si: "ප්‍රමාණය (හෙක්ටයාර)" }}>
+          <FieldWrapper name="abandonedPaddyLand.extentAcres" label={{ en: "Extent (Acres)", si: "ප්‍රමාණය (අක්කර)" }}>
             {({ id, describedBy, invalid }) => (
-              <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("abandonedPaddyLand.extentHectares")} />
+              <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("abandonedPaddyLand.extentAcres")} />
             )}
           </FieldWrapper>
           <FieldWrapper name="abandonedPaddyLand.canBeReactivatedExtent" label={{ en: "Extent That Can Be Reactivated", si: "යළි වගා කළ හැකි ප්‍රමාණය" }}>
@@ -259,7 +419,8 @@ export default function EconomicAgriculturePage() {
           name="agriMachinery"
           title={economicAgricultureDict.fields.agriMachinery}
           columns={agriMachineryColumns}
-          emptyRowFactory={() => ({ label: "", count: 0 })}
+          fixedRows
+          emptyRowFactory={() => ({ type: AGRI_MACHINERY_TYPES[0], typeLabel: AGRI_MACHINERY_LABELS[AGRI_MACHINERY_TYPES[0]][lang], count: 0 })}
         />
       </div>
 
@@ -268,7 +429,12 @@ export default function EconomicAgriculturePage() {
           name="forestDamage"
           title={economicAgricultureDict.fields.forestDamage}
           columns={forestDamageColumns}
-          emptyRowFactory={() => ({ label: "", present: "no" })}
+          fixedRows
+          emptyRowFactory={() => ({
+            type: CROP_DAMAGE_TYPES[0],
+            typeLabel: CROP_DAMAGE_LABELS[CROP_DAMAGE_TYPES[0]][lang],
+            present: "no",
+          })}
         />
       </div>
 
@@ -277,8 +443,31 @@ export default function EconomicAgriculturePage() {
           name="livestockFarms"
           title={economicAgricultureDict.fields.livestockFarms}
           columns={livestockFarmColumns}
-          emptyRowFactory={() => ({ name: "", address: "", animalType: "", count: 0 })}
+          emptyRowFactory={() => ({ name: "", address: "", phone: "", cattle: 0, layerChickens: 0, broilerChickens: 0, goats: 0, pigs: 0, peacock: 0, other: 0 })}
         />
+      </div>
+
+      <div className="flex flex-col gap-2 border-t border-border pt-6">
+        <h2 lang={lang} className={headingClass}>
+          {economicAgricultureDict.fields.industryCounts[lang]}
+        </h2>
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4">
+          <FieldWrapper name="industryCounts.householdIndustry" label={{ en: "Household Industries", si: "ගෘහස්ථ කර්මාන්ත" }}>
+            {({ id, describedBy, invalid }) => (
+              <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("industryCounts.householdIndustry")} />
+            )}
+          </FieldWrapper>
+          <FieldWrapper name="industryCounts.under5Employees" label={{ en: "Industries with <5 Employees", si: "සේවක සංඛ්‍යාව 5ට අඩු කර්මාන්ත" }}>
+            {({ id, describedBy, invalid }) => (
+              <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("industryCounts.under5Employees")} />
+            )}
+          </FieldWrapper>
+          <FieldWrapper name="industryCounts.over5Employees" label={{ en: "Industries with 5+ Employees", si: "සේවක සංඛ්‍යාව 5ට වැඩි කර්මාන්ත" }}>
+            {({ id, describedBy, invalid }) => (
+              <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("industryCounts.over5Employees")} />
+            )}
+          </FieldWrapper>
+        </div>
       </div>
 
       <div className="border-t border-border pt-6">
@@ -286,7 +475,7 @@ export default function EconomicAgriculturePage() {
           name="industries"
           title={economicAgricultureDict.fields.industries}
           columns={industryColumns}
-          emptyRowFactory={() => ({ name: "", productType: "", employeeCount: 0, size: "household" })}
+          emptyRowFactory={() => ({ name: "", productionType: "", employeeCount: 0, phone: "", marketplace: "local" })}
         />
       </div>
 
@@ -298,6 +487,11 @@ export default function EconomicAgriculturePage() {
           <FieldWrapper name="marineFisheries.householdCount" label={{ en: "Household Count", si: "ගෘහ ඒකක සංඛ්‍යාව" }}>
             {({ id, describedBy, invalid }) => (
               <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("marineFisheries.householdCount")} />
+            )}
+          </FieldWrapper>
+          <FieldWrapper name="marineFisheries.fishingPopulation" label={{ en: "Fishing Population", si: "ධීවර ජනගහනය" }}>
+            {({ id, describedBy, invalid }) => (
+              <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("marineFisheries.fishingPopulation")} />
             )}
           </FieldWrapper>
           <FieldWrapper name="marineFisheries.activeFishermenCount" label={{ en: "Active Fishermen Count", si: "ක්‍රියාකාරී ධීවරයන් සංඛ්‍යාව" }}>
@@ -313,6 +507,15 @@ export default function EconomicAgriculturePage() {
         </div>
       </div>
 
+      <div className="border-t border-border pt-6">
+        <RepeatableTable
+          name="marineFisheriesSocieties"
+          title={economicAgricultureDict.fields.marineFisheriesSocieties}
+          columns={fisheriesSocietyColumns}
+          emptyRowFactory={() => ({ name: "", address: "", memberCount: 0 })}
+        />
+      </div>
+
       <div className="flex flex-col gap-2 border-t border-border pt-6">
         <h2 lang={lang} className={headingClass}>
           {economicAgricultureDict.fields.inlandFisheries[lang]}
@@ -321,6 +524,11 @@ export default function EconomicAgriculturePage() {
           <FieldWrapper name="inlandFisheries.householdCount" label={{ en: "Household Count", si: "ගෘහ ඒකක සංඛ්‍යාව" }}>
             {({ id, describedBy, invalid }) => (
               <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("inlandFisheries.householdCount")} />
+            )}
+          </FieldWrapper>
+          <FieldWrapper name="inlandFisheries.fishingPopulation" label={{ en: "Fishing Population", si: "ධීවර ජනගහනය" }}>
+            {({ id, describedBy, invalid }) => (
+              <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("inlandFisheries.fishingPopulation")} />
             )}
           </FieldWrapper>
           <FieldWrapper name="inlandFisheries.activeFishermenCount" label={{ en: "Active Fishermen Count", si: "ක්‍රියාකාරී ධීවරයන් සංඛ්‍යාව" }}>
@@ -338,19 +546,46 @@ export default function EconomicAgriculturePage() {
 
       <div className="border-t border-border pt-6">
         <RepeatableTable
-          name="fishLandingSites"
-          title={economicAgricultureDict.fields.fishLandingSites}
-          columns={fishLandingSiteColumns}
-          emptyRowFactory={() => ({ name: "", location: "" })}
+          name="inlandFisheriesSocieties"
+          title={economicAgricultureDict.fields.inlandFisheriesSocieties}
+          columns={fisheriesSocietyColumns}
+          emptyRowFactory={() => ({ name: "", address: "", memberCount: 0 })}
+        />
+      </div>
+
+      <div className="border-t border-border pt-6">
+        <RepeatableTable
+          name="inlandWaterBodies"
+          title={economicAgricultureDict.fields.inlandWaterBodies}
+          columns={inlandWaterBodyColumns}
+          emptyRowFactory={() => ({ name: "", type: "perennial" })}
+        />
+      </div>
+
+      <div className="border-t border-border pt-6">
+        <RepeatableTable
+          name="aquacultureDirectory"
+          title={economicAgricultureDict.fields.aquacultureDirectory}
+          columns={namePhoneColumns}
+          emptyRowFactory={() => ({ name: "", address: "", phone: "" })}
+        />
+      </div>
+
+      <div className="border-t border-border pt-6">
+        <RepeatableTable
+          name="ornamentalFishDirectory"
+          title={economicAgricultureDict.fields.ornamentalFishDirectory}
+          columns={namePhoneColumns}
+          emptyRowFactory={() => ({ name: "", address: "", phone: "" })}
         />
       </div>
 
       <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4 border-t border-border pt-6">
-        <FieldWrapper name="saltProductionPresent" label={economicAgricultureDict.fields.saltProductionPresent}>
+        <FieldWrapper name="fishLandingSitePresent" label={economicAgricultureDict.fields.fishLandingSitePresent}>
           {({ id, describedBy, invalid }) => (
             <Select
-              value={form.watch("saltProductionPresent") ?? ""}
-              onValueChange={(v) => form.setValue("saltProductionPresent", v as "yes" | "no", { shouldDirty: true })}
+              value={form.watch("fishLandingSitePresent") ?? ""}
+              onValueChange={(v) => form.setValue("fishLandingSitePresent", v as "yes" | "no", { shouldDirty: true })}
             >
               <SelectTrigger id={id} aria-describedby={describedBy} aria-invalid={invalid}>
                 <SelectValue />
@@ -369,10 +604,41 @@ export default function EconomicAgriculturePage() {
 
       <div className="border-t border-border pt-6">
         <RepeatableTable
-          name="saltProductionDirectory"
-          title={economicAgricultureDict.fields.saltProductionDirectory}
-          columns={saltProductionColumns}
-          emptyRowFactory={() => ({ name: "", location: "" })}
+          name="fishLandingSites"
+          title={economicAgricultureDict.fields.fishLandingSites}
+          columns={fishLandingSiteColumns}
+          emptyRowFactory={() => ({ name: "", address: "", siteType: "landing-site", waterType: "marine" })}
+        />
+      </div>
+
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4 border-t border-border pt-6">
+        <FieldWrapper name="iceProductionPresent" label={economicAgricultureDict.fields.iceProductionPresent}>
+          {({ id, describedBy, invalid }) => (
+            <Select
+              value={form.watch("iceProductionPresent") ?? ""}
+              onValueChange={(v) => form.setValue("iceProductionPresent", v as "yes" | "no", { shouldDirty: true })}
+            >
+              <SelectTrigger id={id} aria-describedby={describedBy} aria-invalid={invalid}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {YES_NO_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {lang === "si" ? opt.label.si : opt.label.en}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        </FieldWrapper>
+      </div>
+
+      <div className="border-t border-border pt-6">
+        <RepeatableTable
+          name="iceProductionDirectory"
+          title={economicAgricultureDict.fields.iceProductionDirectory}
+          columns={nameAddressColumns}
+          emptyRowFactory={() => ({ name: "", address: "" })}
         />
       </div>
 
@@ -381,7 +647,7 @@ export default function EconomicAgriculturePage() {
           name="teaEstates"
           title={economicAgricultureDict.fields.teaEstates}
           columns={teaEstateColumns}
-          emptyRowFactory={() => ({ name: "", extentHectares: 0, ownership: "" })}
+          emptyRowFactory={() => ({ name: "", ownership: "govt", extentAcres: 0, employeesFemale: 0, employeesMale: 0 })}
         />
       </div>
     </SectionForm>

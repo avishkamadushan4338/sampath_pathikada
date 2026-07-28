@@ -67,13 +67,14 @@ export function buildCsvRows(
       "Housing: Non-Permanent": housing.housingCounts.nonPermanent,
       "Housing: Without Proper Housing": housing.householdsWithoutHousing,
       "Housing: Without Safe Sanitation": housing.sanitation.withoutSafeSanitation,
-      "Housing: Electricity Access %": housing.avgElectricityAccessPercent ?? "",
+      "Housing: With Electricity": housing.electricityAccess.withElectricity,
+      "Housing: Without Electricity": housing.electricityAccess.withoutElectricity,
       "Housing: Underserved Areas Listed": housing.underservedAreas.rows.length,
       "Housing: Community Water Projects Listed": housing.communityWaterProjects.rows.length,
 
       // ── Employment ──
       "Employment: Total Job Seekers": employment.totalJobSeekers,
-      "Employment: Unwilling Below Qualification": employment.jobSeekersUnwillingBelowQualificationCount,
+      "Employment: Vocational Training Opportunity Gap": employment.vocationalTrainingOpportunityGapCount,
       "Employment: Active Self-Employment Sectors": employment.selfEmploymentSectors.filter((s) => s.count > 0).length,
       "Employment: Self-Employed Persons Listed": employment.selfEmployedPersons.rows.length,
 
@@ -84,12 +85,14 @@ export function buildCsvRows(
       "Education: Vocational Institutes": education.institutionCounts.vocationalTrainingInstitutes,
       "Education: Preschools (Govt)": education.institutionCounts.registeredPreschoolsGovt,
       "Education: Preschools (Private)": education.institutionCounts.registeredPreschoolsPrivate,
-      "Education: Teachers": education.schoolStaffAndStudents.teachers,
+      "Education: Female Teachers": education.schoolStaffAndStudents.teachersFemale,
+      "Education: Male Teachers": education.schoolStaffAndStudents.teachersMale,
       "Education: Female Students": education.schoolStaffAndStudents.studentsFemale,
       "Education: Male Students": education.schoolStaffAndStudents.studentsMale,
-      "Education: Out-of-School Children": education.outOfSchoolChildrenCount,
-      "Education: Married/Cohabiting Minors": education.marriedOrCohabitingMinorsCount,
+      "Education: Out-of-School Children": education.outOfSchoolChildren.total,
+      "Education: Children in Probation/Detention": education.childrenInProbationOrDetention.total,
       "Education: Schools Requiring Attention": education.specialAttentionSchools.rows.length,
+      "Education: Schools Closed (Last 5 Years)": education.closedSchools.rows.length,
 
       // ── Health ──
       "Health: Govt Hospitals": health.institutionCounts.govtHospitals,
@@ -104,12 +107,11 @@ export function buildCsvRows(
       // ── Agriculture & Economy ──
       "Agriculture: Land Use Categories": agri.landUse.length,
       "Agriculture: Total Land Extent (ha)": Math.round(agri.landUse.reduce((s, l) => s + l.extentHectares, 0) * 100) / 100,
-      "Agriculture: Cattle Farming": agri.animalHusbandryCounts.cattleFarming,
-      "Agriculture: Beekeeping": agri.animalHusbandryCounts.beekeeping,
-      "Agriculture: Abandoned Paddy Land (ha)": agri.abandonedPaddyLand.extentHectares,
+      "Agriculture: Beekeeping": agri.animalHusbandryCounts.find((c) => c.en === "Beekeeping")?.count ?? 0,
+      "Agriculture: Abandoned Paddy Land (acres)": agri.abandonedPaddyLand.extentAcres,
       "Agriculture: Marine Fishing Households": agri.marineFisheries.householdCount,
       "Agriculture: Inland Fishing Households": agri.inlandFisheries.householdCount,
-      "Agriculture: Salt Production Present": agri.saltProductionDivisionsCount > 0 ? "Yes" : "No",
+      "Agriculture: Ice Production Present": agri.iceProductionDivisionsCount > 0 ? "Yes" : "No",
       "Agriculture: Industries Listed": agri.industries.rows.length,
       "Agriculture: Livestock Farms Listed": agri.livestockFarms.rows.length,
       "Agriculture: Tea Estates Listed": agri.teaEstates.rows.length,
@@ -143,6 +145,7 @@ export function buildCsvRows(
 
       // ── Religious & Cultural ──
       "Religious: Temples": areaProfile.religiousSiteCounts.temples.count,
+      "Religious: Nun Hermitages": areaProfile.religiousSiteCounts.meheniArama.count,
       "Religious: Kovils": areaProfile.religiousSiteCounts.kovils.count,
       "Religious: Mosques": areaProfile.religiousSiteCounts.mosques.count,
       "Religious: Churches": areaProfile.religiousSiteCounts.churches.count,

@@ -5,8 +5,10 @@ import { z } from "zod";
 
 const GUEST_ACCOMMODATION_TYPES = ["guesthouse", "villa", "homestay"] as const;
 
+const HOTEL_CATEGORIES = ["star-graded", "non-star-graded", "guest-houses", "villa-homestay", "conference-centers"] as const;
+
 export const hotelInventoryRowSchema = z.object({
-  starGrade: z.string().min(1, "Star grade is required"),
+  category: z.enum(HOTEL_CATEGORIES),
   hotelCount: z.coerce.number().int().min(0).default(0),
   roomCount: z.coerce.number().int().min(0).default(0),
 });
@@ -25,7 +27,7 @@ export const otherAccommodationRowSchema = z.object({
 });
 
 export const tourismSchemaStrict = z.object({
-  hotelInventory: z.array(hotelInventoryRowSchema).default([]),
+  hotelInventory: z.array(hotelInventoryRowSchema).length(HOTEL_CATEGORIES.length),
   guestAccommodations: z.array(guestAccommodationRowSchema).default([]),
   otherAccommodations: z.array(otherAccommodationRowSchema).default([]),
 });
@@ -38,4 +40,4 @@ export const tourismSchemaPartial = z.object({
   otherAccommodations: z.array(otherAccommodationRowSchema.partial()).optional(),
 });
 
-export { GUEST_ACCOMMODATION_TYPES };
+export { GUEST_ACCOMMODATION_TYPES, HOTEL_CATEGORIES };

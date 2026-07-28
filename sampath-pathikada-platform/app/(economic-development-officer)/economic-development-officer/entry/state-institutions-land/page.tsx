@@ -55,22 +55,25 @@ export default function StateInstitutionsLandPage() {
   ];
 
   const illegalStructureColumns: RepeatableColumn[] = [
-    { key: "description", label: { en: "Description", si: "විස්තරය" }, type: "text" },
-    { key: "location", label: { en: "Location", si: "ස්ථානය" }, type: "text" },
+    { key: "buildingName", label: { en: "Building Name", si: "ඉදිකර ඇති ගොඩනැගිල්ලේ නම" }, type: "text" },
+    { key: "purposeUsed", label: { en: "Purpose Used For", si: "යොදාගත් කාර්යය" }, type: "text" },
+    {
+      key: "usable",
+      label: { en: "Usable Condition", si: "භාවිතයට ගත හැකි මට්ටමක පවතිනවාද" },
+      type: "select",
+      options: [
+        { value: "yes", label: { en: "Yes", si: "ඔව්" } },
+        { value: "no", label: { en: "No", si: "නැත" } },
+      ],
+    },
+    { key: "owningInstitution", label: { en: "Owning Institution", si: "ගොඩනැගිල්ල අයත් ආයතනය" }, type: "text" },
   ];
 
   const developmentProjectColumns: RepeatableColumn[] = [
-    { key: "name", label: { en: "Project Name", si: "ව්‍යාපෘතියේ නම" }, type: "text" },
-    {
-      key: "status",
-      label: { en: "Status", si: "තත්ත්වය" },
-      type: "select",
-      options: [
-        { value: "ongoing", label: { en: "Ongoing", si: "ක්‍රියාත්මක" } },
-        { value: "new", label: { en: "New", si: "නව" } },
-      ],
-    },
-    { key: "location", label: { en: "Location", si: "ස්ථානය" }, type: "text" },
+    { key: "projectName", label: { en: "Project Name", si: "ව්‍යාපෘතියේ/වලේ නම" }, type: "text" },
+    { key: "owningInstitution", label: { en: "Owning Institution", si: "ව්‍යාපෘතිය අයත් ආයතනය" }, type: "text" },
+    { key: "reasonForHalt", label: { en: "Reason for Halting", si: "නවතාදැමීමට හේතුව" }, type: "text" },
+    { key: "currentStatus", label: { en: "Current Status", si: "වර්තමාන තත්ත්වය" }, type: "text" },
   ];
 
   return (
@@ -97,14 +100,14 @@ export default function StateInstitutionsLandPage() {
           name="illegalStructures"
           title={stateInstitutionsLandDict.fields.illegalStructures}
           columns={illegalStructureColumns}
-          emptyRowFactory={() => ({ description: "", location: "" })}
+          emptyRowFactory={() => ({ buildingName: "", purposeUsed: "", usable: "no", owningInstitution: "" })}
         />
 
         <RepeatableTable
           name="developmentProjects"
           title={stateInstitutionsLandDict.fields.developmentProjects}
           columns={developmentProjectColumns}
-          emptyRowFactory={() => ({ name: "", status: "ongoing", location: "" })}
+          emptyRowFactory={() => ({ projectName: "", owningInstitution: "", reasonForHalt: "", currentStatus: "" })}
         />
       </div>
     </SectionForm>

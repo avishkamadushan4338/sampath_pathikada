@@ -12,42 +12,62 @@ import { Input } from "@/components/ui/input";
 import { useSubmission, useSaveSection } from "@/hooks/use-submission";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { housingDict } from "@/lib/i18n/sections/housing";
-import { housingSchemaPartial } from "@/lib/validators/sections/housing";
+import { housingSchemaPartial, COMMUNITY_WATER_AUTHORITIES } from "@/lib/validators/sections/housing";
 import { cn } from "@/lib/utils";
 
 const CURRENT_YEAR = 2026;
 
 type HousingDraft = z.infer<typeof housingSchemaPartial>;
 
+const YES_NO_OPTIONS = [
+  { value: "yes", label: { en: "Yes", si: "ඔව්" } },
+  { value: "no", label: { en: "No", si: "නැත" } },
+];
+
+const COMMUNITY_WATER_AUTHORITY_LABELS: Record<(typeof COMMUNITY_WATER_AUTHORITIES)[number], { en: string; si: string }> = {
+  "main-ministry": { en: "Main Ministry", si: "ප්‍රධාන අමාත්‍යාංශය" },
+  "agri-ministry": { en: "Agriculture Ministry", si: "කෘෂිකර්ම අමාත්‍යාංශය" },
+  private: { en: "Private", si: "පුද්ගලික අංශය" },
+};
+
 const EMPTY_VALUES: HousingDraft = {
   housingCounts: { total: 0, permanent: 0, semiPermanent: 0, nonPermanent: 0 },
   householdsWithoutHousing: 0,
   sanitation: { total: 0, withoutSafeSanitation: 0, needingAssistance: 0 },
   drinkingWaterSource: {
-    pipedNational: 0,
-    pipedRural: 0,
-    protectedWell: 0,
-    unprotectedWell: 0,
+    well: 0,
     tubeWell: 0,
-    riverCanalTank: 0,
-    bottledOther: 0,
+    spring: 0,
+    pipedNational: 0,
+    pipedLocalGovt: 0,
+    pipedCommunity: 0,
+    tankRiverCanalOther: 0,
+    bottled: 0,
+    treated: 0,
+    other: 0,
   },
   underservedAreas: [],
-  electricityAccessPercent: 0,
+  electricityAccess: { total: 0, withElectricity: 0, withSolar: 0, withoutElectricity: 0, needingAssistance: 0 },
   communityWaterProjects: [],
 };
 
 const underservedAreaColumns: RepeatableColumn[] = [
   { key: "area", label: { en: "Area Name", si: "ප්‍රදේශයේ නම" }, type: "text" },
+  { key: "difficultyDescription", label: { en: "Difficulty", si: "දුෂ්කරතාවය" }, type: "text" },
   { key: "households", label: { en: "Households", si: "ගෘහ ඒකක" }, type: "number" },
   { key: "proposal", label: { en: "Proposal", si: "යෝජනාව" }, type: "text" },
 ];
 
 const communityWaterProjectColumns: RepeatableColumn[] = [
   { key: "name", label: { en: "Project Name", si: "ව්‍යාපෘතියේ නම" }, type: "text" },
-  { key: "status", label: { en: "Status", si: "තත්ත්වය" }, type: "text" },
+  { key: "functional", label: { en: "Functional?", si: "ක්‍රියාත්මකද?" }, type: "select", options: YES_NO_OPTIONS },
   { key: "householdsServed", label: { en: "Households Served", si: "සේවා ලබන ගෘහ ඒකක" }, type: "number" },
-  { key: "authority", label: { en: "Authority", si: "අධිකාරිය" }, type: "text" },
+  {
+    key: "authority",
+    label: { en: "Authority", si: "අධිකාරිය" },
+    type: "select",
+    options: COMMUNITY_WATER_AUTHORITIES.map((a) => ({ value: a, label: COMMUNITY_WATER_AUTHORITY_LABELS[a] })),
+  },
 ];
 
 export default function HousingPage() {
@@ -153,39 +173,54 @@ export default function HousingPage() {
           {lang === "si" ? housingDict.fields.drinkingWaterSource.si : housingDict.fields.drinkingWaterSource.en}
         </h2>
         <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4">
-          <FieldWrapper name="drinkingWaterSource.pipedNational" label={{ en: "Piped - National Water Supply", si: "නල ජලය - ජාතික" }}>
+          <FieldWrapper name="drinkingWaterSource.well" label={{ en: "Well", si: "ළිං" }}>
             {({ id, describedBy, invalid }) => (
-              <Input id={id} type="number" inputMode="numeric" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("drinkingWaterSource.pipedNational")} />
+              <Input id={id} type="number" inputMode="numeric" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("drinkingWaterSource.well")} />
             )}
           </FieldWrapper>
-          <FieldWrapper name="drinkingWaterSource.pipedRural" label={{ en: "Piped - Rural Water Supply", si: "නල ජලය - ග්‍රාමීය" }}>
-            {({ id, describedBy, invalid }) => (
-              <Input id={id} type="number" inputMode="numeric" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("drinkingWaterSource.pipedRural")} />
-            )}
-          </FieldWrapper>
-          <FieldWrapper name="drinkingWaterSource.protectedWell" label={{ en: "Protected Well", si: "ආරක්ෂිත ලිඳ" }}>
-            {({ id, describedBy, invalid }) => (
-              <Input id={id} type="number" inputMode="numeric" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("drinkingWaterSource.protectedWell")} />
-            )}
-          </FieldWrapper>
-          <FieldWrapper name="drinkingWaterSource.unprotectedWell" label={{ en: "Unprotected Well", si: "අනාරක්ෂිත ලිඳ" }}>
-            {({ id, describedBy, invalid }) => (
-              <Input id={id} type="number" inputMode="numeric" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("drinkingWaterSource.unprotectedWell")} />
-            )}
-          </FieldWrapper>
-          <FieldWrapper name="drinkingWaterSource.tubeWell" label={{ en: "Tube Well", si: "නළ ලිඳ" }}>
+          <FieldWrapper name="drinkingWaterSource.tubeWell" label={{ en: "Tube Well", si: "නළ ළිං" }}>
             {({ id, describedBy, invalid }) => (
               <Input id={id} type="number" inputMode="numeric" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("drinkingWaterSource.tubeWell")} />
             )}
           </FieldWrapper>
-          <FieldWrapper name="drinkingWaterSource.riverCanalTank" label={{ en: "River / Canal / Tank", si: "ගඟ/ඇළ/වැව්" }}>
+          <FieldWrapper name="drinkingWaterSource.spring" label={{ en: "Spring", si: "බුබුළු/උල්පත්" }}>
             {({ id, describedBy, invalid }) => (
-              <Input id={id} type="number" inputMode="numeric" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("drinkingWaterSource.riverCanalTank")} />
+              <Input id={id} type="number" inputMode="numeric" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("drinkingWaterSource.spring")} />
             )}
           </FieldWrapper>
-          <FieldWrapper name="drinkingWaterSource.bottledOther" label={{ en: "Bottled / Other", si: "බෝතල් ජලය/වෙනත්" }}>
+          <FieldWrapper name="drinkingWaterSource.pipedNational" label={{ en: "Piped - National Water Board", si: "නළ ජලය - ජාතික ජල සම්පාදන මණ්ඩලය" }}>
             {({ id, describedBy, invalid }) => (
-              <Input id={id} type="number" inputMode="numeric" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("drinkingWaterSource.bottledOther")} />
+              <Input id={id} type="number" inputMode="numeric" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("drinkingWaterSource.pipedNational")} />
+            )}
+          </FieldWrapper>
+          <FieldWrapper name="drinkingWaterSource.pipedLocalGovt" label={{ en: "Piped - Local Govt Institution", si: "නළ ජලය - පළාත් පාලන ආයතන" }}>
+            {({ id, describedBy, invalid }) => (
+              <Input id={id} type="number" inputMode="numeric" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("drinkingWaterSource.pipedLocalGovt")} />
+            )}
+          </FieldWrapper>
+          <FieldWrapper name="drinkingWaterSource.pipedCommunity" label={{ en: "Piped - Community-Based Organization", si: "නළ ජලය - ප්‍රජාමූල සංවිධාන" }}>
+            {({ id, describedBy, invalid }) => (
+              <Input id={id} type="number" inputMode="numeric" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("drinkingWaterSource.pipedCommunity")} />
+            )}
+          </FieldWrapper>
+          <FieldWrapper name="drinkingWaterSource.tankRiverCanalOther" label={{ en: "Tank / River / Canal / Stream", si: "වැව්/ගඟ/ඇල/දොළ" }}>
+            {({ id, describedBy, invalid }) => (
+              <Input id={id} type="number" inputMode="numeric" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("drinkingWaterSource.tankRiverCanalOther")} />
+            )}
+          </FieldWrapper>
+          <FieldWrapper name="drinkingWaterSource.bottled" label={{ en: "Bottled Water", si: "බෝතල් කළ ජලය" }}>
+            {({ id, describedBy, invalid }) => (
+              <Input id={id} type="number" inputMode="numeric" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("drinkingWaterSource.bottled")} />
+            )}
+          </FieldWrapper>
+          <FieldWrapper name="drinkingWaterSource.treated" label={{ en: "Treated / Recycled Water", si: "ප්‍රති ආශ්‍රිත ජලය" }}>
+            {({ id, describedBy, invalid }) => (
+              <Input id={id} type="number" inputMode="numeric" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("drinkingWaterSource.treated")} />
+            )}
+          </FieldWrapper>
+          <FieldWrapper name="drinkingWaterSource.other" label={{ en: "Other", si: "වෙනත්" }}>
+            {({ id, describedBy, invalid }) => (
+              <Input id={id} type="number" inputMode="numeric" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("drinkingWaterSource.other")} />
             )}
           </FieldWrapper>
         </div>
@@ -196,25 +231,41 @@ export default function HousingPage() {
           name="underservedAreas"
           title={housingDict.fields.underservedAreas}
           columns={underservedAreaColumns}
-          emptyRowFactory={() => ({ area: "", households: 0, proposal: "" })}
+          emptyRowFactory={() => ({ area: "", difficultyDescription: "", households: 0, proposal: "" })}
         />
       </div>
 
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4 border-t border-border pt-6">
-        <FieldWrapper name="electricityAccessPercent" label={housingDict.fields.electricityAccessPercent}>
-          {({ id, describedBy, invalid }) => (
-            <Input
-              id={id}
-              type="number"
-              min={0}
-              max={100}
-              inputMode="numeric"
-              aria-describedby={describedBy}
-              aria-invalid={invalid}
-              {...form.register("electricityAccessPercent")}
-            />
-          )}
-        </FieldWrapper>
+      <div className="border-t border-border pt-6">
+        <h2 lang={lang} className={cn("mb-3 text-fluid-lg font-semibold text-foreground", lang === "si" && "font-si-heading")}>
+          {lang === "si" ? housingDict.fields.electricityAccess.si : housingDict.fields.electricityAccess.en}
+        </h2>
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4">
+          <FieldWrapper name="electricityAccess.total" label={{ en: "Total Houses", si: "මුළු නිවාස ගණන" }}>
+            {({ id, describedBy, invalid }) => (
+              <Input id={id} type="number" inputMode="numeric" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("electricityAccess.total")} />
+            )}
+          </FieldWrapper>
+          <FieldWrapper name="electricityAccess.withElectricity" label={{ en: "With Electricity", si: "විදුලි පහසුකම් සහිත" }}>
+            {({ id, describedBy, invalid }) => (
+              <Input id={id} type="number" inputMode="numeric" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("electricityAccess.withElectricity")} />
+            )}
+          </FieldWrapper>
+          <FieldWrapper name="electricityAccess.withSolar" label={{ en: "With Solar Power", si: "සූර්ය බල ශක්තිය සහිත" }}>
+            {({ id, describedBy, invalid }) => (
+              <Input id={id} type="number" inputMode="numeric" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("electricityAccess.withSolar")} />
+            )}
+          </FieldWrapper>
+          <FieldWrapper name="electricityAccess.withoutElectricity" label={{ en: "Without Electricity", si: "විදුලි පහසුකම් නොමැති" }}>
+            {({ id, describedBy, invalid }) => (
+              <Input id={id} type="number" inputMode="numeric" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("electricityAccess.withoutElectricity")} />
+            )}
+          </FieldWrapper>
+          <FieldWrapper name="electricityAccess.needingAssistance" label={{ en: "Needing Electricity Assistance", si: "විදුලි ආධාර ලැබිය යුතු" }}>
+            {({ id, describedBy, invalid }) => (
+              <Input id={id} type="number" inputMode="numeric" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("electricityAccess.needingAssistance")} />
+            )}
+          </FieldWrapper>
+        </div>
       </div>
 
       <div className="border-t border-border pt-6">
@@ -222,7 +273,7 @@ export default function HousingPage() {
           name="communityWaterProjects"
           title={housingDict.fields.communityWaterProjects}
           columns={communityWaterProjectColumns}
-          emptyRowFactory={() => ({ name: "", status: "", householdsServed: 0, authority: "" })}
+          emptyRowFactory={() => ({ name: "", functional: "yes", householdsServed: 0, authority: "main-ministry" })}
         />
       </div>
     </SectionForm>

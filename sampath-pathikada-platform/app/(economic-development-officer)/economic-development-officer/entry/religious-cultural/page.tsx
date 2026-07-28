@@ -22,6 +22,7 @@ type ReligiousCulturalDraft = z.infer<typeof religiousCulturalSchemaPartial>;
 const EMPTY_VALUES: ReligiousCulturalDraft = {
   religiousSiteCounts: {
     temples: { count: 0, clergyCount: 0 },
+    meheniArama: { count: 0, clergyCount: 0 },
     kovils: { count: 0, clergyCount: 0 },
     mosques: { count: 0, clergyCount: 0 },
     churches: { count: 0, clergyCount: 0 },
@@ -63,11 +64,14 @@ export default function ReligiousCulturalPage() {
   const heritageSiteColumns: RepeatableColumn[] = [
     { key: "name", label: { en: "Name", si: "නම" }, type: "text" },
     { key: "type", label: { en: "Type", si: "වර්ගය" }, type: "text" },
-    { key: "significance", label: { en: "Significance", si: "වැදගත්කම" }, type: "text" },
+    { key: "significance", label: { en: "Reason for Being Special", si: "සුවිශේෂි වීමට හේතු" }, type: "text" },
+    { key: "maintainedBy", label: { en: "Maintained By", si: "නඩත්තු කරනවාද" }, type: "text" },
+    { key: "taskExtension", label: { en: "Task Extension", si: "කටයුත්ත විස්තර කරන්න" }, type: "text" },
   ];
 
   const artAcademyColumns: RepeatableColumn[] = [
     { key: "name", label: { en: "Name", si: "නම" }, type: "text" },
+    { key: "registrationNumber", label: { en: "Registration No.", si: "ලියාපදිංචි අංකය" }, type: "text" },
     { key: "studentCount", label: { en: "Student Count", si: "සිසු සංඛ්‍යාව" }, type: "number" },
   ];
 
@@ -108,6 +112,24 @@ export default function ReligiousCulturalPage() {
             <FieldWrapper name="religiousSiteCounts.temples.clergyCount" label={{ en: "Clergy Count", si: "පූජක සංඛ්‍යාව" }}>
               {({ id, describedBy, invalid }) => (
                 <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("religiousSiteCounts.temples.clergyCount")} />
+              )}
+            </FieldWrapper>
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <h3 lang={lang} className={subHeadingClass}>
+            {lang === "si" ? "මෙහෙණි ආරාම" : "Nun Hermitages"}
+          </h3>
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4">
+            <FieldWrapper name="religiousSiteCounts.meheniArama.count" label={{ en: "Count", si: "ගණන" }}>
+              {({ id, describedBy, invalid }) => (
+                <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("religiousSiteCounts.meheniArama.count")} />
+              )}
+            </FieldWrapper>
+            <FieldWrapper name="religiousSiteCounts.meheniArama.clergyCount" label={{ en: "Clergy Count", si: "පූජක සංඛ්‍යාව" }}>
+              {({ id, describedBy, invalid }) => (
+                <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("religiousSiteCounts.meheniArama.clergyCount")} />
               )}
             </FieldWrapper>
           </div>
@@ -173,7 +195,7 @@ export default function ReligiousCulturalPage() {
           name="heritageSites"
           title={religiousCulturalDict.fields.heritageSites}
           columns={heritageSiteColumns}
-          emptyRowFactory={() => ({ name: "", type: "", significance: "" })}
+          emptyRowFactory={() => ({ name: "", type: "", significance: "", maintainedBy: "", taskExtension: "" })}
         />
       </div>
 
@@ -182,7 +204,7 @@ export default function ReligiousCulturalPage() {
           name="artAcademies"
           title={religiousCulturalDict.fields.artAcademies}
           columns={artAcademyColumns}
-          emptyRowFactory={() => ({ name: "", studentCount: 0 })}
+          emptyRowFactory={() => ({ name: "", registrationNumber: "", studentCount: 0 })}
         />
       </div>
 

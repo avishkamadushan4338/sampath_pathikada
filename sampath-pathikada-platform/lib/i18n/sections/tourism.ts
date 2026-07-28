@@ -8,7 +8,7 @@ export const tourismDict: SectionDictionary<keyof TourismData & string> = {
     si: "ග්‍රාම නිලධාරී වසම තුළ ක්‍රියාත්මක වාණිජ නවාතැන් ආයතන — හෝටල්, ගෙස්ට් හවුස්, විලා, හෝම්ස්ටේ සහ අනෙකුත් නවාතැන්.",
   },
   fields: {
-    hotelInventory: { en: "Registered Hotels (by Star Grade)", si: "ලියාපදිංචි හෝටල් (තරු ශ්‍රේණිය අනුව)" },
+    hotelInventory: { en: "Tourism Accommodation Distribution", si: "සංචාරක හෝටල් ව්‍යාප්තිය" },
     guestAccommodations: {
       en: "Guest Houses / Villas / Homestays",
       si: "ගෙස්ට් හවුස් / විලා / හෝම්ස්ටේ",

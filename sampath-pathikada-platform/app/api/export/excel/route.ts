@@ -157,36 +157,42 @@ export async function GET(req: NextRequest) {
   addSheet("Housing Summary", [{
     "Total Units": housing.housingCounts.total, "Permanent": housing.housingCounts.permanent,
     "Semi-Permanent": housing.housingCounts.semiPermanent, "Non-Permanent": housing.housingCounts.nonPermanent,
-    "Without Proper Housing": housing.householdsWithoutHousing, "Avg Electricity Access %": housing.avgElectricityAccessPercent ?? "",
+    "Without Proper Housing": housing.householdsWithoutHousing,
+    "With Electricity": housing.electricityAccess.withElectricity, "With Solar": housing.electricityAccess.withSolar,
+    "Without Electricity": housing.electricityAccess.withoutElectricity, "Needing Electricity Assistance": housing.electricityAccess.needingAssistance,
   }]);
-  addSheet("Housing - Underserved Areas", housing.underservedAreas.rows.map((r) => ({ "GN Division": r.gnName, "Area": r.area, "Households": r.households, "Proposal": r.proposal ?? "" })));
+  addSheet("Housing - Underserved Areas", housing.underservedAreas.rows.map((r) => ({ "GN Division": r.gnName, "Area": r.area, "Difficulty": r.difficultyDescription ?? "", "Households": r.households, "Proposal": r.proposal ?? "" })));
 
   const employment = aggregateEmployment(rows, gnLabel);
   addSheet("Employment - By Education", employment.jobSeekersByEducation.map((r) => ({ "Education Level": r.en, "Count": r.count })));
   addSheet("Employment - Self-Employment", employment.selfEmploymentSectors.map((r) => ({ "Sector": r.en, "Count": r.count })));
-  addSheet("Employment - Directory", employment.selfEmployedPersons.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Sector": r.sector, "Phone": r.phone ?? "", "Address": r.address })));
+  addSheet("Employment - Directory", employment.selfEmployedPersons.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Sector": r.sector, "Marketplace": r.marketplace ?? "", "Phone": r.phone ?? "", "Address": r.address })));
 
   const education = aggregateEducation(rows, gnLabel);
   addSheet("Education Summary", [{
     "Govt Schools": education.institutionCounts.govtSchools, "Private/Intl Schools": education.institutionCounts.privateOrInternationalSchools,
     "Pirivenas": education.institutionCounts.pirivenas, "Vocational Institutes": education.institutionCounts.vocationalTrainingInstitutes,
-    "Out-of-School Children": education.outOfSchoolChildrenCount, "Married/Cohabiting Minors": education.marriedOrCohabitingMinorsCount,
-    "Teachers": education.schoolStaffAndStudents.teachers, "Female Students": education.schoolStaffAndStudents.studentsFemale, "Male Students": education.schoolStaffAndStudents.studentsMale,
+    "Out-of-School Children (F)": education.outOfSchoolChildren.female, "Out-of-School Children (M)": education.outOfSchoolChildren.male,
+    "Children in Probation/Detention (F)": education.childrenInProbationOrDetention.female, "Children in Probation/Detention (M)": education.childrenInProbationOrDetention.male,
+    "Female Teachers": education.schoolStaffAndStudents.teachersFemale, "Male Teachers": education.schoolStaffAndStudents.teachersMale,
+    "Female Students": education.schoolStaffAndStudents.studentsFemale, "Male Students": education.schoolStaffAndStudents.studentsMale,
   }]);
-  addSheet("Education - School Facilities", education.schoolFacilities.rows.map((r) => ({ "GN Division": r.gnName, "School": r.schoolName, "Teachers": r.teacherCount, "Female Students": r.studentsFemale, "Male Students": r.studentsMale })));
+  addSheet("Education - School Facilities", education.schoolFacilities.rows.map((r) => ({ "GN Division": r.gnName, "School": r.schoolName, "Female Teachers": r.teachersFemale, "Male Teachers": r.teachersMale, "Female Students": r.studentsFemale, "Male Students": r.studentsMale })));
 
   const health = aggregateHealth(rows, gnLabel);
   addSheet("Health Summary", [{ ...health.institutionCounts }]);
   addSheet("Health - Govt Hospitals", health.govtHospitalsDirectory.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Type": r.type, "Address": r.address })));
 
   const agri = aggregateEconomicAgriculture(rows, gnLabel);
-  addSheet("Agriculture - Land Use", agri.landUse.map((l) => ({ "Land Type": l.landType, "Extent (ha)": l.extentHectares })));
-  addSheet("Agriculture - Industries", agri.industries.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Product": r.productType, "Size": r.size, "Employees": r.employeeCount })));
+  addSheet("Agriculture - Land Use", agri.landUse.map((l) => ({ "Land Type": l.en, "Extent (ha)": l.extentHectares })));
+  addSheet("Agriculture - Industries", agri.industries.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Production Type": r.productionType, "Employees": r.employeeCount, "Marketplace": r.marketplace ?? "" })));
 
-  addSheet("Housing - Water Projects", housing.communityWaterProjects.rows.map((r) => ({ "GN Division": r.gnName, "Project": r.name, "Status": r.status ?? "", "Households Served": r.householdsServed ?? "", "Authority": r.authority ?? "" })));
+  addSheet("Housing - Water Projects", housing.communityWaterProjects.rows.map((r) => ({ "GN Division": r.gnName, "Project": r.name, "Functional": r.functional ?? "", "Households Served": r.householdsServed ?? "", "Authority": r.authority ?? "" })));
 
-  addSheet("Education - Special Attention", education.specialAttentionSchools.rows.map((r) => ({ "GN Division": r.gnName, "School": r.schoolName, "Reason": r.reason })));
-  addSheet("Education - Preschools", education.preschools.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Type": r.facilityType, "Teachers": r.teacherCount, "Students": r.studentCount })));
+  addSheet("Education - Special Attention", education.specialAttentionSchools.rows.map((r) => ({ "GN Division": r.gnName, "School": r.schoolName, "Female Teachers": r.teachersFemale, "Male Teachers": r.teachersMale, "Female Students": r.studentsFemale, "Male Students": r.studentsMale, "Development Needs": r.developmentNeeds })));
+  addSheet("Education - Closed Schools", education.closedSchools.rows.map((r) => ({ "GN Division": r.gnName, "School": r.schoolName, "Year Closed": r.yearClosed, "Building Count": r.buildingCount, "Buildings Usable": r.buildingsUsable })));
+  addSheet("Education - Preschools", education.preschools.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Address": r.address, "Type": r.facilityType, "Teachers": r.teacherCount, "Students": r.studentCount })));
+  addSheet("Education - Dhamma Institutions", education.dhammaEducationInstitutions.rows.map((r) => ({ "GN Division": r.gnName, "Institution": r.institutionName, "Type": r.type, "Teachers": r.teacherCount, "Students": r.studentCount })));
 
   addSheet("Health - Private Hospitals", health.privateHospitalsDirectory.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Address": r.address })));
   addSheet("Health - Ayurvedic Institutions", health.ayurvedicInstitutions.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Address": r.address })));
@@ -195,31 +201,31 @@ export async function GET(req: NextRequest) {
   addSheet("Agriculture - Fisheries Summary", [{
     "Marine Households": agri.marineFisheries.householdCount, "Marine Active Fishermen": agri.marineFisheries.activeFishermenCount, "Marine Societies": agri.marineFisheries.societyCount,
     "Inland Households": agri.inlandFisheries.householdCount, "Inland Active Fishermen": agri.inlandFisheries.activeFishermenCount, "Inland Societies": agri.inlandFisheries.societyCount,
-    "Salt Production Divisions": agri.saltProductionDivisionsCount,
+    "Ice Production Divisions": agri.iceProductionDivisionsCount, "Fish Landing Site Divisions": agri.fishLandingSiteDivisionsCount,
   }]);
-  addSheet("Agriculture - Livestock Farms", agri.livestockFarms.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Animal Type": r.animalType, "Count": r.count, "Address": r.address })));
+  addSheet("Agriculture - Livestock Farms", agri.livestockFarms.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Cattle": r.cattle, "Layer Chickens": r.layerChickens, "Broiler Chickens": r.broilerChickens, "Goats": r.goats, "Pigs": r.pigs, "Peacock": r.peacock, "Other": r.other, "Address": r.address })));
   addSheet("Agriculture - Animal Husbandry Directory", agri.animalHusbandryDirectory.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Type": r.type, "Phone": r.phone ?? "", "Address": r.address })));
-  addSheet("Agriculture - Tea Estates", agri.teaEstates.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Extent (ha)": r.extentHectares, "Ownership": r.ownership })));
-  addSheet("Agriculture - Fish Landing Sites", agri.fishLandingSites.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Location": r.location })));
-  addSheet("Agriculture - Salt Production", agri.saltProductionDirectory.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Location": r.location })));
+  addSheet("Agriculture - Tea Estates", agri.teaEstates.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Extent (acres)": r.extentAcres, "Ownership": r.ownership, "Employees F": r.employeesFemale, "Employees M": r.employeesMale })));
+  addSheet("Agriculture - Fish Landing Sites", agri.fishLandingSites.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Address": r.address, "Site Type": r.siteType, "Water Type": r.waterType })));
+  addSheet("Agriculture - Ice Production", agri.iceProductionDirectory.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Address": r.address })));
 
   const communityWelfare = aggregateCommunityWelfare(rows, gnLabel);
   addSheet("Community Organizations", communityWelfare.organizationCounts.map((o) => ({ "Type": o.en, "Count": o.count })));
   addSheet("Community - Organization Directory", communityWelfare.organizationDirectory.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Type": r.type, "Address": r.address })));
   addSheet("Social Welfare Summary", [{ ...communityWelfare.welfarePaymentHouseholdCounts, ...communityWelfare.allowanceRecipientCounts }]);
-  addSheet("Social Welfare - Elders' Homes", communityWelfare.eldersHomes.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Authority": r.authority, "Residents": r.residentCount, "Address": r.address })));
-  addSheet("Social Welfare - Children's Homes", communityWelfare.childrensHomes.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Authority": r.authority, "Residents": r.residentCount, "Address": r.address })));
+  addSheet("Social Welfare - Elders' Homes", communityWelfare.eldersHomes.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Authority": r.authority, "Capacity": r.capacity ?? "", "Residents F": r.residentCount?.female ?? 0, "Residents M": r.residentCount?.male ?? 0, "Address": r.address })));
+  addSheet("Social Welfare - Children's Homes", communityWelfare.childrensHomes.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Type": r.type, "Authority": r.authority, "Capacity": r.capacity ?? "", "Residents F": r.residentCount?.female ?? 0, "Residents M": r.residentCount?.male ?? 0, "Address": r.address })));
 
   const infrastructure = aggregateInfrastructure(rows, gnLabel);
   addSheet("Infrastructure - Public Facilities", [{ ...infrastructure.publicFacilities }]);
   addSheet("Infrastructure - Services", infrastructure.serviceEstablishments.map((s) => ({ "Category": s.en, "Count": s.count })));
   addSheet("Infrastructure - Facility Categories", infrastructure.publicFacilityCategories.map((c) => ({ "Category": c.en, "Divisions Present": c.presentCount })));
-  addSheet("Infrastructure - Roads Needed", infrastructure.roadDevelopmentNeeds.rows.map((r) => ({ "GN Division": r.gnName, "Road": r.roadName, "Condition": r.currentCondition, "Length (m)": r.lengthMeters, "Priority": r.priorityRank })));
-  addSheet("Infrastructure - Bridges Repair", infrastructure.bridgeRepairs.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Condition": r.condition })));
+  addSheet("Infrastructure - Roads Needed", infrastructure.roadDevelopmentNeeds.rows.map((r) => ({ "GN Division": r.gnName, "Road": r.roadName, "Surface Type": r.surfaceType ?? "", "Maintaining Authority": r.maintainingAuthority ?? "", "Length (m)": r.lengthMeters, "Priority": r.priorityRank })));
+  addSheet("Infrastructure - Bridges Repair", infrastructure.bridgeRepairs.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Condition": r.condition, "Maintaining Authority": r.maintainingAuthority ?? "" })));
   addSheet("Infrastructure - Financial Institutions", infrastructure.financialInstitutions.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Type": r.type })));
   addSheet("Infrastructure - Industrial Estates", infrastructure.industrialEstates.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Location": r.location })));
   addSheet("Infrastructure - Water Reservoirs", infrastructure.waterReservoirs.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name })));
-  addSheet("Infrastructure - Clubs and Bars", infrastructure.notableClubsAndBars.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Type": r.type, "Address": r.address })));
+  addSheet("Infrastructure - Licensed Liquor Shops", infrastructure.licensedLiquorShops.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Address": r.address })));
 
   const areaProfile = aggregateAreaProfile(rows, gnLabel);
   addSheet("Physical Env - Water Sources", areaProfile.waterSources.rows.map((r) => ({ "GN Division": r.gnName, "Type": r.type, "Name": r.name })));
@@ -229,15 +235,16 @@ export async function GET(req: NextRequest) {
 
   addSheet("Religious - Site Counts", [{
     "Temples": areaProfile.religiousSiteCounts.temples.count, "Temple Clergy": areaProfile.religiousSiteCounts.temples.clergyCount,
+    "Nun Hermitages": areaProfile.religiousSiteCounts.meheniArama.count, "Nun Hermitage Clergy": areaProfile.religiousSiteCounts.meheniArama.clergyCount,
     "Kovils": areaProfile.religiousSiteCounts.kovils.count, "Kovil Clergy": areaProfile.religiousSiteCounts.kovils.clergyCount,
     "Mosques": areaProfile.religiousSiteCounts.mosques.count, "Mosque Clergy": areaProfile.religiousSiteCounts.mosques.clergyCount,
     "Churches": areaProfile.religiousSiteCounts.churches.count, "Church Clergy": areaProfile.religiousSiteCounts.churches.clergyCount,
   }]);
-  addSheet("Religious - Heritage Sites", areaProfile.heritageSites.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Type": r.type, "Significance": r.significance })));
-  addSheet("Religious - Art Academies", areaProfile.artAcademies.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Students": r.studentCount })));
+  addSheet("Religious - Heritage Sites", areaProfile.heritageSites.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Type": r.type, "Significance": r.significance, "Maintained By": r.maintainedBy ?? "", "Task Extension": r.taskExtension ?? "" })));
+  addSheet("Religious - Art Academies", areaProfile.artAcademies.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Registration No.": r.registrationNumber ?? "", "Students": r.studentCount })));
   addSheet("Religious - Traditional Artists", areaProfile.traditionalArtists.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Art Form": r.artForm, "Description": r.description ?? "" })));
 
-  addSheet("Tourism - Hotels", areaProfile.hotelInventory.rows.map((r) => ({ "GN Division": r.gnName, "Star Grade": r.starGrade, "Hotels": r.hotelCount, "Rooms": r.roomCount })));
+  addSheet("Tourism - Hotels", areaProfile.hotelInventory.rows.map((r) => ({ "GN Division": r.gnName, "Category": r.category, "Hotels": r.hotelCount, "Rooms": r.roomCount })));
   addSheet("Tourism - Guest Accommodations", areaProfile.guestAccommodations.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Type": r.type, "Rooms": r.roomCount, "Address": r.address })));
   addSheet("Tourism - Other Accommodations", areaProfile.otherAccommodations.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Type": r.type, "Address": r.address })));
 
@@ -248,8 +255,8 @@ export async function GET(req: NextRequest) {
   addSheet("Waste - Disposal Methods", areaProfile.wasteManagement.disposalMethodIfNoProgram.map((d) => ({ "Method": d.en, "Divisions": d.presentCount })));
 
   addSheet("State Land - State Institutions", areaProfile.stateInstitutions.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Address": r.address })));
-  addSheet("State Land - Development Projects", areaProfile.developmentProjects.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Status": r.status, "Location": r.location })));
-  addSheet("State Land - Illegal Structures", areaProfile.illegalStructures.rows.map((r) => ({ "GN Division": r.gnName, "Description": r.description, "Location": r.location })));
+  addSheet("State Land - Development Projects", areaProfile.developmentProjects.rows.map((r) => ({ "GN Division": r.gnName, "Project Name": r.projectName, "Owning Institution": r.owningInstitution, "Reason for Halting": r.reasonForHalt, "Current Status": r.currentStatus })));
+  addSheet("State Land - Illegal Structures", areaProfile.illegalStructures.rows.map((r) => ({ "GN Division": r.gnName, "Building Name": r.buildingName, "Purpose Used For": r.purposeUsed, "Usable": r.usable, "Owning Institution": r.owningInstitution })));
 
   const buffer = XLSX.write(workbook, { type: "buffer", bookType: "xlsx" });
 

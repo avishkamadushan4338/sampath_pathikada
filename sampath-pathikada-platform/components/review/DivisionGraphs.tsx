@@ -100,6 +100,7 @@ export function DivisionGraphs({ data }: DivisionGraphsProps) {
           color={GOLD}
           rows={[
             { label: t("Temples", "විහාරස්ථාන"), value: areaProfile.religiousSiteCounts.temples.count },
+            { label: t("Nun Hermitages", "මෙහෙණි ආරාම"), value: areaProfile.religiousSiteCounts.meheniArama.count },
             { label: t("Kovils", "කෝවිල්"), value: areaProfile.religiousSiteCounts.kovils.count },
             { label: t("Mosques", "පල්ලි"), value: areaProfile.religiousSiteCounts.mosques.count },
             { label: t("Churches", "පල්ලි (ක්‍රිස්තියානි)"), value: areaProfile.religiousSiteCounts.churches.count },
@@ -135,7 +136,7 @@ export function DivisionGraphs({ data }: DivisionGraphsProps) {
                 { en: "Tourist Sites (Existing)", si: "සංචාරක ස්ථාන (පවතින)", value: areaProfile.existingTouristSitesFromPhysicalEnv.rows.length },
                 { en: "Tourist Sites (Proposed)", si: "සංචාරක ස්ථාන (යෝජිත)", value: areaProfile.proposedTouristSites.rows.length },
                 { en: "Heritage Sites", si: "උරුම ස්ථාන", value: areaProfile.heritageSites.rows.length },
-                { en: "Hotels", si: "හෝටල්", value: areaProfile.hotelInventory.rows.length },
+                { en: "Hotels", si: "හෝටල්", value: areaProfile.hotelInventory.rows.reduce((s, r) => s + (r.hotelCount ?? 0), 0) },
                 { en: "Guest Accommodations", si: "අමුත්තන් නවාතැන්", value: areaProfile.guestAccommodations.rows.length },
               ]}
             />
@@ -202,7 +203,8 @@ export function DivisionGraphs({ data }: DivisionGraphsProps) {
               items={[
                 { en: "Total Housing Units", si: "මුළු නිවාස ඒකක", value: housing.housingCounts.total },
                 { en: "Households Without Housing", si: "නිවාස රහිත ගෘහ ඒකක", value: housing.householdsWithoutHousing },
-                { en: "Avg. Electricity Access", si: "සාමාන්‍ය විදුලි ප්‍රවේශය", value: housing.avgElectricityAccessPercent !== null ? `${housing.avgElectricityAccessPercent}%` : "—" },
+                { en: "With Electricity", si: "විදුලි පහසුකම් සහිත", value: housing.electricityAccess.withElectricity },
+                { en: "Without Electricity", si: "විදුලි පහසුකම් නොමැති", value: housing.electricityAccess.withoutElectricity },
                 { en: "Without Safe Sanitation", si: "ආරක්ෂිත සනීපාරක්ෂක නොමැති", value: housing.sanitation.withoutSafeSanitation },
                 { en: "Needing Sanitation Assistance", si: "සනීපාරක්ෂක සහාය අවශ්‍ය", value: housing.sanitation.needingAssistance },
               ]}
@@ -224,13 +226,16 @@ export function DivisionGraphs({ data }: DivisionGraphsProps) {
           titleSi="පානීය ජල මූලාශ්‍රය"
           color={GOLD}
           rows={[
+            { label: t("Well", "ළිං"), value: housing.drinkingWaterSource.well },
+            { label: t("Tube Well", "නළ ළිං"), value: housing.drinkingWaterSource.tubeWell },
+            { label: t("Spring", "බුබුළු/උල්පත්"), value: housing.drinkingWaterSource.spring },
             { label: t("Piped (National)", "නළ ජලය (ජාතික)"), value: housing.drinkingWaterSource.pipedNational },
-            { label: t("Piped (Rural)", "නළ ජලය (ග්‍රාමීය)"), value: housing.drinkingWaterSource.pipedRural },
-            { label: t("Protected Well", "ආරක්ෂිත ළිඳ"), value: housing.drinkingWaterSource.protectedWell },
-            { label: t("Unprotected Well", "අනාරක්ෂිත ළිඳ"), value: housing.drinkingWaterSource.unprotectedWell },
-            { label: t("Tube Well", "නල ළිඳ"), value: housing.drinkingWaterSource.tubeWell },
-            { label: t("River / Canal / Tank", "ගඟ/ඇළ/වැව"), value: housing.drinkingWaterSource.riverCanalTank },
-            { label: t("Bottled / Other", "බෝතල්/වෙනත්"), value: housing.drinkingWaterSource.bottledOther },
+            { label: t("Piped (Local Govt)", "නළ ජලය (පළාත් පාලන)"), value: housing.drinkingWaterSource.pipedLocalGovt },
+            { label: t("Piped (Community)", "නළ ජලය (ප්‍රජාමූල)"), value: housing.drinkingWaterSource.pipedCommunity },
+            { label: t("Tank / River / Canal", "වැව්/ගඟ/ඇල"), value: housing.drinkingWaterSource.tankRiverCanalOther },
+            { label: t("Bottled", "බෝතල් ජලය"), value: housing.drinkingWaterSource.bottled },
+            { label: t("Treated / Recycled", "ප්‍රති ආශ්‍රිත ජලය"), value: housing.drinkingWaterSource.treated },
+            { label: t("Other", "වෙනත්"), value: housing.drinkingWaterSource.other },
           ]}
         />
       </SectionGroup>
@@ -242,7 +247,7 @@ export function DivisionGraphs({ data }: DivisionGraphsProps) {
             <StatGrid
               items={[
                 { en: "Total Job Seekers", si: "මුළු රැකියා අපේක්ෂකයන්", value: employment.totalJobSeekers },
-                { en: "Unwilling Below Qualification", si: "සුදුසුකම්වලට වඩා අකැමති", value: employment.jobSeekersUnwillingBelowQualificationCount },
+                { en: "Vocational Training Opportunity Gap", si: "වෘත්තීය පුහුණු අවස්ථා හිඩැස", value: employment.vocationalTrainingOpportunityGapCount },
               ]}
             />
           </CardContent>
@@ -268,9 +273,10 @@ export function DivisionGraphs({ data }: DivisionGraphsProps) {
           <CardContent className="pt-6">
             <StatGrid
               items={[
-                { en: "Out-of-School Children", si: "පාසල් රහිත ළමුන්", value: education.outOfSchoolChildrenCount },
-                { en: "Married/Cohabiting Minors", si: "විවාහ වූ/සහජීවනයේ නාබාලකයන්", value: education.marriedOrCohabitingMinorsCount },
-                { en: "Teachers", si: "ගුරුවරු", value: education.schoolStaffAndStudents.teachers },
+                { en: "Out-of-School Children", si: "පාසල් රහිත ළමුන්", value: education.outOfSchoolChildren.total },
+                { en: "Children in Probation/Detention", si: "පරිවාසගත/බන්ධනාගාරගත ළමුන්", value: education.childrenInProbationOrDetention.total },
+                { en: "Teachers (Female)", si: "ගුරුවරු (ස්ත්‍රී)", value: education.schoolStaffAndStudents.teachersFemale },
+                { en: "Teachers (Male)", si: "ගුරුවරු (පුරුෂ)", value: education.schoolStaffAndStudents.teachersMale },
                 { en: "Students (Female)", si: "සිසුන් (ස්ත්‍රී)", value: education.schoolStaffAndStudents.studentsFemale },
                 { en: "Students (Male)", si: "සිසුන් (පුරුෂ)", value: education.schoolStaffAndStudents.studentsMale },
               ]}
@@ -288,6 +294,9 @@ export function DivisionGraphs({ data }: DivisionGraphsProps) {
             { label: t("Vocational Institutes", "වෘත්තීය පුහුණු ආයතන"), value: education.institutionCounts.vocationalTrainingInstitutes },
             { label: t("Preschools (Govt.)", "පෙර පාසල් (රජයේ)"), value: education.institutionCounts.registeredPreschoolsGovt },
             { label: t("Preschools (Private)", "පෙර පාසල් (පෞද්ගලික)"), value: education.institutionCounts.registeredPreschoolsPrivate },
+            { label: t("Dhamma Education Institutions", "දහම් අධ්‍යාපන ආයතන"), value: education.institutionCounts.dhammaEducationInstitutions },
+            { label: t("Higher Education Institutions", "උසස් අධ්‍යාපන ආයතන"), value: education.institutionCounts.higherEducationInstitutions },
+            { label: t("Tuition Class Institutions", "උපකාරක පන්ති ආයතන"), value: education.institutionCounts.tuitionCenterInstitutions },
           ]}
         />
         <BarCard
@@ -303,14 +312,14 @@ export function DivisionGraphs({ data }: DivisionGraphsProps) {
           ]}
         />
         <BarCard
-          titleEn="Dhamma Schools by Religion"
-          titleSi="ආගම අනුව ධර්ම පාසල්"
+          titleEn="Dhamma Education Institutions by Religion"
+          titleSi="ආගම අනුව දහම් අධ්‍යාපන ආයතන"
           color={NAVY}
           rows={[
-            { label: t("Buddhist", "බෞද්ධ"), value: education.dhammaEducation.buddhist.schools },
-            { label: t("Islam", "ඉස්ලාම්"), value: education.dhammaEducation.islam.schools },
-            { label: t("Hindu", "හින්දු"), value: education.dhammaEducation.hindu.schools },
-            { label: t("Christian", "ක්‍රිස්තියානි"), value: education.dhammaEducation.christian.schools },
+            { label: t("Buddhist", "බෞද්ධ"), value: education.dhammaEducationInstitutions.rows.filter((r) => r.type === "buddhist").length },
+            { label: t("Islam", "ඉස්ලාම්"), value: education.dhammaEducationInstitutions.rows.filter((r) => r.type === "islam").length },
+            { label: t("Hindu", "හින්දු"), value: education.dhammaEducationInstitutions.rows.filter((r) => r.type === "hindu").length },
+            { label: t("Christian", "ක්‍රිස්තියානි"), value: education.dhammaEducationInstitutions.rows.filter((r) => r.type === "christian").length },
           ]}
         />
       </SectionGroup>
@@ -329,7 +338,8 @@ export function DivisionGraphs({ data }: DivisionGraphsProps) {
             { label: t("Specialist Centers", "විශේෂඥ සේවා මධ්‍යස්ථාන"), value: health.institutionCounts.specialistServiceCenters },
             { label: t("MOH / Community Health Centers", "සෞඛ්‍ය වෛද්‍ය නිලධාරී/ප්‍රජා සෞඛ්‍ය මධ්‍යස්ථාන"), value: health.institutionCounts.mohOfficesOrCommunityHealthCenters },
             { label: t("Private Medical Labs", "පෞද්ගලික වෛද්‍ය රසායනාගාර"), value: health.institutionCounts.privateMedicalLabs },
-            { label: t("Other Labs", "වෙනත් රසායනාගාර"), value: health.institutionCounts.otherLabs },
+            { label: t("Traditional Medicine Institutions", "පාරම්පරික වෙදකම් ආයතන"), value: health.institutionCounts.traditionalMedicineRegisteredInstitutions },
+            { label: t("Animal Clinic Centers", "සත්ත්ව සායන මධ්‍යස්ථාන"), value: health.institutionCounts.animalClinicCenters },
             { label: t("Govt. Pharmacies", "රජයේ ෆාමසි"), value: health.institutionCounts.govtPharmacies },
             { label: t("Private Pharmacies", "පෞද්ගලික ෆාමසි"), value: health.institutionCounts.privatePharmacies },
           ]}
@@ -341,11 +351,12 @@ export function DivisionGraphs({ data }: DivisionGraphsProps) {
         <Card className="lg:col-span-2">
           <CardContent className="flex flex-col gap-4 pt-6">
             <div className="flex flex-wrap gap-2">
-              <YesNoBadge yes={econAgri.saltProductionDivisionsCount > 0} labelEn="Salt Production" labelSi="ලුණු නිෂ්පාදනය" />
+              <YesNoBadge yes={econAgri.iceProductionDivisionsCount > 0} labelEn="Ice Production" labelSi="අයිස් නිෂ්පාදනය" />
+              <YesNoBadge yes={econAgri.fishLandingSiteDivisionsCount > 0} labelEn="Fish Landing Sites" labelSi="ධීවර තොටුපොළ" />
             </div>
             <StatGrid
               items={[
-                { en: "Abandoned Paddy Land (Ha)", si: "අතහැර දැමූ කුඹුරු (හෙක්.)", value: econAgri.abandonedPaddyLand.extentHectares },
+                { en: "Abandoned Paddy Land (Acres)", si: "අතහැර දැමූ කුඹුරු (අක්කර)", value: econAgri.abandonedPaddyLand.extentAcres },
                 { en: "Reactivatable Extent (Ha)", si: "නැවත සක්‍රීය කළ හැකි ප්‍රමාණය (හෙක්.)", value: econAgri.abandonedPaddyLand.canBeReactivatedExtent },
                 { en: "Marine Fisheries Households", si: "මුහුදු මසුන් ගොවි ගෘහ ඒකක", value: econAgri.marineFisheries.householdCount },
                 { en: "Marine Active Fishermen", si: "මුහුදු සක්‍රීය ධීවරයන්", value: econAgri.marineFisheries.activeFishermenCount },
@@ -359,28 +370,25 @@ export function DivisionGraphs({ data }: DivisionGraphsProps) {
           titleEn="Land Use (Hectares)"
           titleSi="ඉඩම් භාවිතය (හෙක්.)"
           color={GOLD}
-          rows={econAgri.landUse.map((r) => ({ label: r.landType, value: r.extentHectares }))}
+          rows={econAgri.landUse.map((r) => ({ label: t(r.en, r.si), value: r.extentHectares }))}
         />
         <BarCard
-          titleEn="Animal Husbandry"
-          titleSi="සත්ව පාලනය"
+          titleEn="Commercial Cultivation (Flowers / Greenhouse / Beekeeping)"
+          titleSi="වාණිජ මට්ටමින් වගාවන්"
           color={GOLD}
-          rows={[
-            { label: t("Cattle Farming", "ගව පාලනය"), value: econAgri.animalHusbandryCounts.cattleFarming },
-            { label: t("Beekeeping", "මී මැසි පාලනය"), value: econAgri.animalHusbandryCounts.beekeeping },
-          ]}
+          rows={econAgri.animalHusbandryCounts.map((r) => ({ label: t(r.en, r.si), value: r.count }))}
         />
         <BarCard
           titleEn="Agricultural Machinery"
           titleSi="කෘෂිකාර්මික යන්ත්‍රෝපකරණ"
           color={GOLD}
-          rows={econAgri.agriMachinery.map((r) => ({ label: r.label, value: r.count }))}
+          rows={econAgri.agriMachinery.map((r) => ({ label: t(r.en, r.si), value: r.count }))}
         />
         <BarCard
-          titleEn="Forest Damage Reported"
-          titleSi="වන විනාශය වාර්තා වී ඇත"
+          titleEn="Crop / Forest Damage Reported"
+          titleSi="වගා/වන විනාශය වාර්තා වී ඇත"
           color={GOLD}
-          rows={econAgri.forestDamage.map((r) => ({ label: r.label, value: r.count }))}
+          rows={econAgri.forestDamage.map((r) => ({ label: t(r.en, r.si), value: r.presentCount }))}
         />
       </SectionGroup>
 
@@ -402,7 +410,7 @@ export function DivisionGraphs({ data }: DivisionGraphsProps) {
             { label: "Rs. 5,000", value: community.welfarePaymentHouseholdCounts.rs5000 },
             { label: "Rs. 8,500", value: community.welfarePaymentHouseholdCounts.rs8500 },
             { label: "Rs. 15,000", value: community.welfarePaymentHouseholdCounts.rs15000 },
-            { label: t("No Benefit", "ප්‍රතිලාභ නොමැත"), value: community.welfarePaymentHouseholdCounts.noBenefit },
+            { label: t("Total Aswesuma Recipients", "අස්වැසුම ප්‍රතිලාභී මුළු"), value: community.welfarePaymentHouseholdCounts.totalAswesumaRecipients },
           ]}
         />
         <BarCard
@@ -414,7 +422,10 @@ export function DivisionGraphs({ data }: DivisionGraphsProps) {
             { label: t("Elderly Allowance", "වැඩිහිටි දීමනාව"), value: community.allowanceRecipientCounts.elderlyAllowance },
             { label: t("Nutrition Allowance", "පෝෂණ දීමනාව"), value: community.allowanceRecipientCounts.nutritionAllowance },
             { label: t("Public Assistance", "රාජ්‍ය ආධාර"), value: community.allowanceRecipientCounts.publicAssistance },
-            { label: t("Sick Allowance", "රෝගී දීමනාව"), value: community.allowanceRecipientCounts.sickAllowance },
+            { label: t("Disease Aid - Wheelchair", "රෝගාධාර - වීල්චෙයාර්"), value: community.allowanceRecipientCounts.diseaseAidWheelchair },
+            { label: t("Disease Aid - Cancer", "රෝගාධාර - පිළිකා"), value: community.allowanceRecipientCounts.diseaseAidCancer },
+            { label: t("Disease Aid - Thalassemia", "රෝගාධාර - තැලසීමියා"), value: community.allowanceRecipientCounts.diseaseAidThalassemia },
+            { label: t("Disease Aid - Diabetes", "රෝගාධාර - දියවැඩියාව"), value: community.allowanceRecipientCounts.diseaseAidDiabetes },
             { label: t("Other", "වෙනත්"), value: community.allowanceRecipientCounts.other },
           ]}
         />

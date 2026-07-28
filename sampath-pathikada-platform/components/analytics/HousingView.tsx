@@ -5,7 +5,7 @@ import { Table2, BarChart3 } from "lucide-react";
 import { GnScopedSectionView } from "@/components/analytics/GnScopedSectionView";
 import { ReadOnlyStats, type ReadOnlyStat, type ReadOnlyStatGroup } from "@/components/analytics/ReadOnlyStats";
 import { ReadOnlyTable, type ReadOnlyColumn } from "@/components/analytics/ReadOnlyTable";
-import { ColumnCard, DonutCard, MeterCard, GOLD, MAROON, GREEN, AMBER, GOLD_DEEP } from "@/components/charts/chart-primitives";
+import { ColumnCard, DonutCard, GOLD, MAROON, GREEN, AMBER, GOLD_DEEP } from "@/components/charts/chart-primitives";
 import { useAreaAnalytics } from "@/hooks/use-area-analytics";
 import { Bilingual } from "@/components/Bilingual";
 import { Button } from "@/components/ui/button";
@@ -32,42 +32,54 @@ const SANITATION_FIELDS: { key: string; label: Translated }[] = [
   { key: "needingAssistance", label: { en: "Needing Assistance", si: "සහාය අවශ්‍ය" } },
 ];
 
-/** Mirrors the official GN report's *භූගත ජලය / **නල ජලය / ***අනෙකුත් grouping — same 7
- *  underlying fields as before, just organized under those 3 headers instead of one flat row. */
+/** Mirrors the official GN report's *භූගත ජලය / **නල ජලය / ***අනෙකුත් grouping — 10
+ *  underlying fields organized under those 3 headers. */
 const DRINKING_WATER_GROUPS: { label: Translated; fields: { key: string; label: Translated }[] }[] = [
   {
     label: { en: "Groundwater", si: "භූගත ජලය" },
     fields: [
-      { key: "protectedWell", label: { en: "Protected Well", si: "ආරක්ෂිත ලිඳ" } },
-      { key: "unprotectedWell", label: { en: "Unprotected Well", si: "අනාරක්ෂිත ලිඳ" } },
-      { key: "tubeWell", label: { en: "Tube Well", si: "නළ ලිඳ" } },
+      { key: "well", label: { en: "Well", si: "ළිං" } },
+      { key: "tubeWell", label: { en: "Tube Well", si: "නළ ළිං" } },
+      { key: "spring", label: { en: "Spring", si: "බුබුළු/උල්පත්" } },
     ],
   },
   {
     label: { en: "Pipe-Borne Water Supply", si: "නල ජලය" },
     fields: [
-      { key: "pipedNational", label: { en: "National Water Supply", si: "ජාතික ජල සම්පාදනය" } },
-      { key: "pipedRural", label: { en: "Rural / Local Water Supply", si: "ග්‍රාමීය ජල සම්පාදනය" } },
+      { key: "pipedNational", label: { en: "National Water Board", si: "ජාතික ජල සම්පාදන මණ්ඩලය" } },
+      { key: "pipedLocalGovt", label: { en: "Local Govt Institution", si: "පළාත් පාලන ආයතන" } },
+      { key: "pipedCommunity", label: { en: "Community-Based Organization", si: "ප්‍රජාමූල සංවිධාන" } },
     ],
   },
   {
     label: { en: "Other", si: "අනෙකුත්" },
     fields: [
-      { key: "riverCanalTank", label: { en: "River / Canal / Tank", si: "ගඟ/ඇළ/වැව්" } },
-      { key: "bottledOther", label: { en: "Bottled / Other", si: "බෝතල් ජලය/වෙනත්" } },
+      { key: "tankRiverCanalOther", label: { en: "Tank / River / Canal", si: "වැව්/ගඟ/ඇල" } },
+      { key: "bottled", label: { en: "Bottled Water", si: "බෝතල් කළ ජලය" } },
+      { key: "treated", label: { en: "Treated / Recycled Water", si: "ප්‍රති ආශ්‍රිත ජලය" } },
+      { key: "other", label: { en: "Other", si: "වෙනත්" } },
     ],
   },
 ];
 
+const ELECTRICITY_ACCESS_FIELDS: { key: string; label: Translated }[] = [
+  { key: "total", label: { en: "Total Houses", si: "මුළු නිවාස ගණන" } },
+  { key: "withElectricity", label: { en: "With Electricity", si: "විදුලි පහසුකම් සහිත" } },
+  { key: "withSolar", label: { en: "With Solar Power", si: "සූර්ය බල ශක්තිය සහිත" } },
+  { key: "withoutElectricity", label: { en: "Without Electricity", si: "විදුලි පහසුකම් නොමැති" } },
+  { key: "needingAssistance", label: { en: "Needing Assistance", si: "විදුලි ආධාර ලැබිය යුතු" } },
+];
+
 const UNDERSERVED_AREA_COLUMNS: ReadOnlyColumn[] = [
   { key: "area", label: { en: "Area Name", si: "ප්‍රදේශයේ නම" } },
+  { key: "difficultyDescription", label: { en: "Difficulty", si: "දුෂ්කරතාවය" } },
   { key: "households", label: { en: "Households", si: "ගෘහ ඒකක" } },
   { key: "proposal", label: { en: "Proposal", si: "යෝජනාව" } },
 ];
 
 const COMMUNITY_WATER_PROJECT_COLUMNS: ReadOnlyColumn[] = [
   { key: "name", label: { en: "Project Name", si: "ව්‍යාපෘතියේ නම" } },
-  { key: "status", label: { en: "Status", si: "තත්ත්වය" } },
+  { key: "functional", label: { en: "Functional?", si: "ක්‍රියාත්මකද?" } },
   { key: "householdsServed", label: { en: "Households Served", si: "සේවා ලබන ගෘහ ඒකක" } },
   { key: "authority", label: { en: "Authority", si: "අධිකාරිය" } },
 ];
@@ -90,8 +102,7 @@ interface HousingNumericData {
   householdsWithoutHousing: number;
   sanitation: HousingData["sanitation"];
   drinkingWaterSource: HousingData["drinkingWaterSource"];
-  electricityAccessPercent: number | null;
-  electricityTitle: Translated;
+  electricityAccess: HousingData["electricityAccess"];
 }
 
 /** Table / Graph switch — a small segmented control, not a Tabs widget, since both modes show
@@ -128,12 +139,10 @@ function ViewModeToggle({ value, onChange }: { value: ViewMode; onChange: (mode:
  *  independently validated against both the light and dark card surface. */
 const HOUSING_TYPE_COLORS = { permanent: GOLD, semiPermanent: AMBER, nonPermanent: GOLD_DEEP };
 
-/** Exactly 3 charts, one per numeric group. Housing Counts is a donut (Permanent + Semi-Permanent
- *  + Non-Permanent sum exactly to Total Houses, a clean part-to-whole story, so the total anchors
- *  the center). Sanitation and Drinking Water combine all of that group's figures — including
- *  totals — into a single bar chart. Electricity Access stays a separate meter (a % ratio doesn't
- *  belong on the same axis as counts) and isn't counted as one of the 3 — it's a different
- *  visualization, not a bar or part-to-whole comparison. */
+/** 4 charts, one per numeric group. Housing Counts and Electricity Access are donuts (their
+ *  slices sum to a meaningful total — total houses — so the total anchors the center).
+ *  Sanitation is also a donut. Drinking Water combines all of that group's figures —
+ *  including totals — into a single bar chart. */
 function HousingGraphSection({ data }: { data: HousingNumericData }) {
   const { lang } = useLanguage();
   const t = (en: string, si: string) => (lang === "si" ? si : en);
@@ -184,7 +193,22 @@ function HousingGraphSection({ data }: { data: HousingNumericData }) {
         )}
       />
 
-      <MeterCard titleEn={data.electricityTitle.en} titleSi={data.electricityTitle.si} percent={data.electricityAccessPercent} color={GOLD} />
+      <DonutCard
+        titleEn={housingDict.fields.electricityAccess.en}
+        titleSi={housingDict.fields.electricityAccess.si}
+        totalLabel={{ en: "Total Houses", si: "මුළු නිවාස ගණන" }}
+        slices={[
+          { label: t("With Electricity", "විදුලි පහසුකම් සහිත"), value: data.electricityAccess.withElectricity, color: GREEN },
+          { label: t("With Solar Power", "සූර්ය බල ශක්තිය සහිත"), value: data.electricityAccess.withSolar, color: GOLD },
+          { label: t("Without Electricity", "විදුලි පහසුකම් නොමැති"), value: data.electricityAccess.withoutElectricity, color: MAROON },
+        ]}
+        footer={
+          <p className="mt-4 border-t border-border pt-3 text-fluid-sm text-muted-foreground">
+            <Bilingual en="Needing electricity assistance: " si="විදුලි ආධාර ලැබිය යුතු: " />
+            <span className="font-semibold nums-tabular text-foreground">{data.electricityAccess.needingAssistance}</span>
+          </p>
+        }
+      />
     </div>
   );
 }
@@ -249,8 +273,7 @@ export function HousingView() {
             householdsWithoutHousing: section.householdsWithoutHousing,
             sanitation: section.sanitation,
             drinkingWaterSource: section.drinkingWaterSource,
-            electricityAccessPercent: section.electricityAccessPercent,
-            electricityTitle: housingDict.fields.electricityAccessPercent,
+            electricityAccess: section.electricityAccess,
           };
 
           return (
@@ -277,16 +300,14 @@ export function HousingView() {
                 columns={UNDERSERVED_AREA_COLUMNS}
                 rows={section.underservedAreas.map((row) => ({
                   area: row.area,
+                  difficultyDescription: row.difficultyDescription,
                   households: row.households?.toString(),
                   proposal: row.proposal,
                 }))}
               />
 
               {viewMode === "stats" && (
-                <ReadOnlyStats
-                  title={housingDict.fields.electricityAccessPercent}
-                  stats={[{ key: "value", label: { en: "Percentage", si: "ප්‍රතිශතය" }, value: `${section.electricityAccessPercent}%` }]}
-                />
+                <ReadOnlyStats title={housingDict.fields.electricityAccess} stats={toStats(ELECTRICITY_ACCESS_FIELDS, section.electricityAccess)} />
               )}
 
               <ReadOnlyTable
@@ -294,7 +315,7 @@ export function HousingView() {
                 columns={COMMUNITY_WATER_PROJECT_COLUMNS}
                 rows={section.communityWaterProjects.map((row) => ({
                   name: row.name,
-                  status: row.status,
+                  functional: row.functional,
                   householdsServed: row.householdsServed?.toString(),
                   authority: row.authority,
                 }))}
@@ -308,16 +329,15 @@ export function HousingView() {
 }
 
 /** Whole-division rollup of every approved GN division's Housing data: scalar groups are
- *  summed (or averaged, for electricity access), and the two per-division lists are pooled
- *  with a GN Division column added so each row's source division is still visible. */
+ *  summed, and the two per-division lists are pooled with a GN Division column added so
+ *  each row's source division is still visible. */
 function HousingAreaWideView({ aggregate, viewMode }: { aggregate: HousingAggregate; viewMode: ViewMode }) {
   const numericData: HousingNumericData = {
     housingCounts: aggregate.housingCounts,
     householdsWithoutHousing: aggregate.householdsWithoutHousing,
     sanitation: aggregate.sanitation,
     drinkingWaterSource: aggregate.drinkingWaterSource,
-    electricityAccessPercent: aggregate.avgElectricityAccessPercent,
-    electricityTitle: { en: "Average Electricity Access (%)", si: "සාමාන්‍ය විදුලි ප්‍රවේශය (%)" },
+    electricityAccess: aggregate.electricityAccess,
   };
 
   return (
@@ -352,22 +372,14 @@ function HousingAreaWideView({ aggregate, viewMode }: { aggregate: HousingAggreg
         rows={aggregate.underservedAreas.rows.map((row) => ({
           gnName: row.gnName,
           area: row.area,
+          difficultyDescription: row.difficultyDescription,
           households: row.households?.toString(),
           proposal: row.proposal,
         }))}
       />
 
       {viewMode === "stats" && (
-        <ReadOnlyStats
-          title={housingDict.fields.electricityAccessPercent}
-          stats={[
-            {
-              key: "value",
-              label: { en: "Average Percentage", si: "සාමාන්‍ය ප්‍රතිශතය" },
-              value: aggregate.avgElectricityAccessPercent !== null ? `${aggregate.avgElectricityAccessPercent}%` : undefined,
-            },
-          ]}
-        />
+        <ReadOnlyStats title={housingDict.fields.electricityAccess} stats={toStats(ELECTRICITY_ACCESS_FIELDS, aggregate.electricityAccess)} />
       )}
 
       <ReadOnlyTable
@@ -376,7 +388,7 @@ function HousingAreaWideView({ aggregate, viewMode }: { aggregate: HousingAggreg
         rows={aggregate.communityWaterProjects.rows.map((row) => ({
           gnName: row.gnName,
           name: row.name,
-          status: row.status,
+          functional: row.functional,
           householdsServed: row.householdsServed?.toString(),
           authority: row.authority,
         }))}

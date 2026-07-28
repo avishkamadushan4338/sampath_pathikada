@@ -11,7 +11,11 @@ export const physicalEnvironmentDict: SectionDictionary<keyof PhysicalEnvironmen
     waterSources: { en: "Water Sources", si: "ජල මූලාශ්‍ර" },
     sensitiveZones: { en: "Environmentally Sensitive Zones", si: "පාරිසරික වශයෙන් සංවේදී කලාප" },
     naturalResources: { en: "Natural Resources", si: "ස්වාභාවික සම්පත්" },
-    hazards: { en: "Natural / Other Hazards", si: "ස්වාභාවික/අනෙකුත් ආපදා" },
+    hazards: { en: "Environmental Problems & Disasters", si: "පාරිසරික ගැටළු හා ආපදාවන්" },
+    safeLocationsIdentified: {
+      en: "Safe/Evacuation Locations Identified?",
+      si: "ආරක්ෂිත ස්ථාන හෝ සුරක්ෂිත මධ්‍යස්ථාන හඳුනාගෙන තිබේද?",
+    },
     safeLocations: { en: "Safe Locations / Evacuation Centers", si: "ආරක්ෂිත ස්ථාන / ඉවත් කිරීමේ මධ්‍යස්ථාන" },
     touristSites: { en: "Existing Tourist Sites", si: "පවතින සංචාරක ආකර්ෂණීය ස්ථාන" },
     proposedTouristSites: { en: "Proposed Tourist Sites", si: "යෝජිත සංචාරක ආකර්ෂණීය ස්ථාන" },

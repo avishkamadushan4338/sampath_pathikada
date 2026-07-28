@@ -28,13 +28,20 @@ const EMPTY_VALUES: HealthDraft = {
     specialistServiceCenters: 0,
     mohOfficesOrCommunityHealthCenters: 0,
     privateMedicalLabs: 0,
-    otherLabs: 0,
+    traditionalMedicineRegisteredInstitutions: 0,
+    animalClinicCenters: 0,
     govtPharmacies: 0,
     privatePharmacies: 0,
   },
   govtHospitalsDirectory: [],
+  primaryHealthcareUnitsDirectory: [],
   privateHospitalsDirectory: [],
   ayurvedicInstitutions: [],
+  specialistServiceCentersDirectory: [],
+  mohOfficesDirectory: [],
+  traditionalMedicineInstitutionsDirectory: [],
+  privateMedicalLabsDirectory: [],
+  animalClinicsDirectory: [],
   traditionalPractitioners: [],
 };
 
@@ -85,14 +92,14 @@ export default function HealthPage() {
     },
   ];
 
-  const privateHospitalColumns: RepeatableColumn[] = [
+  const nameAddressColumns: RepeatableColumn[] = [
     { key: "name", label: { en: "Name", si: "නම" }, type: "text" },
     { key: "address", label: { en: "Address", si: "ලිපිනය" }, type: "text" },
   ];
 
-  const ayurvedicInstitutionColumns: RepeatableColumn[] = [
+  const primaryHealthcareUnitColumns: RepeatableColumn[] = [
     { key: "name", label: { en: "Name", si: "නම" }, type: "text" },
-    { key: "address", label: { en: "Address", si: "ලිපිනය" }, type: "text" },
+    { key: "type", label: { en: "Type", si: "වර්ගය" }, type: "text" },
   ];
 
   const traditionalPractitionerColumns: RepeatableColumn[] = [
@@ -153,9 +160,17 @@ export default function HealthPage() {
               <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("institutionCounts.privateMedicalLabs")} />
             )}
           </FieldWrapper>
-          <FieldWrapper name="institutionCounts.otherLabs" label={{ en: "Other Labs", si: "වෙනත් රසායනාගාර" }}>
+          <FieldWrapper
+            name="institutionCounts.traditionalMedicineRegisteredInstitutions"
+            label={{ en: "Traditional Sinhala Medicine Registered Institutions", si: "පාරම්පරික සිංහල වෙදකම සිදු කරන ලියාපදිංචි ආයතන" }}
+          >
             {({ id, describedBy, invalid }) => (
-              <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("institutionCounts.otherLabs")} />
+              <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("institutionCounts.traditionalMedicineRegisteredInstitutions")} />
+            )}
+          </FieldWrapper>
+          <FieldWrapper name="institutionCounts.animalClinicCenters" label={{ en: "Animal / Veterinary Clinic Centers", si: "සත්ත්ව සායන මධ්‍යස්ථාන" }}>
+            {({ id, describedBy, invalid }) => (
+              <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("institutionCounts.animalClinicCenters")} />
             )}
           </FieldWrapper>
           <FieldWrapper name="institutionCounts.govtPharmacies" label={{ en: "Government Pharmacies", si: "රාජ්‍ය ඖෂධශාලා" }}>
@@ -182,9 +197,18 @@ export default function HealthPage() {
 
       <div className="border-t border-border pt-6">
         <RepeatableTable
+          name="primaryHealthcareUnitsDirectory"
+          title={healthDict.fields.primaryHealthcareUnitsDirectory}
+          columns={primaryHealthcareUnitColumns}
+          emptyRowFactory={() => ({ name: "", type: "" })}
+        />
+      </div>
+
+      <div className="border-t border-border pt-6">
+        <RepeatableTable
           name="privateHospitalsDirectory"
           title={healthDict.fields.privateHospitalsDirectory}
-          columns={privateHospitalColumns}
+          columns={nameAddressColumns}
           emptyRowFactory={() => ({ name: "", address: "" })}
         />
       </div>
@@ -193,7 +217,52 @@ export default function HealthPage() {
         <RepeatableTable
           name="ayurvedicInstitutions"
           title={healthDict.fields.ayurvedicInstitutions}
-          columns={ayurvedicInstitutionColumns}
+          columns={nameAddressColumns}
+          emptyRowFactory={() => ({ name: "", address: "" })}
+        />
+      </div>
+
+      <div className="border-t border-border pt-6">
+        <RepeatableTable
+          name="specialistServiceCentersDirectory"
+          title={healthDict.fields.specialistServiceCentersDirectory}
+          columns={nameAddressColumns}
+          emptyRowFactory={() => ({ name: "", address: "" })}
+        />
+      </div>
+
+      <div className="border-t border-border pt-6">
+        <RepeatableTable
+          name="mohOfficesDirectory"
+          title={healthDict.fields.mohOfficesDirectory}
+          columns={nameAddressColumns}
+          emptyRowFactory={() => ({ name: "", address: "" })}
+        />
+      </div>
+
+      <div className="border-t border-border pt-6">
+        <RepeatableTable
+          name="traditionalMedicineInstitutionsDirectory"
+          title={healthDict.fields.traditionalMedicineInstitutionsDirectory}
+          columns={nameAddressColumns}
+          emptyRowFactory={() => ({ name: "", address: "" })}
+        />
+      </div>
+
+      <div className="border-t border-border pt-6">
+        <RepeatableTable
+          name="privateMedicalLabsDirectory"
+          title={healthDict.fields.privateMedicalLabsDirectory}
+          columns={nameAddressColumns}
+          emptyRowFactory={() => ({ name: "", address: "" })}
+        />
+      </div>
+
+      <div className="border-t border-border pt-6">
+        <RepeatableTable
+          name="animalClinicsDirectory"
+          title={healthDict.fields.animalClinicsDirectory}
+          columns={nameAddressColumns}
           emptyRowFactory={() => ({ name: "", address: "" })}
         />
       </div>

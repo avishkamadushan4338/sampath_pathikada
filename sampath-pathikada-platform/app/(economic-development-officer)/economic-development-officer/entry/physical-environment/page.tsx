@@ -1,29 +1,73 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 import { SectionForm } from "@/components/forms/SectionForm";
+import { FieldWrapper } from "@/components/forms/FormField";
 import { RepeatableTable, type RepeatableColumn } from "@/components/forms/RepeatableTable";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useSubmission, useSaveSection } from "@/hooks/use-submission";
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { physicalEnvironmentDict } from "@/lib/i18n/sections/physical-environment";
-import { physicalEnvironmentSchemaPartial } from "@/lib/validators/sections/physical-environment";
+import { physicalEnvironmentSchemaPartial, HAZARD_TYPES } from "@/lib/validators/sections/physical-environment";
 import { z } from "zod";
 
 const CURRENT_YEAR = 2026;
 
 type PhysicalEnvironmentDraft = z.infer<typeof physicalEnvironmentSchemaPartial>;
 
-const EMPTY_VALUES: PhysicalEnvironmentDraft = {
-  waterSources: [],
-  sensitiveZones: [],
-  naturalResources: [],
-  hazards: [],
-  safeLocations: [],
-  touristSites: [],
-  proposedTouristSites: [],
+const YES_NO_OPTIONS = [
+  { value: "yes", label: { en: "Yes", si: "ඔව්" } },
+  { value: "no", label: { en: "No", si: "නැත" } },
+];
+
+const HAZARD_TYPE_LABELS: Record<(typeof HAZARD_TYPES)[number], { en: string; si: string }> = {
+  flood: { en: "Flood", si: "ගංවතුර" },
+  drought: { en: "Drought", si: "නියඟය" },
+  landslide: { en: "Landslide", si: "නායයෑම" },
+  deforestation: { en: "Deforestation", si: "වන විනාශය" },
+  waterSourceDepletion: { en: "Water Source Depletion", si: "ජල මූලාශ්‍ර සිඳී යාම" },
+  unauthorizedLandFilling: { en: "Unauthorized Land-Filling / Construction", si: "අනුමැතියක් නොමැතිව බිම් ගොඩ කිරීම හා ඉදිකිරීම" },
+  unauthorizedWasteDisposal: { en: "Unauthorized Waste Disposal", si: "කැළිකසළ බැහැර කිරීම (අනුමැතියක් රහිතව)" },
+  wildElephantConflict: { en: "Wild Elephant Conflict", si: "වන අලි ගැටළුව" },
+  coastalErosion: { en: "Coastal Erosion", si: "වෙරළ ඛාදනය" },
+  illegalSandMining: { en: "Illegal Sand Mining / Dumping", si: "අනවසර වැලි ගොඩදැමීම" },
 };
+
+function buildEmptyValues(lang: "en" | "si"): PhysicalEnvironmentDraft {
+  return {
+    waterSources: [],
+    sensitiveZones: [],
+    naturalResources: [],
+    hazards: HAZARD_TYPES.map((type) => ({
+      type,
+      typeLabel: HAZARD_TYPE_LABELS[type][lang],
+      occurred: "no",
+      frequency: "",
+      mitigationProposal: "",
+    })),
+    safeLocationsIdentified: "no",
+    safeLocations: [],
+    touristSites: [],
+    proposedTouristSites: [],
+  };
+}
+
+function mergeWithSaved(empty: PhysicalEnvironmentDraft, saved: PhysicalEnvironmentDraft): PhysicalEnvironmentDraft {
+  return {
+    ...empty,
+    ...saved,
+    hazards: empty.hazards?.map((row, i) => ({ ...row, ...saved.hazards?.[i] })),
+  };
+}
 
 const waterSourceColumns: RepeatableColumn[] = [
   { key: "type", label: { en: "Type", si: "වර්ගය" }, type: "text" },
@@ -38,23 +82,25 @@ const sensitiveZoneColumns: RepeatableColumn[] = [
 
 const naturalResourceColumns: RepeatableColumn[] = [
   { key: "resource", label: { en: "Resource", si: "සම්පත" }, type: "text" },
+  {
+    key: "utilizedForProduction",
+    label: { en: "Used for Production/Development?", si: "නිෂ්පාදනයට/සංවර්ධනයට යොදාගෙන තිබේද" },
+    type: "select",
+    options: YES_NO_OPTIONS,
+  },
   { key: "notes", label: { en: "Notes", si: "සටහන්" }, type: "text" },
 ];
 
 const hazardColumns: RepeatableColumn[] = [
-  { key: "type", label: { en: "Hazard Type", si: "ආපදා වර්ගය" }, type: "text" },
+  { key: "typeLabel", label: { en: "Hazard Type", si: "ආපදා වර්ගය" }, type: "readonly" },
   {
     key: "occurred",
-    label: { en: "Occurred?", si: "සිදුවී ඇත්ද?" },
+    label: { en: "Occurred?", si: "ඇත/නැත" },
     type: "select",
-    options: [
-      { value: "yes", label: { en: "Yes", si: "ඔව්" } },
-      { value: "no", label: { en: "No", si: "නැත" } },
-    ],
+    options: YES_NO_OPTIONS,
   },
-  { key: "frequency", label: { en: "Frequency", si: "සංඛ්‍යාතය" }, type: "text" },
-  { key: "cause", label: { en: "Cause", si: "හේතුව" }, type: "text" },
-  { key: "mitigationProposal", label: { en: "Mitigation Proposal", si: "අවම කිරීමේ යෝජනාව" }, type: "text" },
+  { key: "frequency", label: { en: "Frequency / Period", si: "බහුලව සිදුවන කාල සීමාව" }, type: "text" },
+  { key: "mitigationProposal", label: { en: "Proposed Remedy", si: "ගතයුතු පිළියම් යෝජනා" }, type: "text" },
 ];
 
 const safeLocationColumns: RepeatableColumn[] = [
@@ -85,20 +131,25 @@ const proposedTouristSiteColumns: RepeatableColumn[] = [
 ];
 
 export default function PhysicalEnvironmentPage() {
+  const { lang } = useLanguage();
   const { submission, isLoading } = useSubmission(CURRENT_YEAR);
   const { saveSection, status, errorMessage } = useSaveSection(CURRENT_YEAR);
 
+  const emptyValues = useMemo(() => buildEmptyValues(lang), [lang]);
+
   const form = useForm<PhysicalEnvironmentDraft>({
     resolver: zodResolver(physicalEnvironmentSchemaPartial),
-    defaultValues: EMPTY_VALUES,
+    defaultValues: emptyValues,
   });
 
   useEffect(() => {
     if (submission?.data.physicalEnvironment) {
-      form.reset({ ...EMPTY_VALUES, ...submission.data.physicalEnvironment });
+      form.reset(mergeWithSaved(emptyValues, submission.data.physicalEnvironment));
+    } else {
+      form.reset(emptyValues);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [submission]);
+  }, [submission, emptyValues]);
 
   async function handleSave(values: PhysicalEnvironmentDraft) {
     await saveSection("physicalEnvironment", values);
@@ -145,7 +196,7 @@ export default function PhysicalEnvironmentPage() {
           name="naturalResources"
           title={physicalEnvironmentDict.fields.naturalResources}
           columns={naturalResourceColumns}
-          emptyRowFactory={() => ({ resource: "", notes: "" })}
+          emptyRowFactory={() => ({ resource: "", utilizedForProduction: "no", notes: "" })}
         />
       </div>
 
@@ -154,11 +205,42 @@ export default function PhysicalEnvironmentPage() {
           name="hazards"
           title={physicalEnvironmentDict.fields.hazards}
           columns={hazardColumns}
-          emptyRowFactory={() => ({ type: "", occurred: "no", frequency: "", cause: "", mitigationProposal: "" })}
+          fixedRows
+          emptyRowFactory={() => ({
+            type: HAZARD_TYPES[0],
+            typeLabel: HAZARD_TYPE_LABELS[HAZARD_TYPES[0]][lang],
+            occurred: "no",
+            frequency: "",
+            mitigationProposal: "",
+          })}
         />
       </div>
 
       <div className="border-t border-border pt-6">
+        <div className="mb-3 max-w-xs">
+          <FieldWrapper
+            name="safeLocationsIdentified"
+            label={{ en: "Have safe/evacuation locations been identified?", si: "ආරක්ෂිත ස්ථාන හෝ සුරක්ෂිත මධ්‍යස්ථාන හඳුනාගෙන තිබේද?" }}
+          >
+            {({ id, describedBy, invalid }) => (
+              <Select
+                value={form.watch("safeLocationsIdentified") ?? "no"}
+                onValueChange={(v) => form.setValue("safeLocationsIdentified", v as "yes" | "no", { shouldDirty: true })}
+              >
+                <SelectTrigger id={id} aria-describedby={describedBy} aria-invalid={invalid}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {YES_NO_OPTIONS.map((o) => (
+                    <SelectItem key={o.value} value={o.value}>
+                      {lang === "si" ? o.label.si : o.label.en}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </FieldWrapper>
+        </div>
         <RepeatableTable
           name="safeLocations"
           title={physicalEnvironmentDict.fields.safeLocations}

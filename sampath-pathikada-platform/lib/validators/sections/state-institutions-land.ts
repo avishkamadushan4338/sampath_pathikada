@@ -1,19 +1,22 @@
 import { z } from "zod";
-import { nameAddressRowSchema } from "@/lib/validators/common";
+import { nameAddressRowSchema, yesNo } from "@/lib/validators/common";
 
-/* ── §2 රාජ්‍ය ආයතන හා ඉඩම් — State Institutions & Land ──────────────────────── */
+/* ── §1.5–1.7 රාජ්‍ය ආයතන හා ඉඩම් — State Institutions & Land ──────────────────────── */
 
 export const stateInstitutionRowSchema = nameAddressRowSchema;
 
 export const illegalStructureRowSchema = z.object({
-  description: z.string().min(1, "Description is required"),
-  location: z.string().min(1, "Location is required"),
+  buildingName: z.string().min(1, "Building name is required"),
+  purposeUsed: z.string().min(1, "Purpose used for is required"),
+  usable: yesNo,
+  owningInstitution: z.string().min(1, "Owning institution is required"),
 });
 
 export const developmentProjectRowSchema = z.object({
-  name: z.string().min(1, "Project name is required"),
-  status: z.enum(["ongoing", "new"]),
-  location: z.string().min(1, "Location is required"),
+  projectName: z.string().min(1, "Project name is required"),
+  owningInstitution: z.string().min(1, "Owning institution is required"),
+  reasonForHalt: z.string().min(1, "Reason for halting is required"),
+  currentStatus: z.string().min(1, "Current status is required"),
 });
 
 export const stateInstitutionsLandSchemaStrict = z.object({
@@ -28,15 +31,7 @@ export type StateInstitutionsLandData = z.infer<typeof stateInstitutionsLandSche
 export const stateInstitutionsLandSchemaPartial = z.object({
   stateInstitutions: z.array(stateInstitutionRowSchema.partial()).optional(),
   illegalStructures: z.array(illegalStructureRowSchema.partial()).optional(),
-  developmentProjects: z
-    .array(
-      z.object({
-        name: z.string().optional(),
-        status: z.enum(["ongoing", "new"]).optional(),
-        location: z.string().optional(),
-      })
-    )
-    .optional(),
+  developmentProjects: z.array(developmentProjectRowSchema.partial()).optional(),
 });
 
 export type StateInstitutionsLandDraft = z.infer<typeof stateInstitutionsLandSchemaPartial>;

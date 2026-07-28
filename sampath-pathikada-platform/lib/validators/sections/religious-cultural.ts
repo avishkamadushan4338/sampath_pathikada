@@ -11,10 +11,13 @@ export const heritageSiteRowSchema = z.object({
   name: z.string().min(1, "Name is required"),
   type: z.string().min(1, "Type is required"),
   significance: z.string().min(1, "Significance is required"),
+  maintainedBy: z.string().optional(),
+  taskExtension: z.string().optional(),
 });
 
 export const artAcademyRowSchema = z.object({
   name: z.string().min(1, "Name is required"),
+  registrationNumber: z.string().optional(),
   studentCount: z.coerce.number().int().min(0).default(0),
 });
 
@@ -27,6 +30,7 @@ export const traditionalArtistRowSchema = z.object({
 export const religiousCulturalSchemaStrict = z.object({
   religiousSiteCounts: z.object({
     temples: religiousSiteCountSchema,
+    meheniArama: religiousSiteCountSchema,
     kovils: religiousSiteCountSchema,
     mosques: religiousSiteCountSchema,
     churches: religiousSiteCountSchema,
@@ -42,6 +46,7 @@ export const religiousCulturalSchemaPartial = z.object({
   religiousSiteCounts: z
     .object({
       temples: religiousSiteCountSchema.partial().optional(),
+      meheniArama: religiousSiteCountSchema.partial().optional(),
       kovils: religiousSiteCountSchema.partial().optional(),
       mosques: religiousSiteCountSchema.partial().optional(),
       churches: religiousSiteCountSchema.partial().optional(),

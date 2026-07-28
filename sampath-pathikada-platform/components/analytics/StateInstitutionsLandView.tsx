@@ -4,9 +4,9 @@ import { GnScopedSectionView } from "@/components/analytics/GnScopedSectionView"
 import { ReadOnlyTable } from "@/components/analytics/ReadOnlyTable";
 import { stateInstitutionsLandDict } from "@/lib/i18n/sections/state-institutions-land";
 
-const STATUS_OPTIONS = [
-  { value: "ongoing", label: { en: "Ongoing", si: "ක්‍රියාත්මක" } },
-  { value: "new", label: { en: "New", si: "නව" } },
+const USABLE_OPTIONS = [
+  { value: "yes", label: { en: "Yes", si: "ඔව්" } },
+  { value: "no", label: { en: "No", si: "නැත" } },
 ];
 
 /** GN-division-scoped view of the "State Institutions & Land" section (§2): a DS searches or
@@ -35,17 +35,20 @@ export function StateInstitutionsLandView() {
             <ReadOnlyTable
               title={stateInstitutionsLandDict.fields.illegalStructures}
               columns={[
-                { key: "description", label: { en: "Description", si: "විස්තරය" } },
-                { key: "location", label: { en: "Location", si: "ස්ථානය" } },
+                { key: "buildingName", label: { en: "Building Name", si: "ගොඩනැගිල්ලේ නම" } },
+                { key: "purposeUsed", label: { en: "Purpose Used For", si: "යොදාගත් කාර්යය" } },
+                { key: "usable", label: { en: "Usable Condition", si: "භාවිතයට ගත හැකිද" }, options: USABLE_OPTIONS },
+                { key: "owningInstitution", label: { en: "Owning Institution", si: "අයත් ආයතනය" } },
               ]}
               rows={section?.illegalStructures ?? []}
             />
             <ReadOnlyTable
               title={stateInstitutionsLandDict.fields.developmentProjects}
               columns={[
-                { key: "name", label: { en: "Project Name", si: "ව්‍යාපෘතියේ නම" } },
-                { key: "status", label: { en: "Status", si: "තත්ත්වය" }, options: STATUS_OPTIONS },
-                { key: "location", label: { en: "Location", si: "ස්ථානය" } },
+                { key: "projectName", label: { en: "Project Name", si: "ව්‍යාපෘතියේ නම" } },
+                { key: "owningInstitution", label: { en: "Owning Institution", si: "අයත් ආයතනය" } },
+                { key: "reasonForHalt", label: { en: "Reason for Halting", si: "නවතාදැමීමට හේතුව" } },
+                { key: "currentStatus", label: { en: "Current Status", si: "වර්තමාන තත්ත්වය" } },
               ]}
               rows={section?.developmentProjects ?? []}
             />

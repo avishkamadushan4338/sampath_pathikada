@@ -9,6 +9,7 @@ const RELIGIONS = ["buddhist", "hindu", "islam", "catholic", "other"] as const;
 const DISABILITY_TYPES = [
   "mentalIllness",
   "intellectualDisability",
+  "paralysis",
   "speechImpairment",
   "hearingImpairment",
   "visualImpairment",

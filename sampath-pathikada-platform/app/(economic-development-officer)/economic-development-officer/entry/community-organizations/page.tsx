@@ -28,8 +28,8 @@ const ORGANIZATION_TYPE_LABELS: Record<(typeof ORGANIZATION_TYPES)[number], { en
   "elders-society": { en: "Elders' Society", si: "වැඩිහිටි සමිතිය" },
   "childrens-society": { en: "Children's Society", si: "ළමා සමිතිය" },
   "samurdhi-society": { en: "Samurdhi Society", si: "සමෘද්ධි සමිතිය" },
-  "friendly-society-or-burial-fund": { en: "Friendly Society / Burial Fund", si: "මිත්‍ර සමිතිය / අවමංගල්‍ය අරමුදල" },
-  "govt-non-departmental-org": { en: "Government Non-Departmental Organization", si: "රාජ්‍ය අදෙපාර්තමේන්තු ආයතන" },
+  "friend-organization": { en: "Friend Organization / Association", si: "මිතුරු සංවිධාන/මිතුරු හවුල්" },
+  "ngo-committee": { en: "Non-Governmental Organization Committee", si: "රාජ්‍ය නොවන සංවිධාන සමිති" },
   "farmer-society": { en: "Farmer Society", si: "ගොවි සංවිධානය" },
   "religious-society": { en: "Religious Society", si: "ආගමික සමිතිය" },
   "sanasa-society": { en: "SANASA Society", si: "සණස සමිතිය" },
@@ -40,10 +40,20 @@ const ORGANIZATION_TYPE_LABELS: Record<(typeof ORGANIZATION_TYPES)[number], { en
 function getEmptyValues(lang: "en" | "si"): CommunityOrganizationsDraft {
   return {
     organizationCounts: ORGANIZATION_TYPES.map((type) => ({
-      label: lang === "si" ? ORGANIZATION_TYPE_LABELS[type].si : ORGANIZATION_TYPE_LABELS[type].en,
+      type,
+      typeLabel: ORGANIZATION_TYPE_LABELS[type][lang],
       count: 0,
     })),
     organizationDirectory: [],
+    cooperativeSocieties: [],
+  };
+}
+
+function mergeWithSaved(empty: CommunityOrganizationsDraft, saved: CommunityOrganizationsDraft): CommunityOrganizationsDraft {
+  return {
+    ...empty,
+    ...saved,
+    organizationCounts: empty.organizationCounts?.map((row, i) => ({ ...row, ...saved.organizationCounts?.[i] })),
   };
 }
 
@@ -59,10 +69,12 @@ export default function CommunityOrganizationsPage() {
 
   useEffect(() => {
     if (submission?.data.communityOrganizations) {
-      form.reset({ ...getEmptyValues(lang), ...submission.data.communityOrganizations });
+      form.reset(mergeWithSaved(getEmptyValues(lang), submission.data.communityOrganizations));
+    } else {
+      form.reset(getEmptyValues(lang));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [submission]);
+  }, [submission, lang]);
 
   async function handleSave(values: CommunityOrganizationsDraft) {
     await saveSection("communityOrganizations", values);
@@ -77,7 +89,7 @@ export default function CommunityOrganizationsPage() {
   }
 
   const organizationCountColumns: RepeatableColumn[] = [
-    { key: "label", label: { en: "Organization Type", si: "සංවිධාන වර්ගය" }, type: "readonly" },
+    { key: "typeLabel", label: { en: "Organization Type", si: "සංවිධාන වර්ගය" }, type: "readonly" },
     { key: "count", label: { en: "Count", si: "සංඛ්‍යාව" }, type: "number" },
   ];
 
@@ -90,6 +102,13 @@ export default function CommunityOrganizationsPage() {
       type: "select",
       options: ORGANIZATION_TYPES.map((type) => ({ value: type, label: ORGANIZATION_TYPE_LABELS[type] })),
     },
+    { key: "memberCount", label: { en: "Member Count (Sports Clubs)", si: "සාමාජික ගණන (ක්‍රීඩා සමාජ)" }, type: "number" },
+    { key: "identifiedNeeds", label: { en: "Identified Needs (Sports Clubs)", si: "හඳුනාගත් අවශ්‍යතා (ක්‍රීඩා සමාජ)" }, type: "text" },
+  ];
+
+  const cooperativeSocietyColumns: RepeatableColumn[] = [
+    { key: "name", label: { en: "Society Name", si: "සමිතියේ නම" }, type: "text" },
+    { key: "address", label: { en: "Address", si: "ලිපිනය" }, type: "text" },
   ];
 
   return (
@@ -108,7 +127,11 @@ export default function CommunityOrganizationsPage() {
           title={communityOrganizationsDict.fields.organizationCounts}
           columns={organizationCountColumns}
           fixedRows
-          emptyRowFactory={() => ({ label: "", count: 0 })}
+          emptyRowFactory={() => ({
+            type: ORGANIZATION_TYPES[0],
+            typeLabel: ORGANIZATION_TYPE_LABELS[ORGANIZATION_TYPES[0]][lang],
+            count: 0,
+          })}
         />
       </div>
 
@@ -117,7 +140,16 @@ export default function CommunityOrganizationsPage() {
           name="organizationDirectory"
           title={communityOrganizationsDict.fields.organizationDirectory}
           columns={organizationDirectoryColumns}
-          emptyRowFactory={() => ({ name: "", address: "", type: ORGANIZATION_TYPES[0] })}
+          emptyRowFactory={() => ({ name: "", address: "", type: ORGANIZATION_TYPES[0], memberCount: 0, identifiedNeeds: "" })}
+        />
+      </div>
+
+      <div className="border-t border-border pt-6">
+        <RepeatableTable
+          name="cooperativeSocieties"
+          title={communityOrganizationsDict.fields.cooperativeSocieties}
+          columns={cooperativeSocietyColumns}
+          emptyRowFactory={() => ({ name: "", address: "" })}
         />
       </div>
     </SectionForm>

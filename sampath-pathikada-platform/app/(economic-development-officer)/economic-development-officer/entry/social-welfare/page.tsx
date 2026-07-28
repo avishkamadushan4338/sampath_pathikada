@@ -14,6 +14,7 @@ import { socialWelfareDict } from "@/lib/i18n/sections/social-welfare";
 import {
   socialWelfareSchemaPartial,
   ELDERS_HOME_AUTHORITY_TYPES,
+  CHILDRENS_HOME_TYPES,
   CHILDRENS_HOME_AUTHORITY_TYPES,
 } from "@/lib/validators/sections/social-welfare";
 import { z } from "zod";
@@ -29,14 +30,17 @@ const EMPTY_VALUES: SocialWelfareDraft = {
     rs5000: 0,
     rs8500: 0,
     rs15000: 0,
-    noBenefit: 0,
+    totalAswesumaRecipients: 0,
   },
   allowanceRecipientCounts: {
     disabilityAllowance: 0,
     elderlyAllowance: 0,
     nutritionAllowance: 0,
     publicAssistance: 0,
-    sickAllowance: 0,
+    diseaseAidWheelchair: 0,
+    diseaseAidCancer: 0,
+    diseaseAidThalassemia: 0,
+    diseaseAidDiabetes: 0,
     other: 0,
   },
   eldersHomes: [],
@@ -46,6 +50,13 @@ const EMPTY_VALUES: SocialWelfareDraft = {
 const ELDERS_HOME_AUTHORITY_LABELS: Record<(typeof ELDERS_HOME_AUTHORITY_TYPES)[number], { en: string; si: string }> = {
   govt: { en: "Government", si: "රාජ්‍ය" },
   private: { en: "Private", si: "පෞද්ගලික" },
+};
+
+const CHILDRENS_HOME_TYPE_LABELS: Record<(typeof CHILDRENS_HOME_TYPES)[number], { en: string; si: string }> = {
+  "childrens-home": { en: "Children's Home", si: "ළමා නිවාසය" },
+  "certified-school": { en: "Certified School", si: "සහතික කළ පාසල" },
+  "probation-home": { en: "Probation Home", si: "සේවන නිවාසය" },
+  "detention-home": { en: "Detention Home", si: "රඳවා තැබීමේ නිවාසය" },
 };
 
 const CHILDRENS_HOME_AUTHORITY_LABELS: Record<
@@ -95,19 +106,33 @@ export default function SocialWelfarePage() {
       type: "select",
       options: ELDERS_HOME_AUTHORITY_TYPES.map((v) => ({ value: v, label: ELDERS_HOME_AUTHORITY_LABELS[v] })),
     },
-    { key: "residentCount", label: { en: "Resident Count", si: "වාසීන් සංඛ්‍යාව" }, type: "number" },
+    { key: "phone", label: { en: "Phone", si: "දුරකථන අංකය" }, type: "text" },
+    { key: "infrastructureNeeds", label: { en: "Infrastructure Needs", si: "යටිතල පහසුකම්වල අවශ්‍යතාව" }, type: "text" },
+    { key: "capacity", label: { en: "Capacity", si: "ධාරිතාව" }, type: "number" },
+    { key: "residentCount.female", label: { en: "Residents - Female", si: "වාසීන් - ස්ත්‍රී" }, type: "number" },
+    { key: "residentCount.male", label: { en: "Residents - Male", si: "වාසීන් - පුරුෂ" }, type: "number" },
   ];
 
   const childrensHomeColumns: RepeatableColumn[] = [
     { key: "name", label: { en: "Name", si: "නම" }, type: "text" },
     { key: "address", label: { en: "Address", si: "ලිපිනය" }, type: "text" },
     {
+      key: "type",
+      label: { en: "Type", si: "වර්ගය" },
+      type: "select",
+      options: CHILDRENS_HOME_TYPES.map((v) => ({ value: v, label: CHILDRENS_HOME_TYPE_LABELS[v] })),
+    },
+    {
       key: "authority",
       label: { en: "Authority", si: "පාලන අධිකාරිය" },
       type: "select",
       options: CHILDRENS_HOME_AUTHORITY_TYPES.map((v) => ({ value: v, label: CHILDRENS_HOME_AUTHORITY_LABELS[v] })),
     },
-    { key: "residentCount", label: { en: "Resident Count", si: "වාසීන් සංඛ්‍යාව" }, type: "number" },
+    { key: "phone", label: { en: "Phone", si: "දුරකථන අංකය" }, type: "text" },
+    { key: "infrastructureNeeds", label: { en: "Infrastructure Needs", si: "යටිතල පහසුකම්වල අවශ්‍යතාව" }, type: "text" },
+    { key: "capacity", label: { en: "Capacity", si: "ධාරිතාව" }, type: "number" },
+    { key: "residentCount.female", label: { en: "Residents - Female", si: "වාසීන් - ස්ත්‍රී" }, type: "number" },
+    { key: "residentCount.male", label: { en: "Residents - Male", si: "වාසීන් - පුරුෂ" }, type: "number" },
   ];
 
   return (
@@ -173,7 +198,7 @@ export default function SocialWelfarePage() {
               />
             )}
           </FieldWrapper>
-          <FieldWrapper name="welfarePaymentHouseholdCounts.noBenefit" label={{ en: "No Benefit", si: "ප්‍රතිලාභ නොලැබූ" }}>
+          <FieldWrapper name="welfarePaymentHouseholdCounts.totalAswesumaRecipients" label={{ en: "Total Aswesuma Recipients", si: "අස්වැසුම ප්‍රතිලාභී මුළු" }}>
             {({ id, describedBy, invalid }) => (
               <Input
                 id={id}
@@ -181,7 +206,7 @@ export default function SocialWelfarePage() {
                 inputMode="numeric"
                 aria-describedby={describedBy}
                 aria-invalid={invalid}
-                {...form.register("welfarePaymentHouseholdCounts.noBenefit")}
+                {...form.register("welfarePaymentHouseholdCounts.totalAswesumaRecipients")}
               />
             )}
           </FieldWrapper>
@@ -241,7 +266,7 @@ export default function SocialWelfarePage() {
               />
             )}
           </FieldWrapper>
-          <FieldWrapper name="allowanceRecipientCounts.sickAllowance" label={{ en: "Sick Allowance", si: "රෝගී දීමනාව" }}>
+          <FieldWrapper name="allowanceRecipientCounts.diseaseAidWheelchair" label={{ en: "Disease Aid - Wheelchair", si: "රෝගාධාර - වීල්චෙයාර්" }}>
             {({ id, describedBy, invalid }) => (
               <Input
                 id={id}
@@ -249,7 +274,43 @@ export default function SocialWelfarePage() {
                 inputMode="numeric"
                 aria-describedby={describedBy}
                 aria-invalid={invalid}
-                {...form.register("allowanceRecipientCounts.sickAllowance")}
+                {...form.register("allowanceRecipientCounts.diseaseAidWheelchair")}
+              />
+            )}
+          </FieldWrapper>
+          <FieldWrapper name="allowanceRecipientCounts.diseaseAidCancer" label={{ en: "Disease Aid - Cancer", si: "රෝගාධාර - පිළිකා" }}>
+            {({ id, describedBy, invalid }) => (
+              <Input
+                id={id}
+                type="number"
+                inputMode="numeric"
+                aria-describedby={describedBy}
+                aria-invalid={invalid}
+                {...form.register("allowanceRecipientCounts.diseaseAidCancer")}
+              />
+            )}
+          </FieldWrapper>
+          <FieldWrapper name="allowanceRecipientCounts.diseaseAidThalassemia" label={{ en: "Disease Aid - Thalassemia", si: "රෝගාධාර - තැලසීමියා" }}>
+            {({ id, describedBy, invalid }) => (
+              <Input
+                id={id}
+                type="number"
+                inputMode="numeric"
+                aria-describedby={describedBy}
+                aria-invalid={invalid}
+                {...form.register("allowanceRecipientCounts.diseaseAidThalassemia")}
+              />
+            )}
+          </FieldWrapper>
+          <FieldWrapper name="allowanceRecipientCounts.diseaseAidDiabetes" label={{ en: "Disease Aid - Diabetes", si: "රෝගාධාර - දියවැඩියාව" }}>
+            {({ id, describedBy, invalid }) => (
+              <Input
+                id={id}
+                type="number"
+                inputMode="numeric"
+                aria-describedby={describedBy}
+                aria-invalid={invalid}
+                {...form.register("allowanceRecipientCounts.diseaseAidDiabetes")}
               />
             )}
           </FieldWrapper>
@@ -273,7 +334,15 @@ export default function SocialWelfarePage() {
           name="eldersHomes"
           title={socialWelfareDict.fields.eldersHomes}
           columns={eldersHomeColumns}
-          emptyRowFactory={() => ({ name: "", address: "", authority: "govt", residentCount: 0 })}
+          emptyRowFactory={() => ({
+            name: "",
+            address: "",
+            authority: "govt",
+            phone: "",
+            infrastructureNeeds: "",
+            capacity: 0,
+            residentCount: { female: 0, male: 0 },
+          })}
         />
       </div>
 
@@ -282,7 +351,16 @@ export default function SocialWelfarePage() {
           name="childrensHomes"
           title={socialWelfareDict.fields.childrensHomes}
           columns={childrensHomeColumns}
-          emptyRowFactory={() => ({ name: "", address: "", authority: "govt", residentCount: 0 })}
+          emptyRowFactory={() => ({
+            name: "",
+            address: "",
+            type: "childrens-home",
+            authority: "govt",
+            phone: "",
+            infrastructureNeeds: "",
+            capacity: 0,
+            residentCount: { female: 0, male: 0 },
+          })}
         />
       </div>
     </SectionForm>

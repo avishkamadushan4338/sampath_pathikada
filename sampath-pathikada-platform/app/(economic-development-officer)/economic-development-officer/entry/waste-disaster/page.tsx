@@ -7,7 +7,6 @@ import { Loader2 } from "lucide-react";
 import { SectionForm } from "@/components/forms/SectionForm";
 import { FieldWrapper } from "@/components/forms/FormField";
 import { RepeatableTable, type RepeatableColumn } from "@/components/forms/RepeatableTable";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
@@ -19,33 +18,59 @@ import {
 import { useSubmission, useSaveSection } from "@/hooks/use-submission";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { wasteDisasterDict } from "@/lib/i18n/sections/waste-disaster";
-import { wasteDisasterSchemaPartial } from "@/lib/validators/sections/waste-disaster";
+import {
+  wasteDisasterSchemaPartial,
+  COLLECTION_FREQUENCIES,
+  COLLECTION_METHODS,
+  DISPOSAL_METHODS,
+} from "@/lib/validators/sections/waste-disaster";
 import { z } from "zod";
 
 const CURRENT_YEAR = 2026;
 
 type WasteDisasterDraft = z.infer<typeof wasteDisasterSchemaPartial>;
 
-const DISPOSAL_METHODS = [
-  { key: "burning", label: { en: "Burning", si: "පිලිස්සීම" } },
-  { key: "burying", label: { en: "Burying", si: "වළලීම" } },
-  { key: "canal-or-drain-dumping", label: { en: "Dumping in Canal / Drain", si: "ඇළ මාර්ග/කාණුවලට බැහැර කිරීම" } },
-  { key: "public-dumpsite", label: { en: "Public Dumpsite", si: "පොදු කසළ බැහැර කිරීමේ ස්ථානය" } },
-  { key: "other", label: { en: "Other", si: "වෙනත්" } },
+const COLLECTION_FREQUENCY_OPTIONS: { value: (typeof COLLECTION_FREQUENCIES)[number]; label: { en: string; si: string } }[] = [
+  { value: "daily", label: { en: "Daily", si: "දිනපතා" } },
+  { value: "every-other-day", label: { en: "Every Other Day", si: "දිනයක් හැර දිනයක්" } },
+  { value: "weekly", label: { en: "Weekly", si: "සතිපතා" } },
+  { value: "other", label: { en: "Other", si: "වෙනත්" } },
 ];
+
+const COLLECTION_METHOD_OPTIONS: { value: (typeof COLLECTION_METHODS)[number]; label: { en: string; si: string } }[] = [
+  { value: "mixed", label: { en: "Mixed", si: "මිශ්‍ර" } },
+  { value: "separated", label: { en: "Separated", si: "වෙන් කළ" } },
+];
+
+const DISPOSAL_METHOD_LABELS: Record<(typeof DISPOSAL_METHODS)[number], { en: string; si: string }> = {
+  burning: { en: "Burning", si: "පිලිස්සීම" },
+  burying: { en: "Burying", si: "වළලීම" },
+  "canal-or-drain-dumping": { en: "Dumping in Canal / Drain", si: "ඇළ මාර්ග/කාණුවලට බැහැර කිරීම" },
+  "public-dumpsite": { en: "Public Dumpsite", si: "පොදු කසළ බැහැර කිරීමේ ස්ථානය" },
+  other: { en: "Other", si: "වෙනත්" },
+};
 
 function getEmptyValues(lang: "en" | "si"): WasteDisasterDraft {
   return {
     hasWasteProgram: undefined,
     publicInformedOfSchedule: undefined,
-    collectionFrequency: "",
-    collectionMethod: "",
-    disposalMethodIfNoProgram: DISPOSAL_METHODS.map((m) => ({
-      label: lang === "si" ? m.label.si : m.label.en,
+    collectionFrequency: undefined,
+    collectionMethod: undefined,
+    disposalMethodIfNoProgram: DISPOSAL_METHODS.map((method) => ({
+      method,
+      methodLabel: DISPOSAL_METHOD_LABELS[method][lang],
       present: "no" as const,
     })),
     hasCompostOrDisposalSite: undefined,
     proposedSolutionIfNoProgram: "",
+  };
+}
+
+function mergeWithSaved(empty: WasteDisasterDraft, saved: WasteDisasterDraft): WasteDisasterDraft {
+  return {
+    ...empty,
+    ...saved,
+    disposalMethodIfNoProgram: empty.disposalMethodIfNoProgram?.map((row, i) => ({ ...row, ...saved.disposalMethodIfNoProgram?.[i] })),
   };
 }
 
@@ -61,12 +86,12 @@ export default function WasteDisasterPage() {
 
   useEffect(() => {
     if (submission?.data.wasteDisaster) {
-      form.reset({ ...getEmptyValues(lang), ...submission.data.wasteDisaster });
+      form.reset(mergeWithSaved(getEmptyValues(lang), submission.data.wasteDisaster));
     } else {
       form.reset(getEmptyValues(lang));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [submission]);
+  }, [submission, lang]);
 
   async function handleSave(values: WasteDisasterDraft) {
     await saveSection("wasteDisaster", values);
@@ -81,7 +106,7 @@ export default function WasteDisasterPage() {
   }
 
   const disposalMethodColumns: RepeatableColumn[] = [
-    { key: "label", label: { en: "Method", si: "ක්‍රමය" }, type: "readonly" },
+    { key: "methodLabel", label: { en: "Method", si: "ක්‍රමය" }, type: "readonly" },
     {
       key: "present",
       label: { en: "Practiced?", si: "පිළිපදිනු ලැබේද?" },
@@ -146,13 +171,41 @@ export default function WasteDisasterPage() {
 
         <FieldWrapper name="collectionFrequency" label={wasteDisasterDict.fields.collectionFrequency} required>
           {({ id, describedBy, invalid }) => (
-            <Input id={id} aria-describedby={describedBy} aria-invalid={invalid} {...form.register("collectionFrequency")} />
+            <Select
+              value={form.watch("collectionFrequency") ?? ""}
+              onValueChange={(v) => form.setValue("collectionFrequency", v as (typeof COLLECTION_FREQUENCIES)[number], { shouldDirty: true })}
+            >
+              <SelectTrigger id={id} aria-describedby={describedBy} aria-invalid={invalid}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {COLLECTION_FREQUENCY_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {lang === "si" ? opt.label.si : opt.label.en}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           )}
         </FieldWrapper>
 
         <FieldWrapper name="collectionMethod" label={wasteDisasterDict.fields.collectionMethod} required>
           {({ id, describedBy, invalid }) => (
-            <Input id={id} aria-describedby={describedBy} aria-invalid={invalid} {...form.register("collectionMethod")} />
+            <Select
+              value={form.watch("collectionMethod") ?? ""}
+              onValueChange={(v) => form.setValue("collectionMethod", v as (typeof COLLECTION_METHODS)[number], { shouldDirty: true })}
+            >
+              <SelectTrigger id={id} aria-describedby={describedBy} aria-invalid={invalid}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {COLLECTION_METHOD_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {lang === "si" ? opt.label.si : opt.label.en}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           )}
         </FieldWrapper>
 
@@ -186,7 +239,11 @@ export default function WasteDisasterPage() {
           title={wasteDisasterDict.fields.disposalMethodIfNoProgram}
           columns={disposalMethodColumns}
           fixedRows
-          emptyRowFactory={() => ({ label: "", present: "no" })}
+          emptyRowFactory={() => ({
+            method: DISPOSAL_METHODS[0],
+            methodLabel: DISPOSAL_METHOD_LABELS[DISPOSAL_METHODS[0]][lang],
+            present: "no",
+          })}
         />
       </div>
 

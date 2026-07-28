@@ -10,14 +10,14 @@ export const govtHospitalRowSchema = z.object({
   type: z.enum(GOVT_HOSPITAL_TYPES),
 });
 
-export const privateHospitalRowSchema = z.object({
+export const nameAddressHealthRowSchema = z.object({
   name: z.string().min(1, "Name is required"),
   address: z.string().min(1, "Address is required"),
 });
 
-export const ayurvedicInstitutionRowSchema = z.object({
+export const primaryHealthcareUnitRowSchema = z.object({
   name: z.string().min(1, "Name is required"),
-  address: z.string().min(1, "Address is required"),
+  type: z.string().optional(),
 });
 
 export const traditionalPractitionerRowSchema = z.object({
@@ -35,13 +35,20 @@ export const healthSchemaStrict = z.object({
     specialistServiceCenters: z.coerce.number().int().min(0).default(0),
     mohOfficesOrCommunityHealthCenters: z.coerce.number().int().min(0).default(0),
     privateMedicalLabs: z.coerce.number().int().min(0).default(0),
-    otherLabs: z.coerce.number().int().min(0).default(0),
+    traditionalMedicineRegisteredInstitutions: z.coerce.number().int().min(0).default(0),
+    animalClinicCenters: z.coerce.number().int().min(0).default(0),
     govtPharmacies: z.coerce.number().int().min(0).default(0),
     privatePharmacies: z.coerce.number().int().min(0).default(0),
   }),
   govtHospitalsDirectory: z.array(govtHospitalRowSchema).default([]),
-  privateHospitalsDirectory: z.array(privateHospitalRowSchema).default([]),
-  ayurvedicInstitutions: z.array(ayurvedicInstitutionRowSchema).default([]),
+  primaryHealthcareUnitsDirectory: z.array(primaryHealthcareUnitRowSchema).default([]),
+  privateHospitalsDirectory: z.array(nameAddressHealthRowSchema).default([]),
+  ayurvedicInstitutions: z.array(nameAddressHealthRowSchema).default([]),
+  specialistServiceCentersDirectory: z.array(nameAddressHealthRowSchema).default([]),
+  mohOfficesDirectory: z.array(nameAddressHealthRowSchema).default([]),
+  traditionalMedicineInstitutionsDirectory: z.array(nameAddressHealthRowSchema).default([]),
+  privateMedicalLabsDirectory: z.array(nameAddressHealthRowSchema).default([]),
+  animalClinicsDirectory: z.array(nameAddressHealthRowSchema).default([]),
   traditionalPractitioners: z.array(traditionalPractitionerRowSchema).default([]),
 });
 
@@ -57,14 +64,21 @@ export const healthSchemaPartial = z.object({
       specialistServiceCenters: z.coerce.number().int().min(0).optional(),
       mohOfficesOrCommunityHealthCenters: z.coerce.number().int().min(0).optional(),
       privateMedicalLabs: z.coerce.number().int().min(0).optional(),
-      otherLabs: z.coerce.number().int().min(0).optional(),
+      traditionalMedicineRegisteredInstitutions: z.coerce.number().int().min(0).optional(),
+      animalClinicCenters: z.coerce.number().int().min(0).optional(),
       govtPharmacies: z.coerce.number().int().min(0).optional(),
       privatePharmacies: z.coerce.number().int().min(0).optional(),
     })
     .optional(),
   govtHospitalsDirectory: z.array(govtHospitalRowSchema.partial()).optional(),
-  privateHospitalsDirectory: z.array(privateHospitalRowSchema.partial()).optional(),
-  ayurvedicInstitutions: z.array(ayurvedicInstitutionRowSchema.partial()).optional(),
+  primaryHealthcareUnitsDirectory: z.array(primaryHealthcareUnitRowSchema.partial()).optional(),
+  privateHospitalsDirectory: z.array(nameAddressHealthRowSchema.partial()).optional(),
+  ayurvedicInstitutions: z.array(nameAddressHealthRowSchema.partial()).optional(),
+  specialistServiceCentersDirectory: z.array(nameAddressHealthRowSchema.partial()).optional(),
+  mohOfficesDirectory: z.array(nameAddressHealthRowSchema.partial()).optional(),
+  traditionalMedicineInstitutionsDirectory: z.array(nameAddressHealthRowSchema.partial()).optional(),
+  privateMedicalLabsDirectory: z.array(nameAddressHealthRowSchema.partial()).optional(),
+  animalClinicsDirectory: z.array(nameAddressHealthRowSchema.partial()).optional(),
   traditionalPractitioners: z.array(traditionalPractitionerRowSchema.partial()).optional(),
 });
 

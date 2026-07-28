@@ -1,5 +1,6 @@
 import { SELF_EMPLOYMENT_SECTORS } from "@/lib/validators/sections/employment";
 import { ORGANIZATION_TYPES } from "@/lib/validators/sections/community-organizations";
+import { LAND_USE_TYPES } from "@/lib/validators/sections/economic-agriculture";
 import type { SubmissionData } from "@/lib/types/submission";
 
 /* ── Shared row shapes ──────────────────────────────────────────────────── */
@@ -53,28 +54,28 @@ const JOB_SEEKER_EDUCATION_LABELS: Bilingual[] = [
 
 const SELF_EMPLOYMENT_SECTOR_LABELS: Record<string, Bilingual> = {
   "food-production": { en: "Food Production", si: "ආහාර නිෂ්පාදනය" },
-  confectionery: { en: "Confectionery", si: "රසකැවිලි නිෂ්පාදනය" },
-  "furniture-production": { en: "Furniture Production", si: "ගෘහ භාණ්ඩ නිෂ්පාදනය" },
-  "textile-production": { en: "Textile Production", si: "රෙදිපිළි නිෂ්පාදනය" },
-  "bakery-production": { en: "Bakery Production", si: "බේකරි නිෂ්පාදනය" },
-  knitting: { en: "Knitting", si: "රෙදි වියන කර්මාන්තය" },
-  "garment-sewing": { en: "Garment Sewing", si: "ඇඟලුම් මැසීම" },
-  "cleaning-products": { en: "Cleaning Products", si: "සුද්ධිකාරක නිෂ්පාදන" },
-  "beverage-juice": { en: "Beverages / Juice Production", si: "පාන වර්ග/යුෂ නිෂ්පාදනය" },
-  "decorative-items": { en: "Decorative Items", si: "අලංකාර ද්‍රව්‍ය නිෂ්පාදනය" },
-  "coconut-shell-crafts": { en: "Coconut Shell Crafts", si: "පොල් කටු අත්කම්" },
-  "masonry-work": { en: "Masonry Work", si: "ගෙතුම් කර්මාන්තය" },
-  "auto-mechanic": { en: "Auto Mechanic", si: "මෝටර් රථ අලුත්වැඩියා" },
-  "footwear-repair": { en: "Footwear Repair", si: "පාවහන් අලුත්වැඩියා" },
-  "welding-shop": { en: "Welding Shop", si: "වෙල්ඩින් කර්මාන්තය" },
+  "confectionery-production": { en: "Confectionery Production", si: "රසකැවිලි නිෂ්පාදනය" },
+  "spice-production": { en: "Spice Production", si: "කුළුබඩු නිෂ්පාදනය" },
+  "rice-parcel-production": { en: "Rice-Parcel Production", si: "බත් පාර්සල් නිෂ්පාදනය" },
+  "bakery-production": { en: "Bakery Production", si: "බේකරි නිෂ්පාදන" },
+  "garment-knitwear-production": { en: "Garment / Knitwear Production", si: "ඇහළුම් නිෂ්පාදන" },
+  dressmaking: { en: "Dressmaking / Sewing", si: "ඇදුම් මැසීම" },
+  "cleaning-products-production": { en: "Cleaning Products Production", si: "පාහිසි නිෂ්පාදනය" },
+  "beverage-soda-production": { en: "Beverage / Soda Production", si: "බීරලු/සෝඩා නිෂ්පාදනය" },
+  "decorative-items-production": { en: "Decorative Items Production", si: "විසිතුරු භාණ්ඩ නිෂ්පාදනය" },
+  "coconut-shell-production": { en: "Coconut-Shell Related Production", si: "පොල්කටු ආශ්‍රිත නිෂ්පාදන" },
+  "masonry-work": { en: "Masonry Work", si: "පැස්සුම් වැඩ" },
+  "motor-vehicle-repair": { en: "Motor Vehicle Repair", si: "මෝටර් රථ කාර්මික වැඩියාව" },
+  "bicycle-repair": { en: "Bicycle Repair", si: "පාපැදි කාර්මික වැඩියාව" },
+  "traditional-craft-work": { en: "Traditional Craft Work", si: "පෙදරේරු කර්මාන්තය" },
   carpentry: { en: "Carpentry", si: "වඩු කර්මාන්තය" },
-  "electrical-appliance-repair": { en: "Electrical Appliance Repair", si: "විදුලි උපකරණ අලුත්වැඩියා" },
-  "cosmetics-production": { en: "Cosmetics Production", si: "සුරූපිතා (කොස්මෙටික්) නිෂ්පාදනය" },
-  floriculture: { en: "Floriculture", si: "මල් වගාව" },
-  "brick-making": { en: "Brick Making", si: "ගඩොල් නිෂ්පාදනය" },
-  "seafood-processing": { en: "Seafood Processing", si: "මුහුදු ආහාර සැකසීම" },
-  "traditional-boat-building": { en: "Traditional Boat Building", si: "සම්ප්‍රදායික බෝට්ටු නිෂ්පාදනය" },
-  "fish-transport-other": { en: "Fish Transport / Other", si: "මාළු ප්‍රවාහනය/වෙනත්" },
+  "electrical-appliance-repair": { en: "Electrical Appliance Repair", si: "විදුලිඋපකරණ කාර්මික වැඩියාව" },
+  "jewelry-production": { en: "Jewelry / Ornaments Production", si: "ස්වර්ණාභරණ නිෂ්පාදනය" },
+  "floriculture-production": { en: "Floriculture Production", si: "ෆ්ලෝරිකල්චර් නිෂ්පාදනය" },
+  "cinnamon-peeling": { en: "Cinnamon Peeling", si: "කුරුදු තැලීම" },
+  "fish-related-production": { en: "Fish-Related Production (Dried Fish / Jars)", si: "මාළු ආශ්‍රිත නිෂ්පාදන (කරවල/ජාඩි)" },
+  "fishing-gear-repair": { en: "Fishing Gear / Net Repair", si: "දිවර ආම්පන්න අළුත්වැඩියාව" },
+  "fish-trade": { en: "Fish Trade (Mobile Vehicle)", si: "මාළු වෙළදාම (ජංගම රථ මගින්)" },
 };
 
 const ORGANIZATION_TYPE_LABELS: Record<string, Bilingual> = {
@@ -86,8 +87,8 @@ const ORGANIZATION_TYPE_LABELS: Record<string, Bilingual> = {
   "elders-society": { en: "Elders' Society", si: "වැඩිහිටි සමිතිය" },
   "childrens-society": { en: "Children's Society", si: "ළමා සමිතිය" },
   "samurdhi-society": { en: "Samurdhi Society", si: "සමෘද්ධි සමිතිය" },
-  "friendly-society-or-burial-fund": { en: "Friendly Society / Burial Fund", si: "මිත්‍ර සමිතිය / අවමංගල්‍ය අරමුදල" },
-  "govt-non-departmental-org": { en: "Government Non-Departmental Organization", si: "රාජ්‍ය අදෙපාර්තමේන්තු ආයතන" },
+  "friend-organization": { en: "Friend Organization / Association", si: "මිතුරු සංවිධාන/මිතුරු හවුල්" },
+  "ngo-committee": { en: "Non-Governmental Organization Committee", si: "රාජ්‍ය නොවන සංවිධාන සමිති" },
   "farmer-society": { en: "Farmer Society", si: "ගොවි සංවිධානය" },
   "religious-society": { en: "Religious Society", si: "ආගමික සමිතිය" },
   "sanasa-society": { en: "SANASA Society", si: "සණස සමිතිය" },
@@ -139,6 +140,70 @@ const DISPOSAL_METHOD_LABELS: Bilingual[] = [
   { en: "Burying", si: "වළලීම" },
   { en: "Dumping in Canal / Drain", si: "ඇළ මාර්ග/කාණුවලට බැහැර කිරීම" },
   { en: "Public Dumpsite", si: "පොදු කසළ බැහැර කිරීමේ ස්ථානය" },
+  { en: "Other", si: "වෙනත්" },
+];
+
+const LAND_USE_LABELS_LIST: Bilingual[] = [
+  { en: "Forest", si: "වනාන්තර" },
+  { en: "Paddy Cultivation", si: "වී වගාව" },
+  { en: "Abandoned Paddy Land", si: "පුරන් කුඹුරු" },
+  { en: "Agricultural Land - Tea", si: "කෘෂිකාර්මික ඉඩම් - තේ" },
+  { en: "Agricultural Land - Coconut", si: "කෘෂිකාර්මික ඉඩම් - පොල්" },
+  { en: "Agricultural Land - Rubber", si: "කෘෂිකාර්මික ඉඩම් - රබර්" },
+  { en: "Cinnamon", si: "කුරුඳු" },
+  { en: "Pepper", si: "ගම්මිරිස්" },
+  { en: "Coffee", si: "කෝපි" },
+  { en: "Vegetables", si: "එළවළු" },
+  { en: "Fruits", si: "පලතුරු" },
+  { en: "Tuber Crops", si: "අල බෝග වගාව" },
+  { en: "Supplementary Food Crops", si: "අතිරේක ආහාර බෝග" },
+  { en: "Inland Reservoirs", si: "අභ්‍යන්තර ජලාශ" },
+  { en: "Roads / Sports Grounds / Home Gardens", si: "මාර්ග/ක්‍රීඩා භූමි/ගෙවතු වගාව" },
+  { en: "Scrubland / Chena / Barren Land", si: "ඵලදු කැළෑ/හේන්/මුඩු බිම" },
+  { en: "Ornamental Plant Nurseries", si: "විසිතුරු පැල තවාන්" },
+  { en: "Plantation Crop Nurseries", si: "වැවිලි බෝග පැල තවාන්" },
+  { en: "Aquaculture Land", si: "ජල ජීවි වගාව" },
+];
+
+const FLORAL_CULTIVATION_LABELS_LIST: Bilingual[] = [
+  { en: "Floor Flower Cultivation", si: "බිම් මල් වගාව" },
+  { en: "Protected Greenhouse Cultivation", si: "ආරක්ෂිත ගෘහකුළ වගාව" },
+  { en: "Beekeeping", si: "මීමැසි පාලනය" },
+];
+
+const AGRI_MACHINERY_LABELS_LIST: Bilingual[] = [
+  { en: "2-Wheel Tractor", si: "රෝද දෙකේ ට්‍රැක්ටර්" },
+  { en: "2-Wheel Tractor + Rotavator", si: "රෝද දෙකේ ට්‍රැක්ටර් රොටවේටර්" },
+  { en: "2-Wheel Tractor + Mould Board Plough", si: "රෝද දෙකේ ට්‍රැක්ටර් මෝල්ඩ් බෝඩ් නගුල" },
+  { en: "4-Wheel Tractor", si: "රෝද හතරේ ට්‍රැක්ටර්" },
+  { en: "4-Wheel Tractor + Rotavator", si: "රෝද හතරේ ට්‍රැක්ටර් රොටවේටර්" },
+  { en: "4-Wheel Tractor + Disc Plough", si: "රෝද හතරේ ට්‍රැක්ටර් ඩිස්ක් නගුල" },
+  { en: "Water Pump", si: "වතුර පොම්ප" },
+  { en: "Transplanter", si: "නෙළුම් සිටුවන යන්ත්‍ර" },
+  { en: "Weeder", si: "වල් නෙළීම් කර" },
+  { en: "Harvester", si: "අස්වනු නෙළන යන්ත්‍ර" },
+  { en: "Power Sprayer", si: "බලවේග දියර ඉසින යන්ත්‍ර" },
+  { en: "Sprinkler Irrigation Equipment", si: "වර්ෂණ ජලාපවහන යන්ත්‍ර" },
+  { en: "Water Spraying Equipment", si: "ජල විජලන යන්ත්‍ර" },
+  { en: "Grass Cutter", si: "තෘණ නෙළන යන්ත්‍ර" },
+  { en: "Food Processing Equipment", si: "ආහාර විජලන යන්ත්‍ර" },
+  { en: "Paddy Dryer / Parboiling Equipment", si: "බිම් මට්ටමේ මාධ්‍ය හිරවුම් යන්ත්‍ර" },
+  { en: "Paddy Miller", si: "බිම් මට්ටමේ මාධ්‍ය මාළු ම යන්ත්‍ර" },
+  { en: "Chena Planting Equipment", si: "පෑළ සිටුවන යන්ත්‍ර" },
+  { en: "Paddy Winnower", si: "වී වේළන යන්ත්‍ර" },
+  { en: "Oil Mill", si: "තෙල් මෝල්" },
+  { en: "Rubber Mill", si: "රබර් මෝල්" },
+  { en: "Paddy Mill", si: "වී මෝල්" },
+  { en: "Other", si: "වෙනත්" },
+];
+
+const CROP_DAMAGE_LABELS_LIST: Bilingual[] = [
+  { en: "Wild Elephant Conflict", si: "අලි ගැටළුව/අලි මිනිස් ගැටුම" },
+  { en: "Monkey / Porcupine / Wild Boar Damage", si: "රිලව්/වඳුරන්/දඬුලේණා/ඌරා ආදී වන හානි" },
+  { en: "Peacock Damage", si: "මොණර හානිය" },
+  { en: "Flood Damage", si: "ගංවතුර හානිය" },
+  { en: "Drought", si: "නියඟය" },
+  { en: "Pest & Disease Conditions", si: "කෘමි උවදුරු හා රෝග තත්ත්ව" },
   { en: "Other", si: "වෙනත්" },
 ];
 
@@ -245,9 +310,19 @@ export function aggregateHousing(rows: SubmissionLike[], gnLabel: (id: string) =
   const totals = { total: 0, permanent: 0, semiPermanent: 0, nonPermanent: 0 };
   let householdsWithoutHousing = 0;
   const sanitation = { total: 0, withoutSafeSanitation: 0, needingAssistance: 0 };
-  const water = { pipedNational: 0, pipedRural: 0, protectedWell: 0, unprotectedWell: 0, tubeWell: 0, riverCanalTank: 0, bottledOther: 0 };
-  let electricitySum = 0;
-  let electricityCount = 0;
+  const water = {
+    well: 0,
+    tubeWell: 0,
+    spring: 0,
+    pipedNational: 0,
+    pipedLocalGovt: 0,
+    pipedCommunity: 0,
+    tankRiverCanalOther: 0,
+    bottled: 0,
+    treated: 0,
+    other: 0,
+  };
+  const electricityAccess = { total: 0, withElectricity: 0, withSolar: 0, withoutElectricity: 0, needingAssistance: 0 };
 
   for (const row of rows) {
     const h = sectionData(row, "housing");
@@ -265,17 +340,23 @@ export function aggregateHousing(rows: SubmissionLike[], gnLabel: (id: string) =
       sanitation.needingAssistance += h.sanitation.needingAssistance ?? 0;
     }
     if (h.drinkingWaterSource) {
-      water.pipedNational += h.drinkingWaterSource.pipedNational ?? 0;
-      water.pipedRural += h.drinkingWaterSource.pipedRural ?? 0;
-      water.protectedWell += h.drinkingWaterSource.protectedWell ?? 0;
-      water.unprotectedWell += h.drinkingWaterSource.unprotectedWell ?? 0;
+      water.well += h.drinkingWaterSource.well ?? 0;
       water.tubeWell += h.drinkingWaterSource.tubeWell ?? 0;
-      water.riverCanalTank += h.drinkingWaterSource.riverCanalTank ?? 0;
-      water.bottledOther += h.drinkingWaterSource.bottledOther ?? 0;
+      water.spring += h.drinkingWaterSource.spring ?? 0;
+      water.pipedNational += h.drinkingWaterSource.pipedNational ?? 0;
+      water.pipedLocalGovt += h.drinkingWaterSource.pipedLocalGovt ?? 0;
+      water.pipedCommunity += h.drinkingWaterSource.pipedCommunity ?? 0;
+      water.tankRiverCanalOther += h.drinkingWaterSource.tankRiverCanalOther ?? 0;
+      water.bottled += h.drinkingWaterSource.bottled ?? 0;
+      water.treated += h.drinkingWaterSource.treated ?? 0;
+      water.other += h.drinkingWaterSource.other ?? 0;
     }
-    if (typeof h.electricityAccessPercent === "number") {
-      electricitySum += h.electricityAccessPercent;
-      electricityCount++;
+    if (h.electricityAccess) {
+      electricityAccess.total += h.electricityAccess.total ?? 0;
+      electricityAccess.withElectricity += h.electricityAccess.withElectricity ?? 0;
+      electricityAccess.withSolar += h.electricityAccess.withSolar ?? 0;
+      electricityAccess.withoutElectricity += h.electricityAccess.withoutElectricity ?? 0;
+      electricityAccess.needingAssistance += h.electricityAccess.needingAssistance ?? 0;
     }
   }
 
@@ -288,7 +369,7 @@ export function aggregateHousing(rows: SubmissionLike[], gnLabel: (id: string) =
     householdsWithoutHousing,
     sanitation,
     drinkingWaterSource: water,
-    avgElectricityAccessPercent: electricityCount > 0 ? Math.round((electricitySum / electricityCount) * 10) / 10 : null,
+    electricityAccess,
     underservedAreas,
     communityWaterProjects,
   };
@@ -299,10 +380,10 @@ export function aggregateEmployment(rows: SubmissionLike[], gnLabel: (id: string
   const jobSeekersByEducation = sumIndexedCounts(rows, "employment", "jobSeekersByEducation", JOB_SEEKER_EDUCATION_LABELS);
   const sectorLabels = SELF_EMPLOYMENT_SECTORS.map((s) => SELF_EMPLOYMENT_SECTOR_LABELS[s]);
   const selfEmploymentSectors = sumIndexedCounts(rows, "employment", "selfEmploymentSectors", sectorLabels);
-  let jobSeekersUnwilling = 0;
+  let vocationalTrainingOpportunityGap = 0;
   for (const row of rows) {
     const e = sectionData(row, "employment");
-    jobSeekersUnwilling += e?.jobSeekersUnwillingBelowQualificationCount ?? 0;
+    vocationalTrainingOpportunityGap += e?.vocationalTrainingOpportunityGapCount ?? 0;
   }
   const selfEmployedPersons = capRows(flattenRows(rows, gnLabel, "employment", "selfEmployedPersons"));
 
@@ -310,7 +391,7 @@ export function aggregateEmployment(rows: SubmissionLike[], gnLabel: (id: string
     coverage: coverage(rows, "employment"),
     jobSeekersByEducation,
     totalJobSeekers: jobSeekersByEducation.reduce((s, r) => s + r.count, 0),
-    jobSeekersUnwillingBelowQualificationCount: jobSeekersUnwilling,
+    vocationalTrainingOpportunityGapCount: vocationalTrainingOpportunityGap,
     selfEmploymentSectors: selfEmploymentSectors.sort((a, b) => b.count - a.count),
     selfEmployedPersons,
   };
@@ -321,15 +402,12 @@ export function aggregateEducation(rows: SubmissionLike[], gnLabel: (id: string)
   const institutionCounts = {
     govtSchools: 0, privateOrInternationalSchools: 0, pirivenas: 0,
     vocationalTrainingInstitutes: 0, registeredPreschoolsGovt: 0, registeredPreschoolsPrivate: 0,
+    dhammaEducationInstitutions: 0, higherEducationInstitutions: 0, tuitionCenterInstitutions: 0,
   };
   const schoolCountsByType = { nationalSchools: 0, type1AB: 0, type1C: 0, type2: 0, type3: 0 };
-  const dhamma = {
-    buddhist: { schools: 0, students: 0 }, islam: { schools: 0, students: 0 },
-    hindu: { schools: 0, students: 0 }, christian: { schools: 0, students: 0 },
-  };
-  let outOfSchoolChildren = 0;
-  let marriedMinors = 0;
-  let teacherTotal = 0, studentFemaleTotal = 0, studentMaleTotal = 0;
+  const outOfSchoolChildren = { female: 0, male: 0 };
+  const childrenInProbationOrDetention = { female: 0, male: 0 };
+  let teachersFemaleTotal = 0, teachersMaleTotal = 0, studentFemaleTotal = 0, studentMaleTotal = 0;
 
   for (const row of rows) {
     const e = sectionData(row, "education");
@@ -341,6 +419,9 @@ export function aggregateEducation(rows: SubmissionLike[], gnLabel: (id: string)
       institutionCounts.vocationalTrainingInstitutes += e.institutionCounts.vocationalTrainingInstitutes ?? 0;
       institutionCounts.registeredPreschoolsGovt += e.institutionCounts.registeredPreschoolsGovt ?? 0;
       institutionCounts.registeredPreschoolsPrivate += e.institutionCounts.registeredPreschoolsPrivate ?? 0;
+      institutionCounts.dhammaEducationInstitutions += e.institutionCounts.dhammaEducationInstitutions ?? 0;
+      institutionCounts.higherEducationInstitutions += e.institutionCounts.higherEducationInstitutions ?? 0;
+      institutionCounts.tuitionCenterInstitutions += e.institutionCounts.tuitionCenterInstitutions ?? 0;
     }
     if (e.schoolCountsByType) {
       schoolCountsByType.nationalSchools += e.schoolCountsByType.nationalSchools ?? 0;
@@ -349,16 +430,13 @@ export function aggregateEducation(rows: SubmissionLike[], gnLabel: (id: string)
       schoolCountsByType.type2 += e.schoolCountsByType.type2 ?? 0;
       schoolCountsByType.type3 += e.schoolCountsByType.type3 ?? 0;
     }
-    if (e.dhammaEducation) {
-      for (const rel of ["buddhist", "islam", "hindu", "christian"] as const) {
-        dhamma[rel].schools += e.dhammaEducation[rel]?.schools ?? 0;
-        dhamma[rel].students += e.dhammaEducation[rel]?.students ?? 0;
-      }
-    }
-    outOfSchoolChildren += e.outOfSchoolChildrenCount ?? 0;
-    marriedMinors += e.marriedOrCohabitingMinorsCount ?? 0;
+    outOfSchoolChildren.female += e.outOfSchoolChildren?.female ?? 0;
+    outOfSchoolChildren.male += e.outOfSchoolChildren?.male ?? 0;
+    childrenInProbationOrDetention.female += e.childrenInProbationOrDetention?.female ?? 0;
+    childrenInProbationOrDetention.male += e.childrenInProbationOrDetention?.male ?? 0;
     for (const sf of e.schoolFacilities ?? []) {
-      teacherTotal += sf.teacherCount ?? 0;
+      teachersFemaleTotal += sf.teachersFemale ?? 0;
+      teachersMaleTotal += sf.teachersMale ?? 0;
       studentFemaleTotal += sf.studentsFemale ?? 0;
       studentMaleTotal += sf.studentsMale ?? 0;
     }
@@ -368,16 +446,25 @@ export function aggregateEducation(rows: SubmissionLike[], gnLabel: (id: string)
     coverage: coverage(rows, "education"),
     institutionCounts,
     schoolCountsByType,
-    dhammaEducation: dhamma,
-    outOfSchoolChildrenCount: outOfSchoolChildren,
-    marriedOrCohabitingMinorsCount: marriedMinors,
-    schoolStaffAndStudents: { teachers: teacherTotal, studentsFemale: studentFemaleTotal, studentsMale: studentMaleTotal },
+    outOfSchoolChildren: { ...outOfSchoolChildren, total: outOfSchoolChildren.female + outOfSchoolChildren.male },
+    childrenInProbationOrDetention: {
+      ...childrenInProbationOrDetention,
+      total: childrenInProbationOrDetention.female + childrenInProbationOrDetention.male,
+    },
+    schoolStaffAndStudents: {
+      teachersFemale: teachersFemaleTotal,
+      teachersMale: teachersMaleTotal,
+      studentsFemale: studentFemaleTotal,
+      studentsMale: studentMaleTotal,
+    },
     schoolFacilities: capRows(flattenRows(rows, gnLabel, "education", "schoolFacilities")),
     specialAttentionSchools: capRows(flattenRows(rows, gnLabel, "education", "specialAttentionSchools")),
+    closedSchools: capRows(flattenRows(rows, gnLabel, "education", "closedSchools")),
     privateInternationalSchools: capRows(flattenRows(rows, gnLabel, "education", "privateInternationalSchools")),
     pirivenas: capRows(flattenRows(rows, gnLabel, "education", "pirivenas")),
     vocationalInstitutes: capRows(flattenRows(rows, gnLabel, "education", "vocationalInstitutes")),
     preschools: capRows(flattenRows(rows, gnLabel, "education", "preschools")),
+    dhammaEducationInstitutions: capRows(flattenRows(rows, gnLabel, "education", "dhammaEducationInstitutions")),
     tertiaryInstitutions: capRows(flattenRows(rows, gnLabel, "education", "tertiaryInstitutions")),
     tuitionCenters: capRows(flattenRows(rows, gnLabel, "education", "tuitionCenters")),
   };
@@ -388,7 +475,7 @@ export function aggregateHealth(rows: SubmissionLike[], gnLabel: (id: string) =>
   const institutionCounts = {
     govtHospitals: 0, primaryHealthcareUnits: 0, privateHospitals: 0, ayurvedicHospitals: 0,
     specialistServiceCenters: 0, mohOfficesOrCommunityHealthCenters: 0, privateMedicalLabs: 0,
-    otherLabs: 0, govtPharmacies: 0, privatePharmacies: 0,
+    traditionalMedicineRegisteredInstitutions: 0, animalClinicCenters: 0, govtPharmacies: 0, privatePharmacies: 0,
   };
   for (const row of rows) {
     const h = sectionData(row, "health");
@@ -401,51 +488,62 @@ export function aggregateHealth(rows: SubmissionLike[], gnLabel: (id: string) =>
     coverage: coverage(rows, "health"),
     institutionCounts,
     govtHospitalsDirectory: capRows(flattenRows(rows, gnLabel, "health", "govtHospitalsDirectory")),
+    primaryHealthcareUnitsDirectory: capRows(flattenRows(rows, gnLabel, "health", "primaryHealthcareUnitsDirectory")),
     privateHospitalsDirectory: capRows(flattenRows(rows, gnLabel, "health", "privateHospitalsDirectory")),
     ayurvedicInstitutions: capRows(flattenRows(rows, gnLabel, "health", "ayurvedicInstitutions")),
+    specialistServiceCentersDirectory: capRows(flattenRows(rows, gnLabel, "health", "specialistServiceCentersDirectory")),
+    mohOfficesDirectory: capRows(flattenRows(rows, gnLabel, "health", "mohOfficesDirectory")),
+    traditionalMedicineInstitutionsDirectory: capRows(flattenRows(rows, gnLabel, "health", "traditionalMedicineInstitutionsDirectory")),
+    privateMedicalLabsDirectory: capRows(flattenRows(rows, gnLabel, "health", "privateMedicalLabsDirectory")),
+    animalClinicsDirectory: capRows(flattenRows(rows, gnLabel, "health", "animalClinicsDirectory")),
     traditionalPractitioners: capRows(flattenRows(rows, gnLabel, "health", "traditionalPractitioners")),
   };
 }
 
 /* ── Agriculture & Economy (economicAgriculture) ─────────────────────────── */
 export function aggregateEconomicAgriculture(rows: SubmissionLike[], gnLabel: (id: string) => string) {
-  const landUseMap = new Map<string, number>();
-  const animalHusbandryCounts = { cattleFarming: 0, beekeeping: 0 };
-  const abandonedPaddyLand = { extentHectares: 0, canBeReactivatedExtent: 0 };
-  const marineFisheries = { householdCount: 0, activeFishermenCount: 0, societyCount: 0 };
-  const inlandFisheries = { householdCount: 0, activeFishermenCount: 0, societyCount: 0 };
-  let saltProductionYes = 0;
+  const landUse = LAND_USE_LABELS_LIST.map((l) => ({ ...l, extentHectares: 0 }));
+  const animalHusbandryCounts = sumIndexedCounts(rows, "economicAgriculture", "animalHusbandryCounts", FLORAL_CULTIVATION_LABELS_LIST);
+  const agriMachinery = sumIndexedCounts(rows, "economicAgriculture", "agriMachinery", AGRI_MACHINERY_LABELS_LIST);
+  const forestDamage = sumIndexedPresence(rows, "economicAgriculture", "forestDamage", CROP_DAMAGE_LABELS_LIST);
+
+  const abandonedPaddyLand = { extentAcres: 0, canBeReactivatedExtent: 0 };
+  const industryCounts = { householdIndustry: 0, under5Employees: 0, over5Employees: 0 };
+  const marineFisheries = { householdCount: 0, fishingPopulation: 0, activeFishermenCount: 0, societyCount: 0 };
+  const inlandFisheries = { householdCount: 0, fishingPopulation: 0, activeFishermenCount: 0, societyCount: 0 };
+  let fishLandingSiteYes = 0, iceProductionYes = 0;
 
   for (const row of rows) {
     const a = sectionData(row, "economicAgriculture");
     if (!a) continue;
     for (const lu of a.landUse ?? []) {
-      const type = (lu.landType ?? "").trim();
-      if (!type) continue;
-      landUseMap.set(type, (landUseMap.get(type) ?? 0) + (lu.extentHectares ?? 0));
-    }
-    if (a.animalHusbandryCounts) {
-      animalHusbandryCounts.cattleFarming += a.animalHusbandryCounts.cattleFarming ?? 0;
-      animalHusbandryCounts.beekeeping += a.animalHusbandryCounts.beekeeping ?? 0;
+      const i = LAND_USE_TYPES.indexOf(lu.landType as (typeof LAND_USE_TYPES)[number]);
+      if (i >= 0 && landUse[i]) landUse[i].extentHectares += lu.extentHectares ?? 0;
     }
     if (a.abandonedPaddyLand) {
-      abandonedPaddyLand.extentHectares += a.abandonedPaddyLand.extentHectares ?? 0;
+      abandonedPaddyLand.extentAcres += a.abandonedPaddyLand.extentAcres ?? 0;
       abandonedPaddyLand.canBeReactivatedExtent += a.abandonedPaddyLand.canBeReactivatedExtent ?? 0;
+    }
+    if (a.industryCounts) {
+      industryCounts.householdIndustry += a.industryCounts.householdIndustry ?? 0;
+      industryCounts.under5Employees += a.industryCounts.under5Employees ?? 0;
+      industryCounts.over5Employees += a.industryCounts.over5Employees ?? 0;
     }
     if (a.marineFisheries) {
       marineFisheries.householdCount += a.marineFisheries.householdCount ?? 0;
+      marineFisheries.fishingPopulation += a.marineFisheries.fishingPopulation ?? 0;
       marineFisheries.activeFishermenCount += a.marineFisheries.activeFishermenCount ?? 0;
       marineFisheries.societyCount += a.marineFisheries.societyCount ?? 0;
     }
     if (a.inlandFisheries) {
       inlandFisheries.householdCount += a.inlandFisheries.householdCount ?? 0;
+      inlandFisheries.fishingPopulation += a.inlandFisheries.fishingPopulation ?? 0;
       inlandFisheries.activeFishermenCount += a.inlandFisheries.activeFishermenCount ?? 0;
       inlandFisheries.societyCount += a.inlandFisheries.societyCount ?? 0;
     }
-    if (a.saltProductionPresent === "yes") saltProductionYes++;
+    if (a.fishLandingSitePresent === "yes") fishLandingSiteYes++;
+    if (a.iceProductionPresent === "yes") iceProductionYes++;
   }
-
-  const landUse = [...landUseMap.entries()].map(([landType, extentHectares]) => ({ landType, extentHectares })).sort((a, b) => b.extentHectares - a.extentHectares);
 
   return {
     coverage: coverage(rows, "economicAgriculture"),
@@ -454,15 +552,22 @@ export function aggregateEconomicAgriculture(rows: SubmissionLike[], gnLabel: (i
     abandonedPaddyLand,
     marineFisheries,
     inlandFisheries,
-    saltProductionDivisionsCount: saltProductionYes,
-    agriMachinery: sumFreeformCounts(rows, "economicAgriculture", "agriMachinery"),
-    forestDamage: sumFreeformPresence(rows, "economicAgriculture", "forestDamage"),
+    fishLandingSiteDivisionsCount: fishLandingSiteYes,
+    iceProductionDivisionsCount: iceProductionYes,
+    industryCounts,
+    agriMachinery,
+    forestDamage,
     animalHusbandryDirectory: capRows(flattenRows(rows, gnLabel, "economicAgriculture", "animalHusbandryDirectory")),
     specialEconomicActivities: capRows(flattenRows(rows, gnLabel, "economicAgriculture", "specialEconomicActivities")),
     livestockFarms: capRows(flattenRows(rows, gnLabel, "economicAgriculture", "livestockFarms")),
     industries: capRows(flattenRows(rows, gnLabel, "economicAgriculture", "industries")),
+    marineFisheriesSocieties: capRows(flattenRows(rows, gnLabel, "economicAgriculture", "marineFisheriesSocieties")),
+    inlandFisheriesSocieties: capRows(flattenRows(rows, gnLabel, "economicAgriculture", "inlandFisheriesSocieties")),
+    inlandWaterBodies: capRows(flattenRows(rows, gnLabel, "economicAgriculture", "inlandWaterBodies")),
+    aquacultureDirectory: capRows(flattenRows(rows, gnLabel, "economicAgriculture", "aquacultureDirectory")),
+    ornamentalFishDirectory: capRows(flattenRows(rows, gnLabel, "economicAgriculture", "ornamentalFishDirectory")),
     fishLandingSites: capRows(flattenRows(rows, gnLabel, "economicAgriculture", "fishLandingSites")),
-    saltProductionDirectory: capRows(flattenRows(rows, gnLabel, "economicAgriculture", "saltProductionDirectory")),
+    iceProductionDirectory: capRows(flattenRows(rows, gnLabel, "economicAgriculture", "iceProductionDirectory")),
     teaEstates: capRows(flattenRows(rows, gnLabel, "economicAgriculture", "teaEstates")),
   };
 }
@@ -472,8 +577,11 @@ export function aggregateCommunityWelfare(rows: SubmissionLike[], gnLabel: (id: 
   const orgLabels = ORGANIZATION_TYPES.map((t) => ORGANIZATION_TYPE_LABELS[t]);
   const organizationCounts = sumIndexedCounts(rows, "communityOrganizations", "organizationCounts", orgLabels);
 
-  const welfarePaymentHouseholdCounts = { rs2500: 0, rs5000: 0, rs8500: 0, rs15000: 0, noBenefit: 0 };
-  const allowanceRecipientCounts = { disabilityAllowance: 0, elderlyAllowance: 0, nutritionAllowance: 0, publicAssistance: 0, sickAllowance: 0, other: 0 };
+  const welfarePaymentHouseholdCounts = { rs2500: 0, rs5000: 0, rs8500: 0, rs15000: 0, totalAswesumaRecipients: 0 };
+  const allowanceRecipientCounts = {
+    disabilityAllowance: 0, elderlyAllowance: 0, nutritionAllowance: 0, publicAssistance: 0,
+    diseaseAidWheelchair: 0, diseaseAidCancer: 0, diseaseAidThalassemia: 0, diseaseAidDiabetes: 0, other: 0,
+  };
 
   for (const row of rows) {
     const s = sectionData(row, "socialWelfare");
@@ -497,6 +605,7 @@ export function aggregateCommunityWelfare(rows: SubmissionLike[], gnLabel: (id: 
     },
     organizationCounts: organizationCounts.sort((a, b) => b.count - a.count),
     organizationDirectory: capRows(flattenRows(rows, gnLabel, "communityOrganizations", "organizationDirectory")),
+    cooperativeSocieties: capRows(flattenRows(rows, gnLabel, "communityOrganizations", "cooperativeSocieties")),
     welfarePaymentHouseholdCounts,
     allowanceRecipientCounts,
     eldersHomes: capRows(flattenRows(rows, gnLabel, "socialWelfare", "eldersHomes")),
@@ -535,20 +644,21 @@ export function aggregateInfrastructure(rows: SubmissionLike[], gnLabel: (id: st
     newRoadBridgeNeeds: capRows(flattenRows(rows, gnLabel, "roadInfrastructure", "newRoadBridgeNeeds")),
     noPublicTransportAreas: capRows(flattenRows(rows, gnLabel, "roadInfrastructure", "noPublicTransportAreas")),
     railwayCrossingGaps: capRows(flattenRows(rows, gnLabel, "roadInfrastructure", "railwayCrossingGaps")),
+    postOffices: capRows(flattenRows(rows, gnLabel, "roadInfrastructure", "postOffices")),
     electricitySubstations: capRows(flattenRows(rows, gnLabel, "roadInfrastructure", "electricitySubstations")),
     fuelDistributionStations: capRows(flattenRows(rows, gnLabel, "roadInfrastructure", "fuelDistributionStations")),
     hydropowerPlants: capRows(flattenRows(rows, gnLabel, "roadInfrastructure", "hydropowerPlants")),
     financialInstitutions: capRows(flattenRows(rows, gnLabel, "roadInfrastructure", "financialInstitutions")),
     industrialEstates: capRows(flattenRows(rows, gnLabel, "roadInfrastructure", "industrialEstates")),
     waterReservoirs: capRows(flattenRows(rows, gnLabel, "roadInfrastructure", "waterReservoirs")),
-    notableClubsAndBars: capRows(flattenRows(rows, gnLabel, "roadInfrastructure", "notableClubsAndBars")),
+    licensedLiquorShops: capRows(flattenRows(rows, gnLabel, "roadInfrastructure", "licensedLiquorShops")),
   };
 }
 
 /* ── Area Profile: physicalEnvironment + religiousCultural + tourism + wasteDisaster + stateInstitutionsLand ── */
 export function aggregateAreaProfile(rows: SubmissionLike[], gnLabel: (id: string) => string) {
   const religiousSiteCounts = {
-    temples: { count: 0, clergyCount: 0 }, kovils: { count: 0, clergyCount: 0 },
+    temples: { count: 0, clergyCount: 0 }, meheniArama: { count: 0, clergyCount: 0 }, kovils: { count: 0, clergyCount: 0 },
     mosques: { count: 0, clergyCount: 0 }, churches: { count: 0, clergyCount: 0 },
   };
   let hasWasteProgramYes = 0, hasCompostSiteYes = 0;
@@ -556,7 +666,7 @@ export function aggregateAreaProfile(rows: SubmissionLike[], gnLabel: (id: strin
   for (const row of rows) {
     const rc = sectionData(row, "religiousCultural");
     if (rc?.religiousSiteCounts) {
-      for (const k of ["temples", "kovils", "mosques", "churches"] as const) {
+      for (const k of ["temples", "meheniArama", "kovils", "mosques", "churches"] as const) {
         religiousSiteCounts[k].count += rc.religiousSiteCounts[k]?.count ?? 0;
         religiousSiteCounts[k].clergyCount += rc.religiousSiteCounts[k]?.clergyCount ?? 0;
       }

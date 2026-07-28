@@ -9,8 +9,8 @@ export const socialWelfareDict: SectionDictionary<keyof SocialWelfareData & stri
   },
   fields: {
     welfarePaymentHouseholdCounts: {
-      en: "Households Receiving Samurdhi / Welfare Payments (by amount)",
-      si: "සමෘද්ධි/සුබසාධන ගෙවීම් ලබන ගෘහ ඒකක (මුදල අනුව)",
+      en: "Households Receiving Aswesuma Welfare Payments (by amount)",
+      si: "අස්වැසුම සහනාධාර බෙදී ගොස් ඇති ආකාරය (මුදල අනුව)",
     },
     allowanceRecipientCounts: {
       en: "Allowance Recipient Counts",

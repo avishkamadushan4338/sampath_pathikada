@@ -1,6 +1,20 @@
 import { z } from "zod";
+import { yesNo } from "@/lib/validators/common";
 
 /* ── §2 භෞතික පාරිසරික තොරතුරු — Physical & Environmental info ───────────────── */
+
+const HAZARD_TYPES = [
+  "flood",
+  "drought",
+  "landslide",
+  "deforestation",
+  "waterSourceDepletion",
+  "unauthorizedLandFilling",
+  "unauthorizedWasteDisposal",
+  "wildElephantConflict",
+  "coastalErosion",
+  "illegalSandMining",
+] as const;
 
 export const waterSourceRowSchema = z.object({
   type: z.string().min(1, "Water source type is required"),
@@ -15,14 +29,14 @@ export const sensitiveZoneRowSchema = z.object({
 
 export const naturalResourceRowSchema = z.object({
   resource: z.string().min(1, "Resource is required"),
+  utilizedForProduction: yesNo,
   notes: z.string().optional(),
 });
 
 export const hazardRowSchema = z.object({
-  type: z.string().min(1, "Hazard type is required"),
-  occurred: z.enum(["yes", "no"]),
+  type: z.enum(HAZARD_TYPES),
+  occurred: yesNo,
   frequency: z.string().optional(),
-  cause: z.string().optional(),
   mitigationProposal: z.string().optional(),
 });
 
@@ -49,7 +63,8 @@ export const physicalEnvironmentSchemaStrict = z.object({
   waterSources: z.array(waterSourceRowSchema).default([]),
   sensitiveZones: z.array(sensitiveZoneRowSchema).default([]),
   naturalResources: z.array(naturalResourceRowSchema).default([]),
-  hazards: z.array(hazardRowSchema).default([]),
+  hazards: z.array(hazardRowSchema).length(HAZARD_TYPES.length),
+  safeLocationsIdentified: yesNo,
   safeLocations: z.array(safeLocationRowSchema).default([]),
   touristSites: z.array(touristSiteRowSchema).default([]),
   proposedTouristSites: z.array(proposedTouristSiteRowSchema).default([]),
@@ -62,7 +77,10 @@ export const physicalEnvironmentSchemaPartial = z.object({
   sensitiveZones: z.array(sensitiveZoneRowSchema.partial()).optional(),
   naturalResources: z.array(naturalResourceRowSchema.partial()).optional(),
   hazards: z.array(hazardRowSchema.partial()).optional(),
+  safeLocationsIdentified: yesNo.optional(),
   safeLocations: z.array(safeLocationRowSchema.partial()).optional(),
   touristSites: z.array(touristSiteRowSchema.partial()).optional(),
   proposedTouristSites: z.array(proposedTouristSiteRowSchema.partial()).optional(),
 });
+
+export { HAZARD_TYPES };

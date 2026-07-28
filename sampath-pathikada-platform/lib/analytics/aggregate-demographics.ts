@@ -29,8 +29,9 @@ export const RELIGION_LABELS: Record<string, { en: string; si: string }> = {
 };
 
 export const DISABILITY_LABELS: Record<string, { en: string; si: string }> = {
-  mentalIllness:          { en: "Mental Illness",           si: "මානසික ආබාධ" },
-  intellectualDisability: { en: "Intellectual Disability",  si: "අංශභාගය" },
+  mentalIllness:          { en: "Mental Illness (Insane)",  si: "මානසික ආබාධ (උමතු)" },
+  intellectualDisability: { en: "Intellectual Disability",  si: "මන්ද මානසික" },
+  paralysis:              { en: "Paralysis",                si: "අංශභාගය" },
   speechImpairment:       { en: "Speech Impairment",        si: "කථන ආබාධ" },
   hearingImpairment:      { en: "Hearing Impairment",       si: "ශ්‍රවණ ඌනතා" },
   visualImpairment:       { en: "Visual Impairment",        si: "දෘෂ්‍යාබාධ" },

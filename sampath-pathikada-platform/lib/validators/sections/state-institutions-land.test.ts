@@ -14,7 +14,14 @@ describe("stateInstitutionsLandSchemaStrict", () => {
 
   it("rejects a development project row missing a required field", () => {
     const result = stateInstitutionsLandSchemaStrict.safeParse({
-      developmentProjects: [{ name: "New Bridge", status: "ongoing" }],
+      developmentProjects: [{ projectName: "New Bridge", owningInstitution: "RDA" }],
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects an illegal structure row missing a required field", () => {
+    const result = stateInstitutionsLandSchemaStrict.safeParse({
+      illegalStructures: [{ buildingName: "Kiosk", purposeUsed: "Shop" }],
     });
     expect(result.success).toBe(false);
   });
@@ -22,8 +29,22 @@ describe("stateInstitutionsLandSchemaStrict", () => {
   it("accepts a fully populated payload", () => {
     const result = stateInstitutionsLandSchemaStrict.safeParse({
       stateInstitutions: [{ name: "Divisional Secretariat Office", address: "Main Street, Galle" }],
-      illegalStructures: [{ description: "Unauthorized kiosk", location: "Near the bus stand" }],
-      developmentProjects: [{ name: "New Bridge", status: "ongoing", location: "River crossing" }],
+      illegalStructures: [
+        {
+          buildingName: "Unauthorized kiosk",
+          purposeUsed: "Retail shop",
+          usable: "yes",
+          owningInstitution: "Galle Municipal Council",
+        },
+      ],
+      developmentProjects: [
+        {
+          projectName: "New Bridge",
+          owningInstitution: "Road Development Authority",
+          reasonForHalt: "Funding delay",
+          currentStatus: "Awaiting funds",
+        },
+      ],
     });
     expect(result.success).toBe(true);
   });
