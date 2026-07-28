@@ -41,7 +41,7 @@ export function GnDivisionCombobox({ divisions, value, onChange }: GnDivisionCom
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-full justify-between sm:w-80"
+          className="h-11 w-full justify-between sm:w-80"
         >
           <span className={cn("truncate", !selected && "text-muted-foreground")}>
             {selected ? (
@@ -61,7 +61,7 @@ export function GnDivisionCombobox({ divisions, value, onChange }: GnDivisionCom
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder={lang === "si" ? "වසම සොයන්න..." : "Search GN division..."}
-            className="h-8 border-0 px-0 shadow-none focus-visible:ring-0"
+            className="h-10 border-0 px-0 shadow-none focus-visible:ring-0"
           />
         </div>
         <div className="max-h-72 overflow-y-auto p-1">
@@ -79,7 +79,7 @@ export function GnDivisionCombobox({ divisions, value, onChange }: GnDivisionCom
                   setQuery("");
                   setOpen(false);
                 }}
-                className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-fluid-sm hover:bg-accent hover:text-accent-foreground"
+                className="flex w-full items-center gap-2 rounded-md px-3 py-3 text-left text-fluid-sm hover:bg-accent hover:text-accent-foreground"
               >
                 <Check className={cn("size-4 shrink-0", gn.id === value ? "opacity-100" : "opacity-0")} />
                 <span className="min-w-0 flex-1 truncate">

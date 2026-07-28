@@ -17,6 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useSession } from "@/hooks/use-session";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { CURRENT_YEAR } from "@/lib/constants";
 import { GN_DIVISIONS } from "@/lib/registration-data";
@@ -34,6 +35,7 @@ interface RegistrationRow {
   farmers: string | null;
   eduZone: string | null;
   eduDiv: string | null;
+  mahaweli: string | null;
 }
 
 interface RegistrationsResponse {
@@ -50,10 +52,10 @@ interface AnalyticsGnBreakdownRow {
   demographics: DemographicsAggregate | null;
 }
 
-// ✅ FIXED: Use the full DemographicsAggregate type
+// FIXED: Use the full DemographicsAggregate type
 interface AnalyticsResponse {
   ok: true;
-  demographics: DemographicsAggregate;  // ✅ This includes populationByReligion and populationByEthnicity
+  demographics: DemographicsAggregate;  // This includes populationByReligion and populationByEthnicity
   gnBreakdown: AnalyticsGnBreakdownRow[];
 }
 
@@ -121,6 +123,7 @@ function TopicCard({
 
 export default function Page({ params }: { params: Promise<{ section: string }> }) {
   const { lang } = useLanguage();
+  const { user } = useSession();
   const resolvedParams = React.use(params);
   const section = resolvedParams.section;
   const isIdentification = section === "identification";
@@ -128,6 +131,7 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
   const isStateInstitutionsLand = section === "state-institutions-land";
   const isPhysicalEnvironment = section === "physical-environment";
   const isHousing = section === "housing";
+  const showMahaweliColumn = user?.dsDivision === "hambantota-ds";
   const { data, error, isLoading } = useSWR(
     isIdentification ? "/api/registrations?role=gn&status=all&limit=100" : null,
     fetcher
@@ -362,7 +366,7 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
             <Bilingual en={description.en} si={description.si} />
           </p>
         </div>
-        <Button asChild variant="outline" size="sm">
+        <Button asChild variant="outline" className="h-11">
           <Link href="/divisional-secretariat/graphs" className="flex items-center gap-2">
             <ArrowLeft className="size-4" />
             <Bilingual en="Back to dashboard" si="පුවරුවට ආපසු" />
@@ -991,6 +995,11 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
                 <TableHead className="hidden 2xl:table-cell">
                   <Bilingual en="Education Division" si="අධ්‍යාපන කොට්ඨාසය" />
                 </TableHead>
+                {showMahaweliColumn && (
+                  <TableHead className="hidden 2xl:table-cell">
+                    <Bilingual en="Mahaweli Zone" si="මහවැලි කොට්ඨාසය" />
+                  </TableHead>
+                )}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -1010,6 +1019,9 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
                     <TableCell className="hidden 2xl:table-cell">{row.farmers ?? "—"}</TableCell>
                     <TableCell className="hidden 2xl:table-cell">{row.eduZone ?? "—"}</TableCell>
                     <TableCell className="hidden 2xl:table-cell">{row.eduDiv ?? "—"}</TableCell>
+                    {showMahaweliColumn && (
+                      <TableCell className="hidden 2xl:table-cell">{row.mahaweli ?? "—"}</TableCell>
+                    )}
                   </TableRow>
                 );
               })}

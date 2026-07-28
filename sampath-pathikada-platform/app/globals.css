@@ -79,6 +79,18 @@
     --status-pending:  38 46% 50%;   /* reuse antique gold for amber */
     --status-rejected: 5 57% 25%;    /* reuse maroon #66261E */
 
+    /* Chart marks — theme-aware. A single hex can't clear 3:1 against both a
+       light and a dark card surface (e.g. maroon #66261E measures 8.86:1 on
+       the light card but only 1.42:1 on the dark card) — each mode gets its
+       own step of the same hue instead. Consumed via hsl(var(--chart-*)) so
+       Recharts/CSS repaint automatically on theme switch, no JS needed. */
+    --chart-navy:      213 70% 18%;  /* #0E2B4E */
+    --chart-gold:      38  53% 38%;  /* #96702E */
+    --chart-maroon:    7   55% 26%;  /* #66261E */
+    --chart-green:     148 46% 33%;  /* #2D7A51 */
+    --chart-amber:     37  51% 32%;  /* #7A5A28 */
+    --chart-gold-deep: 37  48% 24%;  /* #5C4520 */
+
     /* ── Semantic tokens (light mode) ───────────────────────────────────── */
     --background:           38 42% 96%;    /* Warm Ivory  #F4EEE1 */
     --foreground:           216 26% 12%;   /* near-black  #1A1A24 */
@@ -157,29 +169,31 @@
     --dur-slower: 600ms;
 
     /* ── Typography — role-based font stack ─────────────────────────────────
-       Fonts are loaded via Google Fonts <link> tags in app/layout.tsx (not
-       next/font), so these reference the literal family names directly.
-       Fallback chains are carefully ordered: matching metric fonts first so
-       layout shift is imperceptible even before the webfont loads.
+       Fonts are self-hosted via next/font/google (app/layout.tsx), each
+       exposing a CSS variable on <html> — no Google Fonts <link>, so no
+       extra DNS/connection round-trip, and next/font auto-generates a
+       size-adjusted fallback per font to minimize layout shift before the
+       webfont loads. Fallback chains still end in a generic family in case
+       a variable is ever unavailable (e.g. during static optimization).
     ──────────────────────────────────────────────────────────────────────── */
 
     /* UI chrome & body copy (English) */
-    --font-ui:       "Inter", "DM Sans", ui-sans-serif, system-ui, sans-serif;
+    --font-ui:       var(--font-inter), var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
 
     /* Editorial display headings — large sizes only */
-    --font-display:  "Playfair Display", "Cormorant Garamond", Georgia, serif;
+    --font-display:  var(--font-playfair), var(--font-cormorant), Georgia, serif;
 
     /* Data-dense tables, dashboard numbers, stat cards */
-    --font-data:     "DM Sans", "Inter", ui-sans-serif, sans-serif;
+    --font-data:     var(--font-dm-sans), var(--font-inter), ui-sans-serif, sans-serif;
 
     /* Code, IDs, submission numbers, timestamps */
     --font-mono:     "JetBrains Mono", "Fira Code", ui-monospace, monospace;
 
     /* Sinhala formal headings, PDF / print documents */
-    --font-si-serif: "Noto Serif Sinhala", serif;
+    --font-si-serif: var(--font-noto-serif-sinhala), serif;
 
     /* Sinhala UI body, labels, navigation, forms */
-    --font-si-sans:  "Noto Sans Sinhala", "Yaldevi", sans-serif;
+    --font-si-sans:  var(--font-noto-sans-sinhala), var(--font-yaldevi), sans-serif;
 
     /* Convenience aliases consumed by Tailwind utilities below */
     --font-sans:     var(--font-ui);
@@ -236,6 +250,16 @@
 
     --destructive:          5 52% 40%;
     --destructive-foreground: 38 42% 92%;
+
+    /* Chart marks — brightened steps of the same hues, re-validated against
+       the dark card surface (#102238), not an automatic flip of the light
+       values (which would be near-invisible: navy 1.13:1, maroon 1.42:1). */
+    --chart-navy:      214 46% 56%;  /* #5B87C2 */
+    --chart-gold:      39  60% 58%;  /* #D4A855 */
+    --chart-maroon:    9   44% 61%;  /* #C77B6E */
+    --chart-green:     149 42% 56%;  /* #5FBE8D */
+    --chart-amber:     39  60% 58%;  /* #D4A855 */
+    --chart-gold-deep: 40  66% 64%;  /* #E0B968 */
 
     --border:               215 40% 22%;
     --input:                215 40% 18%;

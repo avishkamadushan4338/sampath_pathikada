@@ -81,7 +81,7 @@ function SectionCard({
         <div className="flex min-w-0 items-center gap-4">
           <span
             className="flex size-12 shrink-0 items-center justify-center rounded-full"
-            style={{ backgroundColor: `${accent}1F`, color: accent }}
+            style={{ backgroundColor: `color-mix(in srgb, ${accent} 12%, transparent)`, color: accent }}
           >
             <Icon className="size-6" aria-hidden="true" />
           </span>
