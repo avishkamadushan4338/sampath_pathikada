@@ -5,7 +5,7 @@ import { Table2, BarChart3 } from "lucide-react";
 import { GnScopedSectionView } from "@/components/analytics/GnScopedSectionView";
 import { ReadOnlyStats, type ReadOnlyStat, type ReadOnlyStatGroup } from "@/components/analytics/ReadOnlyStats";
 import { ReadOnlyTable, type ReadOnlyColumn } from "@/components/analytics/ReadOnlyTable";
-import { BarCard, MeterCard, StatGrid, GOLD } from "@/components/charts/chart-primitives";
+import { ColumnCard, DonutCard, MeterCard, GOLD, MAROON, GREEN, AMBER, GOLD_DEEP } from "@/components/charts/chart-primitives";
 import { useAreaAnalytics } from "@/hooks/use-area-analytics";
 import { Bilingual } from "@/components/Bilingual";
 import { Button } from "@/components/ui/button";
@@ -101,9 +101,8 @@ function ViewModeToggle({ value, onChange }: { value: ViewMode; onChange: (mode:
     <div className="inline-flex w-fit items-center gap-1 self-start rounded-lg border border-border bg-muted/40 p-1">
       <Button
         type="button"
-        size="sm"
         variant={value === "stats" ? "default" : "ghost"}
-        className="gap-1.5"
+        className="h-11 gap-1.5 px-5"
         onClick={() => onChange("stats")}
       >
         <Table2 className="size-4" />
@@ -111,9 +110,8 @@ function ViewModeToggle({ value, onChange }: { value: ViewMode; onChange: (mode:
       </Button>
       <Button
         type="button"
-        size="sm"
         variant={value === "graph" ? "default" : "ghost"}
-        className="gap-1.5"
+        className="h-11 gap-1.5 px-5"
         onClick={() => onChange("graph")}
       >
         <BarChart3 className="size-4" />
@@ -123,66 +121,70 @@ function ViewModeToggle({ value, onChange }: { value: ViewMode; onChange: (mode:
   );
 }
 
-/** Chart rendering for the four numeric groups — Housing Counts and Sanitation as bar charts
- *  (multi-category magnitude comparison), Electricity Access as a meter (a single ratio against
- *  a 0-100 limit is a meter, not a bar chart), Drinking Water as three grouped bar charts.
- *  Households Without Proper Housing stays a plain figure — a lone count has no useful chart
- *  form. Totals are never charted alongside their own subsets (Total Households at 685 next to
- *  Without Safe Sanitation at 18 would swamp the scale and shrink the figure that matters to an
- *  illegible sliver) — totals go in the overview stat card instead. */
+/** A small darkening ramp within the Housing gold family for the 3 housing-type slices — an
+ *  ordinal-style progression (Permanent -> Semi -> Non-Permanent) rather than unrelated
+ *  categorical hues, since these are shades of "how permanent," not distinct identities.
+ *  GOLD/AMBER/GOLD_DEEP are theme-aware CSS vars (see chart-primitives.tsx), each
+ *  independently validated against both the light and dark card surface. */
+const HOUSING_TYPE_COLORS = { permanent: GOLD, semiPermanent: AMBER, nonPermanent: GOLD_DEEP };
+
+/** Exactly 3 charts, one per numeric group. Housing Counts is a donut (Permanent + Semi-Permanent
+ *  + Non-Permanent sum exactly to Total Houses, a clean part-to-whole story, so the total anchors
+ *  the center). Sanitation and Drinking Water combine all of that group's figures — including
+ *  totals — into a single bar chart. Electricity Access stays a separate meter (a % ratio doesn't
+ *  belong on the same axis as counts) and isn't counted as one of the 3 — it's a different
+ *  visualization, not a bar or part-to-whole comparison. */
 function HousingGraphSection({ data }: { data: HousingNumericData }) {
   const { lang } = useLanguage();
   const t = (en: string, si: string) => (lang === "si" ? si : en);
 
   return (
-    <div className="grid gap-4 lg:grid-cols-2">
-      <Card>
-        <CardContent className="pt-6">
-          <StatGrid
-            items={[
-              { en: "Total Houses", si: "මුළු නිවාස ගණන", value: data.housingCounts.total },
-              { en: "Households Without Proper Housing", si: "නිසි නිවාසයක් නොමැති ගෘහ ඒකක", value: data.householdsWithoutHousing },
-              { en: "Total Households (Sanitation)", si: "මුළු ගෘහ ඒකක (සනීපාරක්ෂාව)", value: data.sanitation.total },
-            ]}
-          />
-        </CardContent>
-      </Card>
+    <div className="grid gap-6">
+      <DonutCard
+        titleEn={housingDict.fields.housingCounts.en}
+        titleSi={housingDict.fields.housingCounts.si}
+        totalLabel={{ en: "Total Houses", si: "මුළු නිවාස ගණන" }}
+        slices={[
+          { label: t("Permanent", "ස්ථිර"), value: data.housingCounts.permanent, color: HOUSING_TYPE_COLORS.permanent },
+          { label: t("Semi-Permanent", "අර්ධ ස්ථිර"), value: data.housingCounts.semiPermanent, color: HOUSING_TYPE_COLORS.semiPermanent },
+          { label: t("Non-Permanent", "අස්ථිර"), value: data.housingCounts.nonPermanent, color: HOUSING_TYPE_COLORS.nonPermanent },
+        ]}
+        footer={
+          <p className="mt-4 border-t border-border pt-3 text-fluid-sm text-muted-foreground">
+            <Bilingual en="Without proper housing: " si="නිසි නිවාසයක් නොමැති: " />
+            <span className="font-semibold nums-tabular text-foreground">{data.householdsWithoutHousing}</span>
+          </p>
+        }
+      />
 
-      <BarCard
-        titleEn="Housing by Type"
-        titleSi="වර්ගය අනුව නිවාස"
-        color={GOLD}
-        rows={[
-          { label: t("Permanent", "ස්ථිර"), value: data.housingCounts.permanent },
-          { label: t("Semi-Permanent", "අර්ධ ස්ථිර"), value: data.housingCounts.semiPermanent },
-          { label: t("Non-Permanent", "අස්ථිර"), value: data.housingCounts.nonPermanent },
+      <DonutCard
+        titleEn={housingDict.fields.sanitation.en}
+        titleSi={housingDict.fields.sanitation.si}
+        totalLabel={{ en: "Total Households", si: "මුළු ගෘහ ඒකක" }}
+        slices={[
+          {
+            label: t("Adequately Served", "ප්‍රමාණවත් සේවා ලබන"),
+            value: Math.max(0, data.sanitation.total - data.sanitation.withoutSafeSanitation - data.sanitation.needingAssistance),
+            color: GREEN,
+          },
+          { label: t("Without Safe Sanitation", "ආරක්ෂිත සනීපාරක්ෂාව නොමැති"), value: data.sanitation.withoutSafeSanitation, color: MAROON },
+          { label: t("Needing Assistance", "සහාය අවශ්‍ය"), value: data.sanitation.needingAssistance, color: AMBER },
         ]}
       />
 
-      <BarCard
-        titleEn="Sanitation Gaps"
-        titleSi="සනීපාරක්ෂක අඩුපාඩු"
+      <ColumnCard
+        titleEn={housingDict.fields.drinkingWaterSource.en}
+        titleSi={housingDict.fields.drinkingWaterSource.si}
         color={GOLD}
-        rows={[
-          { label: t("Without Safe Sanitation", "ආරක්ෂිත සනීපාරක්ෂාව නොමැති"), value: data.sanitation.withoutSafeSanitation },
-          { label: t("Needing Assistance", "සහාය අවශ්‍ය"), value: data.sanitation.needingAssistance },
-        ]}
+        rows={DRINKING_WATER_GROUPS.flatMap((group) =>
+          group.fields.map((f) => ({
+            label: t(f.label.en, f.label.si),
+            value: data.drinkingWaterSource[f.key as keyof HousingData["drinkingWaterSource"]],
+          }))
+        )}
       />
 
       <MeterCard titleEn={data.electricityTitle.en} titleSi={data.electricityTitle.si} percent={data.electricityAccessPercent} color={GOLD} />
-
-      {DRINKING_WATER_GROUPS.map((group) => (
-        <BarCard
-          key={group.label.en}
-          titleEn={group.label.en}
-          titleSi={group.label.si}
-          color={GOLD}
-          rows={group.fields.map((f) => ({
-            label: t(f.label.en, f.label.si),
-            value: data.drinkingWaterSource[f.key as keyof HousingData["drinkingWaterSource"]],
-          }))}
-        />
-      ))}
     </div>
   );
 }
