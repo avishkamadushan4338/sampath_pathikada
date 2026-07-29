@@ -238,9 +238,9 @@ export async function GET(req: NextRequest) {
     "Nun Hermitages": areaProfile.religiousSiteCounts.meheniArama.count, "Nun Hermitage Clergy": areaProfile.religiousSiteCounts.meheniArama.clergyCount,
     "Kovils": areaProfile.religiousSiteCounts.kovils.count, "Kovil Clergy": areaProfile.religiousSiteCounts.kovils.clergyCount,
     "Mosques": areaProfile.religiousSiteCounts.mosques.count, "Mosque Clergy": areaProfile.religiousSiteCounts.mosques.clergyCount,
-    "Churches": areaProfile.religiousSiteCounts.churches.count, "Church Clergy": areaProfile.religiousSiteCounts.churches.clergyCount,
+    "Catholic Churches": areaProfile.religiousSiteCounts.churches.count, "Priests": areaProfile.religiousSiteCounts.churches.priestsCount, "Nuns/Sisters": areaProfile.religiousSiteCounts.churches.nunsCount,
   }]);
-  addSheet("Religious - Heritage Sites", areaProfile.heritageSites.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Type": r.type, "Significance": r.significance, "Maintained By": r.maintainedBy ?? "", "Task Extension": r.taskExtension ?? "" })));
+  addSheet("Religious - Heritage Sites", areaProfile.heritageSites.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Type": r.type, "Significance": r.significance, "Used for Dhamma/Govt Purpose": r.usedForDhammaOrGovtPurpose ?? "", "Task Description": r.taskDescription ?? "" })));
   addSheet("Religious - Art Academies", areaProfile.artAcademies.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Registration No.": r.registrationNumber ?? "", "Students": r.studentCount })));
   addSheet("Religious - Traditional Artists", areaProfile.traditionalArtists.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Art Form": r.artForm, "Description": r.description ?? "" })));
 
