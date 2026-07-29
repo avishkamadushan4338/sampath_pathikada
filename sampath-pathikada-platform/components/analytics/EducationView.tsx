@@ -49,11 +49,20 @@ const INSTITUTION_COUNT_FIELDS: { key: string; label: Translated }[] = [
 ];
 
 const SCHOOL_COUNT_BY_TYPE_FIELDS: { key: string; label: Translated }[] = [
-  { key: "nationalSchools", label: { en: "National Schools", si: "ජාතික පාසල්" } },
-  { key: "type1AB", label: { en: "Type 1AB", si: "වර්ගය 1AB" } },
-  { key: "type1C", label: { en: "Type 1C", si: "වර්ගය 1C" } },
-  { key: "type2", label: { en: "Type 2", si: "වර්ගය 2" } },
-  { key: "type3", label: { en: "Type 3", si: "වර්ගය 3" } },
+  { key: "nationalSchools", label: { en: "National Schools", si: "ජාතික පාසල් සංඛ්‍යාව" } },
+  {
+    key: "type1AB",
+    label: { en: "Type 1 AB (A/L Science)", si: "වර්ගය 1 AB - උසස් පෙළ විද්‍යා විෂයයන් ඇති පාසල්" },
+  },
+  {
+    key: "type1C",
+    label: { en: "Type 1 C (A/L Arts / Commerce)", si: "වර්ගය 1 C - උසස් පෙළ කලා/වාණිජ විෂයයන් ඇති පාසල්" },
+  },
+  {
+    key: "type2",
+    label: { en: "Type 2 (Grades 1–11)", si: "වර්ගය 2 - 1-11 ශ්‍රේණිය දක්වා පන්ති පවතින පාසල්" },
+  },
+  { key: "type3", label: { en: "Type 3 (Primary Schools)", si: "වර්ගය 3 - ප්‍රාථමික පාසල්" } },
 ];
 
 const SEX_COUNT_FIELDS: { key: string; label: Translated }[] = [
