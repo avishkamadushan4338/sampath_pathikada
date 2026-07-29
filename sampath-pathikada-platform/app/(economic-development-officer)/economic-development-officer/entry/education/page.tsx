@@ -11,6 +11,7 @@ import { CollapsibleFieldGroup, hasAnyNonZero, entryCountLabel } from "@/compone
 import { Accordion } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Bilingual } from "@/components/Bilingual";
 import { useSubmission, useSaveSection } from "@/hooks/use-submission";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { educationDict } from "@/lib/i18n/sections/education";
@@ -20,6 +21,7 @@ import {
   PRESCHOOL_FACILITY_TYPES,
   DHAMMA_TYPES,
 } from "@/lib/validators/sections/education";
+import { cn } from "@/lib/utils";
 import type { z } from "zod";
 
 const CURRENT_YEAR = 2026;
@@ -382,32 +384,77 @@ export default function EducationPage() {
         </CollapsibleFieldGroup>
 
         <CollapsibleFieldGroup value="schoolCountsByType" title={educationDict.fields.schoolCountsByType} status={hasAnyNonZero(watched.schoolCountsByType) ? "filled" : "empty"}>
-          <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4">
-            <FieldWrapper name="schoolCountsByType.nationalSchools" label={{ en: "National Schools", si: "ජාතික පාසල්" }}>
-              {({ id, describedBy, invalid }) => (
-                <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("schoolCountsByType.nationalSchools")} />
-              )}
-            </FieldWrapper>
-            <FieldWrapper name="schoolCountsByType.type1AB" label={{ en: "Type 1AB", si: "වර්ගය 1AB" }}>
-              {({ id, describedBy, invalid }) => (
-                <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("schoolCountsByType.type1AB")} />
-              )}
-            </FieldWrapper>
-            <FieldWrapper name="schoolCountsByType.type1C" label={{ en: "Type 1C", si: "වර්ගය 1C" }}>
-              {({ id, describedBy, invalid }) => (
-                <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("schoolCountsByType.type1C")} />
-              )}
-            </FieldWrapper>
-            <FieldWrapper name="schoolCountsByType.type2" label={{ en: "Type 2", si: "වර්ගය 2" }}>
-              {({ id, describedBy, invalid }) => (
-                <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("schoolCountsByType.type2")} />
-              )}
-            </FieldWrapper>
-            <FieldWrapper name="schoolCountsByType.type3" label={{ en: "Type 3", si: "වර්ගය 3" }}>
-              {({ id, describedBy, invalid }) => (
-                <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("schoolCountsByType.type3")} />
-              )}
-            </FieldWrapper>
+          <div className="flex flex-col gap-4">
+            <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4">
+              <FieldWrapper
+                name="schoolCountsByType.nationalSchools"
+                label={{ en: "National Schools", si: "ජාතික පාසල් සංඛ්‍යාව" }}
+              >
+                {({ id, describedBy, invalid }) => (
+                  <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("schoolCountsByType.nationalSchools")} />
+                )}
+              </FieldWrapper>
+            </div>
+
+            <div className="rounded-lg border border-border/60 p-4">
+              <p lang={lang} className={cn("mb-3 text-fluid-sm font-medium text-muted-foreground", lang === "si" && "font-si")}>
+                {lang === "si" ? "පළාත් සභා පාසල්" : "Provincial Council Schools"}
+              </p>
+              <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4">
+                <FieldWrapper
+                  name="schoolCountsByType.type1AB"
+                  label={{
+                    en: "Type 1 AB — Schools with A/L Science Subjects",
+                    si: "වර්ගය 1 AB - උසස් පෙළ විද්‍යා විෂයයන් ඇති පාසල්",
+                  }}
+                >
+                  {({ id, describedBy, invalid }) => (
+                    <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("schoolCountsByType.type1AB")} />
+                  )}
+                </FieldWrapper>
+                <FieldWrapper
+                  name="schoolCountsByType.type1C"
+                  label={{
+                    en: "Type 1 C — Schools with A/L Arts / Commerce Subjects",
+                    si: "වර්ගය 1 C - උසස් පෙළ කලා/වාණිජ විෂයයන් ඇති පාසල්",
+                  }}
+                >
+                  {({ id, describedBy, invalid }) => (
+                    <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("schoolCountsByType.type1C")} />
+                  )}
+                </FieldWrapper>
+                <FieldWrapper
+                  name="schoolCountsByType.type2"
+                  label={{
+                    en: "Type 2 — Schools With Classes up to Grade 1–11",
+                    si: "වර්ගය 2 - 1-11 ශ්‍රේණිය දක්වා පන්ති පවතින පාසල්",
+                  }}
+                >
+                  {({ id, describedBy, invalid }) => (
+                    <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("schoolCountsByType.type2")} />
+                  )}
+                </FieldWrapper>
+                <FieldWrapper
+                  name="schoolCountsByType.type3"
+                  label={{ en: "Type 3 — Primary Schools", si: "වර්ගය 3 - ප්‍රාථමික පාසල්" }}
+                >
+                  {({ id, describedBy, invalid }) => (
+                    <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("schoolCountsByType.type3")} />
+                  )}
+                </FieldWrapper>
+              </div>
+            </div>
+
+            <p lang={lang} className={cn("text-fluid-sm text-muted-foreground", lang === "si" && "font-si")}>
+              <Bilingual en="Total School Count: " si="මුළු පාසල් සංඛ්‍යාව: " />
+              <span className="font-semibold nums-tabular text-foreground">
+                {(watched.schoolCountsByType?.nationalSchools ?? 0) +
+                  (watched.schoolCountsByType?.type1AB ?? 0) +
+                  (watched.schoolCountsByType?.type1C ?? 0) +
+                  (watched.schoolCountsByType?.type2 ?? 0) +
+                  (watched.schoolCountsByType?.type3 ?? 0)}
+              </span>
+            </p>
           </div>
         </CollapsibleFieldGroup>
 
