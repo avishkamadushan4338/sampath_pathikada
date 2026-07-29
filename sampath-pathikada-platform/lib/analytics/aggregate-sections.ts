@@ -659,17 +659,20 @@ export function aggregateInfrastructure(rows: SubmissionLike[], gnLabel: (id: st
 export function aggregateAreaProfile(rows: SubmissionLike[], gnLabel: (id: string) => string) {
   const religiousSiteCounts = {
     temples: { count: 0, clergyCount: 0 }, meheniArama: { count: 0, clergyCount: 0 }, kovils: { count: 0, clergyCount: 0 },
-    mosques: { count: 0, clergyCount: 0 }, churches: { count: 0, clergyCount: 0 },
+    mosques: { count: 0, clergyCount: 0 }, churches: { count: 0, priestsCount: 0, nunsCount: 0 },
   };
   let hasWasteProgramYes = 0, hasCompostSiteYes = 0;
 
   for (const row of rows) {
     const rc = sectionData(row, "religiousCultural");
     if (rc?.religiousSiteCounts) {
-      for (const k of ["temples", "meheniArama", "kovils", "mosques", "churches"] as const) {
+      for (const k of ["temples", "meheniArama", "kovils", "mosques"] as const) {
         religiousSiteCounts[k].count += rc.religiousSiteCounts[k]?.count ?? 0;
         religiousSiteCounts[k].clergyCount += rc.religiousSiteCounts[k]?.clergyCount ?? 0;
       }
+      religiousSiteCounts.churches.count += rc.religiousSiteCounts.churches?.count ?? 0;
+      religiousSiteCounts.churches.priestsCount += rc.religiousSiteCounts.churches?.priestsCount ?? 0;
+      religiousSiteCounts.churches.nunsCount += rc.religiousSiteCounts.churches?.nunsCount ?? 0;
     }
     const wd = sectionData(row, "wasteDisaster");
     if (wd?.hasWasteProgram === "yes") hasWasteProgramYes++;
