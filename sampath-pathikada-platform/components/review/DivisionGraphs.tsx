@@ -103,7 +103,7 @@ export function DivisionGraphs({ data }: DivisionGraphsProps) {
             { label: t("Nun Hermitages", "මෙහෙණි ආරාම"), value: areaProfile.religiousSiteCounts.meheniArama.count },
             { label: t("Kovils", "කෝවිල්"), value: areaProfile.religiousSiteCounts.kovils.count },
             { label: t("Mosques", "පල්ලි"), value: areaProfile.religiousSiteCounts.mosques.count },
-            { label: t("Churches", "පල්ලි (ක්‍රිස්තියානි)"), value: areaProfile.religiousSiteCounts.churches.count },
+            { label: t("Catholic Churches", "කතෝලික පල්ලි"), value: areaProfile.religiousSiteCounts.churches.count },
           ]}
         />
         <BarCard
