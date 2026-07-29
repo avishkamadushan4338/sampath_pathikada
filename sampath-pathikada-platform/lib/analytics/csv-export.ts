@@ -148,7 +148,7 @@ export function buildCsvRows(
       "Religious: Nun Hermitages": areaProfile.religiousSiteCounts.meheniArama.count,
       "Religious: Kovils": areaProfile.religiousSiteCounts.kovils.count,
       "Religious: Mosques": areaProfile.religiousSiteCounts.mosques.count,
-      "Religious: Churches": areaProfile.religiousSiteCounts.churches.count,
+      "Religious: Catholic Churches": areaProfile.religiousSiteCounts.churches.count,
       "Religious: Heritage Sites Listed": areaProfile.heritageSites.rows.length,
       "Religious: Traditional Artists Listed": areaProfile.traditionalArtists.rows.length,
 
