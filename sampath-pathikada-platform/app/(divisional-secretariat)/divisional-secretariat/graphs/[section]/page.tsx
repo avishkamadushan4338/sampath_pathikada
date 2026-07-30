@@ -6,7 +6,7 @@ import Link from "next/link";
 import { ArrowLeft, ArrowUp, Globe2, Home, MapPin, Users, UserCheck, Eye } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { DemographicsAggregate } from "@/lib/analytics/aggregate-demographics";
-import type { EmploymentAggregate } from "@/lib/analytics/aggregate-sections";
+import type { AreaProfileAggregate, EmploymentAggregate } from "@/lib/analytics/aggregate-sections";
 import { Bilingual } from "@/components/Bilingual";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardFooter, CardTitle } from "@/components/ui/card";
@@ -67,6 +67,7 @@ interface AnalyticsResponse {
   demographics: DemographicsAggregate;  // This includes populationByReligion and populationByEthnicity
   sections: {
     employment: EmploymentAggregate;
+    areaProfile: AreaProfileAggregate;
   };
   gnBreakdown: AnalyticsGnBreakdownRow[];
 }
@@ -145,7 +146,9 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
   const isPhysicalEnvironment = section === "physical-environment";
   const isHousing = section === "housing";
   const isEducation = section === "education";
+  const isReligiousCultural = section === "religious-cultural";
   const [employmentGnDivision, setEmploymentGnDivision] = React.useState("all");
+  const [religiousGnDivision, setReligiousGnDivision] = React.useState("all");
   const showMahaweliColumn = user?.dsDivision === "hambantota-ds";
   const { data, error, isLoading } = useSWR(
     isIdentification ? "/api/registrations?role=gn&status=all&limit=100" : null,
@@ -165,6 +168,12 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
     if (!stillExists) setEmploymentGnDivision("all");
   }, [employmentGnDivision, employmentGnOptions]);
 
+  React.useEffect(() => {
+    if (religiousGnDivision === "all") return;
+    const stillExists = employmentGnOptions.some((gn) => gn.id === religiousGnDivision);
+    if (!stillExists) setReligiousGnDivision("all");
+  }, [religiousGnDivision, employmentGnOptions]);
+
   const title = isIdentification
     ? { en: "Identification", si: "හඳුනාගැනීම" }
     : isDemographics
@@ -179,6 +188,8 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
     ? { en: "Housing", si: "නිවාස තොරතුරු" }
     : isEducation
     ? { en: "Education", si: "අධ්‍යාපනය" }
+    : isReligiousCultural
+    ? { en: "Religious & Cultural", si: "ආගමික හා සංස්කෘතික" }
     : { en: "Section details", si: "සැකිලි විස්තර" };
 
   const description = isIdentification
@@ -216,19 +227,27 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
         en: "Search or select a GN division to view its schools, preschools, tertiary institutions, and education-related facilities.",
         si: "පාසල්, පෙර පාසල්, තෘතීයික අධ්‍යාපන ආයතන සහ අධ්‍යාපන පහසුකම් දත්ත බැලීමට ග්‍රාම නිලධාරී වසමක් සොයන්න හෝ තෝරන්න.",
       }
+    : isReligiousCultural
+    ? {
+        en: "View aggregated religious and cultural information collected across your division.",
+        si: "ඔබගේ වසම පුරා එක්රැස් කළ ආගමික හා සංස්කෘතික තොරතුරු එකතුව මෙහි දැකිය හැක.",
+      }
     : {
         en: "This section is not available yet. Please return to the division information overview.",
         si: "මෙම කොටස තවම ලබා ගත නොහැක. කරුණාකර වසම් තොරතුරු ප්‍රස්ථාරයට ආපසු යන්න.",
       };
 
   const analyticsUrl = React.useMemo(() => {
-    if (!isDemographics && !isEmployment) return null;
+    if (!isDemographics && !isEmployment && !isReligiousCultural) return null;
     const params = new URLSearchParams({ year: String(CURRENT_YEAR) });
     if (isEmployment && employmentGnDivision !== "all") {
       params.set("gnDivisions", employmentGnDivision);
     }
+    if (isReligiousCultural && religiousGnDivision !== "all") {
+      params.set("gnDivisions", religiousGnDivision);
+    }
     return `/api/analytics?${params.toString()}`;
-  }, [isDemographics, isEmployment, employmentGnDivision]);
+  }, [isDemographics, isEmployment, isReligiousCultural, employmentGnDivision, religiousGnDivision]);
 
   const { data: analytics, error: analyticsError } = useSWR(analyticsUrl, analyticsFetcher);
   const [showTotalPopulation, setShowTotalPopulation] = React.useState(false);
@@ -456,6 +475,45 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
       market: row.address,
     }));
   }, [analytics]);
+
+  const religiousHeritageRows = React.useMemo(() => {
+    const rows = analytics?.sections.areaProfile.heritageSites.rows ?? [];
+    if (!user?.dsDivision) return rows;
+
+    const allowedGnIds = new Set(
+      GN_DIVISIONS.filter((gn) => gn.dsId === user.dsDivision).map((gn) => gn.id)
+    );
+
+    const dsScoped = rows.filter((row) => allowedGnIds.has(row.gnId));
+    if (religiousGnDivision === "all") return dsScoped;
+    return dsScoped.filter((row) => row.gnId === religiousGnDivision);
+  }, [analytics, user?.dsDivision, religiousGnDivision]);
+
+  const religiousArtAcademyRows = React.useMemo(() => {
+    const rows = analytics?.sections.areaProfile.artAcademies.rows ?? [];
+    if (!user?.dsDivision) return rows;
+
+    const allowedGnIds = new Set(
+      GN_DIVISIONS.filter((gn) => gn.dsId === user.dsDivision).map((gn) => gn.id)
+    );
+
+    const dsScoped = rows.filter((row) => allowedGnIds.has(row.gnId));
+    if (religiousGnDivision === "all") return dsScoped;
+    return dsScoped.filter((row) => row.gnId === religiousGnDivision);
+  }, [analytics, user?.dsDivision, religiousGnDivision]);
+
+  const religiousTraditionalArtistRows = React.useMemo(() => {
+    const rows = analytics?.sections.areaProfile.traditionalArtists.rows ?? [];
+    if (!user?.dsDivision) return rows;
+
+    const allowedGnIds = new Set(
+      GN_DIVISIONS.filter((gn) => gn.dsId === user.dsDivision).map((gn) => gn.id)
+    );
+
+    const dsScoped = rows.filter((row) => allowedGnIds.has(row.gnId));
+    if (religiousGnDivision === "all") return dsScoped;
+    return dsScoped.filter((row) => row.gnId === religiousGnDivision);
+  }, [analytics, user?.dsDivision, religiousGnDivision]);
 
   const gnTotals = React.useMemo(() => {
     if (!analytics) return { totalPopulation: 0, female: 0, male: 0, families: 0 };
@@ -1360,6 +1418,206 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
                     )}
                   </TableBody>
                 </Table>
+              </div>
+            </>
+          )}
+        </div>
+      ) : isReligiousCultural ? (
+        <div className="space-y-4">
+          <div className="max-w-sm space-y-1">
+            <p className="text-fluid-xs font-medium text-muted-foreground">
+              <Bilingual en="Filter by GN Division" si="ග්‍රාම නිලධාරී වසම අනුව පෙරහන්න" />
+            </p>
+            <Select value={religiousGnDivision} onValueChange={setReligiousGnDivision}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">
+                  {lang === "si" ? "සියලුම ග්‍රාම නිලධාරී වසම්" : "All GN divisions"}
+                </SelectItem>
+                {employmentGnOptions.map((gn) => (
+                  <SelectItem key={gn.id} value={gn.id}>
+                    {lang === "si" ? gn.si : gn.en}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {analyticsError ? (
+            <div className="text-sm text-destructive">Unable to load religious and cultural data.</div>
+          ) : !analytics ? (
+            <div className="text-sm text-muted-foreground">Loading…</div>
+          ) : (
+            <>
+              <h3 className="pt-2 font-display text-fluid-lg font-semibold text-foreground">
+                <Bilingual
+                  en="Total Number of Religious Places"
+                  si="ආගමික ස්ථාන මුළු සංඛ්‍යාව"
+                />
+              </h3>
+
+              <div className="overflow-hidden rounded-md border border-border">
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse text-left text-sm">
+                    <thead className="bg-muted/40 text-muted-foreground">
+                      <tr>
+                        <th className="border-r border-border px-3 py-3" rowSpan={2}>Indicator</th>
+                        <th className="border-r border-border px-3 py-3">Buddhist Temples / Hermitages / Monasteries / Asapu</th>
+                        <th className="border-r border-border px-3 py-3">Nunneries / Meheni Arama</th>
+                        <th className="border-r border-border px-3 py-3">Mosques</th>
+                        <th className="border-r border-l border-border px-3 py-3 text-center" colSpan={2}>Catholic Churches</th>
+                        <th className="px-3 py-3">Hindu Kovils / Temples</th>
+                      </tr>
+                      <tr>
+                        <th className="border-t border-r border-border px-3 py-3 text-center font-semibold">Buddhist Monks</th>
+                        <th className="border-t border-r border-border px-3 py-3 text-center font-semibold">Buddhist Nuns</th>
+                        <th className="border-t border-r border-border px-3 py-3 text-center font-semibold">Mawlawis</th>
+                        <th className="border-t border-r border-l border-border px-3 py-3 text-center font-semibold">Priests</th>
+                        <th className="border-t border-r border-border px-3 py-3 text-center font-semibold">Nuns / Sisters</th>
+                        <th className="border-t border-border px-3 py-3 text-center font-semibold">Priests / Poojaris</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr className="border-t">
+                        <td className="border-r border-border px-3 py-3 font-medium">Number of Religious Places</td>
+                        <td className="border-r border-border px-3 py-3 nums-tabular">{analytics.sections.areaProfile.religiousSiteCounts.temples.count.toLocaleString()}</td>
+                        <td className="border-r border-border px-3 py-3 nums-tabular">{analytics.sections.areaProfile.religiousSiteCounts.meheniArama.count.toLocaleString()}</td>
+                        <td className="border-r border-border px-3 py-3 nums-tabular">{analytics.sections.areaProfile.religiousSiteCounts.mosques.count.toLocaleString()}</td>
+                        <td className="border-r border-border px-3 py-3 nums-tabular text-center" colSpan={2}>{analytics.sections.areaProfile.religiousSiteCounts.churches.count.toLocaleString()}</td>
+                        <td className="px-3 py-3 nums-tabular">{analytics.sections.areaProfile.religiousSiteCounts.kovils.count.toLocaleString()}</td>
+                      </tr>
+                      <tr className="border-t">
+                        <td className="border-r border-border px-3 py-3 font-medium">Number of Clergy / Religious Leaders</td>
+                        <td className="border-r border-border px-3 py-3 nums-tabular">{analytics.sections.areaProfile.religiousSiteCounts.temples.clergyCount.toLocaleString()}</td>
+                        <td className="border-r border-border px-3 py-3 nums-tabular">{analytics.sections.areaProfile.religiousSiteCounts.meheniArama.clergyCount.toLocaleString()}</td>
+                        <td className="border-r border-border px-3 py-3 nums-tabular">{analytics.sections.areaProfile.religiousSiteCounts.mosques.clergyCount.toLocaleString()}</td>
+                        <td className="border-r border-border px-3 py-3 nums-tabular">{analytics.sections.areaProfile.religiousSiteCounts.churches.priestsCount.toLocaleString()}</td>
+                        <td className="border-r border-border px-3 py-3 nums-tabular">{analytics.sections.areaProfile.religiousSiteCounts.churches.nunsCount.toLocaleString()}</td>
+                        <td className="px-3 py-3 nums-tabular">{analytics.sections.areaProfile.religiousSiteCounts.kovils.clergyCount.toLocaleString()}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <h3 className="pt-2 font-display text-fluid-lg font-semibold text-foreground">
+                <Bilingual
+                  en="Names of Religious Places / Sacred Sites in the Area"
+                  si="ප්‍රදේශයේ ආගමික ස්ථාන / පූජනීය ස්ථානවල නම්"
+                />
+              </h3>
+
+              <div className="overflow-hidden rounded-md border border-border">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-sm">
+                    <thead className="bg-muted/40 text-muted-foreground">
+                      <tr>
+                        <th className="px-3 py-3">Name of Religious Place / Sacred Site</th>
+                        <th className="px-3 py-3">Category / Type</th>
+                        <th className="px-3 py-3">Reason for Being Special / Notable</th>
+                        <th className="px-3 py-3">Used for Dhamma Schools / Pirivenas or Government Purposes?</th>
+                        <th className="px-3 py-3">Describe the Activity</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {religiousHeritageRows.length === 0 ? (
+                        <tr className="border-t last:border-b">
+                          <td colSpan={5} className="px-3 py-6 text-center text-muted-foreground">
+                            No religious place / sacred site records available.
+                          </td>
+                        </tr>
+                      ) : (
+                        religiousHeritageRows.map((row, index) => (
+                          <tr key={`${row.gnId}-${row.name}-${index}`} className="border-t last:border-b">
+                            <td className="px-3 py-3">{row.name || "—"}</td>
+                            <td className="px-3 py-3">{row.type || "—"}</td>
+                            <td className="px-3 py-3">{row.significance || "—"}</td>
+                            <td className="px-3 py-3">
+                              {row.usedForDhammaOrGovtPurpose === "yes"
+                                ? "Yes"
+                                : row.usedForDhammaOrGovtPurpose === "no"
+                                ? "No"
+                                : "—"}
+                            </td>
+                            <td className="px-3 py-3">{row.taskDescription || "—"}</td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <h3 className="pt-2 font-display text-fluid-lg font-semibold text-foreground">
+                <Bilingual en="Art Academies" si="කලා අභ්‍යාස මධ්‍යස්ථාන" />
+              </h3>
+
+              <div className="overflow-hidden rounded-md border border-border">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-sm">
+                    <thead className="bg-muted/40 text-muted-foreground">
+                      <tr>
+                        <th className="px-3 py-3">Name</th>
+                        <th className="px-3 py-3">Registration No</th>
+                        <th className="px-3 py-3">Student Count</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {religiousArtAcademyRows.length === 0 ? (
+                        <tr className="border-t last:border-b">
+                          <td colSpan={3} className="px-3 py-6 text-center text-muted-foreground">
+                            No art academy records available.
+                          </td>
+                        </tr>
+                      ) : (
+                        religiousArtAcademyRows.map((row, index) => (
+                          <tr key={`${row.gnId}-${row.name}-${index}`} className="border-t last:border-b">
+                            <td className="px-3 py-3">{row.name || "—"}</td>
+                            <td className="px-3 py-3">{row.registrationNumber || "—"}</td>
+                            <td className="px-3 py-3 nums-tabular">{(row.studentCount ?? 0).toLocaleString()}</td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <h3 className="pt-2 font-display text-fluid-lg font-semibold text-foreground">
+                <Bilingual en="Traditional Artists" si="සම්ප්‍රදායික කලාකරුවන්" />
+              </h3>
+
+              <div className="overflow-hidden rounded-md border border-border">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-sm">
+                    <thead className="bg-muted/40 text-muted-foreground">
+                      <tr>
+                        <th className="px-3 py-3">Name</th>
+                        <th className="px-3 py-3">Art Form</th>
+                        <th className="px-3 py-3">Description</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {religiousTraditionalArtistRows.length === 0 ? (
+                        <tr className="border-t last:border-b">
+                          <td colSpan={3} className="px-3 py-6 text-center text-muted-foreground">
+                            No traditional artist records available.
+                          </td>
+                        </tr>
+                      ) : (
+                        religiousTraditionalArtistRows.map((row, index) => (
+                          <tr key={`${row.gnId}-${row.name}-${index}`} className="border-t last:border-b">
+                            <td className="px-3 py-3">{row.name || "—"}</td>
+                            <td className="px-3 py-3">{row.artForm || "—"}</td>
+                            <td className="px-3 py-3">{row.description || "—"}</td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </>
           )}
