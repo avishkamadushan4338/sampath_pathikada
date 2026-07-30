@@ -52,59 +52,59 @@ const FINANCIAL_INSTITUTION_TYPE_LABELS: Record<(typeof FINANCIAL_INSTITUTION_TY
 };
 
 const ROAD_SURFACE_TYPE_LABELS: Record<(typeof ROAD_SURFACE_TYPES)[number], { en: string; si: string }> = {
-  carpet: { en: "Carpet (Tar)", si: "කාපට්" },
-  gravel: { en: "Gravel", si: "බාර" },
+  carpet: { en: "Carpet (Asphalt)", si: "කාපට්" },
+  tar: { en: "Tar", si: "තාර" },
   concrete: { en: "Concrete", si: "කොන්ක්‍රීට්" },
   interlock: { en: "Interlock", si: "Interlock" },
-  graded: { en: "Graded / Soil", si: "තෙරළු/පස්" },
+  "gravel-soil": { en: "Gravel / Soil", si: "බොරළු/පස්" },
 };
 
 const POST_OFFICE_TYPE_LABELS: Record<(typeof POST_OFFICE_TYPES)[number], { en: string; si: string }> = {
-  "head-post-office": { en: "Head Post Office", si: "ප්‍රධාන තැපැල් කාර්යාලය" },
-  "first-grade-sub-post-office": { en: "1st Grade Sub Post Office", si: "පළමු ශ්‍රේණියේ උප තැපැල් කාර්යාලය" },
-  "second-grade-sub-post-office": { en: "2nd Grade Sub Post Office", si: "දෙවන ශ්‍රේණියේ උප තැපැල් කාර්යාලය" },
+  "head-post-office": { en: "Head Post Office", si: "අධිශ්‍රේණියේ තැපැල් කාර්යාලය" },
+  "first-grade-sub-post-office": { en: "1st Grade Sub Post Office", si: "පළමු පෙළ තැපැල් කාර්යාලය" },
+  "second-grade-sub-post-office": { en: "2nd Grade Sub Post Office", si: "දෙවන පෙළ තැපැල් කාර්යාලය" },
   "sub-post-office": { en: "Sub Post Office", si: "උප තැපැල් කාර්යාලය" },
-  "appointed-post-office": { en: "Appointed Post Office", si: "පත්කළ තැපැල් කාර්යාලය" },
+  "appointed-post-office": { en: "Appointed Post Office", si: "නියෝජිත තැපැල් කාර්යාලය" },
   "postal-box-and-counter": { en: "Postal Box & Counter", si: "තැපැල් කණු හා පෙට්ටිය" },
 };
 
 const SERVICE_CATEGORY_LABELS: Record<(typeof SERVICE_CATEGORIES)[number], { en: string; si: string }> = {
-  grocery: { en: "Grocery", si: "කඩේ" },
-  "hardware-store": { en: "Hardware Store", si: "හාඩ්වෙයාර් වෙළඳසැල" },
-  "textile-shop": { en: "Textile Shop", si: "රෙදිපිළි වෙළඳසැල" },
-  "meat-fish-shop": { en: "Meat / Fish Shop", si: "මස්/මාළු වෙළඳසැල" },
-  "timber-depot": { en: "Timber Depot", si: "දැව සැපයුම් ස්ථානය" },
-  "electrical-shop": { en: "Electrical Shop", si: "විදුලි උපකරණ වෙළඳසැල" },
-  "stationery-shop": { en: "Stationery Shop", si: "පොත්පත් හා ලිපිද්‍රව්‍ය වෙළඳසැල" },
-  "construction-materials-shop": { en: "Construction Materials Shop", si: "ඉදිකිරීම් ද්‍රව්‍ය වෙළඳසැල" },
-  "jewelry-shop": { en: "Jewelry / Ornaments Shop", si: "ස්වර්ණාභරණ වෙළඳසැල" },
-  "cosmetics-shop": { en: "Cosmetics Shop", si: "රූපලාවණ්‍ය ද්‍රව්‍ය වෙළඳසැල" },
-  "motor-parts-shop": { en: "Motor Parts Shop", si: "වාහන අමතර කොටස් වෙළඳසැල" },
-  "photography-studio": { en: "Photography Studio", si: "ඡායාරූප ශාලාව" },
-  "vehicle-service-center": { en: "Vehicle Service Center", si: "වාහන අළුත්වැඩියා මධ්‍යස්ථානය" },
-  salon: { en: "Salon", si: "රූපලාවණ්‍ය සැලුන්" },
-  "welding-shop": { en: "Welding Shop", si: "වෑල්ඩින් වැඩපොළ" },
-  blacksmith: { en: "Blacksmith", si: "කම්මල්කරු වැඩපොළ" },
-  "tailoring-shop": { en: "Tailoring Shop", si: "මසිවිලි වැඩපොළ" },
-  "courier-service": { en: "Courier Service", si: "කුරියර් සේවාව" },
-  "telecom-shop": { en: "Telecom Shop", si: "දුරකථන/ටෙලිකොම් වෙළඳසැල" },
-  other: { en: "Other", si: "වෙනත්" },
+  "retail-shop": { en: "Retail / Grocery Shop", si: "සිල්ලර කඩ" },
+  "eating-house-tea-shop": { en: "Eating House & Tea Shop", si: "ආපන ශාලා හා තේ කඩ" },
+  "shoes-textiles": { en: "Shoes & Textiles", si: "සපත්තු හා රෙදිපිළි" },
+  "meat-fish-shop": { en: "Meat / Fish Shop", si: "මස්, මාළු අලෙවිසැල්" },
+  "hardware-household-goods": { en: "Timber & Iron Household Goods", si: "දැව හා යකඩ ගෘහ භාණ්ඩ" },
+  "electrical-equipment": { en: "Electrical Equipment", si: "විදුලි උපකරණ" },
+  "general-goods-shop": { en: "General Goods Shop", si: "සාප්පු බඩු" },
+  "construction-materials": { en: "Construction Materials", si: "ගොඩනැගිලි ද්‍රව්‍ය" },
+  jewelry: { en: "Jewelry / Ornaments", si: "ස්වර්ණාභරණ" },
+  "books-stationery": { en: "Books & Stationery", si: "පොත්පත් හා ලිපිද්‍රව්‍ය" },
+  "motor-spare-parts": { en: "Motor Vehicle Spare Parts", si: "මෝටර් රථ අමතර කොටස්" },
+  "beauty-salon": { en: "Beauty Salon", si: "රූපලාවණ්‍යාගාරය" },
+  "vehicle-service-center": { en: "Vehicle Service Center", si: "වාහන සර්විස් සෙන්ටර්" },
+  salon: { en: "Salon", si: "සැලුන්" },
+  "vehicle-repair": { en: "Vehicle Repair Place", si: "වාහන අළුත්වැඩියා කරන ස්ථාන" },
+  "umbrella-bag-shoe-repair": { en: "Umbrella / Bag / Shoe Repair Place", si: "කුඩ, බෑග්, සපත්තු අළුත්වැඩියා කරන ස්ථාන" },
+  "tailoring-shop": { en: "Tailoring Shop", si: "මැහුම් සාප්පු" },
+  "funeral-service": { en: "Funeral Service Place", si: "අවමංගල සේවා ස්ථාන" },
+  "mobile-phone-shop": { en: "Mobile Phone Shop", si: "ජංගම දුරකථන හල" },
+  "vegetable-shop": { en: "Vegetable Shop", si: "එළවළු අලෙවිසැල්" },
 };
 
 const PUBLIC_FACILITY_CATEGORY_LABELS: Record<(typeof PUBLIC_FACILITY_CATEGORIES)[number], { en: string; si: string }> = {
-  playground: { en: "Playground", si: "ක්‍රීඩා පිටිය" },
-  library: { en: "Library", si: "පුස්තකාලය" },
-  "cinema-hall": { en: "Cinema Hall", si: "සිනමා ශාලාව" },
-  auditorium: { en: "Auditorium", si: "ශ්‍රවණාගාරය" },
-  gym: { en: "Gym", si: "ව්‍යායාමශාලාව" },
-  "daycare-center": { en: "Daycare Center", si: "ළදරු සුරැකුම් මධ්‍යස්ථානය" },
-  "cemetery-crematorium": { en: "Cemetery / Crematorium", si: "සුසාන භූමිය / ආදාහනාගාරය" },
-  "cultural-center": { en: "Cultural Center", si: "සංස්කෘතික මධ්‍යස්ථානය" },
-  market: { en: "Market", si: "වෙළඳපොළ" },
+  "childrens-park": { en: "Children's Park / Garden", si: "ළමා උයන් / ළමා උද්‍යානය" },
+  "library-reading-room": { en: "Library / Reading Room", si: "පුස්තකාල / කියවීම් ශාලා" },
+  "cinema-hall": { en: "Cinema Hall", si: "සිනමාශාලා" },
+  auditorium: { en: "Auditorium", si: "නාට්‍යාගාර" },
+  "public-playground": { en: "Public Playground", si: "පොදු ක්‍රීඩා පිටි" },
+  gym: { en: "Gym", si: "කායවර්ධන මධ්‍යස්ථාන" },
+  "daycare-center": { en: "Daycare Center", si: "දිවා සුරැකුම් මධ්‍යස්ථාන" },
+  "cemetery-crematorium": { en: "Crematorium / Public Cemetery", si: "ආදහනාගාරය / පොදු සුසාන භූමිය" },
+  "cultural-center": { en: "Cultural Center", si: "සංස්කෘතික මධ්‍යස්ථාන" },
+  "weekly-fair-market": { en: "Weekly Fair / Market", si: "සතිපොළ / කඩමණ්ඩිය / වෙළඳපොළ" },
   "community-hall": { en: "Community Hall", si: "ප්‍රජා ශාලාව" },
-  "disabled-accessible-space": { en: "Disabled-Accessible Space", si: "ආබාධිත පහසුකම් සහිත ස්ථානය" },
-  "public-restroom": { en: "Public Restroom", si: "පොදු වැසිකිලි" },
-  "public-wifi-point": { en: "Public Wi-Fi Point", si: "පොදු Wi-Fi ස්ථානය" },
+  "vidatha-center": { en: "Vidatha Resource Center", si: "විද්‍යා නැණසල මධ්‍යස්ථානය" },
+  "registered-three-wheeler-park": { en: "Registered Three-Wheeler Park", si: "ලියාපදිංචි ත්‍රිරෝද රථගාල" },
 };
 
 function getEmptyValues(lang: "en" | "si"): RoadInfrastructureDraft {
@@ -112,7 +112,7 @@ function getEmptyValues(lang: "en" | "si"): RoadInfrastructureDraft {
     publicFacilities: {
       busStand: { present: "no", name: "" },
       railwayStation: { present: "no", name: "" },
-      jetty: { present: "no", name: "" },
+      port: { present: "no", name: "" },
       airport: { present: "no", name: "" },
     },
     roadDevelopmentNeeds: [],
@@ -121,7 +121,6 @@ function getEmptyValues(lang: "en" | "si"): RoadInfrastructureDraft {
     noPublicTransportAreas: [],
     railwayCrossingGaps: [],
     postOffices: [],
-    electricitySubstations: [],
     fuelDistributionStations: [],
     hydropowerPlants: [],
     financialInstitutions: [],
@@ -136,7 +135,8 @@ function getEmptyValues(lang: "en" | "si"): RoadInfrastructureDraft {
       category,
       categoryLabel: PUBLIC_FACILITY_CATEGORY_LABELS[category][lang],
       present: "no" as const,
-      name: "",
+      count: 0,
+      distanceToNearestIfOutsideDivision: "",
     })),
     licensedLiquorShopsPresent: "no",
     licensedLiquorShops: [],
@@ -194,13 +194,12 @@ export default function RoadInfrastructurePage() {
       options: ROAD_SURFACE_TYPES.map((t) => ({ value: t, label: ROAD_SURFACE_TYPE_LABELS[t] })),
     },
     { key: "maintainingAuthority", label: { en: "Maintaining Authority", si: "නඩත්තු කරනු ලබන ආයතනය" }, type: "text" },
-    { key: "priorityRank", label: { en: "Priority Rank", si: "ප්‍රමුඛතා අනුපිළිවෙල" }, type: "number" },
   ];
 
   const bridgeRepairColumns: RepeatableColumn[] = [
     { key: "name", label: { en: "Name", si: "නම" }, type: "text" },
     { key: "roadNumber", label: { en: "Road Number", si: "පාර අංකය" }, type: "text" },
-    { key: "condition", label: { en: "Condition", si: "තත්ත්වය" }, type: "text" },
+    { key: "location", label: { en: "Location", si: "පිහිටීම" }, type: "text" },
     { key: "maintainingAuthority", label: { en: "Maintaining Authority", si: "නඩත්තු කරනු ලබන ආයතනය" }, type: "text" },
   ];
 
@@ -216,12 +215,13 @@ export default function RoadInfrastructurePage() {
     { key: "startPoint", label: { en: "Start Point", si: "ආරම්භක ස්ථානය" }, type: "text" },
     { key: "endPoint", label: { en: "End Point", si: "අවසන් ස්ථානය" }, type: "text" },
     { key: "distanceKm", label: { en: "Distance (km)", si: "දුර ප්‍රමාණය" }, type: "number" },
-    { key: "requiredServiceFrequency", label: { en: "Required Service Frequency", si: "සේවාව අවශ්‍ය ප්‍රතිලාභී ගණන" }, type: "text" },
+    { key: "requiredBeneficiaryCount", label: { en: "Beneficiaries Needing Service", si: "සේවාව අවශ්‍ය ප්‍රතිලාභීන් සංඛ්‍යාව" }, type: "number" },
   ];
 
   const railwayCrossingGapColumns: RepeatableColumn[] = [
-    { key: "location", label: { en: "Location", si: "ස්ථානය" }, type: "text" },
     { key: "roadName", label: { en: "Road Name", si: "පාරේ නම" }, type: "text" },
+    { key: "roadNumber", label: { en: "Road Number", si: "පාර අංකය" }, type: "text" },
+    { key: "location", label: { en: "Location", si: "ස්ථානය" }, type: "text" },
   ];
 
   const postOfficeColumns: RepeatableColumn[] = [
@@ -274,8 +274,9 @@ export default function RoadInfrastructurePage() {
 
   const publicFacilityCategoryColumns: RepeatableColumn[] = [
     { key: "categoryLabel", label: { en: "Facility", si: "පහසුකම" }, type: "readonly" },
-    { key: "present", label: { en: "Present", si: "පවතී ද" }, type: "select", options: YES_NO_OPTIONS },
-    { key: "name", label: { en: "Name", si: "නම" }, type: "text" },
+    { key: "present", label: { en: "Present", si: "ඇත/නැත" }, type: "select", options: YES_NO_OPTIONS },
+    { key: "count", label: { en: "Count", si: "සංඛ්‍යාව" }, type: "number" },
+    { key: "distanceToNearestIfOutsideDivision", label: { en: "Distance to Nearest (if outside division)", si: "වසම තුළ පිහිටා නැත නම් ආසන්නතම ස්ථානයට ඇති දුර" }, type: "text" },
   ];
 
   const licensedLiquorShopColumns: RepeatableColumn[] = [
@@ -348,11 +349,11 @@ export default function RoadInfrastructurePage() {
             )}
           </FieldWrapper>
 
-          <FieldWrapper name="publicFacilities.jetty.present" label={{ en: "Jetty Present", si: "පොකුණුතොට පවතී ද" }}>
+          <FieldWrapper name="publicFacilities.port.present" label={{ en: "Port Present", si: "වරාය පවතී ද" }}>
             {({ id, describedBy, invalid }) => (
               <Select
-                value={form.watch("publicFacilities.jetty.present") ?? ""}
-                onValueChange={(v) => form.setValue("publicFacilities.jetty.present", v as "yes" | "no", { shouldDirty: true })}
+                value={form.watch("publicFacilities.port.present") ?? ""}
+                onValueChange={(v) => form.setValue("publicFacilities.port.present", v as "yes" | "no", { shouldDirty: true })}
               >
                 <SelectTrigger id={id} aria-describedby={describedBy} aria-invalid={invalid}>
                   <SelectValue />
@@ -367,9 +368,9 @@ export default function RoadInfrastructurePage() {
               </Select>
             )}
           </FieldWrapper>
-          <FieldWrapper name="publicFacilities.jetty.name" label={{ en: "Jetty Name", si: "පොකුණුතොටේ නම" }}>
+          <FieldWrapper name="publicFacilities.port.name" label={{ en: "Port Name", si: "වරායේ නම" }}>
             {({ id, describedBy, invalid }) => (
-              <Input id={id} aria-describedby={describedBy} aria-invalid={invalid} {...form.register("publicFacilities.jetty.name")} />
+              <Input id={id} aria-describedby={describedBy} aria-invalid={invalid} {...form.register("publicFacilities.port.name")} />
             )}
           </FieldWrapper>
 
@@ -405,7 +406,7 @@ export default function RoadInfrastructurePage() {
           name="roadDevelopmentNeeds"
           title={roadInfrastructureDict.fields.roadDevelopmentNeeds}
           columns={roadDevelopmentNeedColumns}
-          emptyRowFactory={() => ({ roadName: "", roadNumber: "", lengthMeters: 0, surfaceType: ROAD_SURFACE_TYPES[0], maintainingAuthority: "", priorityRank: 0 })}
+          emptyRowFactory={() => ({ roadName: "", roadNumber: "", lengthMeters: 0, surfaceType: ROAD_SURFACE_TYPES[0], maintainingAuthority: "" })}
         />
       </div>
 
@@ -414,7 +415,7 @@ export default function RoadInfrastructurePage() {
           name="bridgeRepairs"
           title={roadInfrastructureDict.fields.bridgeRepairs}
           columns={bridgeRepairColumns}
-          emptyRowFactory={() => ({ name: "", roadNumber: "", condition: "" })}
+          emptyRowFactory={() => ({ name: "", roadNumber: "", location: "" })}
         />
       </div>
 
@@ -432,7 +433,7 @@ export default function RoadInfrastructurePage() {
           name="noPublicTransportAreas"
           title={roadInfrastructureDict.fields.noPublicTransportAreas}
           columns={noPublicTransportAreaColumns}
-          emptyRowFactory={() => ({ roadName: "", roadNumber: "", startPoint: "", endPoint: "", distanceKm: 0, requiredServiceFrequency: "" })}
+          emptyRowFactory={() => ({ roadName: "", roadNumber: "", startPoint: "", endPoint: "", distanceKm: 0, requiredBeneficiaryCount: 0 })}
         />
       </div>
 
@@ -441,7 +442,7 @@ export default function RoadInfrastructurePage() {
           name="railwayCrossingGaps"
           title={roadInfrastructureDict.fields.railwayCrossingGaps}
           columns={railwayCrossingGapColumns}
-          emptyRowFactory={() => ({ location: "", roadName: "" })}
+          emptyRowFactory={() => ({ roadName: "", roadNumber: "", location: "" })}
         />
       </div>
 
@@ -451,15 +452,6 @@ export default function RoadInfrastructurePage() {
           title={roadInfrastructureDict.fields.postOffices}
           columns={postOfficeColumns}
           emptyRowFactory={() => ({ name: "", type: POST_OFFICE_TYPES[0] })}
-        />
-      </div>
-
-      <div className="border-t border-border pt-6">
-        <RepeatableTable
-          name="electricitySubstations"
-          title={roadInfrastructureDict.fields.electricitySubstations}
-          columns={namedFacilityColumns}
-          emptyRowFactory={() => ({ name: "" })}
         />
       </div>
 
@@ -532,7 +524,8 @@ export default function RoadInfrastructurePage() {
             category: PUBLIC_FACILITY_CATEGORIES[0],
             categoryLabel: PUBLIC_FACILITY_CATEGORY_LABELS[PUBLIC_FACILITY_CATEGORIES[0]][lang],
             present: "no",
-            name: "",
+            count: 0,
+            distanceToNearestIfOutsideDivision: "",
           })}
         />
       </div>

@@ -97,42 +97,42 @@ const ORGANIZATION_TYPE_LABELS: Record<string, Bilingual> = {
 };
 
 const SERVICE_CATEGORY_LABELS: Bilingual[] = [
-  { en: "Grocery", si: "කඩේ" },
-  { en: "Hardware Store", si: "හාඩ්වෙයාර් වෙළඳසැල" },
-  { en: "Textile Shop", si: "රෙදිපිළි වෙළඳසැල" },
-  { en: "Meat / Fish Shop", si: "මස්/මාළු වෙළඳසැල" },
-  { en: "Timber Depot", si: "දැව සැපයුම් ස්ථානය" },
-  { en: "Electrical Shop", si: "විදුලි උපකරණ වෙළඳසැල" },
-  { en: "Stationery Shop", si: "පොත්පත් හා ලිපිද්‍රව්‍ය වෙළඳසැල" },
-  { en: "Construction Materials Shop", si: "ඉදිකිරීම් ද්‍රව්‍ය වෙළඳසැල" },
-  { en: "Jewelry / Ornaments Shop", si: "ස්වර්ණාභරණ වෙළඳසැල" },
-  { en: "Cosmetics Shop", si: "රූපලාවණ්‍ය ද්‍රව්‍ය වෙළඳසැල" },
-  { en: "Motor Parts Shop", si: "වාහන අමතර කොටස් වෙළඳසැල" },
-  { en: "Photography Studio", si: "ඡායාරූප ශාලාව" },
-  { en: "Vehicle Service Center", si: "වාහන අළුත්වැඩියා මධ්‍යස්ථානය" },
-  { en: "Salon", si: "රූපලාවණ්‍ය සැලුන්" },
-  { en: "Welding Shop", si: "වෑල්ඩින් වැඩපොළ" },
-  { en: "Blacksmith", si: "කම්මල්කරු වැඩපොළ" },
-  { en: "Tailoring Shop", si: "මසිවිලි වැඩපොළ" },
-  { en: "Courier Service", si: "කුරියර් සේවාව" },
-  { en: "Telecom Shop", si: "දුරකථන/ටෙලිකොම් වෙළඳසැල" },
-  { en: "Other", si: "වෙනත්" },
+  { en: "Retail / Grocery Shop", si: "සිල්ලර කඩ" },
+  { en: "Eating House & Tea Shop", si: "ආපන ශාලා හා තේ කඩ" },
+  { en: "Shoes & Textiles", si: "සපත්තු හා රෙදිපිළි" },
+  { en: "Meat / Fish Shop", si: "මස්, මාළු අලෙවිසැල්" },
+  { en: "Timber & Iron Household Goods", si: "දැව හා යකඩ ගෘහ භාණ්ඩ" },
+  { en: "Electrical Equipment", si: "විදුලි උපකරණ" },
+  { en: "General Goods Shop", si: "සාප්පු බඩු" },
+  { en: "Construction Materials", si: "ගොඩනැගිලි ද්‍රව්‍ය" },
+  { en: "Jewelry / Ornaments", si: "ස්වර්ණාභරණ" },
+  { en: "Books & Stationery", si: "පොත්පත් හා ලිපිද්‍රව්‍ය" },
+  { en: "Motor Vehicle Spare Parts", si: "මෝටර් රථ අමතර කොටස්" },
+  { en: "Beauty Salon", si: "රූපලාවණ්‍යාගාරය" },
+  { en: "Vehicle Service Center", si: "වාහන සර්විස් සෙන්ටර්" },
+  { en: "Salon", si: "සැලුන්" },
+  { en: "Vehicle Repair Place", si: "වාහන අළුත්වැඩියා කරන ස්ථාන" },
+  { en: "Umbrella / Bag / Shoe Repair Place", si: "කුඩ, බෑග්, සපත්තු අළුත්වැඩියා කරන ස්ථාන" },
+  { en: "Tailoring Shop", si: "මැහුම් සාප්පු" },
+  { en: "Funeral Service Place", si: "අවමංගල සේවා ස්ථාන" },
+  { en: "Mobile Phone Shop", si: "ජංගම දුරකථන හල" },
+  { en: "Vegetable Shop", si: "එළවළු අලෙවිසැල්" },
 ];
 
 const PUBLIC_FACILITY_CATEGORY_LABELS: Bilingual[] = [
-  { en: "Playground", si: "ක්‍රීඩා පිටිය" },
-  { en: "Library", si: "පුස්තකාලය" },
-  { en: "Cinema Hall", si: "සිනමා ශාලාව" },
-  { en: "Auditorium", si: "ශ්‍රවණාගාරය" },
-  { en: "Gym", si: "ව්‍යායාමශාලාව" },
-  { en: "Daycare Center", si: "ළදරු සුරැකුම් මධ්‍යස්ථානය" },
-  { en: "Cemetery / Crematorium", si: "සුසාන භූමිය / ආදාහනාගාරය" },
-  { en: "Cultural Center", si: "සංස්කෘතික මධ්‍යස්ථානය" },
-  { en: "Market", si: "වෙළඳපොළ" },
+  { en: "Children's Park / Garden", si: "ළමා උයන් / ළමා උද්‍යානය" },
+  { en: "Library / Reading Room", si: "පුස්තකාල / කියවීම් ශාලා" },
+  { en: "Cinema Hall", si: "සිනමාශාලා" },
+  { en: "Auditorium", si: "නාට්‍යාගාර" },
+  { en: "Public Playground", si: "පොදු ක්‍රීඩා පිටි" },
+  { en: "Gym", si: "කායවර්ධන මධ්‍යස්ථාන" },
+  { en: "Daycare Center", si: "දිවා සුරැකුම් මධ්‍යස්ථාන" },
+  { en: "Crematorium / Public Cemetery", si: "ආදහනාගාරය / පොදු සුසාන භූමිය" },
+  { en: "Cultural Center", si: "සංස්කෘතික මධ්‍යස්ථාන" },
+  { en: "Weekly Fair / Market", si: "සතිපොළ / කඩමණ්ඩිය / වෙළඳපොළ" },
   { en: "Community Hall", si: "ප්‍රජා ශාලාව" },
-  { en: "Disabled-Accessible Space", si: "ආබාධිත පහසුකම් සහිත ස්ථානය" },
-  { en: "Public Restroom", si: "පොදු වැසිකිලි" },
-  { en: "Public Wi-Fi Point", si: "පොදු Wi-Fi ස්ථානය" },
+  { en: "Vidatha Resource Center", si: "විද්‍යා නැණසල මධ්‍යස්ථානය" },
+  { en: "Registered Three-Wheeler Park", si: "ලියාපදිංචි ත්‍රිරෝද රථගාල" },
 ];
 
 const DISPOSAL_METHOD_LABELS: Bilingual[] = [
@@ -616,10 +616,10 @@ export function aggregateCommunityWelfare(rows: SubmissionLike[], gnLabel: (id: 
 /* ── Infrastructure (roadInfrastructure) ─────────────────────────────────── */
 export function aggregateInfrastructure(rows: SubmissionLike[], gnLabel: (id: string) => string) {
   const serviceEstablishments = sumIndexedCounts(rows, "roadInfrastructure", "serviceEstablishments", SERVICE_CATEGORY_LABELS);
-  const publicFacilityCategories = sumIndexedPresence(rows, "roadInfrastructure", "publicFacilityCategories", PUBLIC_FACILITY_CATEGORY_LABELS);
+  const publicFacilityCategories = PUBLIC_FACILITY_CATEGORY_LABELS.map((l) => ({ ...l, presentCount: 0, totalCount: 0 }));
 
   const publicFacilities = {
-    busStand: 0, railwayStation: 0, jetty: 0, airport: 0,
+    busStand: 0, railwayStation: 0, port: 0, airport: 0,
   };
   let totalRoadLength = 0;
 
@@ -628,9 +628,14 @@ export function aggregateInfrastructure(rows: SubmissionLike[], gnLabel: (id: st
     if (!r) continue;
     if (r.publicFacilities?.busStand?.present === "yes") publicFacilities.busStand++;
     if (r.publicFacilities?.railwayStation?.present === "yes") publicFacilities.railwayStation++;
-    if (r.publicFacilities?.jetty?.present === "yes") publicFacilities.jetty++;
+    if (r.publicFacilities?.port?.present === "yes") publicFacilities.port++;
     if (r.publicFacilities?.airport?.present === "yes") publicFacilities.airport++;
     for (const road of Array.isArray(r.roadDevelopmentNeeds) ? r.roadDevelopmentNeeds : []) totalRoadLength += road.lengthMeters ?? 0;
+    for (const [i, item] of (Array.isArray(r.publicFacilityCategories) ? r.publicFacilityCategories : []).entries()) {
+      if (!publicFacilityCategories[i]) continue;
+      if (item.present === "yes") publicFacilityCategories[i].presentCount++;
+      publicFacilityCategories[i].totalCount += item.count ?? 0;
+    }
   }
 
   return {
@@ -645,7 +650,6 @@ export function aggregateInfrastructure(rows: SubmissionLike[], gnLabel: (id: st
     noPublicTransportAreas: capRows(flattenRows(rows, gnLabel, "roadInfrastructure", "noPublicTransportAreas")),
     railwayCrossingGaps: capRows(flattenRows(rows, gnLabel, "roadInfrastructure", "railwayCrossingGaps")),
     postOffices: capRows(flattenRows(rows, gnLabel, "roadInfrastructure", "postOffices")),
-    electricitySubstations: capRows(flattenRows(rows, gnLabel, "roadInfrastructure", "electricitySubstations")),
     fuelDistributionStations: capRows(flattenRows(rows, gnLabel, "roadInfrastructure", "fuelDistributionStations")),
     hydropowerPlants: capRows(flattenRows(rows, gnLabel, "roadInfrastructure", "hydropowerPlants")),
     financialInstitutions: capRows(flattenRows(rows, gnLabel, "roadInfrastructure", "financialInstitutions")),

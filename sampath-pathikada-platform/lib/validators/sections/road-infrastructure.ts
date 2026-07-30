@@ -3,47 +3,48 @@ import { yesNo } from "@/lib/validators/common";
 
 /* ── §10 ප්‍රවාහන පහසුකම් — Transport & Infrastructure ────────────────────── */
 /* Folder name stays "road-infrastructure" even though it covers much more than roads. */
+/* Field list/order matches the official "10. යටිතල පහසුකම්" paper form exactly. */
 
 const HYDROPOWER_SCALES = ["mini", "major"] as const;
 const FINANCIAL_INSTITUTION_TYPES = ["govt-bank", "private-bank", "cooperative-rural-bank", "samurdhi-bank"] as const;
-const ROAD_SURFACE_TYPES = ["carpet", "gravel", "concrete", "interlock", "graded"] as const;
+const ROAD_SURFACE_TYPES = ["carpet", "tar", "concrete", "interlock", "gravel-soil"] as const;
 const POST_OFFICE_TYPES = ["head-post-office", "first-grade-sub-post-office", "second-grade-sub-post-office", "sub-post-office", "appointed-post-office", "postal-box-and-counter"] as const;
 const SERVICE_CATEGORIES = [
-  "grocery",
-  "hardware-store",
-  "textile-shop",
+  "retail-shop",
+  "eating-house-tea-shop",
+  "shoes-textiles",
   "meat-fish-shop",
-  "timber-depot",
-  "electrical-shop",
-  "stationery-shop",
-  "construction-materials-shop",
-  "jewelry-shop",
-  "cosmetics-shop",
-  "motor-parts-shop",
-  "photography-studio",
+  "hardware-household-goods",
+  "electrical-equipment",
+  "general-goods-shop",
+  "construction-materials",
+  "jewelry",
+  "books-stationery",
+  "motor-spare-parts",
+  "beauty-salon",
   "vehicle-service-center",
   "salon",
-  "welding-shop",
-  "blacksmith",
+  "vehicle-repair",
+  "umbrella-bag-shoe-repair",
   "tailoring-shop",
-  "courier-service",
-  "telecom-shop",
-  "other",
+  "funeral-service",
+  "mobile-phone-shop",
+  "vegetable-shop",
 ] as const;
 const PUBLIC_FACILITY_CATEGORIES = [
-  "playground",
-  "library",
+  "childrens-park",
+  "library-reading-room",
   "cinema-hall",
   "auditorium",
+  "public-playground",
   "gym",
   "daycare-center",
   "cemetery-crematorium",
   "cultural-center",
-  "market",
+  "weekly-fair-market",
   "community-hall",
-  "disabled-accessible-space",
-  "public-restroom",
-  "public-wifi-point",
+  "vidatha-center",
+  "registered-three-wheeler-park",
 ] as const;
 
 export const publicFacilityPresenceSchema = z.object({
@@ -57,13 +58,12 @@ export const roadDevelopmentNeedRowSchema = z.object({
   lengthMeters: z.coerce.number().min(0).default(0),
   surfaceType: z.enum(ROAD_SURFACE_TYPES).optional(),
   maintainingAuthority: z.string().optional(),
-  priorityRank: z.coerce.number().int().min(0).default(0),
 });
 
 export const bridgeRepairRowSchema = z.object({
   name: z.string().min(1, "Name is required"),
   roadNumber: z.string().optional(),
-  condition: z.string().min(1, "Condition is required"),
+  location: z.string().min(1, "Location is required"),
   maintainingAuthority: z.string().optional(),
 });
 
@@ -79,7 +79,7 @@ export const noPublicTransportAreaRowSchema = z.object({
   startPoint: z.string().optional(),
   endPoint: z.string().optional(),
   distanceKm: z.coerce.number().min(0).default(0),
-  requiredServiceFrequency: z.string().optional(),
+  requiredBeneficiaryCount: z.coerce.number().int().min(0).default(0),
 });
 
 export const postOfficeRowSchema = z.object({
@@ -88,8 +88,9 @@ export const postOfficeRowSchema = z.object({
 });
 
 export const railwayCrossingGapRowSchema = z.object({
-  location: z.string().min(1, "Location is required"),
   roadName: z.string().optional(),
+  roadNumber: z.string().optional(),
+  location: z.string().min(1, "Location is required"),
 });
 
 export const namedFacilityRowSchema = z.object({
@@ -123,7 +124,8 @@ export const waterReservoirRowSchema = z.object({
 export const publicFacilityCategoryRowSchema = z.object({
   category: z.enum(PUBLIC_FACILITY_CATEGORIES),
   present: yesNo,
-  name: z.string().optional(),
+  count: z.coerce.number().int().min(0).default(0),
+  distanceToNearestIfOutsideDivision: z.string().optional(),
 });
 
 export const licensedLiquorShopRowSchema = z.object({
@@ -135,7 +137,7 @@ export const roadInfrastructureSchemaStrict = z.object({
   publicFacilities: z.object({
     busStand: publicFacilityPresenceSchema,
     railwayStation: publicFacilityPresenceSchema,
-    jetty: publicFacilityPresenceSchema,
+    port: publicFacilityPresenceSchema,
     airport: publicFacilityPresenceSchema,
   }),
   roadDevelopmentNeeds: z.array(roadDevelopmentNeedRowSchema).default([]),
@@ -144,7 +146,6 @@ export const roadInfrastructureSchemaStrict = z.object({
   noPublicTransportAreas: z.array(noPublicTransportAreaRowSchema).default([]),
   railwayCrossingGaps: z.array(railwayCrossingGapRowSchema).default([]),
   postOffices: z.array(postOfficeRowSchema).default([]),
-  electricitySubstations: z.array(namedFacilityRowSchema).default([]),
   fuelDistributionStations: z.array(namedFacilityRowSchema).default([]),
   hydropowerPlants: z.array(hydropowerPlantRowSchema).default([]),
   financialInstitutions: z.array(financialInstitutionRowSchema).default([]),
@@ -163,7 +164,7 @@ export const roadInfrastructureSchemaPartial = z.object({
     .object({
       busStand: publicFacilityPresenceSchema.partial().optional(),
       railwayStation: publicFacilityPresenceSchema.partial().optional(),
-      jetty: publicFacilityPresenceSchema.partial().optional(),
+      port: publicFacilityPresenceSchema.partial().optional(),
       airport: publicFacilityPresenceSchema.partial().optional(),
     })
     .optional(),
@@ -173,7 +174,6 @@ export const roadInfrastructureSchemaPartial = z.object({
   noPublicTransportAreas: z.array(noPublicTransportAreaRowSchema.partial()).optional(),
   railwayCrossingGaps: z.array(railwayCrossingGapRowSchema.partial()).optional(),
   postOffices: z.array(postOfficeRowSchema.partial()).optional(),
-  electricitySubstations: z.array(namedFacilityRowSchema.partial()).optional(),
   fuelDistributionStations: z.array(namedFacilityRowSchema.partial()).optional(),
   hydropowerPlants: z.array(hydropowerPlantRowSchema.partial()).optional(),
   financialInstitutions: z.array(financialInstitutionRowSchema.partial()).optional(),

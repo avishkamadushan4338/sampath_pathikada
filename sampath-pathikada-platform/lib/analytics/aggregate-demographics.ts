@@ -93,7 +93,7 @@ export function aggregateDemographics(rows: { data: unknown }[]): DemographicsAg
     const demo = (row.data as SubmissionData | null)?.demographics;
     if (!demo) continue;
 
-    for (const r of demo.populationByAge ?? []) {
+    for (const r of Array.isArray(demo.populationByAge) ? demo.populationByAge : []) {
       const bucket = r.band ? ageByBand.get(r.band) : undefined;
       if (!bucket) continue;
       bucket.female += r.female ?? 0;
@@ -101,7 +101,7 @@ export function aggregateDemographics(rows: { data: unknown }[]): DemographicsAg
       bucket.total += (r.female ?? 0) + (r.male ?? 0);
     }
 
-    for (const r of demo.populationByEthnicity ?? []) {
+    for (const r of Array.isArray(demo.populationByEthnicity) ? demo.populationByEthnicity : []) {
       const bucket = r.ethnicity ? ethnicityByKey.get(r.ethnicity) : undefined;
       if (!bucket) continue;
       bucket.female += r.female ?? 0;
@@ -109,7 +109,7 @@ export function aggregateDemographics(rows: { data: unknown }[]): DemographicsAg
       bucket.total += (r.female ?? 0) + (r.male ?? 0);
     }
 
-    for (const r of demo.populationByReligion ?? []) {
+    for (const r of Array.isArray(demo.populationByReligion) ? demo.populationByReligion : []) {
       const bucket = r.religion ? religionByKey.get(r.religion) : undefined;
       if (!bucket) continue;
       bucket.female += r.female ?? 0;
@@ -117,7 +117,7 @@ export function aggregateDemographics(rows: { data: unknown }[]): DemographicsAg
       bucket.total += (r.female ?? 0) + (r.male ?? 0);
     }
 
-    for (const r of demo.disabilities ?? []) {
+    for (const r of Array.isArray(demo.disabilities) ? demo.disabilities : []) {
       const bucket = r.type ? disabilityByKey.get(r.type) : undefined;
       if (!bucket) continue;
       const under = sumSex(r.under18 ? [r.under18] : []);
