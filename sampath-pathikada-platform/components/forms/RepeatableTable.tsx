@@ -81,7 +81,7 @@ export function RepeatableTable<T extends FieldValues>({
     setPendingDeleteIndex(null);
   }
 
-  function renderInput(rowIndex: number, column: RepeatableColumn, readonlyValue?: unknown) {
+  function renderInput(rowIndex: number, column: RepeatableColumn, readonlyValue?: unknown, onCard = false) {
     const fieldName = `${name}.${rowIndex}.${column.key}` as const;
 
     if (column.type === "readonly") {
@@ -92,7 +92,7 @@ export function RepeatableTable<T extends FieldValues>({
 
     if (column.type === "select") {
       return (
-        <SelectField fieldName={fieldName} options={column.options ?? []} lang={lang} />
+        <SelectField fieldName={fieldName} options={column.options ?? []} lang={lang} onCard={onCard} />
       );
     }
 
@@ -101,7 +101,10 @@ export function RepeatableTable<T extends FieldValues>({
         type={column.type === "number" ? "number" : "text"}
         inputMode={column.type === "number" ? "numeric" : undefined}
         placeholder={column.placeholder ? (lang === "si" ? column.placeholder.si : column.placeholder.en) : undefined}
-        className="min-w-32 text-fluid-sm"
+        // The card layout's bg-card surface is the same tone as the default input border
+        // (--input is defined as "card tone"), so an empty field is otherwise invisible —
+        // give it a background+border that actually contrast against the card.
+        className={cn("min-w-32 text-fluid-sm", onCard && "border-border bg-background shadow-sm")}
         {...register(fieldName as never)}
       />
     );
@@ -173,7 +176,7 @@ export function RepeatableTable<T extends FieldValues>({
                     <span lang={lang} className={cn("text-fluid-xs font-medium text-muted-foreground", lang === "si" && "font-si")}>
                       {lang === "si" ? col.label.si : col.label.en}
                     </span>
-                    {renderInput(index, col, (field as Record<string, unknown>)[col.key])}
+                    {renderInput(index, col, (field as Record<string, unknown>)[col.key], true)}
                   </div>
                 ))}
               </div>
@@ -231,17 +234,19 @@ function SelectField({
   fieldName,
   options,
   lang,
+  onCard = false,
 }: {
   fieldName: string;
   options: { value: string; label: Translated }[];
   lang: "en" | "si";
+  onCard?: boolean;
 }) {
   const { setValue, watch } = useFormContext();
   const value = watch(fieldName as never) as unknown as string | undefined;
 
   return (
     <Select value={value ?? ""} onValueChange={(v) => setValue(fieldName as never, v as never, { shouldDirty: true })}>
-      <SelectTrigger className="min-w-32 text-fluid-sm">
+      <SelectTrigger className={cn("min-w-32 text-fluid-sm", onCard && "border-border bg-background shadow-sm")}>
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
