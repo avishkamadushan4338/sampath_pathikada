@@ -219,9 +219,9 @@ export async function GET(req: NextRequest) {
   const infrastructure = aggregateInfrastructure(rows, gnLabel);
   addSheet("Infrastructure - Public Facilities", [{ ...infrastructure.publicFacilities }]);
   addSheet("Infrastructure - Services", infrastructure.serviceEstablishments.map((s) => ({ "Category": s.en, "Count": s.count })));
-  addSheet("Infrastructure - Facility Categories", infrastructure.publicFacilityCategories.map((c) => ({ "Category": c.en, "Divisions Present": c.presentCount })));
-  addSheet("Infrastructure - Roads Needed", infrastructure.roadDevelopmentNeeds.rows.map((r) => ({ "GN Division": r.gnName, "Road": r.roadName, "Surface Type": r.surfaceType ?? "", "Maintaining Authority": r.maintainingAuthority ?? "", "Length (m)": r.lengthMeters, "Priority": r.priorityRank })));
-  addSheet("Infrastructure - Bridges Repair", infrastructure.bridgeRepairs.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Condition": r.condition, "Maintaining Authority": r.maintainingAuthority ?? "" })));
+  addSheet("Infrastructure - Facility Categories", infrastructure.publicFacilityCategories.map((c) => ({ "Category": c.en, "Divisions Present": c.presentCount, "Total Count": c.totalCount })));
+  addSheet("Infrastructure - Roads Needed", infrastructure.roadDevelopmentNeeds.rows.map((r) => ({ "GN Division": r.gnName, "Road": r.roadName, "Surface Type": r.surfaceType ?? "", "Maintaining Authority": r.maintainingAuthority ?? "", "Length (m)": r.lengthMeters })));
+  addSheet("Infrastructure - Bridges Repair", infrastructure.bridgeRepairs.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Location": r.location, "Maintaining Authority": r.maintainingAuthority ?? "" })));
   addSheet("Infrastructure - Financial Institutions", infrastructure.financialInstitutions.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Type": r.type })));
   addSheet("Infrastructure - Industrial Estates", infrastructure.industrialEstates.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Location": r.location })));
   addSheet("Infrastructure - Water Reservoirs", infrastructure.waterReservoirs.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name })));
