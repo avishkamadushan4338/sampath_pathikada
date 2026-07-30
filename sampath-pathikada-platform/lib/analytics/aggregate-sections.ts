@@ -15,7 +15,7 @@ export type TaggedRow<T> = T & { gnId: string; gnName: string };
 const ROW_CAP = 500;
 
 function tag<T>(rows: T[] | undefined, gnId: string, gnName: string): TaggedRow<T>[] {
-  return (rows ?? []).map((r) => ({ ...r, gnId, gnName }) as TaggedRow<T>);
+  return (Array.isArray(rows) ? rows : []).map((r) => ({ ...r, gnId, gnName }) as TaggedRow<T>);
 }
 
 function capRows<T>(rows: T[]): { rows: T[]; truncated: boolean } {
@@ -220,7 +220,7 @@ function sumIndexedCounts(
   for (const row of rows) {
     const section = sectionData(row, key) as Record<string, unknown> | undefined;
     const arr = section?.[arrayKey] as { count?: number }[] | undefined;
-    if (!arr) continue;
+    if (!Array.isArray(arr)) continue;
     arr.forEach((r, i) => { if (totals[i]) totals[i].count += r.count ?? 0; });
   }
   return totals;
@@ -237,7 +237,7 @@ function sumIndexedPresence(
   for (const row of rows) {
     const section = sectionData(row, key) as Record<string, unknown> | undefined;
     const arr = section?.[arrayKey] as { present?: string; name?: string }[] | undefined;
-    if (!arr) continue;
+    if (!Array.isArray(arr)) continue;
     arr.forEach((r, i) => {
       if (!totals[i]) return;
       if (r.present === "yes") totals[i].presentCount++;
@@ -257,7 +257,7 @@ function sumFreeformCounts(
   for (const row of rows) {
     const section = sectionData(row, key) as Record<string, unknown> | undefined;
     const arr = section?.[arrayKey] as { label?: string; count?: number }[] | undefined;
-    if (!arr) continue;
+    if (!Array.isArray(arr)) continue;
     for (const r of arr) {
       const label = (r.label ?? "").trim();
       if (!label) continue;
@@ -277,7 +277,7 @@ function sumFreeformPresence(
   for (const row of rows) {
     const section = sectionData(row, key) as Record<string, unknown> | undefined;
     const arr = section?.[arrayKey] as { label?: string; present?: string }[] | undefined;
-    if (!arr) continue;
+    if (!Array.isArray(arr)) continue;
     for (const r of arr) {
       const label = (r.label ?? "").trim();
       if (!label || r.present !== "yes") continue;
@@ -434,7 +434,7 @@ export function aggregateEducation(rows: SubmissionLike[], gnLabel: (id: string)
     outOfSchoolChildren.male += e.outOfSchoolChildren?.male ?? 0;
     childrenInProbationOrDetention.female += e.childrenInProbationOrDetention?.female ?? 0;
     childrenInProbationOrDetention.male += e.childrenInProbationOrDetention?.male ?? 0;
-    for (const sf of e.schoolFacilities ?? []) {
+    for (const sf of Array.isArray(e.schoolFacilities) ? e.schoolFacilities : []) {
       teachersFemaleTotal += sf.teachersFemale ?? 0;
       teachersMaleTotal += sf.teachersMale ?? 0;
       studentFemaleTotal += sf.studentsFemale ?? 0;
@@ -516,7 +516,7 @@ export function aggregateEconomicAgriculture(rows: SubmissionLike[], gnLabel: (i
   for (const row of rows) {
     const a = sectionData(row, "economicAgriculture");
     if (!a) continue;
-    for (const lu of a.landUse ?? []) {
+    for (const lu of Array.isArray(a.landUse) ? a.landUse : []) {
       const i = LAND_USE_TYPES.indexOf(lu.landType as (typeof LAND_USE_TYPES)[number]);
       if (i >= 0 && landUse[i]) landUse[i].extentHectares += lu.extentHectares ?? 0;
     }
@@ -630,7 +630,7 @@ export function aggregateInfrastructure(rows: SubmissionLike[], gnLabel: (id: st
     if (r.publicFacilities?.railwayStation?.present === "yes") publicFacilities.railwayStation++;
     if (r.publicFacilities?.jetty?.present === "yes") publicFacilities.jetty++;
     if (r.publicFacilities?.airport?.present === "yes") publicFacilities.airport++;
-    for (const road of r.roadDevelopmentNeeds ?? []) totalRoadLength += road.lengthMeters ?? 0;
+    for (const road of Array.isArray(r.roadDevelopmentNeeds) ? r.roadDevelopmentNeeds : []) totalRoadLength += road.lengthMeters ?? 0;
   }
 
   return {
