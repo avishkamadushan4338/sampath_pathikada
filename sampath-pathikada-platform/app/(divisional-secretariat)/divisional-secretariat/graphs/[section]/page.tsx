@@ -29,6 +29,7 @@ import { useSession } from "@/hooks/use-session";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { CURRENT_YEAR } from "@/lib/constants";
 import { GN_DIVISIONS } from "@/lib/registration-data";
+import type { CommunityWelfareAggregate } from "@/lib/analytics/aggregate-sections";
 import { StateInstitutionsLandView } from "@/components/analytics/StateInstitutionsLandView";
 import { PhysicalEnvironmentView } from "@/components/analytics/PhysicalEnvironmentView";
 import { HousingView } from "@/components/analytics/HousingView";
@@ -68,6 +69,7 @@ interface AnalyticsResponse {
   sections: {
     employment: EmploymentAggregate;
     areaProfile: AreaProfileAggregate;
+    communityWelfare: CommunityWelfareAggregate;
   };
   gnBreakdown: AnalyticsGnBreakdownRow[];
 }
@@ -134,6 +136,119 @@ function TopicCard({
   );
 }
 
+function SocialWelfareTable({
+  communityWelfare,
+  isLoading,
+  error,
+}: {
+  communityWelfare: CommunityWelfareAggregate | undefined;
+  isLoading: boolean;
+  error: unknown;
+}) {
+  const { lang } = useLanguage();
+
+  if (error) {
+    return <div className="text-sm text-destructive">Unable to load social welfare data.</div>;
+  }
+
+  if (isLoading || !communityWelfare) {
+    return <div className="text-sm text-muted-foreground">Loading…</div>;
+  }
+
+  const paymentCounts = communityWelfare.welfarePaymentHouseholdCounts;
+  const allowanceCounts = communityWelfare.allowanceRecipientCounts;
+  const totalFamilies = paymentCounts.rs2500 + paymentCounts.rs5000 + paymentCounts.rs8500 + paymentCounts.rs15000;
+
+  return (
+    <Card className="overflow-hidden border-border/60 shadow-md">
+      <CardContent className="p-0">
+        <div className="space-y-4 overflow-x-auto">
+          <table className="w-full border-collapse text-left text-sm">
+            <tbody>
+              <tr className="border-b bg-muted/40">
+                <th colSpan={6} className="px-3 py-3 text-base font-semibold text-foreground">
+                  <Bilingual en="Number of Families" si="පවුල් සංඛ්‍යාව" />
+                </th>
+              </tr>
+              <tr className="border-b bg-muted/20 text-muted-foreground">
+                <th className="px-3 py-3 whitespace-nowrap">{lang === "si" ? "මුළු පවුල් සංඛ්‍යාව" : "Total Number of Families"}</th>
+                <th className="px-3 py-3 whitespace-nowrap">{lang === "si" ? "සංක්‍රාන්තික (රු. 2,500)" : "Transitional (Rs. 2,500)"}</th>
+                <th className="px-3 py-3 whitespace-nowrap">{lang === "si" ? "අවදානම් / අවදානමට ලක්වූ (රු. 5,000)" : "Vulnerable / At Risk (Rs. 5,000)"}</th>
+                <th className="px-3 py-3 whitespace-nowrap">{lang === "si" ? "දුප්පත් (රු. 8,500)" : "Poor (Rs. 8500)"}</th>
+                <th className="px-3 py-3 whitespace-nowrap">{lang === "si" ? "ඉතා දුප්පත් (රු. 15,000)" : "Extremely Poor (Rs. 15000)"}</th>
+                <th className="px-3 py-3 whitespace-nowrap">{lang === "si" ? "ප්‍රතිලාභීන්ගේ මුළු සංඛ්‍යාව" : "Total Number of Beneficiaries"}</th>
+              </tr>
+              <tr className="border-b">
+                <td className="px-3 py-3 nums-tabular">{totalFamilies.toLocaleString()}</td>
+                <td className="px-3 py-3 nums-tabular">{paymentCounts.rs2500.toLocaleString()}</td>
+                <td className="px-3 py-3 nums-tabular">{paymentCounts.rs5000.toLocaleString()}</td>
+                <td className="px-3 py-3 nums-tabular">{paymentCounts.rs8500.toLocaleString()}</td>
+                <td className="px-3 py-3 nums-tabular">{paymentCounts.rs15000.toLocaleString()}</td>
+                <td className="px-3 py-3 nums-tabular">{paymentCounts.totalAswesumaRecipients.toLocaleString()}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <table className="w-full border-collapse text-left text-sm">
+            <tbody>
+              <tr className="border-y bg-muted/40">
+                <th colSpan={9} className="px-3 py-3 text-base font-semibold text-foreground">
+                  <Bilingual en="Number of Beneficiaries" si="ප්‍රතිලාභීන් සංඛ්‍යාව" />
+                </th>
+              </tr>
+              <tr className="border-b bg-muted/20 text-muted-foreground">
+                <th rowSpan={2} className="px-3 py-3 align-middle whitespace-nowrap">
+                  <Bilingual en="Disability Allowance" si="ආබාධිත දීමනාව" />
+                </th>
+                <th rowSpan={2} className="px-3 py-3 align-middle whitespace-nowrap">
+                  <Bilingual en="Elderly Allowance" si="වැඩිහිටි දීමනාව" />
+                </th>
+                <th rowSpan={2} className="px-3 py-3 align-middle whitespace-nowrap">
+                  <Bilingual en="Nutrition Stamps" si="පෝෂණ මුද්දර" />
+                </th>
+                <th rowSpan={2} className="px-3 py-3 align-middle whitespace-nowrap">
+                  <Bilingual en="Public Assistance" si="මහජන සහන ආධාර" />
+                </th>
+                <th colSpan={4} className="px-3 py-3 text-center whitespace-nowrap">
+                  <Bilingual en="Medical Relief" si="වෛද්‍ය ආධාර" />
+                </th>
+                <th rowSpan={2} className="px-3 py-3 align-middle whitespace-nowrap">
+                  <Bilingual en="Other" si="වෙනත්" />
+                </th>
+              </tr>
+              <tr className="border-b bg-muted/20 text-muted-foreground">
+                <th className="px-3 py-3 whitespace-nowrap">
+                  <Bilingual en="Kidney Disease" si="වකුගඩු රෝග" />
+                </th>
+                <th className="px-3 py-3 whitespace-nowrap">
+                  <Bilingual en="Cancer" si="පිළිකා" />
+                </th>
+                <th className="px-3 py-3 whitespace-nowrap">
+                  <Bilingual en="Thalassemia" si="තැලසීමියා" />
+                </th>
+                <th className="px-3 py-3 whitespace-nowrap">
+                  <Bilingual en="Diabetes" si="දියවැඩියාව" />
+                </th>
+              </tr>
+              <tr className="border-b">
+                <td className="px-3 py-3 nums-tabular">{allowanceCounts.disabilityAllowance.toLocaleString()}</td>
+                <td className="px-3 py-3 nums-tabular">{allowanceCounts.elderlyAllowance.toLocaleString()}</td>
+                <td className="px-3 py-3 nums-tabular">{allowanceCounts.nutritionAllowance.toLocaleString()}</td>
+                <td className="px-3 py-3 nums-tabular">{allowanceCounts.publicAssistance.toLocaleString()}</td>
+                <td className="px-3 py-3 nums-tabular">{allowanceCounts.diseaseAidWheelchair.toLocaleString()}</td>
+                <td className="px-3 py-3 nums-tabular">{allowanceCounts.diseaseAidCancer.toLocaleString()}</td>
+                <td className="px-3 py-3 nums-tabular">{allowanceCounts.diseaseAidThalassemia.toLocaleString()}</td>
+                <td className="px-3 py-3 nums-tabular">{allowanceCounts.diseaseAidDiabetes.toLocaleString()}</td>
+                <td className="px-3 py-3 nums-tabular">{allowanceCounts.other.toLocaleString()}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function Page({ params }: { params: Promise<{ section: string }> }) {
   const { lang } = useLanguage();
   const { user } = useSession();
@@ -147,6 +262,7 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
   const isHousing = section === "housing";
   const isEducation = section === "education";
   const isReligiousCultural = section === "religious-cultural";
+  const isSocialWelfare = section === "social-welfare";
   const [employmentGnDivision, setEmploymentGnDivision] = React.useState("all");
   const [religiousGnDivision, setReligiousGnDivision] = React.useState("all");
   const showMahaweliColumn = user?.dsDivision === "hambantota-ds";
@@ -190,6 +306,8 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
     ? { en: "Education", si: "අධ්‍යාපනය" }
     : isReligiousCultural
     ? { en: "Religious & Cultural", si: "ආගමික හා සංස්කෘතික" }
+    : isSocialWelfare
+    ? { en: "Social Welfare", si: "සමාජ සුබසාධන" }
     : { en: "Section details", si: "සැකිලි විස්තර" };
 
   const description = isIdentification
@@ -232,13 +350,18 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
         en: "View aggregated religious and cultural information collected across your division.",
         si: "ඔබගේ වසම පුරා එක්රැස් කළ ආගමික හා සංස්කෘතික තොරතුරු එකතුව මෙහි දැකිය හැක.",
       }
+    : isSocialWelfare
+    ? {
+        en: "Review social welfare counts collected from the relevant division.",
+        si: "අදාළ වසමෙන් එකතු කළ සමාජ සුබසාධන සංඛ්‍යා මෙහි පරීක්ෂා කරන්න.",
+      }
     : {
         en: "This section is not available yet. Please return to the division information overview.",
         si: "මෙම කොටස තවම ලබා ගත නොහැක. කරුණාකර වසම් තොරතුරු ප්‍රස්ථාරයට ආපසු යන්න.",
       };
 
   const analyticsUrl = React.useMemo(() => {
-    if (!isDemographics && !isEmployment && !isReligiousCultural) return null;
+    if (!isDemographics && !isEmployment && !isReligiousCultural && !isSocialWelfare) return null;
     const params = new URLSearchParams({ year: String(CURRENT_YEAR) });
     if (isEmployment && employmentGnDivision !== "all") {
       params.set("gnDivisions", employmentGnDivision);
@@ -247,7 +370,7 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
       params.set("gnDivisions", religiousGnDivision);
     }
     return `/api/analytics?${params.toString()}`;
-  }, [isDemographics, isEmployment, isReligiousCultural, employmentGnDivision, religiousGnDivision]);
+  }, [isDemographics, isEmployment, isReligiousCultural, isSocialWelfare, employmentGnDivision, religiousGnDivision]);
 
   const { data: analytics, error: analyticsError } = useSWR(analyticsUrl, analyticsFetcher);
   const [showTotalPopulation, setShowTotalPopulation] = React.useState(false);
@@ -671,6 +794,31 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
   const toggleReligionRow = (gnId: string) => {
     setExpandedReligionRows((prev) => ({ ...prev, [gnId]: !prev[gnId] }));
   };
+
+  if (isSocialWelfare) {
+    return (
+      <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="font-display text-fluid-3xl font-semibold text-primary">
+              <Bilingual en={title.en} si={title.si} />
+            </h1>
+            <p className="mt-2 text-fluid-sm text-muted-foreground">
+              <Bilingual en={description.en} si={description.si} />
+            </p>
+          </div>
+          <Button asChild variant="outline" className="h-11">
+            <Link href="/divisional-secretariat/graphs" className="flex items-center gap-2">
+              <ArrowLeft className="size-4" />
+              <Bilingual en="Back to dashboard" si="පුවරුවට ආපසු" />
+            </Link>
+          </Button>
+        </div>
+
+        <SocialWelfareTable communityWelfare={analytics?.sections.communityWelfare} isLoading={isLoading} error={analyticsError} />
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
