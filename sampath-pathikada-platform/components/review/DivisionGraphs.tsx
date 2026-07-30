@@ -438,7 +438,7 @@ export function DivisionGraphs({ data }: DivisionGraphsProps) {
             <div className="flex flex-wrap gap-2">
               <YesNoBadge yes={infra.publicFacilities.busStand > 0} labelEn="Bus Stand" labelSi="බස් නැවතුම්පොළ" />
               <YesNoBadge yes={infra.publicFacilities.railwayStation > 0} labelEn="Railway Station" labelSi="දුම්රිය ස්ථානය" />
-              <YesNoBadge yes={infra.publicFacilities.jetty > 0} labelEn="Jetty" labelSi="එතුම් තොටුපොළ" />
+              <YesNoBadge yes={infra.publicFacilities.port > 0} labelEn="Port" labelSi="වරාය" />
               <YesNoBadge yes={infra.publicFacilities.airport > 0} labelEn="Airport" labelSi="ගුවන් තොටුපොළ" />
             </div>
             <StatGrid

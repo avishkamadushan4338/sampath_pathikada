@@ -128,7 +128,7 @@ export function buildCsvRows(
       // ── Infrastructure ──
       "Infrastructure: Has Bus Stand": infra.publicFacilities.busStand > 0 ? "Yes" : "No",
       "Infrastructure: Has Railway Station": infra.publicFacilities.railwayStation > 0 ? "Yes" : "No",
-      "Infrastructure: Has Jetty": infra.publicFacilities.jetty > 0 ? "Yes" : "No",
+      "Infrastructure: Has Port": infra.publicFacilities.port > 0 ? "Yes" : "No",
       "Infrastructure: Has Airport": infra.publicFacilities.airport > 0 ? "Yes" : "No",
       "Infrastructure: Road Development Needs Listed": infra.roadDevelopmentNeeds.rows.length,
       "Infrastructure: Total Road Length Flagged (m)": infra.totalRoadDevelopmentLengthMeters,
