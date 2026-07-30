@@ -136,13 +136,17 @@ const INLAND_WATER_BODY_TYPE_LABELS: Record<(typeof INLAND_WATER_BODY_TYPES)[num
 
 function buildEmptyValues(lang: "en" | "si"): EconomicAgricultureDraft {
   return {
-    landUse: LAND_USE_TYPES.map((type) => ({ landType: type, extentHectares: 0 })),
-    animalHusbandryCounts: FLORAL_CULTIVATION_TYPES.map((type) => ({ type, count: 0 })),
+    landUse: LAND_USE_TYPES.map((type) => ({ landType: type, landTypeLabel: LAND_USE_LABELS[type][lang], extentHectares: 0 })),
+    animalHusbandryCounts: FLORAL_CULTIVATION_TYPES.map((type) => ({
+      type,
+      typeLabel: FLORAL_CULTIVATION_LABELS[type][lang],
+      count: 0,
+    })),
     animalHusbandryDirectory: [],
     specialEconomicActivities: [],
     abandonedPaddyLand: { extentAcres: 0, canBeReactivatedExtent: 0, reason: "", actionPlan: "" },
-    agriMachinery: AGRI_MACHINERY_TYPES.map((type) => ({ type, count: 0 })),
-    forestDamage: CROP_DAMAGE_TYPES.map((type) => ({ type, present: "no" })),
+    agriMachinery: AGRI_MACHINERY_TYPES.map((type) => ({ type, typeLabel: AGRI_MACHINERY_LABELS[type][lang], count: 0 })),
+    forestDamage: CROP_DAMAGE_TYPES.map((type) => ({ type, typeLabel: CROP_DAMAGE_LABELS[type][lang], present: "no" })),
     livestockFarms: [],
     industryCounts: { householdIndustry: 0, under5Employees: 0, over5Employees: 0 },
     industries: [],
