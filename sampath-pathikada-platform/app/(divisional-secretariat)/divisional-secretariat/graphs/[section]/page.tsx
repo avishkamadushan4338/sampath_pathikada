@@ -34,6 +34,9 @@ import { StateInstitutionsLandView } from "@/components/analytics/StateInstituti
 import { PhysicalEnvironmentView } from "@/components/analytics/PhysicalEnvironmentView";
 import { HousingView } from "@/components/analytics/HousingView";
 import { EducationView } from "@/components/analytics/EducationView";
+import { EmploymentSectionView } from "@/components/analytics/EmploymentSectionView";
+import { ReligiousCulturalSectionView } from "@/components/analytics/ReligiousCulturalSectionView";
+import { TourismSectionView } from "@/components/analytics/TourismSectionView";
 
 interface RegistrationRow {
   id: string;
@@ -136,6 +139,10 @@ function TopicCard({
   );
 }
 
+function SocialWelfareTableShell({ children }: { children: React.ReactNode }) {
+  return <div className="overflow-x-auto rounded-md border border-border/70">{children}</div>;
+}
+
 function SocialWelfareTable({
   communityWelfare,
   isLoading,
@@ -193,7 +200,7 @@ function SocialWelfareTable({
             <h3 className="px-3 pt-3 text-base font-semibold text-foreground">
               <Bilingual en="Number of Families" si="පවුල් සංඛ්‍යාව" />
             </h3>
-            <div className="overflow-x-auto rounded-md border border-border/70">
+            <SocialWelfareTableShell>
               <table className="w-full border-collapse text-left text-sm">
                 <thead className="bg-muted/20 text-muted-foreground">
                   <tr>
@@ -216,14 +223,14 @@ function SocialWelfareTable({
                   </tr>
                 </tbody>
               </table>
-            </div>
+            </SocialWelfareTableShell>
           </section>
 
           <section className="space-y-2">
             <h3 className="px-3 text-base font-semibold text-foreground">
               <Bilingual en="Number of Beneficiaries" si="ප්‍රතිලාභීන් සංඛ්‍යාව" />
             </h3>
-            <div className="overflow-x-auto rounded-md border border-border/70">
+            <SocialWelfareTableShell>
               <table className="w-full border-collapse text-left text-sm">
                 <thead className="bg-muted/20 text-muted-foreground">
                   <tr>
@@ -275,14 +282,14 @@ function SocialWelfareTable({
                   </tr>
                 </tbody>
               </table>
-            </div>
+            </SocialWelfareTableShell>
           </section>
 
           <section className="space-y-2">
             <h3 className="px-3 text-base font-semibold text-foreground">
               <Bilingual en="Information Regarding Elders' Homes" si="වැඩිහිටි නිවාස පිළිබඳ තොරතුරු" />
             </h3>
-            <div className="overflow-x-auto rounded-md border border-border/70">
+            <SocialWelfareTableShell>
               <table className="w-full border-collapse text-left text-sm">
                 <thead className="bg-muted/20 text-muted-foreground">
                   <tr>
@@ -345,7 +352,7 @@ function SocialWelfareTable({
                   )}
                 </tbody>
               </table>
-            </div>
+            </SocialWelfareTableShell>
           </section>
 
           <section className="space-y-2">
@@ -355,7 +362,7 @@ function SocialWelfareTable({
                 si="රාජ්‍ය හා ස්වේච්ඡා ළමා නිවාස පිළිබඳ තොරතුරු"
               />
             </h3>
-            <div className="overflow-x-auto rounded-md border border-border/70">
+            <SocialWelfareTableShell>
               <table className="w-full border-collapse text-left text-sm">
                 <thead className="bg-muted/20 text-muted-foreground">
                   <tr>
@@ -418,13 +425,233 @@ function SocialWelfareTable({
                   )}
                 </tbody>
               </table>
-            </div>
+            </SocialWelfareTableShell>
           </section>
         </div>
       </CardContent>
     </Card>
   );
 }
+
+interface CommunityOrganizationDirectoryRow {
+  id: string;
+  name: string;
+  address?: string;
+  memberCount?: number;
+  identifiedNeeds?: string;
+}
+
+function CommunityOrganizationDirectoryTable({
+  titleEn,
+  titleSi,
+  nameHeaderEn,
+  nameHeaderSi,
+  rows,
+  tableRef,
+  isLoading,
+  error,
+  showAddress = true,
+  showMembersAndNeeds = false,
+}: {
+  titleEn: string;
+  titleSi: string;
+  nameHeaderEn: string;
+  nameHeaderSi: string;
+  rows: CommunityOrganizationDirectoryRow[];
+  tableRef: React.RefObject<HTMLDivElement | null>;
+  isLoading: boolean;
+  error: unknown;
+  showAddress?: boolean;
+  showMembersAndNeeds?: boolean;
+}) {
+  const colSpan = (showAddress ? 2 : 1) + (showMembersAndNeeds ? 2 : 0);
+
+  return (
+    <Card className="card-lift overflow-hidden border-border/60 shadow-md">
+      <CardHeader>
+        <CardTitle className="font-display text-fluid-xl font-semibold text-foreground">
+          <Bilingual en={titleEn} si={titleSi} />
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        {error ? (
+          <div className="text-sm text-destructive">Unable to load organization data.</div>
+        ) : isLoading ? (
+          <div className="text-sm text-muted-foreground">Loading…</div>
+        ) : (
+          <div className="overflow-hidden rounded-md border border-border">
+            <div ref={tableRef} className="overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead className="bg-muted/40 text-muted-foreground">
+                  <tr>
+                    <th className="px-3 py-3">
+                      <Bilingual en={nameHeaderEn} si={nameHeaderSi} />
+                    </th>
+                    {showAddress && (
+                      <th className="px-3 py-3">
+                        <Bilingual en="Address" si="ලිපිනය" />
+                      </th>
+                    )}
+                    {showMembersAndNeeds && (
+                      <>
+                        <th className="px-3 py-3">
+                          <Bilingual en="Number of Members" si="සාමාජික සංඛ්‍යාව" />
+                        </th>
+                        <th className="px-3 py-3">
+                          <Bilingual en="Identified Needs" si="හඳුනාගත් අවශ්‍යතා" />
+                        </th>
+                      </>
+                    )}
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.length === 0 ? (
+                    <tr className="border-t last:border-b">
+                      <td colSpan={colSpan} className="px-3 py-6 text-center text-muted-foreground">
+                        <Bilingual en="No records available for the selected division." si="තෝරාගත් වසම සඳහා වාර්තා නොමැත." />
+                      </td>
+                    </tr>
+                  ) : (
+                    rows.map((row) => (
+                      <tr key={row.id} className="border-t last:border-b">
+                        <td className="px-3 py-3 font-medium">{row.name || "—"}</td>
+                        {showAddress && <td className="px-3 py-3">{row.address || "—"}</td>}
+                        {showMembersAndNeeds && (
+                          <>
+                            <td className="px-3 py-3 nums-tabular">{(row.memberCount ?? 0).toLocaleString()}</td>
+                            <td className="px-3 py-3">{row.identifiedNeeds || "—"}</td>
+                          </>
+                        )}
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+            <div className="border-t border-border/80 bg-muted/50 px-4 py-3 text-right">
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2"
+                onClick={() => tableRef.current?.scrollIntoView({ behavior: "smooth" })}
+              >
+                <ArrowUp className="size-4" />
+                <Bilingual en="Back to top" si="ඉහළට" />
+              </Button>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+const COMMUNITY_ORGANIZATION_CARDS: Array<{ en: string; si: string }> = [
+  {
+    en: "Community, Governmental, and Non-Governmental Organizations",
+    si: "ප්‍රජාමූල, රාජ්‍ය හා රාජ්‍ය නොවන සංවිධාන",
+  },
+  { en: "Village Development Societies", si: "ග්‍රාම සංවර්ධන සමිති" },
+  { en: "Youth Clubs", si: "යෞවන සමාජ" },
+  { en: "Sports Clubs", si: "ක්‍රීඩා සමාජ" },
+  { en: "Funeral Welfare Societies", si: "අවමංගල්‍යාධාර හා සුභසාධක සමිති" },
+  { en: "Women's Societies", si: "කාන්තා සමිති" },
+  { en: "Senior Citizens' Societies", si: "වැඩිහිටි සමිති" },
+  { en: "Children's Clubs", si: "ළමා සමාජ" },
+  { en: "Samurdhi Societies", si: "සමෘද්ධි සමිති" },
+  {
+    en: 'Mithuru Organizations / Mithuru Partnerships',
+    si: 'මිතුරු සංවිධාන / මිතුරු හවුල්',
+  },
+  { en: "Non-Governmental Organizations", si: "රාජ්‍ය නොවන සංවිධාන" },
+  { en: "Farmers' Societies", si: "ගොවි සමිති" },
+  { en: "Religious Societies", si: "ආගමික සමිති" },
+  { en: "Sanasa (Credit/Microfinance) Society", si: "සණස (ණය / සුළු මූල්‍ය) සමිති" },
+  { en: "Civil Defense Committees", si: "සිවිල් ආරක්ෂක කමිටු" },
+  { en: "Community Empowerment Societies", si: "ප්‍රජා සවිබල ගැන්වීමේ සමිති" },
+  {
+    en: "Information Regarding Cooperative Societies Operating Within the Grama Niladhari Division",
+    si: "ග්‍රාම නිලධාරී වසම තුළ ක්‍රියාත්මක සමූපකාර සමිති පිළිබඳ තොරතුරු",
+  },
+];
+
+const COMMUNITY_ORGANIZATION_TABLE_ROWS: Array<{ en: string; si: string; matchEn: string[] }> = [
+  {
+    en: "Village Development Society",
+    si: "ග්‍රාම සංවර්ධන සමිතිය",
+    matchEn: ["Village Development Society"],
+  },
+  {
+    en: "Youth Club",
+    si: "යෞවන සමාජය",
+    matchEn: ["Youth Society", "Youth Club"],
+  },
+  {
+    en: "Sports Club",
+    si: "ක්‍රීඩා සමාජය",
+    matchEn: ["Sports Club"],
+  },
+  {
+    en: "Funeral Welfare Society",
+    si: "අවමංගල්‍යාධාර හා සුභසාධක සමිතිය",
+    matchEn: ["Funeral Aid Society", "Funeral Welfare Society"],
+  },
+  {
+    en: "Women's Society",
+    si: "කාන්තා සමිතිය",
+    matchEn: ["Women's Society"],
+  },
+  {
+    en: "Senior Citizens' Society",
+    si: "වැඩිහිටි සමිතිය",
+    matchEn: ["Elders' Society", "Senior Citizens' Society"],
+  },
+  {
+    en: "Children's Club",
+    si: "ළමා සමාජය",
+    matchEn: ["Children's Society", "Children's Club"],
+  },
+  {
+    en: "Samurdhi Society",
+    si: "සමෘද්ධි සමිතිය",
+    matchEn: ["Samurdhi Society"],
+  },
+  {
+    en: "Mithuru Organization / Mithuru Partnership",
+    si: "මිතුරු සංවිධාන / මිතුරු හවුල්",
+    matchEn: ["Friend Organization / Association", "Mithuru Organization / Mithuru Partnership"],
+  },
+  {
+    en: "Non-Governmental Organization",
+    si: "රාජ්‍ය නොවන සංවිධානය",
+    matchEn: ["Non-Governmental Organization Committee", "Non-Governmental Organization"],
+  },
+  {
+    en: "Farmers' Society",
+    si: "ගොවි සමිතිය",
+    matchEn: ["Farmer Society", "Farmers' Society"],
+  },
+  {
+    en: "Religious Society",
+    si: "ආගමික සමිතිය",
+    matchEn: ["Religious Society"],
+  },
+  {
+    en: "Sanasa (Credit/Microfinance) Society",
+    si: "සණස (ණය / සුළු මූල්‍ය) සමිතිය",
+    matchEn: ["SANASA Society", "Sanasa (Credit/Microfinance) Society"],
+  },
+  {
+    en: "Civil Defense Committees",
+    si: "සිවිල් ආරක්ෂක කමිටු",
+    matchEn: ["Civil Defense Committee", "Civil Defense Committees"],
+  },
+  {
+    en: "Praja Shakthi (Community Empowerment) Society",
+    si: "ප්‍රජා ශක්ති (ප්‍රජා සවිබල ගැන්වීමේ) සමිතිය",
+    matchEn: ["Prajashakthi Society", "Praja Shakthi (Community Empowerment) Society"],
+  },
+];
 
 export default function Page({ params }: { params: Promise<{ section: string }> }) {
   const { lang } = useLanguage();
@@ -440,9 +667,13 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
   const isEducation = section === "education";
   const isReligiousCultural = section === "religious-cultural";
   const isSocialWelfare = section === "social-welfare";
+  const isCommunityOrganizations = section === "community-organizations";
+  const isTourism = section === "tourism";
   const [employmentGnDivision, setEmploymentGnDivision] = React.useState("all");
   const [religiousGnDivision, setReligiousGnDivision] = React.useState("all");
   const [socialWelfareGnDivision, setSocialWelfareGnDivision] = React.useState("all");
+  const [communityOrganizationsGnDivision, setCommunityOrganizationsGnDivision] = React.useState("all");
+  const [tourismGnDivision, setTourismGnDivision] = React.useState("all");
   const showMahaweliColumn = user?.dsDivision === "hambantota-ds";
   const { data, error, isLoading } = useSWR(
     isIdentification ? "/api/registrations?role=gn&status=all&limit=100" : null,
@@ -474,6 +705,18 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
     if (!stillExists) setSocialWelfareGnDivision("all");
   }, [socialWelfareGnDivision, employmentGnOptions]);
 
+  React.useEffect(() => {
+    if (communityOrganizationsGnDivision === "all") return;
+    const stillExists = employmentGnOptions.some((gn) => gn.id === communityOrganizationsGnDivision);
+    if (!stillExists) setCommunityOrganizationsGnDivision("all");
+  }, [communityOrganizationsGnDivision, employmentGnOptions]);
+
+  React.useEffect(() => {
+    if (tourismGnDivision === "all") return;
+    const stillExists = employmentGnOptions.some((gn) => gn.id === tourismGnDivision);
+    if (!stillExists) setTourismGnDivision("all");
+  }, [tourismGnDivision, employmentGnOptions]);
+
   const title = isIdentification
     ? { en: "Identification", si: "හඳුනාගැනීම" }
     : isDemographics
@@ -492,7 +735,14 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
     ? { en: "Religious & Cultural", si: "ආගමික හා සංස්කෘතික" }
     : isSocialWelfare
     ? { en: "Social Welfare", si: "සමාජ සුබසාධන" }
-    : { en: "Section details", si: "සැකිලි විස්තර" };
+    : isCommunityOrganizations
+    ? {
+        en: "Community / Govt / NGO Organizations",
+        si: "ප්‍රජා / රාජ්‍ය / රාජ්‍ය නොවන සංවිධාන",
+      }
+    : isTourism
+    ? { en: "Tourism", si: "සංචාරක" }
+    : { en: "Section details", si: "අංශයේ විස්තර" };
 
   const description = isIdentification
     ? {
@@ -539,13 +789,23 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
         en: "Review social welfare counts collected from the relevant division.",
         si: "අදාළ වසමෙන් එකතු කළ සමාජ සුබසාධන සංඛ්‍යා මෙහි පරීක්ෂා කරන්න.",
       }
+    : isCommunityOrganizations
+    ? {
+        en: "Review community, governmental, and non-governmental organization categories captured for your division.",
+        si: "ඔබගේ වසම සඳහා සටහන් කර ඇති ප්‍රජාමූල, රාජ්‍ය සහ රාජ්‍ය නොවන සංවිධාන කාණ්ඩ මෙහි පරීක්ෂා කරන්න.",
+      }
+    : isTourism
+    ? {
+        en: "View tourism accommodation counts and room capacity for the selected GN division or across all GN divisions.",
+        si: "තෝරාගත් ග්‍රාම නිලධාරී වසමට හෝ සියලු වසම් සඳහා සංචාරක නවාතැන් සහ කාමර ධාරිතා සංඛ්‍යා බලන්න.",
+      }
     : {
         en: "This section is not available yet. Please return to the division information overview.",
         si: "මෙම කොටස තවම ලබා ගත නොහැක. කරුණාකර වසම් තොරතුරු ප්‍රස්ථාරයට ආපසු යන්න.",
       };
 
   const analyticsUrl = React.useMemo(() => {
-    if (!isDemographics && !isEmployment && !isReligiousCultural && !isSocialWelfare) return null;
+    if (!isDemographics && !isEmployment && !isReligiousCultural && !isSocialWelfare && !isCommunityOrganizations && !isTourism) return null;
     const params = new URLSearchParams({ year: String(CURRENT_YEAR) });
     if (isEmployment && employmentGnDivision !== "all") {
       params.set("gnDivisions", employmentGnDivision);
@@ -556,15 +816,25 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
     if (isSocialWelfare && socialWelfareGnDivision !== "all") {
       params.set("gnDivisions", socialWelfareGnDivision);
     }
+    if (isCommunityOrganizations && communityOrganizationsGnDivision !== "all") {
+      params.set("gnDivisions", communityOrganizationsGnDivision);
+    }
+    if (isTourism && tourismGnDivision !== "all") {
+      params.set("gnDivisions", tourismGnDivision);
+    }
     return `/api/analytics?${params.toString()}`;
   }, [
     isDemographics,
     isEmployment,
     isReligiousCultural,
     isSocialWelfare,
+    isCommunityOrganizations,
+    isTourism,
     employmentGnDivision,
     religiousGnDivision,
     socialWelfareGnDivision,
+    communityOrganizationsGnDivision,
+    tourismGnDivision,
   ]);
 
   const { data: analytics, error: analyticsError } = useSWR(analyticsUrl, analyticsFetcher);
@@ -575,6 +845,23 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
   const [showForeignNationals, setShowForeignNationals] = React.useState(false);
   const [showHouseholds, setShowHouseholds] = React.useState(false);
   const [showRegisteredVoters, setShowRegisteredVoters] = React.useState(false);
+  const [showCommunityOrganizationsTable, setShowCommunityOrganizationsTable] = React.useState(false);
+  const [showVillageDevelopmentSocieties, setShowVillageDevelopmentSocieties] = React.useState(false);
+  const [showYouthClubs, setShowYouthClubs] = React.useState(false);
+  const [showSportsClubs, setShowSportsClubs] = React.useState(false);
+  const [showFuneralWelfareSocieties, setShowFuneralWelfareSocieties] = React.useState(false);
+  const [showWomensSocieties, setShowWomensSocieties] = React.useState(false);
+  const [showSeniorCitizensSocieties, setShowSeniorCitizensSocieties] = React.useState(false);
+  const [showChildrensClubs, setShowChildrensClubs] = React.useState(false);
+  const [showSamurdhiSocieties, setShowSamurdhiSocieties] = React.useState(false);
+  const [showMithuruOrganizations, setShowMithuruOrganizations] = React.useState(false);
+  const [showNonGovernmentalOrganizations, setShowNonGovernmentalOrganizations] = React.useState(false);
+  const [showFarmersSocieties, setShowFarmersSocieties] = React.useState(false);
+  const [showReligiousSocieties, setShowReligiousSocieties] = React.useState(false);
+  const [showSanasaSocieties, setShowSanasaSocieties] = React.useState(false);
+  const [showCivilDefenseCommittees, setShowCivilDefenseCommittees] = React.useState(false);
+  const [showPrajaShakthiSocieties, setShowPrajaShakthiSocieties] = React.useState(false);
+  const [showCooperativeSocieties, setShowCooperativeSocieties] = React.useState(false);
   const [expandedReligionRows, setExpandedReligionRows] = React.useState<Record<string, boolean>>({});
   const gnBreakdownRef = React.useRef<HTMLDivElement | null>(null);
   const religionTableRef = React.useRef<HTMLDivElement | null>(null);
@@ -582,6 +869,23 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
   const foreignTableRef = React.useRef<HTMLDivElement | null>(null);
   const householdsTableRef = React.useRef<HTMLDivElement | null>(null);
   const votersTableRef = React.useRef<HTMLDivElement | null>(null);
+  const communityOrganizationsTableRef = React.useRef<HTMLDivElement | null>(null);
+  const villageDevelopmentSocietiesTableRef = React.useRef<HTMLDivElement | null>(null);
+  const youthClubsTableRef = React.useRef<HTMLDivElement | null>(null);
+  const sportsClubsTableRef = React.useRef<HTMLDivElement | null>(null);
+  const funeralWelfareSocietiesTableRef = React.useRef<HTMLDivElement | null>(null);
+  const womensSocietiesTableRef = React.useRef<HTMLDivElement | null>(null);
+  const seniorCitizensSocietiesTableRef = React.useRef<HTMLDivElement | null>(null);
+  const childrensClubsTableRef = React.useRef<HTMLDivElement | null>(null);
+  const samurdhiSocietiesTableRef = React.useRef<HTMLDivElement | null>(null);
+  const mithuruOrganizationsTableRef = React.useRef<HTMLDivElement | null>(null);
+  const nonGovernmentalOrganizationsTableRef = React.useRef<HTMLDivElement | null>(null);
+  const farmersSocietiesTableRef = React.useRef<HTMLDivElement | null>(null);
+  const religiousSocietiesTableRef = React.useRef<HTMLDivElement | null>(null);
+  const sanasaSocietiesTableRef = React.useRef<HTMLDivElement | null>(null);
+  const civilDefenseCommitteesTableRef = React.useRef<HTMLDivElement | null>(null);
+  const prajaShakthiSocietiesTableRef = React.useRef<HTMLDivElement | null>(null);
+  const cooperativeSocietiesTableRef = React.useRef<HTMLDivElement | null>(null);
 
   const employmentEducationRows = React.useMemo(() => {
     const employment = analytics?.sections.employment;
@@ -986,6 +1290,106 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
     );
   }, [analytics]);
 
+  const communityOrganizationTableRows = React.useMemo(() => {
+    const organizationCounts = analytics?.sections.communityWelfare.organizationCounts ?? [];
+    const countByLabel = new Map(organizationCounts.map((row) => [row.en, row.count]));
+
+    return COMMUNITY_ORGANIZATION_TABLE_ROWS.map((row) => {
+      const count = row.matchEn.reduce((sum, label) => sum + (countByLabel.get(label) ?? 0), 0);
+      return {
+        en: row.en,
+        si: row.si,
+        count,
+      };
+    });
+  }, [analytics]);
+
+  const communityOrganizationDirectoryRows = React.useMemo(() => {
+    const rows = analytics?.sections.communityWelfare.organizationDirectory.rows ?? [];
+    return rows.map((row, index) => ({
+      id: `${row.gnId}-${row.name}-${row.type}-${index}`,
+      type: row.type,
+      name: row.name ?? "",
+      address: row.address ?? "",
+      memberCount: row.memberCount,
+      identifiedNeeds: row.identifiedNeeds,
+    }));
+  }, [analytics]);
+
+  const getOrganizationRowsByType = React.useCallback(
+    (type: string) => communityOrganizationDirectoryRows.filter((row) => row.type === type),
+    [communityOrganizationDirectoryRows]
+  );
+
+  const villageDevelopmentSocietyRows = React.useMemo(
+    () => getOrganizationRowsByType("village-development-society"),
+    [getOrganizationRowsByType]
+  );
+  const youthClubRows = React.useMemo(
+    () => getOrganizationRowsByType("youth-society"),
+    [getOrganizationRowsByType]
+  );
+  const sportsClubRows = React.useMemo(
+    () => getOrganizationRowsByType("sports-club"),
+    [getOrganizationRowsByType]
+  );
+  const funeralWelfareSocietyRows = React.useMemo(
+    () => getOrganizationRowsByType("funeral-aid-society"),
+    [getOrganizationRowsByType]
+  );
+  const womensSocietyRows = React.useMemo(
+    () => getOrganizationRowsByType("womens-society"),
+    [getOrganizationRowsByType]
+  );
+  const seniorCitizensSocietyRows = React.useMemo(
+    () => getOrganizationRowsByType("elders-society"),
+    [getOrganizationRowsByType]
+  );
+  const childrensClubRows = React.useMemo(
+    () => getOrganizationRowsByType("childrens-society"),
+    [getOrganizationRowsByType]
+  );
+  const samurdhiSocietyRows = React.useMemo(
+    () => getOrganizationRowsByType("samurdhi-society"),
+    [getOrganizationRowsByType]
+  );
+  const mithuruOrganizationRows = React.useMemo(
+    () => getOrganizationRowsByType("friend-organization"),
+    [getOrganizationRowsByType]
+  );
+  const nonGovernmentalOrganizationRows = React.useMemo(
+    () => getOrganizationRowsByType("ngo-committee"),
+    [getOrganizationRowsByType]
+  );
+  const farmersSocietyRows = React.useMemo(
+    () => getOrganizationRowsByType("farmer-society"),
+    [getOrganizationRowsByType]
+  );
+  const religiousSocietyRows = React.useMemo(
+    () => getOrganizationRowsByType("religious-society"),
+    [getOrganizationRowsByType]
+  );
+  const sanasaSocietyRows = React.useMemo(
+    () => getOrganizationRowsByType("sanasa-society"),
+    [getOrganizationRowsByType]
+  );
+  const civilDefenseCommitteeRows = React.useMemo(
+    () => getOrganizationRowsByType("civil-defense-committee"),
+    [getOrganizationRowsByType]
+  );
+  const prajaShakthiSocietyRows = React.useMemo(
+    () => getOrganizationRowsByType("prajashakthi-society"),
+    [getOrganizationRowsByType]
+  );
+
+  const cooperativeSocietyRows = React.useMemo(() => {
+    const rows = analytics?.sections.communityWelfare.cooperativeSocieties.rows ?? [];
+    return rows.map((row, index) => ({
+      id: `${row.gnId}-${row.name}-${index}`,
+      name: row.name ?? "",
+    }));
+  }, [analytics]);
+
   const toggleReligionRow = (gnId: string) => {
     setExpandedReligionRows((prev) => ({ ...prev, [gnId]: !prev[gnId] }));
   };
@@ -1240,7 +1644,7 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
             <Card className="card-lift overflow-hidden border-border/60 shadow-md">
               <CardHeader>
                 <CardTitle className="font-display text-fluid-xl font-semibold text-foreground">
-                  <Bilingual en="Population Distribution by Religion" si="ධර්මය අනුව ජනගහනය" />
+                  <Bilingual en="Population Distribution by Religion" si="ආගම අනුව ජනගහනය" />
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -1625,179 +2029,52 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
           )}
         </div>
       ) : isEmployment ? (
-        <div className="space-y-3">
-          <h2 className="font-display text-fluid-xl font-semibold text-foreground">
-            <Bilingual en="Job Outlook" si="රැකියා ඉදිරි දැක්ම" />
-          </h2>
-          <div className="max-w-sm space-y-1">
-            <p className="text-fluid-xs font-medium text-muted-foreground">
-              <Bilingual en="Filter by GN Division" si="ග්‍රාම නිලධාරී වසම අනුව පෙරහන්න" />
-            </p>
-            <Select value={employmentGnDivision} onValueChange={setEmploymentGnDivision}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">
-                  {lang === "si" ? "සියලුම ග්‍රාම නිලධාරී වසම්" : "All GN divisions"}
-                </SelectItem>
-                {employmentGnOptions.map((gn) => (
-                  <SelectItem key={gn.id} value={gn.id}>
-                    {lang === "si" ? gn.si : gn.en}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          {analyticsError ? (
-            <div className="text-sm text-destructive">Unable to load employment data.</div>
-          ) : !analytics ? (
-            <div className="text-sm text-muted-foreground">Loading…</div>
-          ) : (
-            <>
-              <div className="overflow-hidden rounded-md border border-border">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-muted/40 hover:bg-muted/40">
-                      <TableHead>
-                        <Bilingual en="Number of people seeking employment by education" si="අධ්‍යාපනය අනුව රැකියා අපේක්ෂකයන්" />
-                      </TableHead>
-                      <TableHead>
-                        <Bilingual en="Number of Persons" si="පුද්ගලයන් සංඛ්‍යාව" />
-                      </TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {employmentEducationRows.map((row) => (
-                      <TableRow key={row.en}>
-                        <TableCell className="font-medium">
-                          <Bilingual en={row.en} si={row.si} />
-                        </TableCell>
-                        <TableCell className="nums-tabular">{row.count.toLocaleString()}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-              <h3 className="pt-3 font-display text-fluid-lg font-semibold text-foreground">
-                <Bilingual
-                  en="Number of people who wish to receive vocational training but do not meet the qualifications required for vocational training"
-                  si="වෘත්තීය පුහුණුව ලබා ගැනීමට කැමති නමුත් ඒ සඳහා අවශ්‍ය සුදුසුකම් සපුරා නොමැති පුද්ගලයන් සංඛ්‍යාව"
-                />
-              </h3>
-              <div className="overflow-hidden rounded-md border border-border">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-muted/40 hover:bg-muted/40">
-                      <TableHead />
-                      <TableHead>
-                        <Bilingual en="Number of Persons" si="පුද්ගලයන් සංඛ්‍යාව" />
-                      </TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {employmentTrainingNeedRows.map((row) => (
-                      <TableRow key={row.en}>
-                        <TableCell className="font-medium">
-                          <div className="space-y-1">
-                            {row.enLines.map((enLine, index) => (
-                              <div key={enLine}>
-                                <Bilingual en={enLine} si={row.siLines[index] ?? row.si} />
-                              </div>
-                            ))}
-                          </div>
-                        </TableCell>
-                        <TableCell className="nums-tabular">{row.count.toLocaleString()}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-              <h3 className="pt-3 font-display text-fluid-lg font-semibold text-foreground">
-                <Bilingual en="Self-Employment Related Information" si="ස්වයං රැකියා ආශ්‍රිත තොරතුරු" />
-              </h3>
-              <div className="overflow-hidden rounded-md border border-border">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-muted/40 hover:bg-muted/40">
-                      <TableHead>
-                        <Bilingual en="Self-Employment Activity" si="ස්වයං රැකියා ක්‍රියාකාරකම" />
-                      </TableHead>
-                      <TableHead>
-                        <Bilingual en="Number of Persons" si="පුද්ගලයන් සංඛ්‍යාව" />
-                      </TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {selfEmploymentActivityRows.map((row) => (
-                      <TableRow key={row.en}>
-                        <TableCell className="font-medium">
-                          <Bilingual en={row.en} si={row.si} />
-                        </TableCell>
-                        <TableCell className="nums-tabular">{row.count.toLocaleString()}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-              <h3 className="pt-3 font-display text-fluid-lg font-semibold text-foreground">
-                <Bilingual en="Information on Persons Engaged in Self-Employment" si="ස්වයං රැකියාවල නියුතු පුද්ගලයන් පිළිබඳ තොරතුරු" />
-              </h3>
-              <div className="overflow-hidden rounded-md border border-border">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-muted/40 hover:bg-muted/40">
-                      <TableHead>
-                        <Bilingual en="Self-Employment Field" si="ස්වයං රැකියා ක්ෂේත්‍රය" />
-                      </TableHead>
-                      <TableHead>
-                        <Bilingual en="Person's Name" si="පුද්ගලයාගේ නම" />
-                      </TableHead>
-                      <TableHead>
-                        <Bilingual en="Telephone Number" si="දුරකථන අංකය" />
-                      </TableHead>
-                      <TableHead>
-                        <Bilingual en="Market" si="වෙළඳපොළ" />
-                      </TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {selfEmployedPersonRows.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={4} className="py-6 text-center text-muted-foreground">
-                          <Bilingual en="No self-employed persons recorded for this division." si="මෙම වසම සඳහා ස්වයං රැකියාවල නියුතු පුද්ගලයන් සටහන් වී නොමැත." />
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      selfEmployedPersonRows.map((row) => (
-                        <TableRow key={row.id}>
-                          <TableCell className="font-medium">{row.field || "—"}</TableCell>
-                          <TableCell>{row.personName || "—"}</TableCell>
-                          <TableCell className="nums-tabular">{row.telephone}</TableCell>
-                          <TableCell>{row.market || "—"}</TableCell>
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-            </>
-          )}
-        </div>
+        <EmploymentSectionView
+          lang={lang}
+          employmentGnDivision={employmentGnDivision}
+          onEmploymentGnDivisionChange={setEmploymentGnDivision}
+          employmentGnOptions={employmentGnOptions}
+          analyticsError={analyticsError}
+          hasAnalytics={!!analytics}
+          employmentEducationRows={employmentEducationRows}
+          employmentTrainingNeedRows={employmentTrainingNeedRows}
+          selfEmploymentActivityRows={selfEmploymentActivityRows}
+          selfEmployedPersonRows={selfEmployedPersonRows}
+        />
       ) : isReligiousCultural ? (
+        <ReligiousCulturalSectionView
+          lang={lang}
+          religiousGnDivision={religiousGnDivision}
+          onReligiousGnDivisionChange={setReligiousGnDivision}
+          employmentGnOptions={employmentGnOptions}
+          analyticsError={analyticsError}
+          hasAnalytics={!!analytics}
+          religiousSiteCounts={analytics?.sections.areaProfile.religiousSiteCounts}
+          religiousHeritageRows={religiousHeritageRows}
+          religiousArtAcademyRows={religiousArtAcademyRows}
+          religiousTraditionalArtistRows={religiousTraditionalArtistRows}
+        />
+      ) : isTourism ? (
+        <TourismSectionView
+          lang={lang}
+          tourismGnDivision={tourismGnDivision}
+          onTourismGnDivisionChange={setTourismGnDivision}
+          employmentGnOptions={employmentGnOptions}
+          analyticsError={analyticsError}
+          areaProfile={analytics?.sections.areaProfile}
+        />
+      ) : isCommunityOrganizations ? (
         <div className="space-y-4">
-          <div className="max-w-sm space-y-1">
-            <p className="text-fluid-xs font-medium text-muted-foreground">
+          <div className="max-w-xs space-y-1 rounded-lg border border-border/60 bg-muted/20 p-3">
+            <p className="text-sm font-medium text-foreground">
               <Bilingual en="Filter by GN Division" si="ග්‍රාම නිලධාරී වසම අනුව පෙරහන්න" />
             </p>
-            <Select value={religiousGnDivision} onValueChange={setReligiousGnDivision}>
-              <SelectTrigger>
+            <Select value={communityOrganizationsGnDivision} onValueChange={setCommunityOrganizationsGnDivision}>
+              <SelectTrigger className="h-10 bg-background">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">
-                  {lang === "si" ? "සියලුම ග්‍රාම නිලධාරී වසම්" : "All GN divisions"}
-                </SelectItem>
+                <SelectItem value="all">{lang === "si" ? "සියලුම ග්‍රාම නිලධාරී වසම්" : "All GN divisions"}</SelectItem>
                 {employmentGnOptions.map((gn) => (
                   <SelectItem key={gn.id} value={gn.id}>
                     {lang === "si" ? gn.si : gn.en}
@@ -1807,182 +2084,398 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
             </Select>
           </div>
 
-          {analyticsError ? (
-            <div className="text-sm text-destructive">Unable to load religious and cultural data.</div>
-          ) : !analytics ? (
-            <div className="text-sm text-muted-foreground">Loading…</div>
-          ) : (
-            <>
-              <h3 className="pt-2 font-display text-fluid-lg font-semibold text-foreground">
-                <Bilingual
-                  en="Total Number of Religious Places"
-                  si="ආගමික ස්ථාන මුළු සංඛ්‍යාව"
-                />
-              </h3>
-
-              <div className="overflow-hidden rounded-md border border-border">
-                <div className="overflow-x-auto">
-                  <table className="w-full border-collapse text-left text-sm">
-                    <thead className="bg-muted/40 text-muted-foreground">
-                      <tr>
-                        <th className="border-r border-border px-3 py-3" rowSpan={2}>Indicator</th>
-                        <th className="border-r border-border px-3 py-3">Buddhist Temples / Hermitages / Monasteries / Asapu</th>
-                        <th className="border-r border-border px-3 py-3">Nunneries / Meheni Arama</th>
-                        <th className="border-r border-border px-3 py-3">Mosques</th>
-                        <th className="border-r border-l border-border px-3 py-3 text-center" colSpan={2}>Catholic Churches</th>
-                        <th className="px-3 py-3">Hindu Kovils / Temples</th>
-                      </tr>
-                      <tr>
-                        <th className="border-t border-r border-border px-3 py-3 text-center font-semibold">Buddhist Monks</th>
-                        <th className="border-t border-r border-border px-3 py-3 text-center font-semibold">Buddhist Nuns</th>
-                        <th className="border-t border-r border-border px-3 py-3 text-center font-semibold">Mawlawis</th>
-                        <th className="border-t border-r border-l border-border px-3 py-3 text-center font-semibold">Priests</th>
-                        <th className="border-t border-r border-border px-3 py-3 text-center font-semibold">Nuns / Sisters</th>
-                        <th className="border-t border-border px-3 py-3 text-center font-semibold">Priests / Poojaris</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr className="border-t">
-                        <td className="border-r border-border px-3 py-3 font-medium">Number of Religious Places</td>
-                        <td className="border-r border-border px-3 py-3 nums-tabular">{analytics.sections.areaProfile.religiousSiteCounts.temples.count.toLocaleString()}</td>
-                        <td className="border-r border-border px-3 py-3 nums-tabular">{analytics.sections.areaProfile.religiousSiteCounts.meheniArama.count.toLocaleString()}</td>
-                        <td className="border-r border-border px-3 py-3 nums-tabular">{analytics.sections.areaProfile.religiousSiteCounts.mosques.count.toLocaleString()}</td>
-                        <td className="border-r border-border px-3 py-3 nums-tabular text-center" colSpan={2}>{analytics.sections.areaProfile.religiousSiteCounts.churches.count.toLocaleString()}</td>
-                        <td className="px-3 py-3 nums-tabular">{analytics.sections.areaProfile.religiousSiteCounts.kovils.count.toLocaleString()}</td>
-                      </tr>
-                      <tr className="border-t">
-                        <td className="border-r border-border px-3 py-3 font-medium">Number of Clergy / Religious Leaders</td>
-                        <td className="border-r border-border px-3 py-3 nums-tabular">{analytics.sections.areaProfile.religiousSiteCounts.temples.clergyCount.toLocaleString()}</td>
-                        <td className="border-r border-border px-3 py-3 nums-tabular">{analytics.sections.areaProfile.religiousSiteCounts.meheniArama.clergyCount.toLocaleString()}</td>
-                        <td className="border-r border-border px-3 py-3 nums-tabular">{analytics.sections.areaProfile.religiousSiteCounts.mosques.clergyCount.toLocaleString()}</td>
-                        <td className="border-r border-border px-3 py-3 nums-tabular">{analytics.sections.areaProfile.religiousSiteCounts.churches.priestsCount.toLocaleString()}</td>
-                        <td className="border-r border-border px-3 py-3 nums-tabular">{analytics.sections.areaProfile.religiousSiteCounts.churches.nunsCount.toLocaleString()}</td>
-                        <td className="px-3 py-3 nums-tabular">{analytics.sections.areaProfile.religiousSiteCounts.kovils.clergyCount.toLocaleString()}</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              <h3 className="pt-2 font-display text-fluid-lg font-semibold text-foreground">
-                <Bilingual
-                  en="Names of Religious Places / Sacred Sites in the Area"
-                  si="ප්‍රදේශයේ ආගමික ස්ථාන / පූජනීය ස්ථානවල නම්"
-                />
-              </h3>
-
-              <div className="overflow-hidden rounded-md border border-border">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-sm">
-                    <thead className="bg-muted/40 text-muted-foreground">
-                      <tr>
-                        <th className="px-3 py-3">Name of Religious Place / Sacred Site</th>
-                        <th className="px-3 py-3">Category / Type</th>
-                        <th className="px-3 py-3">Reason for Being Special / Notable</th>
-                        <th className="px-3 py-3">Used for Dhamma Schools / Pirivenas or Government Purposes?</th>
-                        <th className="px-3 py-3">Describe the Activity</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {religiousHeritageRows.length === 0 ? (
-                        <tr className="border-t last:border-b">
-                          <td colSpan={5} className="px-3 py-6 text-center text-muted-foreground">
-                            No religious place / sacred site records available.
-                          </td>
-                        </tr>
-                      ) : (
-                        religiousHeritageRows.map((row, index) => (
-                          <tr key={`${row.gnId}-${row.name}-${index}`} className="border-t last:border-b">
-                            <td className="px-3 py-3">{row.name || "—"}</td>
-                            <td className="px-3 py-3">{row.type || "—"}</td>
-                            <td className="px-3 py-3">{row.significance || "—"}</td>
-                            <td className="px-3 py-3">
-                              {row.usedForDhammaOrGovtPurpose === "yes"
-                                ? "Yes"
-                                : row.usedForDhammaOrGovtPurpose === "no"
-                                ? "No"
-                                : "—"}
-                            </td>
-                            <td className="px-3 py-3">{row.taskDescription || "—"}</td>
+          <TopicCard
+            icon={Users}
+            titleEn={COMMUNITY_ORGANIZATION_CARDS[0]?.en ?? "Community Organizations"}
+            titleSi={COMMUNITY_ORGANIZATION_CARDS[0]?.si ?? "ප්‍රජා සංවිධාන"}
+            onClick={() => setShowCommunityOrganizationsTable((value) => !value)}
+            buttonLabel={{ en: showCommunityOrganizationsTable ? "Hide" : "View", si: showCommunityOrganizationsTable ? "සඟවන්න" : "බලන්න" }}
+          />
+          {showCommunityOrganizationsTable && (
+            <Card className="card-lift overflow-hidden border-border/60 shadow-md">
+              <CardHeader>
+                <CardTitle className="font-display text-fluid-xl font-semibold text-foreground">
+                  <Bilingual
+                    en="Community, Governmental, and Non-Governmental Organizations"
+                    si="ප්‍රජාමූල, රාජ්‍ය හා රාජ්‍ය නොවන සංවිධාන"
+                  />
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {analyticsError ? (
+                  <div className="text-sm text-destructive">Unable to load organization data.</div>
+                ) : !analytics ? (
+                  <div className="text-sm text-muted-foreground">Loading…</div>
+                ) : (
+                  <div className="overflow-hidden rounded-md border border-border">
+                    <div ref={communityOrganizationsTableRef} className="overflow-x-auto">
+                      <table className="w-full text-left text-sm">
+                        <thead className="bg-muted/40 text-muted-foreground">
+                          <tr>
+                            <th className="px-3 py-3">
+                              <Bilingual
+                                en="Society type"
+                                si="සමිති වර්ගය"
+                              />
+                              </th>
+                            <th className="px-3 py-3">
+                              <Bilingual
+                                en="Number of Societies"
+                                si="සමිති සංඛ්‍යාව"
+                              />
+                            </th>
                           </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              <h3 className="pt-2 font-display text-fluid-lg font-semibold text-foreground">
-                <Bilingual en="Art Academies" si="කලා අභ්‍යාස මධ්‍යස්ථාන" />
-              </h3>
-
-              <div className="overflow-hidden rounded-md border border-border">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-sm">
-                    <thead className="bg-muted/40 text-muted-foreground">
-                      <tr>
-                        <th className="px-3 py-3">Name</th>
-                        <th className="px-3 py-3">Registration No</th>
-                        <th className="px-3 py-3">Student Count</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {religiousArtAcademyRows.length === 0 ? (
-                        <tr className="border-t last:border-b">
-                          <td colSpan={3} className="px-3 py-6 text-center text-muted-foreground">
-                            No art academy records available.
-                          </td>
-                        </tr>
-                      ) : (
-                        religiousArtAcademyRows.map((row, index) => (
-                          <tr key={`${row.gnId}-${row.name}-${index}`} className="border-t last:border-b">
-                            <td className="px-3 py-3">{row.name || "—"}</td>
-                            <td className="px-3 py-3">{row.registrationNumber || "—"}</td>
-                            <td className="px-3 py-3 nums-tabular">{(row.studentCount ?? 0).toLocaleString()}</td>
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              <h3 className="pt-2 font-display text-fluid-lg font-semibold text-foreground">
-                <Bilingual en="Traditional Artists" si="සම්ප්‍රදායික කලාකරුවන්" />
-              </h3>
-
-              <div className="overflow-hidden rounded-md border border-border">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-sm">
-                    <thead className="bg-muted/40 text-muted-foreground">
-                      <tr>
-                        <th className="px-3 py-3">Name</th>
-                        <th className="px-3 py-3">Art Form</th>
-                        <th className="px-3 py-3">Description</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {religiousTraditionalArtistRows.length === 0 ? (
-                        <tr className="border-t last:border-b">
-                          <td colSpan={3} className="px-3 py-6 text-center text-muted-foreground">
-                            No traditional artist records available.
-                          </td>
-                        </tr>
-                      ) : (
-                        religiousTraditionalArtistRows.map((row, index) => (
-                          <tr key={`${row.gnId}-${row.name}-${index}`} className="border-t last:border-b">
-                            <td className="px-3 py-3">{row.name || "—"}</td>
-                            <td className="px-3 py-3">{row.artForm || "—"}</td>
-                            <td className="px-3 py-3">{row.description || "—"}</td>
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </>
+                        </thead>
+                        <tbody>
+                          {communityOrganizationTableRows.map((row) => (
+                            <tr key={row.en} className="border-t last:border-b">
+                              <td className="px-3 py-3 font-medium">
+                                <Bilingual en={row.en} si={row.si} />
+                              </td>
+                              <td className="px-3 py-3 nums-tabular">{row.count.toLocaleString()}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    <div className="border-t border-border/80 bg-muted/50 px-4 py-3 text-right">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-2"
+                        onClick={() => communityOrganizationsTableRef.current?.scrollIntoView({ behavior: "smooth" })}
+                      >
+                        <ArrowUp className="size-4" />
+                        <Bilingual en="Back to top" si="ඉහළට" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           )}
+          <TopicCard
+            icon={Users}
+            titleEn="Village Development Societies"
+            titleSi="ග්‍රාම සංවර්ධන සමිති"
+            onClick={() => setShowVillageDevelopmentSocieties((value) => !value)}
+            buttonLabel={{ en: showVillageDevelopmentSocieties ? "Hide" : "View", si: showVillageDevelopmentSocieties ? "සඟවන්න" : "බලන්න" }}
+          />
+          {showVillageDevelopmentSocieties && (
+            <CommunityOrganizationDirectoryTable
+              titleEn="Village Development Societies"
+              titleSi="ග්‍රාම සංවර්ධන සමිති"
+              nameHeaderEn="Name of Village Development Societies"
+              nameHeaderSi="ග්‍රාම සංවර්ධන සමිතියේ නම"
+              rows={villageDevelopmentSocietyRows}
+              tableRef={villageDevelopmentSocietiesTableRef}
+              isLoading={!analytics}
+              error={analyticsError}
+            />
+          )}
+
+          <TopicCard
+            icon={Users}
+            titleEn="Youth Clubs"
+            titleSi="යෞවන සමාජ"
+            onClick={() => setShowYouthClubs((value) => !value)}
+            buttonLabel={{ en: showYouthClubs ? "Hide" : "View", si: showYouthClubs ? "සඟවන්න" : "බලන්න" }}
+          />
+          {showYouthClubs && (
+            <CommunityOrganizationDirectoryTable
+              titleEn="Youth Clubs"
+              titleSi="යෞවන සමාජ"
+              nameHeaderEn="Name of Youth Clubs"
+              nameHeaderSi="යෞවන සමාජයේ නම"
+              rows={youthClubRows}
+              tableRef={youthClubsTableRef}
+              isLoading={!analytics}
+              error={analyticsError}
+            />
+          )}
+
+          <TopicCard
+            icon={Users}
+            titleEn="Sports Clubs"
+            titleSi="ක්‍රීඩා සමාජ"
+            onClick={() => setShowSportsClubs((value) => !value)}
+            buttonLabel={{ en: showSportsClubs ? "Hide" : "View", si: showSportsClubs ? "සඟවන්න" : "බලන්න" }}
+          />
+          {showSportsClubs && (
+            <CommunityOrganizationDirectoryTable
+              titleEn="Sports Clubs"
+              titleSi="ක්‍රීඩා සමාජ"
+              nameHeaderEn="Name of Sports Clubs"
+              nameHeaderSi="ක්‍රීඩා සමාජයේ නම"
+              rows={sportsClubRows}
+              tableRef={sportsClubsTableRef}
+              isLoading={!analytics}
+              error={analyticsError}
+              showMembersAndNeeds
+            />
+          )}
+
+          <TopicCard
+            icon={Users}
+            titleEn="Funeral Welfare Societies"
+            titleSi="අවමංගල්‍යාධාර සමිති"
+            onClick={() => setShowFuneralWelfareSocieties((value) => !value)}
+            buttonLabel={{ en: showFuneralWelfareSocieties ? "Hide" : "View", si: showFuneralWelfareSocieties ? "සඟවන්න" : "බලන්න" }}
+          />
+          {showFuneralWelfareSocieties && (
+            <CommunityOrganizationDirectoryTable
+              titleEn="Funeral Welfare Societies"
+              titleSi="අවමංගල්‍යාධාර සමිති"
+              nameHeaderEn="Name of Funeral Welfare Societies"
+              nameHeaderSi="අවමංගල්‍යාධාර සමිතියේ නම"
+              rows={funeralWelfareSocietyRows}
+              tableRef={funeralWelfareSocietiesTableRef}
+              isLoading={!analytics}
+              error={analyticsError}
+            />
+          )}
+
+          <TopicCard
+            icon={Users}
+            titleEn="Women's Societies"
+            titleSi="කාන්තා සමිති"
+            onClick={() => setShowWomensSocieties((value) => !value)}
+            buttonLabel={{ en: showWomensSocieties ? "Hide" : "View", si: showWomensSocieties ? "සඟවන්න" : "බලන්න" }}
+          />
+          {showWomensSocieties && (
+            <CommunityOrganizationDirectoryTable
+              titleEn="Women's Societies"
+              titleSi="කාන්තා සමිති"
+              nameHeaderEn="Name of Women's Societies"
+              nameHeaderSi="කාන්තා සමිතියේ නම"
+              rows={womensSocietyRows}
+              tableRef={womensSocietiesTableRef}
+              isLoading={!analytics}
+              error={analyticsError}
+            />
+          )}
+
+          <TopicCard
+            icon={Users}
+            titleEn="Senior Citizens' Societies"
+            titleSi="වැඩිහිටි සමිති"
+            onClick={() => setShowSeniorCitizensSocieties((value) => !value)}
+            buttonLabel={{ en: showSeniorCitizensSocieties ? "Hide" : "View", si: showSeniorCitizensSocieties ? "සඟවන්න" : "බලන්න" }}
+          />
+          {showSeniorCitizensSocieties && (
+            <CommunityOrganizationDirectoryTable
+              titleEn="Senior Citizens' Societies"
+              titleSi="වැඩිහිටි සමිති"
+              nameHeaderEn="Name of Senior Citizens' Societies"
+              nameHeaderSi="වැඩිහිටි සමිතියේ නම"
+              rows={seniorCitizensSocietyRows}
+              tableRef={seniorCitizensSocietiesTableRef}
+              isLoading={!analytics}
+              error={analyticsError}
+            />
+          )}
+
+          <TopicCard
+            icon={Users}
+            titleEn="Children's Clubs"
+            titleSi="ළමා සමාජ"
+            onClick={() => setShowChildrensClubs((value) => !value)}
+            buttonLabel={{ en: showChildrensClubs ? "Hide" : "View", si: showChildrensClubs ? "සඟවන්න" : "බලන්න" }}
+          />
+          {showChildrensClubs && (
+            <CommunityOrganizationDirectoryTable
+              titleEn="Children's Clubs"
+              titleSi="ළමා සමාජ"
+              nameHeaderEn="Name of Children's Clubs"
+              nameHeaderSi="ළමා සමාජයේ නම"
+              rows={childrensClubRows}
+              tableRef={childrensClubsTableRef}
+              isLoading={!analytics}
+              error={analyticsError}
+            />
+          )}
+
+          <TopicCard
+            icon={Users}
+            titleEn="Samurdhi Society"
+            titleSi="සමෘද්ධි සමිතිය"
+            onClick={() => setShowSamurdhiSocieties((value) => !value)}
+            buttonLabel={{ en: showSamurdhiSocieties ? "Hide" : "View", si: showSamurdhiSocieties ? "සඟවන්න" : "බලන්න" }}
+          />
+          {showSamurdhiSocieties && (
+            <CommunityOrganizationDirectoryTable
+              titleEn="Samurdhi Society"
+              titleSi="සමෘද්ධි සමිතිය"
+              nameHeaderEn="Name of Samurdhi Societies"
+              nameHeaderSi="සමෘද්ධි සමිතියේ නම"
+              rows={samurdhiSocietyRows}
+              tableRef={samurdhiSocietiesTableRef}
+              isLoading={!analytics}
+              error={analyticsError}
+            />
+          )}
+
+          <TopicCard
+            icon={Users}
+            titleEn="Mithuru Organization / Mithuru Partnership"
+            titleSi="මිතුරු සංවිධාන / මිතුරු හවුල්"
+            onClick={() => setShowMithuruOrganizations((value) => !value)}
+            buttonLabel={{ en: showMithuruOrganizations ? "Hide" : "View", si: showMithuruOrganizations ? "සඟවන්න" : "බලන්න" }}
+          />
+          {showMithuruOrganizations && (
+            <CommunityOrganizationDirectoryTable
+              titleEn="Mithuru Organization / Mithuru Partnership"
+              titleSi="මිතුරු සංවිධාන / මිතුරු හවුල්"
+              nameHeaderEn="Name of Mithuru Organizations / Mithuru Partnerships"
+              nameHeaderSi="මිතුරු සංවිධානයේ නම / මිතුරු හවුල්ලේ නම"
+              rows={mithuruOrganizationRows}
+              tableRef={mithuruOrganizationsTableRef}
+              isLoading={!analytics}
+              error={analyticsError}
+            />
+          )}
+
+          <TopicCard
+            icon={Users}
+            titleEn="Non-Governmental Organization"
+            titleSi="රාජ්‍ය නොවන සංවිධානය"
+            onClick={() => setShowNonGovernmentalOrganizations((value) => !value)}
+            buttonLabel={{ en: showNonGovernmentalOrganizations ? "Hide" : "View", si: showNonGovernmentalOrganizations ? "සඟවන්න" : "බලන්න" }}
+          />
+          {showNonGovernmentalOrganizations && (
+            <CommunityOrganizationDirectoryTable
+              titleEn="Non-Governmental Organization"
+              titleSi="රාජ්‍ය නොවන සංවිධානය"
+              nameHeaderEn="Name of Non-Governmental Organizations"
+              nameHeaderSi="රාජ්‍ය නොවන සංවිධානයේ නම"
+              rows={nonGovernmentalOrganizationRows}
+              tableRef={nonGovernmentalOrganizationsTableRef}
+              isLoading={!analytics}
+              error={analyticsError}
+            />
+          )}
+
+          <TopicCard
+            icon={Users}
+            titleEn="Farmers' Society"
+            titleSi="ගොවි සමිතිය"
+            onClick={() => setShowFarmersSocieties((value) => !value)}
+            buttonLabel={{ en: showFarmersSocieties ? "Hide" : "View", si: showFarmersSocieties ? "සඟවන්න" : "බලන්න" }}
+          />
+          {showFarmersSocieties && (
+            <CommunityOrganizationDirectoryTable
+              titleEn="Farmers' Society"
+              titleSi="ගොවි සමිතිය"
+              nameHeaderEn="Name of Farmers' Societies"
+              nameHeaderSi="ගොවි සමිතියේ නම"
+              rows={farmersSocietyRows}
+              tableRef={farmersSocietiesTableRef}
+              isLoading={!analytics}
+              error={analyticsError}
+            />
+          )}
+
+          <TopicCard
+            icon={Users}
+            titleEn="Religious Society"
+            titleSi="ආගමික සමිතිය"
+            onClick={() => setShowReligiousSocieties((value) => !value)}
+            buttonLabel={{ en: showReligiousSocieties ? "Hide" : "View", si: showReligiousSocieties ? "සඟවන්න" : "බලන්න" }}
+          />
+          {showReligiousSocieties && (
+            <CommunityOrganizationDirectoryTable
+              titleEn="Religious Society"
+              titleSi="ආගමික සමිතිය"
+              nameHeaderEn="Name of Religious Societies"
+              nameHeaderSi="ආගමික සමිතියේ නම"
+              rows={religiousSocietyRows}
+              tableRef={religiousSocietiesTableRef}
+              isLoading={!analytics}
+              error={analyticsError}
+            />
+          )}
+
+          <TopicCard
+            icon={Users}
+            titleEn="Sanasa (Credit/Microfinance) Society"
+            titleSi="සණස (ණය / සුළු මූල්‍ය) සමිතිය"
+            onClick={() => setShowSanasaSocieties((value) => !value)}
+            buttonLabel={{ en: showSanasaSocieties ? "Hide" : "View", si: showSanasaSocieties ? "සඟවන්න" : "බලන්න" }}
+          />
+          {showSanasaSocieties && (
+            <CommunityOrganizationDirectoryTable
+              titleEn="Sanasa (Credit/Microfinance) Society"
+              titleSi="සණස (ණය / සුළු මූල්‍ය) සමිතිය"
+              nameHeaderEn="Name of Sanasa Societies"
+              nameHeaderSi="සණස (ණය / සුළු මූල්‍ය) සමිතියේ නම"
+              rows={sanasaSocietyRows}
+              tableRef={sanasaSocietiesTableRef}
+              isLoading={!analytics}
+              error={analyticsError}
+            />
+          )}
+
+          <TopicCard
+            icon={Users}
+            titleEn="Civil Defense Committees"
+            titleSi="සිවිල් ආරක්ෂක කමිටු"
+            onClick={() => setShowCivilDefenseCommittees((value) => !value)}
+            buttonLabel={{ en: showCivilDefenseCommittees ? "Hide" : "View", si: showCivilDefenseCommittees ? "සඟවන්න" : "බලන්න" }}
+          />
+          {showCivilDefenseCommittees && (
+            <CommunityOrganizationDirectoryTable
+              titleEn="Civil Defense Committees"
+              titleSi="සිවිල් ආරක්ෂක කමිටු"
+              nameHeaderEn="Name of Civil Defense Committees"
+              nameHeaderSi="සිවිල් ආරක්ෂක කමිටු නම"
+              rows={civilDefenseCommitteeRows}
+              tableRef={civilDefenseCommitteesTableRef}
+              isLoading={!analytics}
+              error={analyticsError}
+            />
+          )}
+
+          <TopicCard
+            icon={Users}
+            titleEn="Praja Shakthi (Community Empowerment) Society"
+            titleSi="ප්‍රජා ශක්ති (ප්‍රජා සවිබල ගැන්වීමේ) සමිතිය"
+            onClick={() => setShowPrajaShakthiSocieties((value) => !value)}
+            buttonLabel={{ en: showPrajaShakthiSocieties ? "Hide" : "View", si: showPrajaShakthiSocieties ? "සඟවන්න" : "බලන්න" }}
+          />
+          {showPrajaShakthiSocieties && (
+            <CommunityOrganizationDirectoryTable
+              titleEn="Praja Shakthi (Community Empowerment) Society"
+              titleSi="ප්‍රජා ශක්ති (ප්‍රජා සවිබල ගැන්වීමේ) සමිතිය"
+              nameHeaderEn="Name of Praja Shakthi Societies"
+              nameHeaderSi="ප්‍රජා ශක්ති (ප්‍රජා සවිබල ගැන්වීමේ) සමිතියේ නම"
+              rows={prajaShakthiSocietyRows}
+              tableRef={prajaShakthiSocietiesTableRef}
+              isLoading={!analytics}
+              error={analyticsError}
+            />
+          )}
+
+          <TopicCard
+            icon={Users}
+            titleEn={COMMUNITY_ORGANIZATION_CARDS[16]?.en ?? "Cooperative Societies"}
+            titleSi={COMMUNITY_ORGANIZATION_CARDS[16]?.si ?? "සමූපකාර සමිති"}
+            onClick={() => setShowCooperativeSocieties((value) => !value)}
+            buttonLabel={{ en: showCooperativeSocieties ? "Hide" : "View", si: showCooperativeSocieties ? "සඟවන්න" : "බලන්න" }}
+          />
+          {showCooperativeSocieties && (
+            <CommunityOrganizationDirectoryTable
+              titleEn="Information Regarding Cooperative Societies Operating Within the Grama Niladhari Division"
+              titleSi="ග්‍රාම නිලධාරී වසම තුළ ක්‍රියාත්මක සමූපකාර සමිති පිළිබඳ තොරතුරු"
+              nameHeaderEn="Name of Multi-Purpose Cooperative Society (MPCS)"
+              nameHeaderSi="බහු කාර්ය සමූපකාර සමිතියේ (MPCS) නම"
+              rows={cooperativeSocietyRows}
+              tableRef={cooperativeSocietiesTableRef}
+              isLoading={!analytics}
+              error={analyticsError}
+              showAddress={false}
+            />
+          )}
+
         </div>
       ) : !isIdentification ? (
         <Card>
