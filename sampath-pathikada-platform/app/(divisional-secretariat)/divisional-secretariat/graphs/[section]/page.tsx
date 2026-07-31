@@ -158,91 +158,268 @@ function SocialWelfareTable({
   const paymentCounts = communityWelfare.welfarePaymentHouseholdCounts;
   const allowanceCounts = communityWelfare.allowanceRecipientCounts;
   const totalFamilies = paymentCounts.rs2500 + paymentCounts.rs5000 + paymentCounts.rs8500 + paymentCounts.rs15000;
+  const eldersHomesRows = communityWelfare.eldersHomes.rows;
+  const childrensHomesRows = communityWelfare.childrensHomes.rows;
+
+  const authorityLabel = (authority: string | undefined) => {
+    if (!authority) return "—";
+    if (authority === "govt") return lang === "si" ? "රාජ්‍ය" : "Government";
+    if (authority === "private") return lang === "si" ? "පෞද්ගලික" : "Private";
+    return authority;
+  };
+
+  const childrensAuthorityLabel = (authority: string | undefined) => {
+    if (!authority) return "—";
+    if (authority === "govt") return lang === "si" ? "රාජ්‍ය" : "Government";
+    if (authority === "ngo") return lang === "si" ? "ස්වේච්ඡා" : "Voluntary";
+    if (authority === "private") return lang === "si" ? "පෞද්ගලික" : "Private";
+    return authority;
+  };
+
+  const childrensCategoryLabel = (category: string | undefined) => {
+    if (!category) return "—";
+    if (category === "childrens-home") return lang === "si" ? "ළමා නිවාසය" : "Children's Home";
+    if (category === "certified-school") return lang === "si" ? "සහතික කළ පාසල" : "Certified School";
+    if (category === "probation-home") return lang === "si" ? "පරිවාස නිවාසය" : "Probation Home";
+    if (category === "detention-home") return lang === "si" ? "රඳවා තැබීමේ නිවාසය" : "Detention Home";
+    return category;
+  };
 
   return (
     <Card className="overflow-hidden border-border/60 shadow-md">
       <CardContent className="p-0">
-        <div className="space-y-4 overflow-x-auto">
-          <table className="w-full border-collapse text-left text-sm">
-            <tbody>
-              <tr className="border-b bg-muted/40">
-                <th colSpan={6} className="px-3 py-3 text-base font-semibold text-foreground">
-                  <Bilingual en="Number of Families" si="පවුල් සංඛ්‍යාව" />
-                </th>
-              </tr>
-              <tr className="border-b bg-muted/20 text-muted-foreground">
-                <th className="px-3 py-3 whitespace-nowrap">{lang === "si" ? "මුළු පවුල් සංඛ්‍යාව" : "Total Number of Families"}</th>
-                <th className="px-3 py-3 whitespace-nowrap">{lang === "si" ? "සංක්‍රාන්තික (රු. 2,500)" : "Transitional (Rs. 2,500)"}</th>
-                <th className="px-3 py-3 whitespace-nowrap">{lang === "si" ? "අවදානම් / අවදානමට ලක්වූ (රු. 5,000)" : "Vulnerable / At Risk (Rs. 5,000)"}</th>
-                <th className="px-3 py-3 whitespace-nowrap">{lang === "si" ? "දුප්පත් (රු. 8,500)" : "Poor (Rs. 8500)"}</th>
-                <th className="px-3 py-3 whitespace-nowrap">{lang === "si" ? "ඉතා දුප්පත් (රු. 15,000)" : "Extremely Poor (Rs. 15000)"}</th>
-                <th className="px-3 py-3 whitespace-nowrap">{lang === "si" ? "ප්‍රතිලාභීන්ගේ මුළු සංඛ්‍යාව" : "Total Number of Beneficiaries"}</th>
-              </tr>
-              <tr className="border-b">
-                <td className="px-3 py-3 nums-tabular">{totalFamilies.toLocaleString()}</td>
-                <td className="px-3 py-3 nums-tabular">{paymentCounts.rs2500.toLocaleString()}</td>
-                <td className="px-3 py-3 nums-tabular">{paymentCounts.rs5000.toLocaleString()}</td>
-                <td className="px-3 py-3 nums-tabular">{paymentCounts.rs8500.toLocaleString()}</td>
-                <td className="px-3 py-3 nums-tabular">{paymentCounts.rs15000.toLocaleString()}</td>
-                <td className="px-3 py-3 nums-tabular">{paymentCounts.totalAswesumaRecipients.toLocaleString()}</td>
-              </tr>
-            </tbody>
-          </table>
+        <div className="space-y-10">
+          <section className="space-y-2">
+            <h3 className="px-3 pt-3 text-base font-semibold text-foreground">
+              <Bilingual en="Number of Families" si="පවුල් සංඛ්‍යාව" />
+            </h3>
+            <div className="overflow-x-auto rounded-md border border-border/70">
+              <table className="w-full border-collapse text-left text-sm">
+                <thead className="bg-muted/20 text-muted-foreground">
+                  <tr>
+                    <th className="px-3 py-3 whitespace-nowrap">{lang === "si" ? "මුළු පවුල් සංඛ්‍යාව" : "Total Number of Families"}</th>
+                    <th className="px-3 py-3 whitespace-nowrap">{lang === "si" ? "සංක්‍රාන්තික (රු. 2,500)" : "Transitional (Rs. 2,500)"}</th>
+                    <th className="px-3 py-3 whitespace-nowrap">{lang === "si" ? "අවදානම් / අවදානමට ලක්වූ (රු. 5,000)" : "Vulnerable / At Risk (Rs. 5,000)"}</th>
+                    <th className="px-3 py-3 whitespace-nowrap">{lang === "si" ? "දුප්පත් (රු. 8,500)" : "Poor (Rs. 8500)"}</th>
+                    <th className="px-3 py-3 whitespace-nowrap">{lang === "si" ? "ඉතා දුප්පත් (රු. 15,000)" : "Extremely Poor (Rs. 15000)"}</th>
+                    <th className="px-3 py-3 whitespace-nowrap">{lang === "si" ? "ප්‍රතිලාභීන්ගේ මුළු සංඛ්‍යාව" : "Total Number of Beneficiaries"}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="border-t">
+                    <td className="px-3 py-3 nums-tabular">{totalFamilies.toLocaleString()}</td>
+                    <td className="px-3 py-3 nums-tabular">{paymentCounts.rs2500.toLocaleString()}</td>
+                    <td className="px-3 py-3 nums-tabular">{paymentCounts.rs5000.toLocaleString()}</td>
+                    <td className="px-3 py-3 nums-tabular">{paymentCounts.rs8500.toLocaleString()}</td>
+                    <td className="px-3 py-3 nums-tabular">{paymentCounts.rs15000.toLocaleString()}</td>
+                    <td className="px-3 py-3 nums-tabular">{paymentCounts.totalAswesumaRecipients.toLocaleString()}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
 
-          <table className="w-full border-collapse text-left text-sm">
-            <tbody>
-              <tr className="border-y bg-muted/40">
-                <th colSpan={9} className="px-3 py-3 text-base font-semibold text-foreground">
-                  <Bilingual en="Number of Beneficiaries" si="ප්‍රතිලාභීන් සංඛ්‍යාව" />
-                </th>
-              </tr>
-              <tr className="border-b bg-muted/20 text-muted-foreground">
-                <th rowSpan={2} className="px-3 py-3 align-middle whitespace-nowrap">
-                  <Bilingual en="Disability Allowance" si="ආබාධිත දීමනාව" />
-                </th>
-                <th rowSpan={2} className="px-3 py-3 align-middle whitespace-nowrap">
-                  <Bilingual en="Elderly Allowance" si="වැඩිහිටි දීමනාව" />
-                </th>
-                <th rowSpan={2} className="px-3 py-3 align-middle whitespace-nowrap">
-                  <Bilingual en="Nutrition Stamps" si="පෝෂණ මුද්දර" />
-                </th>
-                <th rowSpan={2} className="px-3 py-3 align-middle whitespace-nowrap">
-                  <Bilingual en="Public Assistance" si="මහජන සහන ආධාර" />
-                </th>
-                <th colSpan={4} className="px-3 py-3 text-center whitespace-nowrap">
-                  <Bilingual en="Medical Relief" si="වෛද්‍ය ආධාර" />
-                </th>
-                <th rowSpan={2} className="px-3 py-3 align-middle whitespace-nowrap">
-                  <Bilingual en="Other" si="වෙනත්" />
-                </th>
-              </tr>
-              <tr className="border-b bg-muted/20 text-muted-foreground">
-                <th className="px-3 py-3 whitespace-nowrap">
-                  <Bilingual en="Kidney Disease" si="වකුගඩු රෝග" />
-                </th>
-                <th className="px-3 py-3 whitespace-nowrap">
-                  <Bilingual en="Cancer" si="පිළිකා" />
-                </th>
-                <th className="px-3 py-3 whitespace-nowrap">
-                  <Bilingual en="Thalassemia" si="තැලසීමියා" />
-                </th>
-                <th className="px-3 py-3 whitespace-nowrap">
-                  <Bilingual en="Diabetes" si="දියවැඩියාව" />
-                </th>
-              </tr>
-              <tr className="border-b">
-                <td className="px-3 py-3 nums-tabular">{allowanceCounts.disabilityAllowance.toLocaleString()}</td>
-                <td className="px-3 py-3 nums-tabular">{allowanceCounts.elderlyAllowance.toLocaleString()}</td>
-                <td className="px-3 py-3 nums-tabular">{allowanceCounts.nutritionAllowance.toLocaleString()}</td>
-                <td className="px-3 py-3 nums-tabular">{allowanceCounts.publicAssistance.toLocaleString()}</td>
-                <td className="px-3 py-3 nums-tabular">{allowanceCounts.diseaseAidWheelchair.toLocaleString()}</td>
-                <td className="px-3 py-3 nums-tabular">{allowanceCounts.diseaseAidCancer.toLocaleString()}</td>
-                <td className="px-3 py-3 nums-tabular">{allowanceCounts.diseaseAidThalassemia.toLocaleString()}</td>
-                <td className="px-3 py-3 nums-tabular">{allowanceCounts.diseaseAidDiabetes.toLocaleString()}</td>
-                <td className="px-3 py-3 nums-tabular">{allowanceCounts.other.toLocaleString()}</td>
-              </tr>
-            </tbody>
-          </table>
+          <section className="space-y-2">
+            <h3 className="px-3 text-base font-semibold text-foreground">
+              <Bilingual en="Number of Beneficiaries" si="ප්‍රතිලාභීන් සංඛ්‍යාව" />
+            </h3>
+            <div className="overflow-x-auto rounded-md border border-border/70">
+              <table className="w-full border-collapse text-left text-sm">
+                <thead className="bg-muted/20 text-muted-foreground">
+                  <tr>
+                    <th rowSpan={2} className="px-3 py-3 align-middle whitespace-nowrap">
+                      <Bilingual en="Disability Allowance" si="ආබාධිත දීමනාව" />
+                    </th>
+                    <th rowSpan={2} className="px-3 py-3 align-middle whitespace-nowrap">
+                      <Bilingual en="Elderly Allowance" si="වැඩිහිටි දීමනාව" />
+                    </th>
+                    <th rowSpan={2} className="px-3 py-3 align-middle whitespace-nowrap">
+                      <Bilingual en="Nutrition Stamps" si="පෝෂණ මුද්දර" />
+                    </th>
+                    <th rowSpan={2} className="px-3 py-3 align-middle whitespace-nowrap">
+                      <Bilingual en="Public Assistance" si="මහජන සහන ආධාර" />
+                    </th>
+                    <th colSpan={4} className="px-3 py-3 text-center whitespace-nowrap">
+                      <Bilingual en="Medical Relief" si="වෛද්‍ය ආධාර" />
+                    </th>
+                    <th rowSpan={2} className="px-3 py-3 align-middle whitespace-nowrap">
+                      <Bilingual en="Other" si="වෙනත්" />
+                    </th>
+                  </tr>
+                  <tr>
+                    <th className="px-3 py-3 whitespace-nowrap">
+                      <Bilingual en="Kidney Disease" si="වකුගඩු රෝග" />
+                    </th>
+                    <th className="px-3 py-3 whitespace-nowrap">
+                      <Bilingual en="Cancer" si="පිළිකා" />
+                    </th>
+                    <th className="px-3 py-3 whitespace-nowrap">
+                      <Bilingual en="Thalassemia" si="තැලසීමියා" />
+                    </th>
+                    <th className="px-3 py-3 whitespace-nowrap">
+                      <Bilingual en="Diabetes" si="දියවැඩියාව" />
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="border-t">
+                    <td className="px-3 py-3 nums-tabular">{allowanceCounts.disabilityAllowance.toLocaleString()}</td>
+                    <td className="px-3 py-3 nums-tabular">{allowanceCounts.elderlyAllowance.toLocaleString()}</td>
+                    <td className="px-3 py-3 nums-tabular">{allowanceCounts.nutritionAllowance.toLocaleString()}</td>
+                    <td className="px-3 py-3 nums-tabular">{allowanceCounts.publicAssistance.toLocaleString()}</td>
+                    <td className="px-3 py-3 nums-tabular">{allowanceCounts.diseaseAidWheelchair.toLocaleString()}</td>
+                    <td className="px-3 py-3 nums-tabular">{allowanceCounts.diseaseAidCancer.toLocaleString()}</td>
+                    <td className="px-3 py-3 nums-tabular">{allowanceCounts.diseaseAidThalassemia.toLocaleString()}</td>
+                    <td className="px-3 py-3 nums-tabular">{allowanceCounts.diseaseAidDiabetes.toLocaleString()}</td>
+                    <td className="px-3 py-3 nums-tabular">{allowanceCounts.other.toLocaleString()}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section className="space-y-2">
+            <h3 className="px-3 text-base font-semibold text-foreground">
+              <Bilingual en="Information Regarding Elders' Homes" si="වැඩිහිටි නිවාස පිළිබඳ තොරතුරු" />
+            </h3>
+            <div className="overflow-x-auto rounded-md border border-border/70">
+              <table className="w-full border-collapse text-left text-sm">
+                <thead className="bg-muted/20 text-muted-foreground">
+                  <tr>
+                    <th rowSpan={2} className="border-b px-3 py-3 align-middle whitespace-nowrap">
+                      <Bilingual en="Name of Elders' Home" si="වැඩිහිටි නිවාසයේ නම" />
+                    </th>
+                    <th rowSpan={2} className="border-b px-3 py-3 align-middle whitespace-nowrap">
+                      <Bilingual en="Address" si="ලිපිනය" />
+                    </th>
+                    <th rowSpan={2} className="border-b px-3 py-3 align-middle whitespace-nowrap">
+                      <Bilingual en="Managing Institution" si="පාලන ආයතනය" />
+                    </th>
+                    <th rowSpan={2} className="border-b px-3 py-3 align-middle whitespace-nowrap">
+                      <Bilingual en="Telephone Number" si="දුරකථන අංකය" />
+                    </th>
+                    <th rowSpan={2} className="border-b px-3 py-3 align-middle whitespace-nowrap">
+                      <Bilingual en="Requirement of Infrastructure Facilities" si="යටිතල පහසුකම් අවශ්‍යතා" />
+                    </th>
+                    <th rowSpan={2} className="border-b px-3 py-3 align-middle whitespace-nowrap">
+                      <Bilingual en="Capacity of Elders' Home" si="වැඩිහිටි නිවාස ධාරිතාව" />
+                    </th>
+                    <th colSpan={2} className="border-b px-3 py-3 text-center whitespace-nowrap">
+                      <Bilingual en="Current Number of Resident Elders" si="වර්තමාන වාසී වැඩිහිටියන් සංඛ්‍යාව" />
+                    </th>
+                  </tr>
+                  <tr>
+                    <th className="border-b px-3 py-3 text-center whitespace-nowrap">
+                      <Bilingual en="Female" si="ස්ත්‍රී" />
+                    </th>
+                    <th className="border-b px-3 py-3 text-center whitespace-nowrap">
+                      <Bilingual en="Male" si="පුරුෂ" />
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {eldersHomesRows.length === 0 ? (
+                    <tr className="border-b">
+                      <td className="px-3 py-3 nums-tabular text-center">0</td>
+                      <td className="px-3 py-3 nums-tabular text-center">0</td>
+                      <td className="px-3 py-3 nums-tabular text-center">0</td>
+                      <td className="px-3 py-3 nums-tabular text-center">0</td>
+                      <td className="px-3 py-3 nums-tabular text-center">0</td>
+                      <td className="px-3 py-3 nums-tabular text-center">0</td>
+                      <td className="px-3 py-3 nums-tabular text-center">0</td>
+                      <td className="px-3 py-3 nums-tabular text-center">0</td>
+                    </tr>
+                  ) : (
+                    eldersHomesRows.map((row, index) => (
+                      <tr key={`${row.gnId}-${row.name}-${index}`} className="border-b">
+                        <td className="px-3 py-3">{row.name || "—"}</td>
+                        <td className="px-3 py-3">{row.address || "—"}</td>
+                        <td className="px-3 py-3">{authorityLabel(row.authority)}</td>
+                        <td className="px-3 py-3 nums-tabular">{row.phone || "—"}</td>
+                        <td className="px-3 py-3">{row.infrastructureNeeds || "—"}</td>
+                        <td className="px-3 py-3 nums-tabular">{(row.capacity ?? 0).toLocaleString()}</td>
+                        <td className="px-3 py-3 nums-tabular text-center">{(row.residentCount?.female ?? 0).toLocaleString()}</td>
+                        <td className="px-3 py-3 nums-tabular text-center">{(row.residentCount?.male ?? 0).toLocaleString()}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section className="space-y-2">
+            <h3 className="px-3 text-base font-semibold text-foreground">
+              <Bilingual
+                en="Information Regarding Government and Voluntary Children's Homes"
+                si="රාජ්‍ය හා ස්වේච්ඡා ළමා නිවාස පිළිබඳ තොරතුරු"
+              />
+            </h3>
+            <div className="overflow-x-auto rounded-md border border-border/70">
+              <table className="w-full border-collapse text-left text-sm">
+                <thead className="bg-muted/20 text-muted-foreground">
+                  <tr>
+                    <th rowSpan={2} className="border-b px-3 py-3 align-middle whitespace-nowrap">
+                      <Bilingual en="Name of Children's Home" si="ළමා නිවාසයේ නම" />
+                    </th>
+                    <th rowSpan={2} className="border-b px-3 py-3 align-middle whitespace-nowrap">
+                      <Bilingual en="Address" si="ලිපිනය" />
+                    </th>
+                    <th rowSpan={2} className="border-b px-3 py-3 align-middle whitespace-nowrap">
+                      <Bilingual en="Managing Institution" si="පාලන ආයතනය" />
+                    </th>
+                    <th rowSpan={2} className="border-b px-3 py-3 align-middle whitespace-nowrap">
+                      <Bilingual en="Category" si="ප්‍රවර්ගය" />
+                    </th>
+                    <th rowSpan={2} className="border-b px-3 py-3 align-middle whitespace-nowrap">
+                      <Bilingual en="Capacity of Children's Home" si="ළමා නිවාස ධාරිතාව" />
+                    </th>
+                    <th colSpan={3} className="border-b px-3 py-3 text-center whitespace-nowrap">
+                      <Bilingual en="Current Number of Resident Children" si="වර්තමාන වාසී ළමුන් සංඛ්‍යාව" />
+                    </th>
+                  </tr>
+                  <tr>
+                    <th className="border-b px-3 py-3 text-center whitespace-nowrap">
+                      <Bilingual en="Female" si="ස්ත්‍රී" />
+                    </th>
+                    <th className="border-b px-3 py-3 text-center whitespace-nowrap">
+                      <Bilingual en="Male" si="පුරුෂ" />
+                    </th>
+                    <th className="border-b px-3 py-3 text-center whitespace-nowrap">
+                      <Bilingual en="Total" si="එකතුව" />
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {childrensHomesRows.length === 0 ? (
+                    <tr className="border-b">
+                      <td className="px-3 py-3 nums-tabular text-center">0</td>
+                      <td className="px-3 py-3 nums-tabular text-center">0</td>
+                      <td className="px-3 py-3 nums-tabular text-center">0</td>
+                      <td className="px-3 py-3 nums-tabular text-center">0</td>
+                      <td className="px-3 py-3 nums-tabular text-center">0</td>
+                      <td className="px-3 py-3 nums-tabular text-center">0</td>
+                      <td className="px-3 py-3 nums-tabular text-center">0</td>
+                      <td className="px-3 py-3 nums-tabular text-center">0</td>
+                    </tr>
+                  ) : (
+                    childrensHomesRows.map((row, index) => (
+                      <tr key={`${row.gnId}-${row.name}-${index}`} className="border-b">
+                        <td className="px-3 py-3">{row.name || "—"}</td>
+                        <td className="px-3 py-3">{row.address || "—"}</td>
+                        <td className="px-3 py-3">{childrensAuthorityLabel(row.authority)}</td>
+                        <td className="px-3 py-3">{childrensCategoryLabel(row.type)}</td>
+                        <td className="px-3 py-3 nums-tabular">{(row.capacity ?? 0).toLocaleString()}</td>
+                        <td className="px-3 py-3 nums-tabular text-center">{(row.residentCount?.female ?? 0).toLocaleString()}</td>
+                        <td className="px-3 py-3 nums-tabular text-center">{(row.residentCount?.male ?? 0).toLocaleString()}</td>
+                        <td className="px-3 py-3 nums-tabular text-center">{((row.residentCount?.female ?? 0) + (row.residentCount?.male ?? 0)).toLocaleString()}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </section>
         </div>
       </CardContent>
     </Card>
@@ -265,6 +442,7 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
   const isSocialWelfare = section === "social-welfare";
   const [employmentGnDivision, setEmploymentGnDivision] = React.useState("all");
   const [religiousGnDivision, setReligiousGnDivision] = React.useState("all");
+  const [socialWelfareGnDivision, setSocialWelfareGnDivision] = React.useState("all");
   const showMahaweliColumn = user?.dsDivision === "hambantota-ds";
   const { data, error, isLoading } = useSWR(
     isIdentification ? "/api/registrations?role=gn&status=all&limit=100" : null,
@@ -289,6 +467,12 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
     const stillExists = employmentGnOptions.some((gn) => gn.id === religiousGnDivision);
     if (!stillExists) setReligiousGnDivision("all");
   }, [religiousGnDivision, employmentGnOptions]);
+
+  React.useEffect(() => {
+    if (socialWelfareGnDivision === "all") return;
+    const stillExists = employmentGnOptions.some((gn) => gn.id === socialWelfareGnDivision);
+    if (!stillExists) setSocialWelfareGnDivision("all");
+  }, [socialWelfareGnDivision, employmentGnOptions]);
 
   const title = isIdentification
     ? { en: "Identification", si: "හඳුනාගැනීම" }
@@ -369,8 +553,19 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
     if (isReligiousCultural && religiousGnDivision !== "all") {
       params.set("gnDivisions", religiousGnDivision);
     }
+    if (isSocialWelfare && socialWelfareGnDivision !== "all") {
+      params.set("gnDivisions", socialWelfareGnDivision);
+    }
     return `/api/analytics?${params.toString()}`;
-  }, [isDemographics, isEmployment, isReligiousCultural, isSocialWelfare, employmentGnDivision, religiousGnDivision]);
+  }, [
+    isDemographics,
+    isEmployment,
+    isReligiousCultural,
+    isSocialWelfare,
+    employmentGnDivision,
+    religiousGnDivision,
+    socialWelfareGnDivision,
+  ]);
 
   const { data: analytics, error: analyticsError } = useSWR(analyticsUrl, analyticsFetcher);
   const [showTotalPopulation, setShowTotalPopulation] = React.useState(false);
@@ -813,6 +1008,25 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
               <Bilingual en="Back to dashboard" si="පුවරුවට ආපසු" />
             </Link>
           </Button>
+        </div>
+
+        <div className="mb-6 max-w-sm space-y-1">
+          <p className="text-fluid-xs font-medium text-muted-foreground">
+            <Bilingual en="Filter by GN Division" si="ග්‍රාම නිලධාරී වසම අනුව පෙරහන්න" />
+          </p>
+          <Select value={socialWelfareGnDivision} onValueChange={setSocialWelfareGnDivision}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{lang === "si" ? "සියලුම ග්‍රාම නිලධාරී වසම්" : "All GN divisions"}</SelectItem>
+              {employmentGnOptions.map((gn) => (
+                <SelectItem key={gn.id} value={gn.id}>
+                  {lang === "si" ? gn.si : gn.en}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <SocialWelfareTable communityWelfare={analytics?.sections.communityWelfare} isLoading={isLoading} error={analyticsError} />
