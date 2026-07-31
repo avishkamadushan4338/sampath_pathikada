@@ -200,8 +200,8 @@ function SocialWelfareTable({
                     <th className="px-3 py-3 whitespace-nowrap">{lang === "si" ? "මුළු පවුල් සංඛ්‍යාව" : "Total Number of Families"}</th>
                     <th className="px-3 py-3 whitespace-nowrap">{lang === "si" ? "සංක්‍රාන්තික (රු. 2,500)" : "Transitional (Rs. 2,500)"}</th>
                     <th className="px-3 py-3 whitespace-nowrap">{lang === "si" ? "අවදානම් / අවදානමට ලක්වූ (රු. 5,000)" : "Vulnerable / At Risk (Rs. 5,000)"}</th>
-                    <th className="px-3 py-3 whitespace-nowrap">{lang === "si" ? "දුප්පත් (රු. 8,500)" : "Poor (Rs. 8500)"}</th>
-                    <th className="px-3 py-3 whitespace-nowrap">{lang === "si" ? "ඉතා දුප්පත් (රු. 15,000)" : "Extremely Poor (Rs. 15000)"}</th>
+                    <th className="px-3 py-3 whitespace-nowrap">{lang === "si" ? "දිළිඳු (රු. 8,500)" : "Poor (Rs. 8500)"}</th>
+                    <th className="px-3 py-3 whitespace-nowrap">{lang === "si" ? "අන්ත දිළිඳු (රු. 15,000)" : "Extremely Poor (Rs. 15000)"}</th>
                     <th className="px-3 py-3 whitespace-nowrap">{lang === "si" ? "ප්‍රතිලාභීන්ගේ මුළු සංඛ්‍යාව" : "Total Number of Beneficiaries"}</th>
                   </tr>
                 </thead>
@@ -305,7 +305,7 @@ function SocialWelfareTable({
                       <Bilingual en="Capacity of Elders' Home" si="වැඩිහිටි නිවාස ධාරිතාව" />
                     </th>
                     <th colSpan={2} className="border-b px-3 py-3 text-center whitespace-nowrap">
-                      <Bilingual en="Current Number of Resident Elders" si="වර්තමාන වාසී වැඩිහිටියන් සංඛ්‍යාව" />
+                      <Bilingual en="Current Number of Resident Elders" si="දැනට සිටින වැඩිහිටියන් සංඛ්‍යාව" />
                     </th>
                   </tr>
                   <tr>
@@ -369,13 +369,13 @@ function SocialWelfareTable({
                       <Bilingual en="Managing Institution" si="පාලන ආයතනය" />
                     </th>
                     <th rowSpan={2} className="border-b px-3 py-3 align-middle whitespace-nowrap">
-                      <Bilingual en="Category" si="ප්‍රවර්ගය" />
+                      <Bilingual en="Category" si="වර්ගය" />
                     </th>
                     <th rowSpan={2} className="border-b px-3 py-3 align-middle whitespace-nowrap">
                       <Bilingual en="Capacity of Children's Home" si="ළමා නිවාස ධාරිතාව" />
                     </th>
                     <th colSpan={3} className="border-b px-3 py-3 text-center whitespace-nowrap">
-                      <Bilingual en="Current Number of Resident Children" si="වර්තමාන වාසී ළමුන් සංඛ්‍යාව" />
+                      <Bilingual en="Current Number of Resident Children" si="දැනට සිටින ළමුන් සංඛ්‍යාව" />
                     </th>
                   </tr>
                   <tr>
