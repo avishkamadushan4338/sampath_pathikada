@@ -102,6 +102,16 @@ export const hydropowerPlantRowSchema = z.object({
   scale: z.enum(HYDROPOWER_SCALES),
 });
 
+export const solarPowerPlantRowSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  scale: z.enum(HYDROPOWER_SCALES),
+});
+
+export const windPowerPlantRowSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  scale: z.enum(HYDROPOWER_SCALES),
+});
+
 export const financialInstitutionRowSchema = z.object({
   name: z.string().min(1, "Name is required"),
   type: z.enum(FINANCIAL_INSTITUTION_TYPES),
@@ -147,6 +157,8 @@ export const roadInfrastructureSchemaStrict = z.object({
   railwayCrossingGaps: z.array(railwayCrossingGapRowSchema).default([]),
   postOffices: z.array(postOfficeRowSchema).default([]),
   fuelDistributionStations: z.array(namedFacilityRowSchema).default([]),
+  solarPowerPlants: z.array(solarPowerPlantRowSchema).default([]),
+  windPowerPlants: z.array(windPowerPlantRowSchema).default([]),
   hydropowerPlants: z.array(hydropowerPlantRowSchema).default([]),
   financialInstitutions: z.array(financialInstitutionRowSchema).default([]),
   serviceEstablishments: z.array(serviceEstablishmentRowSchema).length(SERVICE_CATEGORIES.length),
@@ -175,6 +187,8 @@ export const roadInfrastructureSchemaPartial = z.object({
   railwayCrossingGaps: z.array(railwayCrossingGapRowSchema.partial()).optional(),
   postOffices: z.array(postOfficeRowSchema.partial()).optional(),
   fuelDistributionStations: z.array(namedFacilityRowSchema.partial()).optional(),
+  solarPowerPlants: z.array(solarPowerPlantRowSchema.partial()).optional(),
+  windPowerPlants: z.array(windPowerPlantRowSchema.partial()).optional(),
   hydropowerPlants: z.array(hydropowerPlantRowSchema.partial()).optional(),
   financialInstitutions: z.array(financialInstitutionRowSchema.partial()).optional(),
   serviceEstablishments: z.array(serviceEstablishmentRowSchema.partial()).optional(),

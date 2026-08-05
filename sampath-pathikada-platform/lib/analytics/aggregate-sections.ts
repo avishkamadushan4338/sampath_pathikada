@@ -665,6 +665,8 @@ export function aggregateInfrastructure(rows: SubmissionLike[], gnLabel: (id: st
     railwayCrossingGaps: capRows(flattenRows(rows, gnLabel, "roadInfrastructure", "railwayCrossingGaps")),
     postOffices: capRows(flattenRows(rows, gnLabel, "roadInfrastructure", "postOffices")),
     fuelDistributionStations: capRows(flattenRows(rows, gnLabel, "roadInfrastructure", "fuelDistributionStations")),
+    solarPowerPlants: capRows(flattenRows(rows, gnLabel, "roadInfrastructure", "solarPowerPlants")),
+    windPowerPlants: capRows(flattenRows(rows, gnLabel, "roadInfrastructure", "windPowerPlants")),
     hydropowerPlants: capRows(flattenRows(rows, gnLabel, "roadInfrastructure", "hydropowerPlants")),
     financialInstitutions: capRows(flattenRows(rows, gnLabel, "roadInfrastructure", "financialInstitutions")),
     industrialEstates: capRows(flattenRows(rows, gnLabel, "roadInfrastructure", "industrialEstates")),

@@ -122,6 +122,8 @@ function getEmptyValues(lang: "en" | "si"): RoadInfrastructureDraft {
     railwayCrossingGaps: [],
     postOffices: [],
     fuelDistributionStations: [],
+    solarPowerPlants: [],
+    windPowerPlants: [],
     hydropowerPlants: [],
     financialInstitutions: [],
     serviceEstablishments: SERVICE_CATEGORIES.map((category) => ({
@@ -147,6 +149,9 @@ function mergeWithSaved(empty: RoadInfrastructureDraft, saved: RoadInfrastructur
   return {
     ...empty,
     ...saved,
+    solarPowerPlants: Array.isArray(saved.solarPowerPlants) ? saved.solarPowerPlants : empty.solarPowerPlants,
+    windPowerPlants: Array.isArray(saved.windPowerPlants) ? saved.windPowerPlants : empty.windPowerPlants,
+    hydropowerPlants: Array.isArray(saved.hydropowerPlants) ? saved.hydropowerPlants : empty.hydropowerPlants,
     serviceEstablishments: empty.serviceEstablishments?.map((row, i) => ({ ...row, ...saved.serviceEstablishments?.[i] })),
     publicFacilityCategories: empty.publicFacilityCategories?.map((row, i) => ({ ...row, ...saved.publicFacilityCategories?.[i] })),
   };
@@ -461,6 +466,24 @@ export default function RoadInfrastructurePage() {
           title={roadInfrastructureDict.fields.fuelDistributionStations}
           columns={namedFacilityColumns}
           emptyRowFactory={() => ({ name: "" })}
+        />
+      </div>
+
+      <div className="border-t border-border pt-6">
+        <RepeatableTable
+          name="solarPowerPlants"
+          title={roadInfrastructureDict.fields.solarPowerPlants}
+          columns={hydropowerPlantColumns}
+          emptyRowFactory={() => ({ name: "", scale: HYDROPOWER_SCALES[0] })}
+        />
+      </div>
+
+      <div className="border-t border-border pt-6">
+        <RepeatableTable
+          name="windPowerPlants"
+          title={roadInfrastructureDict.fields.windPowerPlants}
+          columns={hydropowerPlantColumns}
+          emptyRowFactory={() => ({ name: "", scale: HYDROPOWER_SCALES[0] })}
         />
       </div>
 
