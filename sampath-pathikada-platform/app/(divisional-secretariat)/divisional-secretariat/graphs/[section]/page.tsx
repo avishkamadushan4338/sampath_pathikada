@@ -36,8 +36,11 @@ import { EducationView } from "@/components/analytics/EducationView";
 import { EmploymentSectionView } from "@/components/analytics/EmploymentSectionView";
 import { ReligiousCulturalSectionView } from "@/components/analytics/ReligiousCulturalSectionView";
 import { TourismSectionView } from "@/components/analytics/TourismSectionView";
-import { DivisionDemographicsSection } from "@/components/analytics/DivisionDemographicsSection";
 import { CommunityOrganizationsSection } from "@/components/analytics/CommunityOrganizationsSection";
+import { DivisionDemographicsSection } from "@/components/analytics/DivisionDemographicsSection";
+import { HealthView } from "@/components/analytics/HealthView";
+import { EconomicAgricultureView } from "@/components/analytics/EconomicAgricultureView";
+import { RoadInfrastructureView } from "@/components/analytics/RoadInfrastructureView";
 
 interface RegistrationRow {
   id: string;
@@ -525,6 +528,9 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
   const isHousing = section === "housing";
   const isEducation = section === "education";
   const isReligiousCultural = section === "religious-cultural";
+  const isHealth = section === "health";
+  const isEconomicAgriculture = section === "economic-agriculture";
+  const isRoadInfrastructure = section === "road-infrastructure";
   const isSocialWelfare = section === "social-welfare";
   const isCommunityOrganizations = section === "community-organizations";
   const isTourism = section === "tourism";
@@ -592,6 +598,12 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
     ? { en: "Education", si: "අධ්‍යාපනය" }
     : isReligiousCultural
     ? { en: "Religious & Cultural", si: "ආගමික හා සංස්කෘතික" }
+    : isHealth
+    ? { en: "Health", si: "සෞඛ්‍යය" }
+    : isEconomicAgriculture
+    ? { en: "Economic — Agriculture / Industry", si: "ආර්ථික — කෘෂිකාර්මික/කාර්මික" }
+    : isRoadInfrastructure
+    ? { en: "Transport & Infrastructure Facilities", si: "ප්‍රවාහන හා යටිතල පහසුකම්" }
     : isSocialWelfare
     ? { en: "Social Welfare", si: "සමාජ සුබසාධන" }
     : isCommunityOrganizations
@@ -642,6 +654,21 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
     ? {
         en: "View aggregated religious and cultural information collected across your division.",
         si: "ඔබගේ වසම පුරා එක්රැස් කළ ආගමික හා සංස්කෘතික තොරතුරු එකතුව මෙහි දැකිය හැක.",
+      }
+    : isHealth
+    ? {
+        en: "Search or select a GN division to view its hospitals, healthcare units, pharmacies, and medical practitioners.",
+        si: "රෝහල්, සෞඛ්‍ය සේවා ඒකක, ඖෂධශාලා සහ වෛද්‍ය වෘත්තිකයන් පිළිබඳ දත්ත බැලීමට ග්‍රාම නිලධාරී වසමක් සොයන්න හෝ තෝරන්න.",
+      }
+    : isEconomicAgriculture
+    ? {
+        en: "Search or select a GN division to view its land use, agriculture, livestock, industries, fisheries, and tea estates.",
+        si: "ඉඩම් භාවිතය, කෘෂිකර්මාන්තය, සත්ත්ව පාලනය, කර්මාන්ත, ධීවර කර්මාන්තය සහ තේ වතු පිළිබඳ දත්ත බැලීමට ග්‍රාම නිලධාරී වසමක් සොයන්න හෝ තෝරන්න.",
+      }
+    : isRoadInfrastructure
+    ? {
+        en: "Search or select a GN division to view its roads, bridges, public transport gaps, utilities, and other infrastructure facilities.",
+        si: "පාරවල්, පාලම්, මහජන ප්‍රවාහන හිඩැස්, උපයෝගිතා සේවා සහ අනෙකුත් යටිතල පහසුකම් දත්ත බැලීමට ග්‍රාම නිලධාරී වසමක් සොයන්න හෝ තෝරන්න.",
       }
     : isSocialWelfare
     ? {
@@ -1172,6 +1199,12 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
         <HousingView />
       ) : isEducation ? (
         <EducationView />
+      ) : isHealth ? (
+        <HealthView />
+      ) : isEconomicAgriculture ? (
+        <EconomicAgricultureView />
+      ) : isRoadInfrastructure ? (
+        <RoadInfrastructureView />
       ) : isDemographics ? (
         <DivisionDemographicsSection
           lang={lang}
