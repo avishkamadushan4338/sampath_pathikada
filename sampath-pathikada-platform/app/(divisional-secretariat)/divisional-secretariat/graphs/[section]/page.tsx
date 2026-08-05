@@ -36,6 +36,7 @@ import { EducationView } from "@/components/analytics/EducationView";
 import { EmploymentSectionView } from "@/components/analytics/EmploymentSectionView";
 import { ReligiousCulturalSectionView } from "@/components/analytics/ReligiousCulturalSectionView";
 import { TourismSectionView } from "@/components/analytics/TourismSectionView";
+import { WasteDisasterSectionView } from "@/components/analytics/WasteDisasterSectionView";
 import { CommunityOrganizationsSection } from "@/components/analytics/CommunityOrganizationsSection";
 import { DivisionDemographicsSection } from "@/components/analytics/DivisionDemographicsSection";
 import { HealthView } from "@/components/analytics/HealthView";
@@ -534,11 +535,13 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
   const isSocialWelfare = section === "social-welfare";
   const isCommunityOrganizations = section === "community-organizations";
   const isTourism = section === "tourism";
+  const isWasteDisaster = section === "waste-disaster";
   const [employmentGnDivision, setEmploymentGnDivision] = React.useState("all");
   const [religiousGnDivision, setReligiousGnDivision] = React.useState("all");
   const [socialWelfareGnDivision, setSocialWelfareGnDivision] = React.useState("all");
   const [communityOrganizationsGnDivision, setCommunityOrganizationsGnDivision] = React.useState("all");
   const [tourismGnDivision, setTourismGnDivision] = React.useState("all");
+  const [wasteGnDivision, setWasteGnDivision] = React.useState("all");
   const showMahaweliColumn = user?.dsDivision === "hambantota-ds";
   const { data, error, isLoading } = useSWR(
     isIdentification ? "/api/registrations?role=gn&status=all&limit=100" : null,
@@ -582,6 +585,12 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
     if (!stillExists) setTourismGnDivision("all");
   }, [tourismGnDivision, employmentGnOptions]);
 
+  React.useEffect(() => {
+    if (wasteGnDivision === "all") return;
+    const stillExists = employmentGnOptions.some((gn) => gn.id === wasteGnDivision);
+    if (!stillExists) setWasteGnDivision("all");
+  }, [wasteGnDivision, employmentGnOptions]);
+
   const title = isIdentification
     ? { en: "Identification", si: "හඳුනාගැනීම" }
     : isDemographics
@@ -613,6 +622,8 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
       }
     : isTourism
     ? { en: "Tourism", si: "සංචාරක" }
+    : isWasteDisaster
+    ? { en: "Waste Management", si: "කසළ කළමනාකරණය" }
     : { en: "Section details", si: "අංශයේ විස්තර" };
 
   const description = isIdentification
@@ -685,13 +696,18 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
         en: "View tourism accommodation counts and room capacity for the selected GN division or across all GN divisions.",
         si: "තෝරාගත් ග්‍රාම නිලධාරී වසමට හෝ සියලු වසම් සඳහා සංචාරක නවාතැන් සහ කාමර ධාරිතා සංඛ්‍යා බලන්න.",
       }
+    : isWasteDisaster
+    ? {
+        en: "Review solid waste collection arrangements, collection frequency and method, and disposal practices across the division.",
+        si: "වසම පුරා ඝන අපද්‍රව්‍ය එකතු කිරීමේ විධිවිධාන, එකතු කිරීමේ වාරගණන හා ක්‍රමවේදය, සහ බැහැර කිරීමේ පිළිවෙත් සමාලෝචනය කරන්න.",
+      }
     : {
         en: "This section is not available yet. Please return to the division information overview.",
         si: "මෙම කොටස තවම ලබා ගත නොහැක. කරුණාකර වසම් තොරතුරු ප්‍රස්ථාරයට ආපසු යන්න.",
       };
 
   const analyticsUrl = React.useMemo(() => {
-    if (!isDemographics && !isEmployment && !isReligiousCultural && !isSocialWelfare && !isCommunityOrganizations && !isTourism) return null;
+    if (!isDemographics && !isEmployment && !isReligiousCultural && !isSocialWelfare && !isCommunityOrganizations && !isTourism && !isWasteDisaster) return null;
     const params = new URLSearchParams({ year: String(CURRENT_YEAR) });
     if (isEmployment && employmentGnDivision !== "all") {
       params.set("gnDivisions", employmentGnDivision);
@@ -708,6 +724,9 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
     if (isTourism && tourismGnDivision !== "all") {
       params.set("gnDivisions", tourismGnDivision);
     }
+    if (isWasteDisaster && wasteGnDivision !== "all") {
+      params.set("gnDivisions", wasteGnDivision);
+    }
     return `/api/analytics?${params.toString()}`;
   }, [
     isDemographics,
@@ -716,11 +735,13 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
     isSocialWelfare,
     isCommunityOrganizations,
     isTourism,
+    isWasteDisaster,
     employmentGnDivision,
     religiousGnDivision,
     socialWelfareGnDivision,
     communityOrganizationsGnDivision,
     tourismGnDivision,
+    wasteGnDivision,
   ]);
 
   const { data: analytics, error: analyticsError } = useSWR(analyticsUrl, analyticsFetcher);
@@ -1260,6 +1281,15 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
           employmentGnOptions={employmentGnOptions}
           analyticsError={analyticsError}
           analytics={analytics}
+        />
+      ) : isWasteDisaster ? (
+        <WasteDisasterSectionView
+          lang={lang}
+          wasteGnDivision={wasteGnDivision}
+          onWasteGnDivisionChange={setWasteGnDivision}
+          employmentGnOptions={employmentGnOptions}
+          analyticsError={analyticsError}
+          areaProfile={analytics?.sections.areaProfile}
         />
       ) : !isIdentification ? (
         <Card>
