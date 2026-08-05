@@ -25,6 +25,8 @@ export const roadInfrastructureDict: SectionDictionary<keyof RoadInfrastructureD
     },
     postOffices: { en: "Post Offices / Sub Post Offices", si: "තැපැල් කාර්යාල / උප තැපැල් කාර්යාල" },
     fuelDistributionStations: { en: "Fuel Distribution Stations", si: "ඉන්ධන බෙදාහැරීමේ මධ්‍යස්ථාන" },
+    solarPowerPlants: { en: "Solar Power Plants", si: "සූර්ය විදුලි බලාගාර" },
+    windPowerPlants: { en: "Wind Power Plants", si: "සුළං විදුලි බලාගාර" },
     hydropowerPlants: { en: "Hydropower Plants", si: "ජල විදුලි බලාගාර" },
     financialInstitutions: { en: "Financial Institutions", si: "මූල්‍ය ආයතන" },
     serviceEstablishments: { en: "Service Establishments", si: "සේවා ආයතන" },
