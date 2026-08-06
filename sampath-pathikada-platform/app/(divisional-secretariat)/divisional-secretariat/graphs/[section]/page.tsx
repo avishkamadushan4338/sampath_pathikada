@@ -16,18 +16,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { useSession } from "@/hooks/use-session";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { CURRENT_YEAR } from "@/lib/constants";
-import { GN_DIVISIONS, DISTRICTS, DIVISIONAL_SECRETARIATS } from "@/lib/registration-data";
+import { DISTRICTS, DIVISIONAL_SECRETARIATS, GN_DIVISIONS } from "@/lib/registration-data";
 import type { CommunityWelfareAggregate } from "@/lib/analytics/aggregate-sections";
 import { StateInstitutionsLandView } from "@/components/analytics/StateInstitutionsLandView";
 import { PhysicalEnvironmentView } from "@/components/analytics/PhysicalEnvironmentView";
@@ -1315,157 +1307,91 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
           </CardContent>
         </Card>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-border">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-muted/40 hover:bg-muted/40">
-                <TableHead>
-                  <Bilingual en="Field" si="ක්ෂේත්‍රය" />
-                </TableHead>
-                <TableHead>
-                  <Bilingual en="Detail" si="විස්තර" />
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
+        <div className="overflow-x-auto rounded-xl border border-border">
+          <table className="w-full border-collapse text-left text-sm">
+            <thead className="bg-muted/40 text-muted-foreground">
+              <tr>
+                <th rowSpan={2} className="border-b border-r px-3 py-3 align-middle font-semibold whitespace-nowrap">
+                  <Bilingual en="GN Division Name" si="ග්‍රාම නිලධාරී වසමේ නම" />
+                </th>
+                <th rowSpan={2} className="border-b border-r px-3 py-3 align-middle font-semibold whitespace-nowrap">
+                  <Bilingual en="GN Division Number" si="ග්‍රාම නිලධාරී වසම අංකය" />
+                </th>
+                <th colSpan={3} className="border-b border-r px-3 py-3 text-center font-semibold whitespace-nowrap">
+                  <Bilingual en="Information Providing Officer" si="තොරතුරු සපයන නිලධාරී" />
+                </th>
+                <th colSpan={showMahaweliColumn ? 8 : 7} className="border-b px-3 py-3 text-center font-semibold whitespace-nowrap">
+                  <Bilingual en="Administrative / Jurisdictional Areas of the GN Division" si="ග්‍රාම නිලධාරී වසමේ පරිපාලන / බල ප්‍රදේශ" />
+                </th>
+              </tr>
+              <tr>
+                <th className="border-b border-r px-3 py-3 whitespace-nowrap font-medium">
+                  <Bilingual en="Name" si="නම" />
+                </th>
+                <th className="border-b border-r px-3 py-3 whitespace-nowrap font-medium">
+                  <Bilingual en="Designation" si="තනතුර" />
+                </th>
+                <th className="border-b border-r px-3 py-3 whitespace-nowrap font-medium">
+                  <Bilingual en="Telephone Number" si="දුරකථන අංකය" />
+                </th>
+                <th className="border-b border-r px-3 py-3 whitespace-nowrap font-medium">
+                  <Bilingual en="District" si="දිස්ත්‍රික්කය" />
+                </th>
+                <th className="border-b border-r px-3 py-3 whitespace-nowrap font-medium">
+                  <Bilingual en="Divisional Secretariat Division" si="ප්‍රාදේශීය ලේකම් කොට්ඨාශය" />
+                </th>
+                <th className="border-b border-r px-3 py-3 whitespace-nowrap font-medium">
+                  <Bilingual en="Local Government Authority / Area" si="පළාත් පාලන ආයතනය / ප්‍රදේශය" />
+                </th>
+                <th className="border-b border-r px-3 py-3 whitespace-nowrap font-medium">
+                  <Bilingual en="Electoral Division / Electorate Area" si="මැතිවරණ බල ප්‍රදේශය" />
+                </th>
+                <th className="border-b border-r px-3 py-3 whitespace-nowrap font-medium">
+                  <Bilingual en="Agrarian Services Centre" si="ගොවි සේවා මධ්‍යස්ථානය" />
+                </th>
+                <th className="border-b border-r px-3 py-3 whitespace-nowrap font-medium">
+                  <Bilingual en="Education Zone" si="අධ්‍යාපන කලාපය" />
+                </th>
+                <th className={`border-b px-3 py-3 whitespace-nowrap font-medium${showMahaweliColumn ? " border-r" : ""}`}>
+                  <Bilingual en="Education Division" si="අධ්‍යාපන කොට්ඨාසය" />
+                </th>
+                {showMahaweliColumn && (
+                  <th className="border-b px-3 py-3 whitespace-nowrap font-medium">
+                    <Bilingual en="Mahaweli Zone" si="මහවැලි කොට්ඨාසය" />
+                  </th>
+                )}
+              </tr>
+            </thead>
+            <tbody>
               {data.data.map((row) => {
                 const gn = GN_DIVISIONS.find((g) => g.id === row.gnDivision);
                 const gnName = gn ? (lang === "si" ? gn.si : gn.en) : row.gnDivision;
-                const gnNumber = row.gnDivision;
-                const districtEntry = DISTRICTS.find((d) => d.id === row.district);
-                const districtLabel = districtEntry ? (lang === "si" ? districtEntry.si : districtEntry.en) : row.district ?? "—";
-                const dsEntry = DIVISIONAL_SECRETARIATS.find((d) => d.id === row.dsDivision);
-                const dsLabel = dsEntry ? (lang === "si" ? dsEntry.si : dsEntry.en) : row.dsDivision ?? "—";
-
-                const fields = [
-                  {
-                    type: "regular",
-                    label_en: "Name of the Grama Niladhari (GN) Division",
-                    label_si: "ග්‍රාම නිලධාරී වසමේ නම",
-                    value: gnName,
-                  },
-                  {
-                    type: "regular",
-                    label_en: "Grama Niladhari Division Number",
-                    label_si: "ග්‍රාම නිලධාරී වසම අංකය",
-                    value: gnNumber,
-                  },
-                  {
-                    type: "header",
-                    label_en: "Name of the Information Providing Officer",
-                    label_si: "තොරතුරු සපයන නිලධාරීගේ නම",
-                  },
-                  {
-                    type: "sub-item",
-                    label_en: "Designation",
-                    label_si: "තනතුර",
-                    value: "—",
-                  },
-                  {
-                    type: "sub-item",
-                    label_en: "Telephone Number",
-                    label_si: "දුරකථන අංකය",
-                    value: row.phone ?? "—",
-                  },
-                  {
-                    type: "header",
-                    label_en: "Administrative / Jurisdictional Areas of the GN Division",
-                    label_si: "ග්‍රාම නිලධාරී වසමේ පරිපාලන / බල ප්‍රදේශ",
-                  },
-                  {
-                    type: "sub-item",
-                    label_en: "District",
-                    label_si: "දිස්ත්‍රික්කය",
-                    value: districtLabel,
-                  },
-                  {
-                    type: "sub-item",
-                    label_en: "Divisional Secretariat Division",
-                    label_si: "ප්‍රාදේශීය ලේකම් කොට්ඨාශය",
-                    value: dsLabel,
-                  },
-                  {
-                    type: "sub-item",
-                    label_en: "Local Government Authority / Area",
-                    label_si: "පළාත් පාලන ආයතනය / ප්‍රදේශය",
-                    value: row.localGovt ?? "—",
-                  },
-                  {
-                    type: "sub-item",
-                    label_en: "Electoral Division",
-                    label_si: "මැතිවරණ බල ප්‍රදේශය",
-                    value: row.electoral ?? "—",
-                  },
-                  {
-                    type: "sub-item",
-                    label_en: "Agrarian Services Centre",
-                    label_si: "ගොවි සේවා මධ්‍යස්ථානය",
-                    value: row.farmers ?? "—",
-                  },
-                  {
-                    type: "sub-item",
-                    label_en: "Education Zone",
-                    label_si: "අධ්‍යාපන කලාපය",
-                    value: row.eduZone ?? "—",
-                  },
-                  {
-                    type: "sub-item",
-                    label_en: "Education Division",
-                    label_si: "අධ්‍යාපන කොට්ඨාසය",
-                    value: row.eduDiv ?? "—",
-                  },
-                ];
-
-                if (showMahaweliColumn) {
-                  fields.push({
-                    type: "sub-item",
-                    label_en: "Mahaweli Zone",
-                    label_si: "මහවැලි කොට්ඨාසය",
-                    value: row.mahaweli ?? "—",
-                  });
-                }
-
+                const district = DISTRICTS.find((item) => item.id === row.district);
+                const districtName = district ? (lang === "si" ? district.si : district.en) : row.district;
+                const dsDivision = DIVISIONAL_SECRETARIATS.find((item) => item.id === row.dsDivision);
+                const dsDivisionName = dsDivision ? (lang === "si" ? dsDivision.si : dsDivision.en) : row.dsDivision;
                 return (
-                  <React.Fragment key={row.id}>
-                    {fields.map((field, index) => {
-                      if (field.type === "header") {
-                        return (
-                          <TableRow
-                            key={`${row.id}-${index}`}
-                            className="bg-muted/50 hover:bg-muted/60"
-                          >
-                            <TableCell colSpan={2} className="font-semibold py-3">
-                              <Bilingual en={field.label_en} si={field.label_si} />
-                            </TableCell>
-                          </TableRow>
-                        );
-                      }
-
-                      if (field.type === "sub-item") {
-                        return (
-                          <TableRow key={`${row.id}-${index}`}>
-                            <TableCell className="font-medium w-1/3 pl-8">
-                              <Bilingual en={field.label_en} si={field.label_si} />
-                            </TableCell>
-                            <TableCell className="w-2/3">{field.value}</TableCell>
-                          </TableRow>
-                        );
-                      }
-
-                      return (
-                        <TableRow key={`${row.id}-${index}`}>
-                          <TableCell className="font-medium w-1/3">
-                            <Bilingual en={field.label_en} si={field.label_si} />
-                          </TableCell>
-                          <TableCell className="w-2/3">{field.value}</TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </React.Fragment>
+                  <tr key={row.id} className="border-t hover:bg-muted/20">
+                    <td className="border-r px-3 py-3 font-medium whitespace-nowrap">{gnName}</td>
+                    <td className="border-r px-3 py-3 whitespace-nowrap">{row.gnDivision}</td>
+                    <td className="border-r px-3 py-3 whitespace-nowrap">{row.name}</td>
+                    <td className="border-r px-3 py-3 whitespace-nowrap text-muted-foreground">—</td>
+                    <td className="border-r px-3 py-3 whitespace-nowrap">{row.phone ?? "—"}</td>
+                    <td className="border-r px-3 py-3 whitespace-nowrap">{districtName ?? "—"}</td>
+                    <td className="border-r px-3 py-3 whitespace-nowrap">{dsDivisionName ?? "—"}</td>
+                    <td className="border-r px-3 py-3 whitespace-nowrap">{row.localGovt ?? "—"}</td>
+                    <td className="border-r px-3 py-3 whitespace-nowrap">{row.electoral ?? "—"}</td>
+                    <td className="border-r px-3 py-3 whitespace-nowrap">{row.farmers ?? "—"}</td>
+                    <td className="border-r px-3 py-3 whitespace-nowrap">{row.eduZone ?? "—"}</td>
+                    <td className={`px-3 py-3 whitespace-nowrap${showMahaweliColumn ? " border-r" : ""}`}>{row.eduDiv ?? "—"}</td>
+                    {showMahaweliColumn && (
+                      <td className="px-3 py-3 whitespace-nowrap">{row.mahaweli ?? "—"}</td>
+                    )}
+                  </tr>
                 );
               })}
-            </TableBody>
-          </Table>
+            </tbody>
+          </table>
         </div>
       )}
     </div>
