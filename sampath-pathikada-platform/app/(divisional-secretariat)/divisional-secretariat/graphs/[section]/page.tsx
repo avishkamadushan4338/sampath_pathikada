@@ -54,6 +54,9 @@ interface RegistrationRow {
   eduZone: string | null;
   eduDiv: string | null;
   mahaweli: string | null;
+  district: string | null;
+  divisionalSecretariat: string | null;
+  jurisdiction: string | null;
 }
 
 interface RegistrationsResponse {
@@ -1317,37 +1320,11 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
             <TableHeader>
               <TableRow className="bg-muted/40 hover:bg-muted/40">
                 <TableHead>
-                  <Bilingual en="GN Division Name" si="ග්‍රාම නිලධාරී වසමේ නම" />
+                  <Bilingual en="Field" si="ක්ෂේත්‍රය" />
                 </TableHead>
                 <TableHead>
-                  <Bilingual en="GN Division Number" si="ග්‍රාම නිලධාරී වසමේ අංකය" />
+                  <Bilingual en="Detail" si="විස්තර" />
                 </TableHead>
-                <TableHead>
-                  <Bilingual en="Officer Name" si="නිලධාරීගේ නම" />
-                </TableHead>
-                <TableHead className="hidden sm:table-cell">
-                  <Bilingual en="Phone" si="දුරකථන" />
-                </TableHead>
-                <TableHead className="hidden xl:table-cell">
-                  <Bilingual en="Local Government Body" si="පළාත් පාලන ආයතනය" />
-                </TableHead>
-                <TableHead className="hidden lg:table-cell">
-                  <Bilingual en="Electoral / Polling Division" si="මැතිවරණ බල ප්‍රදේශය" />
-                </TableHead>
-                <TableHead className="hidden xl:table-cell">
-                  <Bilingual en="Farmers' Service Center" si="ගොවිජන සේවා මධ්‍යස්ථානය" />
-                </TableHead>
-                <TableHead className="hidden 2xl:table-cell">
-                  <Bilingual en="Education Zone" si="අධ්‍යාපන කලාපය" />
-                </TableHead>
-                <TableHead className="hidden 2xl:table-cell">
-                  <Bilingual en="Education Division" si="අධ්‍යාපන කොට්ඨාසය" />
-                </TableHead>
-                {showMahaweliColumn && (
-                  <TableHead className="hidden 2xl:table-cell">
-                    <Bilingual en="Mahaweli Zone" si="මහවැලි කොට්ඨාසය" />
-                  </TableHead>
-                )}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -1356,21 +1333,131 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
                 const gnName = gn ? (lang === "si" ? gn.si : gn.en) : row.gnDivision;
                 const gnNumber = row.gnDivision;
 
+                const fields = [
+                  {
+                    type: "regular",
+                    label_en: "Name of the Grama Niladhari (GN) Division",
+                    label_si: "ග්‍රාම නිලධාරී වසමේ නම",
+                    value: gnName,
+                  },
+                  {
+                    type: "regular",
+                    label_en: "Grama Niladhari Division Number",
+                    label_si: "ග්‍රාම නිලධාරී වසම අංකය",
+                    value: gnNumber,
+                  },
+                  {
+                    type: "header",
+                    label_en: "Name of the Information Providing Officer",
+                    label_si: "තොරතුරු සපයන නිලධාරීගේ නම",
+                  },
+                  {
+                    type: "sub-item",
+                    label_en: "Designation",
+                    label_si: "තනතුර",
+                    value: "—",
+                  },
+                  {
+                    type: "sub-item",
+                    label_en: "Telephone Number",
+                    label_si: "දුරකථන අංකය",
+                    value: row.phone ?? "—",
+                  },
+                  {
+                    type: "header",
+                    label_en: "Administrative / Jurisdictional Areas of the GN Division",
+                    label_si: "ග්‍රාම නිලධාරී වසමේ පරිපාලන / බල ප්‍රදේශ",
+                  },
+                  {
+                    type: "sub-item",
+                    label_en: "District",
+                    label_si: "දිස්ත්‍රික්කය",
+                    value: row.district ?? "—",
+                  },
+                  {
+                    type: "sub-item",
+                    label_en: "Divisional Secretariat Division",
+                    label_si: "ප්‍රාදේශීය ලේකම් කොට්ඨාශය",
+                    value: row.divisionalSecretariat ?? "—",
+                  },
+                  {
+                    type: "sub-item",
+                    label_en: "Local Government Authority / Area",
+                    label_si: "පළාත් පාලන ආයතනය / ප්‍රදේශය",
+                    value: row.localGovt ?? "—",
+                  },
+                  {
+                    type: "sub-item",
+                    label_en: "Electoral Division",
+                    label_si: "මැතිවරණ බල ප්‍රදේශය",
+                    value: row.electoral ?? "—",
+                  },
+                  {
+                    type: "sub-item",
+                    label_en: "Agrarian Services Centre",
+                    label_si: "ගොවි සේවා මධ්‍යස්ථානය",
+                    value: row.farmers ?? "—",
+                  },
+                  {
+                    type: "sub-item",
+                    label_en: "Education Zone",
+                    label_si: "අධ්‍යාපන කලාපය",
+                    value: row.eduZone ?? "—",
+                  },
+                  {
+                    type: "sub-item",
+                    label_en: "Education Division",
+                    label_si: "අධ්‍යාපන කොට්ඨාසය",
+                    value: row.eduDiv ?? "—",
+                  },
+                ];
+
+                if (showMahaweliColumn) {
+                  fields.push({
+                    type: "sub-item",
+                    label_en: "Mahaweli Zone",
+                    label_si: "මහවැලි කොට්ඨාසය",
+                    value: row.mahaweli ?? "—",
+                  });
+                }
+
                 return (
-                  <TableRow key={row.id}>
-                    <TableCell>{gnName}</TableCell>
-                    <TableCell>{gnNumber}</TableCell>
-                    <TableCell>{row.name}</TableCell>
-                    <TableCell className="hidden sm:table-cell">{row.phone}</TableCell>
-                    <TableCell className="hidden xl:table-cell">{row.localGovt ?? "—"}</TableCell>
-                    <TableCell className="hidden 2xl:table-cell">{row.electoral ?? "—"}</TableCell>
-                    <TableCell className="hidden 2xl:table-cell">{row.farmers ?? "—"}</TableCell>
-                    <TableCell className="hidden 2xl:table-cell">{row.eduZone ?? "—"}</TableCell>
-                    <TableCell className="hidden 2xl:table-cell">{row.eduDiv ?? "—"}</TableCell>
-                    {showMahaweliColumn && (
-                      <TableCell className="hidden 2xl:table-cell">{row.mahaweli ?? "—"}</TableCell>
-                    )}
-                  </TableRow>
+                  <React.Fragment key={row.id}>
+                    {fields.map((field, index) => {
+                      if (field.type === "header") {
+                        return (
+                          <TableRow
+                            key={`${row.id}-${index}`}
+                            className="bg-muted/50 hover:bg-muted/60"
+                          >
+                            <TableCell colSpan={2} className="font-semibold py-3">
+                              <Bilingual en={field.label_en} si={field.label_si} />
+                            </TableCell>
+                          </TableRow>
+                        );
+                      }
+
+                      if (field.type === "sub-item") {
+                        return (
+                          <TableRow key={`${row.id}-${index}`}>
+                            <TableCell className="font-medium w-1/3 pl-8">
+                              <Bilingual en={field.label_en} si={field.label_si} />
+                            </TableCell>
+                            <TableCell className="w-2/3">{field.value}</TableCell>
+                          </TableRow>
+                        );
+                      }
+
+                      return (
+                        <TableRow key={`${row.id}-${index}`}>
+                          <TableCell className="font-medium w-1/3">
+                            <Bilingual en={field.label_en} si={field.label_si} />
+                          </TableCell>
+                          <TableCell className="w-2/3">{field.value}</TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </React.Fragment>
                 );
               })}
             </TableBody>

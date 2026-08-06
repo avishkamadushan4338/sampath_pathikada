@@ -21,7 +21,7 @@ type CommunityOrganizationsDraft = z.infer<typeof communityOrganizationsSchemaPa
 
 const ORGANIZATION_TYPE_LABELS: Record<(typeof ORGANIZATION_TYPES)[number], { en: string; si: string }> = {
   "village-development-society": { en: "Village Development Society", si: "ග්‍රාම සංවර්ධන සමිතිය" },
-  "youth-society": { en: "Youth Society", si: "යុවජන සමිතිය" },
+  "youth-society": { en: "Youth Society", si: "යෞවන සමිතිය" },
   "sports-club": { en: "Sports Club", si: "ක්‍රීඩා සමාජය" },
   "funeral-aid-society": { en: "Funeral Aid Society", si: "අවමංගල්‍ය සහන සමිතිය" },
   "womens-society": { en: "Women's Society", si: "කාන්තා සමිතිය" },
