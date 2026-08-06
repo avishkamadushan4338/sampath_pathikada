@@ -1,6 +1,7 @@
 import { SELF_EMPLOYMENT_SECTORS } from "@/lib/validators/sections/employment";
 import { ORGANIZATION_TYPES } from "@/lib/validators/sections/community-organizations";
 import { LAND_USE_TYPES } from "@/lib/validators/sections/economic-agriculture";
+import { COLLECTION_FREQUENCIES, COLLECTION_METHODS } from "@/lib/validators/sections/waste-disaster";
 import type { SubmissionData } from "@/lib/types/submission";
 
 /* ── Shared row shapes ──────────────────────────────────────────────────── */
@@ -141,6 +142,19 @@ const DISPOSAL_METHOD_LABELS: Bilingual[] = [
   { en: "Dumping in Canal / Drain", si: "ඇළ මාර්ග/කාණුවලට බැහැර කිරීම" },
   { en: "Public Dumpsite", si: "පොදු කසළ බැහැර කිරීමේ ස්ථානය" },
   { en: "Other", si: "වෙනත්" },
+];
+
+/** Ordered to match COLLECTION_FREQUENCIES / COLLECTION_METHODS in lib/validators/sections/waste-disaster.ts. */
+const COLLECTION_FREQUENCY_LABELS: Bilingual[] = [
+  { en: "Daily", si: "දිනපතා" },
+  { en: "Every Other Day", si: "දිනයක් හැර දිනයක්" },
+  { en: "Weekly", si: "සතිපතා" },
+  { en: "Other", si: "වෙනත්" },
+];
+
+const COLLECTION_METHOD_LABELS: Bilingual[] = [
+  { en: "Mixed", si: "මිශ්‍ර" },
+  { en: "Separated", si: "වෙන් කළ" },
 ];
 
 const LAND_USE_LABELS_LIST: Bilingual[] = [
@@ -667,7 +681,9 @@ export function aggregateAreaProfile(rows: SubmissionLike[], gnLabel: (id: strin
     temples: { count: 0, clergyCount: 0 }, meheniArama: { count: 0, clergyCount: 0 }, kovils: { count: 0, clergyCount: 0 },
     mosques: { count: 0, clergyCount: 0 }, churches: { count: 0, priestsCount: 0, nunsCount: 0 },
   };
-  let hasWasteProgramYes = 0, hasCompostSiteYes = 0;
+  let hasWasteProgramYes = 0, hasCompostSiteYes = 0, publicInformedYes = 0;
+  const collectionFrequency = COLLECTION_FREQUENCY_LABELS.map((l) => ({ ...l, count: 0 }));
+  const collectionMethod = COLLECTION_METHOD_LABELS.map((l) => ({ ...l, count: 0 }));
 
   for (const row of rows) {
     const rc = sectionData(row, "religiousCultural");
@@ -683,6 +699,11 @@ export function aggregateAreaProfile(rows: SubmissionLike[], gnLabel: (id: strin
     const wd = sectionData(row, "wasteDisaster");
     if (wd?.hasWasteProgram === "yes") hasWasteProgramYes++;
     if (wd?.hasCompostOrDisposalSite === "yes") hasCompostSiteYes++;
+    if (wd?.publicInformedOfSchedule === "yes") publicInformedYes++;
+    const freqIndex = wd?.collectionFrequency ? COLLECTION_FREQUENCIES.indexOf(wd.collectionFrequency) : -1;
+    if (freqIndex >= 0) collectionFrequency[freqIndex].count++;
+    const methodIndex = wd?.collectionMethod ? COLLECTION_METHODS.indexOf(wd.collectionMethod) : -1;
+    if (methodIndex >= 0) collectionMethod[methodIndex].count++;
   }
 
   const disposalMethodIfNoProgram = sumIndexedPresence(rows, "wasteDisaster", "disposalMethodIfNoProgram", DISPOSAL_METHOD_LABELS);
@@ -700,6 +721,9 @@ export function aggregateAreaProfile(rows: SubmissionLike[], gnLabel: (id: strin
     wasteManagement: {
       divisionsWithProgram: hasWasteProgramYes,
       divisionsWithCompostSite: hasCompostSiteYes,
+      divisionsWithPublicInformed: publicInformedYes,
+      collectionFrequency,
+      collectionMethod,
       disposalMethodIfNoProgram,
     },
     // physicalEnvironment — list-only
