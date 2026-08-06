@@ -55,7 +55,7 @@ interface RegistrationRow {
   eduDiv: string | null;
   mahaweli: string | null;
   district: string | null;
-  divisionalSecretariat: string | null;
+  dsDivision: string | null;
   jurisdiction: string | null;
 }
 
