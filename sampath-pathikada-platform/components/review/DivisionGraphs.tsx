@@ -126,11 +126,11 @@ export function DivisionGraphs({ data }: DivisionGraphsProps) {
             <StatGrid
               items={[
                 { en: "State Institutions", si: "රාජ්‍ය ආයතන", value: areaProfile.stateInstitutions.rows.length },
-                { en: "Illegal Structures", si: "නීති විරෝධී ඉදිකිරීම්", value: areaProfile.illegalStructures.rows.length },
-                { en: "Development Projects", si: "සංවර්ධන ව්‍යාපෘති", value: areaProfile.developmentProjects.rows.length },
+                { en: "Abandoned Buildings", si: "අත්හැර දමන ලද ගොඩනැගිලි", value: areaProfile.illegalStructures.rows.length },
+                { en: "Stalled Development Projects", si: "අතරමං සංවර්ධන ව්‍යාපෘති", value: areaProfile.developmentProjects.rows.length },
                 { en: "Water Sources", si: "ජල මූලාශ්‍ර", value: areaProfile.waterSources.rows.length },
                 { en: "Sensitive Zones", si: "සංවේදී කලාප", value: areaProfile.sensitiveZones.rows.length },
-                { en: "Natural Resources", si: "ස්වාභාවික සම්පත්", value: areaProfile.naturalResources.rows.length },
+                { en: "Physical Resources", si: "භෞතික සම්පත්", value: areaProfile.naturalResources.rows.length },
                 { en: "Hazards", si: "අනතුරු", value: areaProfile.hazards.rows.length },
                 { en: "Safe Locations", si: "ආරක්ෂිත ස්ථාන", value: areaProfile.safeLocations.rows.length },
                 { en: "Tourist Sites (Existing)", si: "සංචාරක ස්ථාන (පවතින)", value: areaProfile.existingTouristSitesFromPhysicalEnv.rows.length },

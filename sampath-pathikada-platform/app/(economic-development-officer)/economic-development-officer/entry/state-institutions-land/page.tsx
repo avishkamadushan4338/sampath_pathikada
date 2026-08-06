@@ -55,8 +55,8 @@ export default function StateInstitutionsLandPage() {
   ];
 
   const illegalStructureColumns: RepeatableColumn[] = [
-    { key: "buildingName", label: { en: "Building Name", si: "ඉදිකර ඇති ගොඩනැගිල්ලේ නම" }, type: "text" },
-    { key: "purposeUsed", label: { en: "Purpose Used For", si: "යොදාගත් කාර්යය" }, type: "text" },
+    { key: "buildingName", label: { en: "Name of the Abandoned Building", si: "අත්හැර දමන ලද ගොඩනැගිල්ලේ නම" }, type: "text" },
+    { key: "purposeUsed", label: { en: "Purpose Used For", si: "යොදා ගත් කාර්යය" }, type: "text" },
     {
       key: "usable",
       label: { en: "Usable Condition", si: "භාවිතයට ගත හැකි මට්ටමක පවතිනවාද" },
@@ -70,10 +70,10 @@ export default function StateInstitutionsLandPage() {
   ];
 
   const developmentProjectColumns: RepeatableColumn[] = [
-    { key: "projectName", label: { en: "Project Name", si: "ව්‍යාපෘතියේ/වලේ නම" }, type: "text" },
+    { key: "projectName", label: { en: "Name of the Stalled Project(s)", si: "අතරමං නවතාදමා ඇති ව්‍යාපෘතියේ/වල නම" }, type: "text" },
     { key: "owningInstitution", label: { en: "Owning Institution", si: "ව්‍යාපෘතිය අයත් ආයතනය" }, type: "text" },
     { key: "reasonForHalt", label: { en: "Reason for Halting", si: "නවතාදැමීමට හේතුව" }, type: "text" },
-    { key: "currentStatus", label: { en: "Current Status", si: "වර්තමාන තත්ත්වය" }, type: "text" },
+    { key: "currentStatus", label: { en: "Current Status", si: "වර්තමාන තත්වය" }, type: "text" },
   ];
 
   return (

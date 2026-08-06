@@ -35,20 +35,20 @@ export function StateInstitutionsLandView() {
             <ReadOnlyTable
               title={stateInstitutionsLandDict.fields.illegalStructures}
               columns={[
-                { key: "buildingName", label: { en: "Building Name", si: "ගොඩනැගිල්ලේ නම" } },
-                { key: "purposeUsed", label: { en: "Purpose Used For", si: "යොදාගත් කාර්යය" } },
-                { key: "usable", label: { en: "Usable Condition", si: "භාවිතයට ගත හැකිද" }, options: USABLE_OPTIONS },
-                { key: "owningInstitution", label: { en: "Owning Institution", si: "අයත් ආයතනය" } },
+                { key: "buildingName", label: { en: "Name of the Abandoned Building", si: "අත්හැර දමන ලද ගොඩනැගිල්ලේ නම" } },
+                { key: "purposeUsed", label: { en: "Purpose Used For", si: "යොදා ගත් කාර්යය" } },
+                { key: "usable", label: { en: "Usable Condition", si: "භාවිතයට ගත හැකි මට්ටමක පවතිනවාද" }, options: USABLE_OPTIONS },
+                { key: "owningInstitution", label: { en: "Owning Institution", si: "ගොඩනැගිල්ල අයත් ආයතනය" } },
               ]}
               rows={section?.illegalStructures ?? []}
             />
             <ReadOnlyTable
               title={stateInstitutionsLandDict.fields.developmentProjects}
               columns={[
-                { key: "projectName", label: { en: "Project Name", si: "ව්‍යාපෘතියේ නම" } },
-                { key: "owningInstitution", label: { en: "Owning Institution", si: "අයත් ආයතනය" } },
+                { key: "projectName", label: { en: "Name of the Stalled Project(s)", si: "අතරමං නවතාදමා ඇති ව්‍යාපෘතියේ/වල නම" } },
+                { key: "owningInstitution", label: { en: "Owning Institution", si: "ව්‍යාපෘතිය අයත් ආයතනය" } },
                 { key: "reasonForHalt", label: { en: "Reason for Halting", si: "නවතාදැමීමට හේතුව" } },
-                { key: "currentStatus", label: { en: "Current Status", si: "වර්තමාන තත්ත්වය" } },
+                { key: "currentStatus", label: { en: "Current Status", si: "වර්තමාන තත්වය" } },
               ]}
               rows={section?.developmentProjects ?? []}
             />

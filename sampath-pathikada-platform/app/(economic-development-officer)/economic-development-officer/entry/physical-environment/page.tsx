@@ -17,7 +17,7 @@ import {
 import { useSubmission, useSaveSection } from "@/hooks/use-submission";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { physicalEnvironmentDict } from "@/lib/i18n/sections/physical-environment";
-import { physicalEnvironmentSchemaPartial, HAZARD_TYPES } from "@/lib/validators/sections/physical-environment";
+import { physicalEnvironmentSchemaPartial, HAZARD_TYPES, WATER_SOURCE_TYPES } from "@/lib/validators/sections/physical-environment";
 import { z } from "zod";
 
 const CURRENT_YEAR = 2026;
@@ -29,22 +29,36 @@ const YES_NO_OPTIONS = [
   { value: "no", label: { en: "No", si: "නැත" } },
 ];
 
+const WATER_SOURCE_TYPE_LABELS: Record<(typeof WATER_SOURCE_TYPES)[number], { en: string; si: string }> = {
+  river: { en: "River", si: "ගංගාව" },
+  reservoir: { en: "Reservoir", si: "ජලාශය" },
+  springs: { en: "Springs", si: "උල්පත්/ බුබුලු" },
+  tank: { en: "Tank", si: "වැව" },
+  streams: { en: "Streams", si: "දියඇලි" },
+  publicWells: { en: "Public Wells (Count)", si: "පොදු ළිං(ගණන)" },
+  tubeWells: { en: "Tube Wells (Count)", si: "නල ළිං(ගණන)" },
+};
+
 const HAZARD_TYPE_LABELS: Record<(typeof HAZARD_TYPES)[number], { en: string; si: string }> = {
   flood: { en: "Flood", si: "ගංවතුර" },
   drought: { en: "Drought", si: "නියඟය" },
-  landslide: { en: "Landslide", si: "නායයෑම" },
+  landslide: { en: "Landslide", si: "නායයාම" },
   deforestation: { en: "Deforestation", si: "වන විනාශය" },
   waterSourceDepletion: { en: "Water Source Depletion", si: "ජල මූලාශ්‍ර සිඳී යාම" },
-  unauthorizedLandFilling: { en: "Unauthorized Land-Filling / Construction", si: "අනුමැතියක් නොමැතිව බිම් ගොඩ කිරීම හා ඉදිකිරීම" },
-  unauthorizedWasteDisposal: { en: "Unauthorized Waste Disposal", si: "කැළිකසළ බැහැර කිරීම (අනුමැතියක් රහිතව)" },
-  wildElephantConflict: { en: "Wild Elephant Conflict", si: "වන අලි ගැටළුව" },
-  coastalErosion: { en: "Coastal Erosion", si: "වෙරළ ඛාදනය" },
+  unauthorizedLandFilling: { en: "Unauthorized Filling & Construction on Low-Lying Land", si: "අනුමවත් පහත් බිම් ගොඩ කිරීම හා ඉදිකිරීම්" },
+  unauthorizedWasteDisposal: { en: "Unauthorized Waste Disposal", si: "කැලිකසළ බැහැර කිරීම(අනුමවත්)" },
+  wildElephantConflict: { en: "Wild Elephant Problem", si: "වනඅලි ගැටළුව" },
+  coastalErosion: { en: "Coastal Erosion", si: "වෙරළ බාදනය" },
   illegalSandMining: { en: "Illegal Sand Mining / Dumping", si: "අනවසර වැලි ගොඩදැමීම" },
 };
 
 function buildEmptyValues(lang: "en" | "si"): PhysicalEnvironmentDraft {
   return {
-    waterSources: [],
+    waterSources: WATER_SOURCE_TYPES.map((type) => ({
+      type,
+      typeLabel: WATER_SOURCE_TYPE_LABELS[type][lang],
+      name: "",
+    })),
     sensitiveZones: [],
     naturalResources: [],
     hazards: HAZARD_TYPES.map((type) => ({
@@ -65,26 +79,36 @@ function mergeWithSaved(empty: PhysicalEnvironmentDraft, saved: PhysicalEnvironm
   return {
     ...empty,
     ...saved,
-    hazards: empty.hazards?.map((row, i) => ({ ...row, ...saved.hazards?.[i] })),
+    // `type`/`typeLabel` are pinned to the freshly-seeded template, not spread from saved data:
+    // older drafts (from before water sources became a fixed checklist) may carry a blank or
+    // free-form `type` that no longer matches the WATER_SOURCE_TYPES enum, which would fail
+    // validation and block saving. Only the officer-entered `name` carries over.
+    waterSources: empty.waterSources?.map((row, i) => ({ ...row, name: saved.waterSources?.[i]?.name ?? row.name })),
+    hazards: empty.hazards?.map((row, i) => ({
+      ...row,
+      occurred: saved.hazards?.[i]?.occurred ?? row.occurred,
+      frequency: saved.hazards?.[i]?.frequency ?? row.frequency,
+      mitigationProposal: saved.hazards?.[i]?.mitigationProposal ?? row.mitigationProposal,
+    })),
   };
 }
 
 const waterSourceColumns: RepeatableColumn[] = [
-  { key: "type", label: { en: "Type", si: "වර්ගය" }, type: "text" },
+  { key: "typeLabel", label: { en: "Water Source", si: "ජල මූලාශ්‍රය" }, type: "readonly" },
   { key: "name", label: { en: "Name", si: "නම" }, type: "text" },
 ];
 
 const sensitiveZoneColumns: RepeatableColumn[] = [
-  { key: "zoneName", label: { en: "Zone / Area Name", si: "කලාපයේ/ප්‍රදේශයේ නම" }, type: "text" },
-  { key: "significance", label: { en: "Significance", si: "වැදගත්කම" }, type: "text" },
-  { key: "managingAuthority", label: { en: "Managing Authority", si: "කළමනාකරණ අධිකාරිය" }, type: "text" },
+  { key: "zoneName", label: { en: "* Environmentally Sensitive Zone / Location", si: "* පාරිසරික වශයෙන් සංවේදී කලාප/ස්ථාන" }, type: "text" },
+  { key: "significance", label: { en: "Importance of the Location / Zone", si: "ස්ථානයේ /කලාපයේ වැදගත්කම" }, type: "text" },
+  { key: "managingAuthority", label: { en: "Managing Institution", si: "පාලනය කරනු ලබන ආයතනය" }, type: "text" },
 ];
 
 const naturalResourceColumns: RepeatableColumn[] = [
-  { key: "resource", label: { en: "Resource", si: "සම්පත" }, type: "text" },
+  { key: "resource", label: { en: "* Physical Resource Identified in the Area", si: "*ප්‍රදේශයේ හඳුනා ගන්නා ලද භෞතික සම්පත්" }, type: "text" },
   {
     key: "utilizedForProduction",
-    label: { en: "Used for Production/Development?", si: "නිෂ්පාදනයට/සංවර්ධනයට යොදාගෙන තිබේද" },
+    label: { en: "Used for Production / Development? (Yes/No)", si: "නිෂ්පාදනය කටයුත්තකට, සංවර්ධනයට යොදාගෙන තිබේද (ඇත/නැත)" },
     type: "select",
     options: YES_NO_OPTIONS,
   },
@@ -92,42 +116,50 @@ const naturalResourceColumns: RepeatableColumn[] = [
 ];
 
 const hazardColumns: RepeatableColumn[] = [
-  { key: "typeLabel", label: { en: "Hazard Type", si: "ආපදා වර්ගය" }, type: "readonly" },
+  { key: "typeLabel", label: { en: "Environmental Problem", si: "පාරිසරික ගැටළු" }, type: "readonly" },
   {
     key: "occurred",
     label: { en: "Occurred?", si: "ඇත/නැත" },
     type: "select",
     options: YES_NO_OPTIONS,
   },
-  { key: "frequency", label: { en: "Frequency / Period", si: "බහුලව සිදුවන කාල සීමාව" }, type: "text" },
-  { key: "mitigationProposal", label: { en: "Proposed Remedy", si: "ගතයුතු පිළියම් යෝජනා" }, type: "text" },
+  { key: "frequency", label: { en: "If Yes, the Common Time Period", si: "ඇත්නම් බහුලව සිදුවන කාල සීමාව" }, type: "text" },
+  { key: "mitigationProposal", label: { en: "Proposed Remedial Measures for the Problem", si: "ගැටළුව සඳහා ගතයුතු පිළියම් යෝජනා" }, type: "text" },
 ];
 
 const safeLocationColumns: RepeatableColumn[] = [
-  { key: "name", label: { en: "Name", si: "නම" }, type: "text" },
+  { key: "name", label: { en: "Name of the Safe Location", si: "ආරක්ෂිත ස්ථානයේ නම" }, type: "text" },
   { key: "address", label: { en: "Address", si: "ලිපිනය" }, type: "text" },
 ];
 
 const touristSiteColumns: RepeatableColumn[] = [
-  { key: "siteName", label: { en: "Site Name", si: "ස්ථානයේ නම" }, type: "text" },
-  { key: "reasonForAttraction", label: { en: "Reason for Attraction", si: "ආකර්ෂණයට හේතුව" }, type: "text" },
-  { key: "maintainedBy", label: { en: "Maintained By", si: "නඩත්තු කරන්නා" }, type: "text" },
+  { key: "siteName", label: { en: "Name of Location with Tourist Attraction", si: "සංචාරක ආකර්ෂණය සහිත ස්ථානය නම" }, type: "text" },
+  {
+    key: "reasonForAttraction",
+    label: { en: "Reason for Attraction / Specialty of the Location", si: "සංචාරක ආකර්ෂණය ඇතිවීමට හේතුව/ස්ථානයේ විශේෂත්වය" },
+    type: "text",
+  },
+  { key: "maintainedBy", label: { en: "Managing Institution / Ownership", si: "පාලනය කරනු ලබන ආයතනය / අයිතිය" }, type: "text" },
   {
     key: "frequency",
-    label: { en: "Frequency", si: "සංඛ්‍යාතය" },
+    label: { en: "* Tourist Visitation", si: "*සංචාරකයන්ගේ පැමිණීම" },
     type: "select",
     options: [
-      { value: "seasonal", label: { en: "Seasonal", si: "සෘතුමය" } },
+      { value: "seasonal", label: { en: "Seasonal / Periodic", si: "කාලීන" } },
       { value: "year-round", label: { en: "Year-round", si: "වර්ෂය පුරා" } },
     ],
   },
 ];
 
 const proposedTouristSiteColumns: RepeatableColumn[] = [
-  { key: "siteName", label: { en: "Site Name", si: "ස්ථානයේ නම" }, type: "text" },
-  { key: "specialFeatures", label: { en: "Special Features", si: "විශේෂ ලක්ෂණ" }, type: "text" },
-  { key: "possibleActivities", label: { en: "Possible Activities", si: "කළ හැකි ක්‍රියාකාරකම්" }, type: "text" },
-  { key: "currentAuthority", label: { en: "Current Authority", si: "වත්මන් අධිකාරිය" }, type: "text" },
+  { key: "siteName", label: { en: "Name of Proposed Suitable Location", si: "සංචාරක ආකර්ෂණය ඇතිකිරීමට සුදුසු යෝජිත ස්ථානයේ නම" }, type: "text" },
+  { key: "specialFeatures", label: { en: "Specialty of the Proposed Location", si: "සංචාරක ආකර්ෂණය ඇතිකිරීමට යෝජිත ස්ථානයේ විශේෂත්වය" }, type: "text" },
+  {
+    key: "possibleActivities",
+    label: { en: "Activities Possible at the Location", si: "සංචාරක ආකර්ෂණය ඇතිකිරීමට එම ස්ථානයේ සිදුකිරීමට හැකි ක්‍රියාකාරකම්" },
+    type: "text",
+  },
+  { key: "currentAuthority", label: { en: "* Institution Currently Managing / Ownership", si: "*දැනට පාලනය කරනු ලබන ආයතනය / අයිතිය" }, type: "text" },
 ];
 
 export default function PhysicalEnvironmentPage() {
@@ -178,7 +210,12 @@ export default function PhysicalEnvironmentPage() {
           name="waterSources"
           title={physicalEnvironmentDict.fields.waterSources}
           columns={waterSourceColumns}
-          emptyRowFactory={() => ({ type: "", name: "" })}
+          fixedRows
+          emptyRowFactory={() => ({
+            type: WATER_SOURCE_TYPES[0],
+            typeLabel: WATER_SOURCE_TYPE_LABELS[WATER_SOURCE_TYPES[0]][lang],
+            name: "",
+          })}
         />
       </div>
 
@@ -220,7 +257,7 @@ export default function PhysicalEnvironmentPage() {
         <div className="mb-3 max-w-xs">
           <FieldWrapper
             name="safeLocationsIdentified"
-            label={{ en: "Have safe/evacuation locations been identified?", si: "ආරක්ෂිත ස්ථාන හෝ සුරක්ෂිත මධ්‍යස්ථාන හඳුනාගෙන තිබේද?" }}
+            label={physicalEnvironmentDict.fields.safeLocationsIdentified}
           >
             {({ id, describedBy, invalid }) => (
               <Select

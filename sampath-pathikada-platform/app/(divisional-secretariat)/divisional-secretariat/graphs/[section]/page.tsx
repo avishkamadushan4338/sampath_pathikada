@@ -643,13 +643,13 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
       }
     : isStateInstitutionsLand
     ? {
-        en: "Search or select a GN division to view its state institutions, encroached-land structures, and development projects.",
-        si: "රාජ්‍ය ආයතන, අත්‍යවශ්‍ය නොවන ඉදිකිරීම් සහ සංවර්ධන ව්‍යාපෘති බැලීමට ග්‍රාම නිලධාරී වසමක් සොයන්න හෝ තෝරන්න.",
+        en: "Search or select a GN division to view its state institutions, abandoned government buildings, and stalled development projects.",
+        si: "රාජ්‍ය ආයතන, අත්හැර දමා ඇති රජයේ ගොඩනැගිලි සහ අතරමං නවතා දමා ඇති සංවර්ධන ව්‍යාපෘති බැලීමට ග්‍රාම නිලධාරී වසමක් සොයන්න හෝ තෝරන්න.",
       }
     : isPhysicalEnvironment
     ? {
-        en: "Search or select a GN division to view its water sources, sensitive zones, natural resources, hazards, and tourist sites.",
-        si: "ජල මූලාශ්‍ර, සංවේදී කලාප, ස්වාභාවික සම්පත්, ආපදා සහ සංචාරක ස්ථාන බැලීමට ග්‍රාම නිලධාරී වසමක් සොයන්න හෝ තෝරන්න.",
+        en: "Search or select a GN division to view its water sources, sensitive zones, physical resources, hazards, and tourist sites.",
+        si: "ජල මූලාශ්‍ර, සංවේදී කලාප, භෞතික සම්පත්, ආපදා සහ සංචාරක ස්ථාන බැලීමට ග්‍රාම නිලධාරී වසමක් සොයන්න හෝ තෝරන්න.",
       }
     : isHousing
     ? {
