@@ -7,6 +7,10 @@ export const dictionary = {
   saving: { en: "Saving…", si: "සුරකිමින්..." } satisfies Translated,
   saved: { en: "Saved", si: "සුරකින ලදී" } satisfies Translated,
   saveError: { en: "Could not save. Please try again.", si: "සුරැකීමට නොහැකි විය. නැවත උත්සාහ කරන්න." } satisfies Translated,
+  submissionLocked: {
+    en: "This submission has already been submitted and can no longer be edited.",
+    si: "මෙම ඉදිරිපත් කිරීම දැනටමත් ඉදිරිපත් කර ඇති අතර තවදුරටත් සංස්කරණය කළ නොහැක.",
+  } satisfies Translated,
   add: { en: "Add Row", si: "පේළියක් එක් කරන්න" } satisfies Translated,
   delete: { en: "Delete", si: "මකන්න" } satisfies Translated,
   deleteConfirm: { en: "This row has data. Delete it anyway?", si: "මෙම පේළියේ දත්ත ඇත. එසේ වුවත් මකන්නද?" } satisfies Translated,

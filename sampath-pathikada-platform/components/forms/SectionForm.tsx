@@ -8,7 +8,7 @@ import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { Bilingual } from "@/components/Bilingual";
 import { dictionary } from "@/lib/i18n/dictionary";
 import type { Translated } from "@/lib/i18n/types";
-import type { SaveStatus } from "@/hooks/use-submission";
+import { SUBMISSION_LOCKED_ERROR, type SaveStatus } from "@/hooks/use-submission";
 import { cn } from "@/lib/utils";
 
 interface SectionFormProps<T extends FieldValues> {
@@ -71,10 +71,10 @@ export function SectionForm<T extends FieldValues>({
           aria-live="polite"
           className={cn(
             "rounded-lg border border-destructive/30 bg-destructive/5 p-4 focus:outline-none",
-            errorCount === 0 && form.formState.submitCount === 0 && "hidden"
+            errorCount === 0 && "hidden"
           )}
         >
-          {errorCount > 0 ? (
+          {errorCount > 0 && (
             <div className="flex items-start gap-2 text-fluid-sm text-destructive">
               <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
               <span>
@@ -84,8 +84,6 @@ export function SectionForm<T extends FieldValues>({
                 />
               </span>
             </div>
-          ) : (
-            <span className="sr-only">No validation errors</span>
           )}
         </div>
 
@@ -101,7 +99,11 @@ export function SectionForm<T extends FieldValues>({
             )}
             {saveStatus === "saved" && <Bilingual {...dictionary.saved} />}
             {saveStatus === "error" && (
-              <span className="text-destructive">{saveErrorMessage ?? dictionary.saveError[lang]}</span>
+              <span className="text-destructive">
+                {saveErrorMessage === SUBMISSION_LOCKED_ERROR
+                  ? dictionary.submissionLocked[lang]
+                  : saveErrorMessage ?? dictionary.saveError[lang]}
+              </span>
             )}
           </div>
           <Button type="submit" size="lg" className="touch-target gap-2" disabled={saveStatus === "saving"}>

@@ -16,9 +16,22 @@ const HAZARD_TYPES = [
   "illegalSandMining",
 ] as const;
 
+/** Fixed checklist of water source categories (§2.1 of the paper form) — the officer fills in
+ *  a name (or, for the well rows, a count) against each predefined category rather than adding
+ *  free-form rows. */
+const WATER_SOURCE_TYPES = [
+  "river",
+  "reservoir",
+  "springs",
+  "tank",
+  "streams",
+  "publicWells",
+  "tubeWells",
+] as const;
+
 export const waterSourceRowSchema = z.object({
-  type: z.string().min(1, "Water source type is required"),
-  name: z.string().min(1, "Name is required"),
+  type: z.enum(WATER_SOURCE_TYPES),
+  name: z.string().optional(),
 });
 
 export const sensitiveZoneRowSchema = z.object({
@@ -60,7 +73,7 @@ export const proposedTouristSiteRowSchema = z.object({
 });
 
 export const physicalEnvironmentSchemaStrict = z.object({
-  waterSources: z.array(waterSourceRowSchema).default([]),
+  waterSources: z.array(waterSourceRowSchema).length(WATER_SOURCE_TYPES.length),
   sensitiveZones: z.array(sensitiveZoneRowSchema).default([]),
   naturalResources: z.array(naturalResourceRowSchema).default([]),
   hazards: z.array(hazardRowSchema).length(HAZARD_TYPES.length),
@@ -72,15 +85,50 @@ export const physicalEnvironmentSchemaStrict = z.object({
 
 export type PhysicalEnvironmentData = z.infer<typeof physicalEnvironmentSchemaStrict>;
 
-export const physicalEnvironmentSchemaPartial = z.object({
-  waterSources: z.array(waterSourceRowSchema.partial()).optional(),
-  sensitiveZones: z.array(sensitiveZoneRowSchema.partial()).optional(),
-  naturalResources: z.array(naturalResourceRowSchema.partial()).optional(),
-  hazards: z.array(hazardRowSchema.partial()).optional(),
-  safeLocationsIdentified: yesNo.optional(),
-  safeLocations: z.array(safeLocationRowSchema.partial()).optional(),
-  touristSites: z.array(touristSiteRowSchema.partial()).optional(),
-  proposedTouristSites: z.array(proposedTouristSiteRowSchema.partial()).optional(),
+/* Draft-mode row schemas built from scratch rather than `.partial()` on the strict schemas
+ * above: `.partial()` only allows a field to be *missing*, it doesn't relax `min(1)`, so a row
+ * added via the "Add" button (whose fields start as "") would still fail validation and
+ * silently block saving. A GN division without one of these should be able to leave it blank. */
+const sensitiveZoneRowPartialSchema = z.object({
+  zoneName: z.string().optional(),
+  significance: z.string().optional(),
+  managingAuthority: z.string().optional(),
 });
 
-export { HAZARD_TYPES };
+const safeLocationRowPartialSchema = z.object({
+  name: z.string().optional(),
+  address: z.string().optional(),
+});
+
+const touristSiteRowPartialSchema = z.object({
+  siteName: z.string().optional(),
+  reasonForAttraction: z.string().optional(),
+  maintainedBy: z.string().optional(),
+  frequency: z.enum(["seasonal", "year-round"]).optional(),
+});
+
+const naturalResourceRowPartialSchema = z.object({
+  resource: z.string().optional(),
+  utilizedForProduction: yesNo.optional(),
+  notes: z.string().optional(),
+});
+
+const proposedTouristSiteRowPartialSchema = z.object({
+  siteName: z.string().optional(),
+  specialFeatures: z.string().optional(),
+  possibleActivities: z.string().optional(),
+  currentAuthority: z.string().optional(),
+});
+
+export const physicalEnvironmentSchemaPartial = z.object({
+  waterSources: z.array(waterSourceRowSchema.partial()).optional(),
+  sensitiveZones: z.array(sensitiveZoneRowPartialSchema).optional(),
+  naturalResources: z.array(naturalResourceRowPartialSchema).optional(),
+  hazards: z.array(hazardRowSchema.partial()).optional(),
+  safeLocationsIdentified: yesNo.optional(),
+  safeLocations: z.array(safeLocationRowPartialSchema).optional(),
+  touristSites: z.array(touristSiteRowPartialSchema).optional(),
+  proposedTouristSites: z.array(proposedTouristSiteRowPartialSchema).optional(),
+});
+
+export { HAZARD_TYPES, WATER_SOURCE_TYPES };

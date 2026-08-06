@@ -209,6 +209,12 @@ export function RepeatableTable<T extends FieldValues>({
         </Button>
       )}
 
+      {title && (lang === "si" ? title.helpSi : title.helpEn) && (
+        <p lang={lang} className={cn("whitespace-pre-line text-fluid-xs text-muted-foreground", lang === "si" && "font-si")}>
+          {lang === "si" ? title.helpSi : title.helpEn}
+        </p>
+      )}
+
       <AlertDialog open={pendingDeleteIndex !== null} onOpenChange={(open) => !open && setPendingDeleteIndex(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>

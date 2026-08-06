@@ -4,6 +4,12 @@ import useSWR from "swr";
 import { useState } from "react";
 import type { SectionKey, SubmissionData } from "@/lib/types/submission";
 
+/** Sentinel `errorMessage` value for the 409 "already submitted" case, whose body text from
+ *  the API is English-only. Consumers should render `dictionary.submissionLocked[lang]`
+ *  instead of this raw string, resolved at render time so it tracks the active language
+ *  even if the user toggles language after the error already landed. */
+export const SUBMISSION_LOCKED_ERROR = "SUBMISSION_LOCKED";
+
 export interface SubmissionRecord {
   id: string;
   submittedById: string;
@@ -52,7 +58,7 @@ export function useSaveSection(year: number) {
       const json = await res.json();
       if (!res.ok || !json.ok) {
         setStatus("error");
-        setErrorMessage(json.message ?? "Save failed.");
+        setErrorMessage(res.status === 409 ? SUBMISSION_LOCKED_ERROR : json.message ?? "Save failed.");
         return false;
       }
       setStatus("saved");
