@@ -56,7 +56,7 @@ export function RepeatableTable<T extends FieldValues>({
   emptyRowFactory,
 }: RepeatableTableProps<T>) {
   const { lang } = useLanguage();
-  const { control, register, watch } = useFormContext<T>();
+  const { control, watch } = useFormContext<T>();
   const { fields, append, remove } = useFieldArray({ control, name });
   const [pendingDeleteIndex, setPendingDeleteIndex] = useState<number | null>(null);
 
@@ -97,15 +97,14 @@ export function RepeatableTable<T extends FieldValues>({
     }
 
     return (
-      <Input
+      <TextField
+        fieldName={fieldName}
         type={column.type === "number" ? "number" : "text"}
-        inputMode={column.type === "number" ? "numeric" : undefined}
         placeholder={column.placeholder ? (lang === "si" ? column.placeholder.si : column.placeholder.en) : undefined}
         // The card layout's bg-card surface is the same tone as the default input border
         // (--input is defined as "card tone"), so an empty field is otherwise invisible —
         // give it a background+border that actually contrast against the card.
         className={cn("min-w-32 text-fluid-sm", onCard && "border-border bg-background shadow-sm")}
-        {...register(fieldName as never)}
       />
     );
   }
@@ -233,6 +232,39 @@ export function RepeatableTable<T extends FieldValues>({
         </AlertDialogContent>
       </AlertDialog>
     </div>
+  );
+}
+
+/** Controlled (watch + setValue) rather than `register()`-bound: RepeatableTable renders both
+ *  the table layout and the card layout at once (CSS toggles which is visible, for responsive
+ *  reflow without a JS remeasure), so every field name is mounted as two separate DOM inputs.
+ *  `register()` binds a field name to a single DOM ref, so having two inputs share one name
+ *  corrupts the value on any array mutation (e.g. appending a row) — whichever input's ref
+ *  re-attaches last wins, silently overwriting what the user typed in the other. A controlled
+ *  input has no such single-owner assumption: both copies just mirror the same watched value. */
+function TextField({
+  fieldName,
+  type,
+  placeholder,
+  className,
+}: {
+  fieldName: string;
+  type: "text" | "number";
+  placeholder?: string;
+  className?: string;
+}) {
+  const { setValue, watch } = useFormContext();
+  const value = watch(fieldName as never) as unknown as string | number | undefined;
+
+  return (
+    <Input
+      type={type}
+      inputMode={type === "number" ? "numeric" : undefined}
+      placeholder={placeholder}
+      className={className}
+      value={value ?? ""}
+      onChange={(e) => setValue(fieldName as never, e.target.value as never, { shouldDirty: true })}
+    />
   );
 }
 
