@@ -27,7 +27,7 @@ import {
 import { useSession } from "@/hooks/use-session";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { CURRENT_YEAR } from "@/lib/constants";
-import { GN_DIVISIONS } from "@/lib/registration-data";
+import { GN_DIVISIONS, DISTRICTS, DIVISIONAL_SECRETARIATS } from "@/lib/registration-data";
 import type { CommunityWelfareAggregate } from "@/lib/analytics/aggregate-sections";
 import { StateInstitutionsLandView } from "@/components/analytics/StateInstitutionsLandView";
 import { PhysicalEnvironmentView } from "@/components/analytics/PhysicalEnvironmentView";
@@ -55,7 +55,7 @@ interface RegistrationRow {
   eduDiv: string | null;
   mahaweli: string | null;
   district: string | null;
-  divisionalSecretariat: string | null;
+  dsDivision: string | null;
   jurisdiction: string | null;
 }
 
@@ -1332,6 +1332,10 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
                 const gn = GN_DIVISIONS.find((g) => g.id === row.gnDivision);
                 const gnName = gn ? (lang === "si" ? gn.si : gn.en) : row.gnDivision;
                 const gnNumber = row.gnDivision;
+                const districtEntry = DISTRICTS.find((d) => d.id === row.district);
+                const districtLabel = districtEntry ? (lang === "si" ? districtEntry.si : districtEntry.en) : row.district ?? "—";
+                const dsEntry = DIVISIONAL_SECRETARIATS.find((d) => d.id === row.dsDivision);
+                const dsLabel = dsEntry ? (lang === "si" ? dsEntry.si : dsEntry.en) : row.dsDivision ?? "—";
 
                 const fields = [
                   {
@@ -1372,13 +1376,13 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
                     type: "sub-item",
                     label_en: "District",
                     label_si: "දිස්ත්‍රික්කය",
-                    value: row.district ?? "—",
+                    value: districtLabel,
                   },
                   {
                     type: "sub-item",
                     label_en: "Divisional Secretariat Division",
                     label_si: "ප්‍රාදේශීය ලේකම් කොට්ඨාශය",
-                    value: row.divisionalSecretariat ?? "—",
+                    value: dsLabel,
                   },
                   {
                     type: "sub-item",
