@@ -16,18 +16,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { useSession } from "@/hooks/use-session";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { CURRENT_YEAR } from "@/lib/constants";
-import { GN_DIVISIONS } from "@/lib/registration-data";
+import { DISTRICTS, DIVISIONAL_SECRETARIATS, GN_DIVISIONS } from "@/lib/registration-data";
 import type { CommunityWelfareAggregate } from "@/lib/analytics/aggregate-sections";
 import { StateInstitutionsLandView } from "@/components/analytics/StateInstitutionsLandView";
 import { PhysicalEnvironmentView } from "@/components/analytics/PhysicalEnvironmentView";
@@ -1374,6 +1366,10 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
               {data.data.map((row) => {
                 const gn = GN_DIVISIONS.find((g) => g.id === row.gnDivision);
                 const gnName = gn ? (lang === "si" ? gn.si : gn.en) : row.gnDivision;
+                const district = DISTRICTS.find((item) => item.id === row.district);
+                const districtName = district ? (lang === "si" ? district.si : district.en) : row.district;
+                const dsDivision = DIVISIONAL_SECRETARIATS.find((item) => item.id === row.dsDivision);
+                const dsDivisionName = dsDivision ? (lang === "si" ? dsDivision.si : dsDivision.en) : row.dsDivision;
                 return (
                   <tr key={row.id} className="border-t hover:bg-muted/20">
                     <td className="border-r px-3 py-3 font-medium whitespace-nowrap">{gnName}</td>
@@ -1381,8 +1377,8 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
                     <td className="border-r px-3 py-3 whitespace-nowrap">{row.name}</td>
                     <td className="border-r px-3 py-3 whitespace-nowrap text-muted-foreground">—</td>
                     <td className="border-r px-3 py-3 whitespace-nowrap">{row.phone ?? "—"}</td>
-                    <td className="border-r px-3 py-3 whitespace-nowrap">{row.district ?? "—"}</td>
-                    <td className="border-r px-3 py-3 whitespace-nowrap">{row.divisionalSecretariat ?? "—"}</td>
+                    <td className="border-r px-3 py-3 whitespace-nowrap">{districtName ?? "—"}</td>
+                    <td className="border-r px-3 py-3 whitespace-nowrap">{dsDivisionName ?? "—"}</td>
                     <td className="border-r px-3 py-3 whitespace-nowrap">{row.localGovt ?? "—"}</td>
                     <td className="border-r px-3 py-3 whitespace-nowrap">{row.electoral ?? "—"}</td>
                     <td className="border-r px-3 py-3 whitespace-nowrap">{row.farmers ?? "—"}</td>
