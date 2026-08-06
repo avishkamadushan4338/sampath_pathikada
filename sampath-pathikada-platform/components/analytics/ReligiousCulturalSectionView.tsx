@@ -116,7 +116,8 @@ export function ReligiousCulturalSectionView({
                     <td className="border-r border-border px-3 py-3 nums-tabular">{religiousSiteCounts.temples.count.toLocaleString()}</td>
                     <td className="border-r border-border px-3 py-3 nums-tabular">{religiousSiteCounts.meheniArama.count.toLocaleString()}</td>
                     <td className="border-r border-border px-3 py-3 nums-tabular">{religiousSiteCounts.mosques.count.toLocaleString()}</td>
-                    <td className="border-r border-border px-3 py-3 nums-tabular text-center" colSpan={2}>{religiousSiteCounts.churches.count.toLocaleString()}</td>
+                    <td className="border-r border-border px-3 py-3 nums-tabular text-center">{religiousSiteCounts.churches.count.toLocaleString()}</td>
+                    <td className="border-r border-border px-3 py-3 text-center text-muted-foreground">—</td>
                     <td className="px-3 py-3 nums-tabular">{religiousSiteCounts.kovils.count.toLocaleString()}</td>
                   </tr>
                   <tr className="border-t">
