@@ -77,6 +77,11 @@ export function ReadOnlyTable({ title, columns, rows }: ReadOnlyTableProps) {
           </Table>
         </div>
       )}
+      {(title.helpEn || title.helpSi) && (
+        <p className="mt-2 whitespace-pre-line text-fluid-xs text-muted-foreground">
+          <Bilingual en={title.helpEn ?? ""} si={title.helpSi ?? ""} />
+        </p>
+      )}
     </div>
   );
 }

@@ -95,14 +95,14 @@ export function DivisionGraphs({ data }: DivisionGraphsProps) {
       {/* ── Area Profile: State Institutions & Land, Physical & Environment, Religious & Cultural, Tourism, Waste Management ── */}
       <SectionGroup icon={Landmark} titleEn="Area Profile" titleSi="ප්‍රදේශ පැතිකඩ" empty={!hasAreaProfile}>
         <BarCard
-          titleEn="Religious Sites"
-          titleSi="ආගමික ස්ථාන"
+          titleEn="Total Number of All Religious Sites"
+          titleSi="සියලුම ආගමික ස්ථාන සංඛ්‍යාව"
           color={GOLD}
           rows={[
-            { label: t("Temples", "විහාරස්ථාන"), value: areaProfile.religiousSiteCounts.temples.count },
-            { label: t("Nun Hermitages", "මෙහෙණි ආරාම"), value: areaProfile.religiousSiteCounts.meheniArama.count },
+            { label: t("Temple / Forest Hermitage / Asapuwa", "පන්සල්/ආරණ්‍ය විහාරස්ථාන/අසපුව"), value: areaProfile.religiousSiteCounts.temples.count },
+            { label: t("Nun Hermitages", "මෙහෙනි ආරාම"), value: areaProfile.religiousSiteCounts.meheniArama.count },
             { label: t("Kovils", "කෝවිල්"), value: areaProfile.religiousSiteCounts.kovils.count },
-            { label: t("Mosques", "පල්ලි"), value: areaProfile.religiousSiteCounts.mosques.count },
+            { label: t("Mosques", "ඉස්ලාම් පල්ලි"), value: areaProfile.religiousSiteCounts.mosques.count },
             { label: t("Catholic Churches", "කතෝලික පල්ලි"), value: areaProfile.religiousSiteCounts.churches.count },
           ]}
         />
@@ -241,26 +241,26 @@ export function DivisionGraphs({ data }: DivisionGraphsProps) {
       </SectionGroup>
 
       {/* ── Employment ── */}
-      <SectionGroup icon={Briefcase} titleEn="Employment" titleSi="රැකියා" empty={!hasEmployment}>
+      <SectionGroup icon={Briefcase} titleEn="Employment Aspiration" titleSi="රැකියා අපේක්ෂාව" empty={!hasEmployment}>
         <Card className="lg:col-span-2">
           <CardContent className="pt-6">
             <StatGrid
               items={[
-                { en: "Total Job Seekers", si: "මුළු රැකියා අපේක්ෂකයන්", value: employment.totalJobSeekers },
-                { en: "Vocational Training Opportunity Gap", si: "වෘත්තීය පුහුණු අවස්ථා හිඩැස", value: employment.vocationalTrainingOpportunityGapCount },
+                { en: "Total Job-Seeking Persons", si: "රැකියා අපේක්ෂිත මුළු පුද්ගලයන් ගණන", value: employment.totalJobSeekers },
+                { en: "Persons Needing Vocational Training", si: "වෘත්තිය පුහුණුව අවශ්‍ය එහෙත් සුදුසුකම් නොමැති පුද්ගලයන්", value: employment.vocationalTrainingOpportunityGapCount },
               ]}
             />
           </CardContent>
         </Card>
         <BarCard
-          titleEn="Job Seekers by Education"
-          titleSi="අධ්‍යාපනය අනුව රැකියා අපේක්ෂකයන්"
+          titleEn="Job Seekers by Education Level"
+          titleSi="අධ්‍යාපන මට්ටම අනුව රැකියා අපේක්ෂිත පුද්ගලයන් ගණන"
           color={GREEN}
           rows={employment.jobSeekersByEducation.map((r) => ({ label: t(r.en, r.si), value: r.count }))}
         />
         <BarCard
           titleEn="Self-Employment Sectors"
-          titleSi="ස්වයං රැකියා අංශ"
+          titleSi="ස්වයං රැකියා ක්ෂේත්‍ර"
           color={GREEN}
           hideZero
           rows={employment.selfEmploymentSectors.map((r) => ({ label: t(r.en, r.si), value: r.count }))}
@@ -284,24 +284,24 @@ export function DivisionGraphs({ data }: DivisionGraphsProps) {
           </CardContent>
         </Card>
         <BarCard
-          titleEn="Institution Counts"
-          titleSi="ආයතන ගණන්"
+          titleEn="Distribution of Educational Institutions"
+          titleSi="අධ්‍යාපනය ආයතන ව්‍යාප්තිය"
           color={NAVY}
           rows={[
-            { label: t("Govt. Schools", "රජයේ පාසල්"), value: education.institutionCounts.govtSchools },
-            { label: t("Private/International Schools", "පෞද්ගලික/ජාත්‍යන්තර පාසල්"), value: education.institutionCounts.privateOrInternationalSchools },
+            { label: t("Schools (Government)", "පාසල් (රජයේ)"), value: education.institutionCounts.govtSchools },
+            { label: t("Private Schools / International Schools", "පෞද්ගලික පාසල් /ජාත්‍යන්තර පාසල්"), value: education.institutionCounts.privateOrInternationalSchools },
             { label: t("Pirivenas", "පිරිවෙන්"), value: education.institutionCounts.pirivenas },
-            { label: t("Vocational Institutes", "වෘත්තීය පුහුණු ආයතන"), value: education.institutionCounts.vocationalTrainingInstitutes },
-            { label: t("Preschools (Govt.)", "පෙර පාසල් (රජයේ)"), value: education.institutionCounts.registeredPreschoolsGovt },
-            { label: t("Preschools (Private)", "පෙර පාසල් (පෞද්ගලික)"), value: education.institutionCounts.registeredPreschoolsPrivate },
-            { label: t("Dhamma Education Institutions", "දහම් අධ්‍යාපන ආයතන"), value: education.institutionCounts.dhammaEducationInstitutions },
+            { label: t("Technical and Vocational Training Institutions", "කාර්මික හා වෘත්තීය පුහුණු ආයතන"), value: education.institutionCounts.vocationalTrainingInstitutes },
+            { label: t("Registered Preschools - Government", "ලියාපදිංචි පෙර පාසල්- රජයේ"), value: education.institutionCounts.registeredPreschoolsGovt },
+            { label: t("Registered Preschools - Private", "ලියාපදිංචි පෙර පාසල් - පෞද්ගලික"), value: education.institutionCounts.registeredPreschoolsPrivate },
+            { label: t("Dhamma Education Institutions", "දහම් අධ්‍යාපනය ලබාදෙන ආයතන"), value: education.institutionCounts.dhammaEducationInstitutions },
             { label: t("Higher Education Institutions", "උසස් අධ්‍යාපන ආයතන"), value: education.institutionCounts.higherEducationInstitutions },
-            { label: t("Tuition Class Institutions", "උපකාරක පන්ති ආයතන"), value: education.institutionCounts.tuitionCenterInstitutions },
+            { label: t("Tuition Class Institutions", "උපකාරක පන්ති පවත්වන ආයතන"), value: education.institutionCounts.tuitionCenterInstitutions },
           ]}
         />
         <BarCard
-          titleEn="School Counts by Type"
-          titleSi="වර්ගය අනුව පාසල් ගණන්"
+          titleEn="Number of Schools"
+          titleSi="පාසල් සංඛ්‍යාව"
           color={NAVY}
           rows={[
             { label: t("National Schools", "ජාතික පාසල්"), value: education.schoolCountsByType.nationalSchools },
@@ -327,20 +327,20 @@ export function DivisionGraphs({ data }: DivisionGraphsProps) {
       {/* ── Health ── */}
       <SectionGroup icon={HeartPulse} titleEn="Health" titleSi="සෞඛ්‍යය" empty={!hasHealth}>
         <BarCard
-          titleEn="Health Institution Counts"
-          titleSi="සෞඛ්‍ය ආයතන ගණන්"
+          titleEn="Health Institutions in the GN Division"
+          titleSi="ග්‍රාම නිලධාරී වසම තුළ පිහිටා ඇති සෞඛ්‍ය ආයතන"
           color={MAROON}
           rows={[
             { label: t("Govt. Hospitals", "රජයේ රෝහල්"), value: health.institutionCounts.govtHospitals },
-            { label: t("Primary Healthcare Units", "ප්‍රාථමික සෞඛ්‍ය ඒකක"), value: health.institutionCounts.primaryHealthcareUnits },
+            { label: t("Primary Healthcare Units", "ප්‍රාථමික සෞඛ්‍ය සත්කාර ඒකක"), value: health.institutionCounts.primaryHealthcareUnits },
             { label: t("Private Hospitals", "පෞද්ගලික රෝහල්"), value: health.institutionCounts.privateHospitals },
             { label: t("Ayurvedic Hospitals", "ආයුර්වේද රෝහල්"), value: health.institutionCounts.ayurvedicHospitals },
-            { label: t("Specialist Centers", "විශේෂඥ සේවා මධ්‍යස්ථාන"), value: health.institutionCounts.specialistServiceCenters },
-            { label: t("MOH / Community Health Centers", "සෞඛ්‍ය වෛද්‍ය නිලධාරී/ප්‍රජා සෞඛ්‍ය මධ්‍යස්ථාන"), value: health.institutionCounts.mohOfficesOrCommunityHealthCenters },
-            { label: t("Private Medical Labs", "පෞද්ගලික වෛද්‍ය රසායනාගාර"), value: health.institutionCounts.privateMedicalLabs },
+            { label: t("Specialist Centers", "විශේෂඥ වෛද්‍ය සේවා ආයතන"), value: health.institutionCounts.specialistServiceCenters },
+            { label: t("MOH / Village Health Centers", "සෞඛ්‍ය වෛද්‍ය නිලධාරී/ග්‍රාමෝදය සෞඛ්‍ය මධ්‍යස්ථාන"), value: health.institutionCounts.mohOfficesOrCommunityHealthCenters },
             { label: t("Traditional Medicine Institutions", "පාරම්පරික වෙදකම් ආයතන"), value: health.institutionCounts.traditionalMedicineRegisteredInstitutions },
+            { label: t("Private Medical Clinics", "පෞද්ගලික වෛද්‍ය සායන"), value: health.institutionCounts.privateMedicalLabs },
             { label: t("Animal Clinic Centers", "සත්ත්ව සායන මධ්‍යස්ථාන"), value: health.institutionCounts.animalClinicCenters },
-            { label: t("Govt. Pharmacies", "රජයේ ෆාමසි"), value: health.institutionCounts.govtPharmacies },
+            { label: t("Govt. Pharmacies", "රජයේ ඖෂධශල"), value: health.institutionCounts.govtPharmacies },
             { label: t("Private Pharmacies", "පෞද්ගලික ෆාමසි"), value: health.institutionCounts.privatePharmacies },
           ]}
         />
@@ -356,19 +356,19 @@ export function DivisionGraphs({ data }: DivisionGraphsProps) {
             </div>
             <StatGrid
               items={[
-                { en: "Abandoned Paddy Land (Acres)", si: "අතහැර දැමූ කුඹුරු (අක්කර)", value: econAgri.abandonedPaddyLand.extentAcres },
-                { en: "Reactivatable Extent (Ha)", si: "නැවත සක්‍රීය කළ හැකි ප්‍රමාණය (හෙක්.)", value: econAgri.abandonedPaddyLand.canBeReactivatedExtent },
-                { en: "Marine Fisheries Households", si: "මුහුදු මසුන් ගොවි ගෘහ ඒකක", value: econAgri.marineFisheries.householdCount },
-                { en: "Marine Active Fishermen", si: "මුහුදු සක්‍රීය ධීවරයන්", value: econAgri.marineFisheries.activeFishermenCount },
-                { en: "Inland Fisheries Households", si: "අභ්‍යන්තර මසුන් ගොවි ගෘහ ඒකක", value: econAgri.inlandFisheries.householdCount },
-                { en: "Inland Active Fishermen", si: "අභ්‍යන්තර සක්‍රීය ධීවරයන්", value: econAgri.inlandFisheries.activeFishermenCount },
+                { en: "Abandoned Paddy Land (Acres)", si: "පුරන් කුඹුරු බිම් ප්‍රමාණය (අක්.)", value: econAgri.abandonedPaddyLand.extentAcres },
+                { en: "Recultivatable Extent", si: "නැවත වගාකල හැකි ප්‍රමාණය", value: econAgri.abandonedPaddyLand.canBeReactivatedExtent },
+                { en: "Marine (Karadiya) Fishing Households", si: "කරදිය ධීවර පවුල් ගණන", value: econAgri.marineFisheries.householdCount },
+                { en: "Marine Active Fishermen", si: "කරදිය සක්‍රිය ධීවරයින්", value: econAgri.marineFisheries.activeFishermenCount },
+                { en: "Inland (Miridiya) Fishing Households", si: "මිරිදිය ධීවර පවුල් ගණන", value: econAgri.inlandFisheries.householdCount },
+                { en: "Inland Active Fishermen", si: "මිරිදිය සක්‍රිය ධීවරයින්", value: econAgri.inlandFisheries.activeFishermenCount },
               ]}
             />
           </CardContent>
         </Card>
         <BarCard
-          titleEn="Land Use (Hectares)"
-          titleSi="ඉඩම් භාවිතය (හෙක්.)"
+          titleEn="Land Use and Agricultural Information (Hectares)"
+          titleSi="ඉඩම් පරිභෝගය හා කෘෂිකාර්මික තොරතුරු (හෙක්.)"
           color={GOLD}
           rows={econAgri.landUse.map((r) => ({ label: t(r.en, r.si), value: r.extentHectares }))}
         />

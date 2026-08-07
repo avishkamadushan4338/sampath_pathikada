@@ -181,7 +181,7 @@ export async function GET(req: NextRequest) {
 
   const health = aggregateHealth(rows, gnLabel);
   addSheet("Health Summary", [{ ...health.institutionCounts }]);
-  addSheet("Health - Govt Hospitals", health.govtHospitalsDirectory.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Type": r.type, "Address": r.address })));
+  addSheet("Health - Govt Hospitals", health.govtHospitalsDirectory.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Type": r.type })));
 
   const agri = aggregateEconomicAgriculture(rows, gnLabel);
   addSheet("Agriculture - Land Use", agri.landUse.map((l) => ({ "Land Type": l.en, "Extent (ha)": l.extentHectares })));
@@ -196,7 +196,7 @@ export async function GET(req: NextRequest) {
 
   addSheet("Health - Private Hospitals", health.privateHospitalsDirectory.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Address": r.address })));
   addSheet("Health - Ayurvedic Institutions", health.ayurvedicInstitutions.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Address": r.address })));
-  addSheet("Health - Traditional Practitioners", health.traditionalPractitioners.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Specialty": r.specialty, "Address": r.address })));
+  addSheet("Health - Traditional Practitioners", health.traditionalPractitioners.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Specialty": r.specialty })));
 
   addSheet("Agriculture - Fisheries Summary", [{
     "Marine Households": agri.marineFisheries.householdCount, "Marine Active Fishermen": agri.marineFisheries.activeFishermenCount, "Marine Societies": agri.marineFisheries.societyCount,
@@ -205,7 +205,7 @@ export async function GET(req: NextRequest) {
   }]);
   addSheet("Agriculture - Livestock Farms", agri.livestockFarms.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Cattle": r.cattle, "Layer Chickens": r.layerChickens, "Broiler Chickens": r.broilerChickens, "Goats": r.goats, "Pigs": r.pigs, "Peacock": r.peacock, "Other": r.other, "Address": r.address })));
   addSheet("Agriculture - Animal Husbandry Directory", agri.animalHusbandryDirectory.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Type": r.type, "Phone": r.phone ?? "", "Address": r.address })));
-  addSheet("Agriculture - Tea Estates", agri.teaEstates.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Extent (acres)": r.extentAcres, "Ownership": r.ownership, "Employees F": r.employeesFemale, "Employees M": r.employeesMale })));
+  addSheet("Agriculture - Tea Estates", agri.teaEstates.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Extent (acres)": r.extentAcres, "Extent (roods)": r.extentRoods, "Extent (perches)": r.extentPerches, "Ownership": r.ownership, "Employees F": r.employeesFemale, "Employees M": r.employeesMale })));
   addSheet("Agriculture - Fish Landing Sites", agri.fishLandingSites.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Address": r.address, "Site Type": r.siteType, "Water Type": r.waterType })));
   addSheet("Agriculture - Ice Production", agri.iceProductionDirectory.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Address": r.address })));
 

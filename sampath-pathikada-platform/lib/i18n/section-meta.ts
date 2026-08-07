@@ -54,7 +54,7 @@ export const SECTION_META: Record<SectionKey, SectionMeta> = {
   },
   employment: {
     number: 6,
-    title: { en: "Employment", si: "රැකියා" },
+    title: { en: "Employment Aspiration", si: "රැකියා අපේක්ෂාව" },
     icon: Briefcase,
   },
   education: {
