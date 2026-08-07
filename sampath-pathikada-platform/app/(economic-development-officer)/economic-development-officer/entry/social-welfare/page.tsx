@@ -53,10 +53,10 @@ const ELDERS_HOME_AUTHORITY_LABELS: Record<(typeof ELDERS_HOME_AUTHORITY_TYPES)[
 };
 
 const CHILDRENS_HOME_TYPE_LABELS: Record<(typeof CHILDRENS_HOME_TYPES)[number], { en: string; si: string }> = {
-  "childrens-home": { en: "Children's Home", si: "ළමා නිවාසය" },
-  "certified-school": { en: "Certified School", si: "සහතික කළ පාසල" },
-  "probation-home": { en: "Probation Home", si: "සේවන නිවාසය" },
-  "detention-home": { en: "Detention Home", si: "රඳවා තැබීමේ නිවාසය" },
+  "childrens-home": { en: "Children's Home", si: "ළමා නිවාස" },
+  "certified-school": { en: "Certified School", si: "සහතික කල පාසල්" },
+  "probation-home": { en: "Reformatory Home", si: "නිවර්තන නිවාස" },
+  "detention-home": { en: "Detention Home", si: "රැදවුම් නිවාස" },
 };
 
 const CHILDRENS_HOME_AUTHORITY_LABELS: Record<
@@ -64,7 +64,6 @@ const CHILDRENS_HOME_AUTHORITY_LABELS: Record<
   { en: string; si: string }
 > = {
   govt: { en: "Government", si: "රාජ්‍ය" },
-  ngo: { en: "NGO", si: "රාජ්‍ය නොවන සංවිධාන" },
   private: { en: "Private", si: "පෞද්ගලික" },
 };
 
@@ -98,41 +97,46 @@ export default function SocialWelfarePage() {
   }
 
   const eldersHomeColumns: RepeatableColumn[] = [
-    { key: "name", label: { en: "Name", si: "නම" }, type: "text" },
-    { key: "address", label: { en: "Address", si: "ලිපිනය" }, type: "text" },
+    { key: "name", label: { en: "Elders' Home Name", si: "වැඩිහිටි නිවාසය නම" }, type: "text" },
     {
       key: "authority",
-      label: { en: "Authority", si: "පාලන අධිකාරිය" },
+      label: { en: "* Maintaining Authority", si: "*පාලනය කරනු ලබන ආයතනය" },
       type: "select",
       options: ELDERS_HOME_AUTHORITY_TYPES.map((v) => ({ value: v, label: ELDERS_HOME_AUTHORITY_LABELS[v] })),
     },
-    { key: "phone", label: { en: "Phone", si: "දුරකථන අංකය" }, type: "text" },
-    { key: "infrastructureNeeds", label: { en: "Infrastructure Needs", si: "යටිතල පහසුකම්වල අවශ්‍යතාව" }, type: "text" },
-    { key: "capacity", label: { en: "Capacity", si: "ධාරිතාව" }, type: "number" },
-    { key: "residentCount.female", label: { en: "Residents - Female", si: "වාසීන් - ස්ත්‍රී" }, type: "number" },
-    { key: "residentCount.male", label: { en: "Residents - Male", si: "වාසීන් - පුරුෂ" }, type: "number" },
+    { key: "phone", label: { en: "Phone Number", si: "දුරකථන අංකය" }, type: "text" },
+    { key: "infrastructureNeeds", label: { en: "Infrastructure Facility Needs", si: "යටිතල පහසුකම්වල අවශ්‍යතාව" }, type: "text" },
+    { key: "capacity", label: { en: "Elders' Home Capacity", si: "වැඩිහිටි නිවාසයේ ධාරිතාව" }, type: "number" },
+    { key: "residentCount.female", label: { en: "Current Residents - Female", si: "දැනට සිටින වැඩිහිටියන් - ගැහැණු" }, type: "number" },
+    { key: "residentCount.male", label: { en: "Current Residents - Male", si: "දැනට සිටින වැඩිහිටියන් - පිරිමි" }, type: "number" },
   ];
 
   const childrensHomeColumns: RepeatableColumn[] = [
-    { key: "name", label: { en: "Name", si: "නම" }, type: "text" },
-    { key: "address", label: { en: "Address", si: "ලිපිනය" }, type: "text" },
-    {
-      key: "type",
-      label: { en: "Type", si: "වර්ගය" },
-      type: "select",
-      options: CHILDRENS_HOME_TYPES.map((v) => ({ value: v, label: CHILDRENS_HOME_TYPE_LABELS[v] })),
-    },
+    { key: "name", label: { en: "Children's Home Name", si: "ළමා නිවාසය නම" }, type: "text" },
     {
       key: "authority",
-      label: { en: "Authority", si: "පාලන අධිකාරිය" },
+      label: { en: "* Maintaining Authority", si: "*පාලනය කරනු ලබන ආයතනය" },
       type: "select",
       options: CHILDRENS_HOME_AUTHORITY_TYPES.map((v) => ({ value: v, label: CHILDRENS_HOME_AUTHORITY_LABELS[v] })),
     },
-    { key: "phone", label: { en: "Phone", si: "දුරකථන අංකය" }, type: "text" },
-    { key: "infrastructureNeeds", label: { en: "Infrastructure Needs", si: "යටිතල පහසුකම්වල අවශ්‍යතාව" }, type: "text" },
-    { key: "capacity", label: { en: "Capacity", si: "ධාරිතාව" }, type: "number" },
-    { key: "residentCount.female", label: { en: "Residents - Female", si: "වාසීන් - ස්ත්‍රී" }, type: "number" },
-    { key: "residentCount.male", label: { en: "Residents - Male", si: "වාසීන් - පුරුෂ" }, type: "number" },
+    {
+      key: "type",
+      label: { en: "** Type", si: "**වර්ගය" },
+      type: "select",
+      options: CHILDRENS_HOME_TYPES.map((v) => ({ value: v, label: CHILDRENS_HOME_TYPE_LABELS[v] })),
+    },
+    { key: "capacity", label: { en: "Children's Home Capacity", si: "ළමා නිවාසයේ ධාරිතාව" }, type: "number" },
+    { key: "residentCount.female", label: { en: "Current Children - Female", si: "දැනට සිටින ළමයින් - ගැහැණු" }, type: "number" },
+    { key: "residentCount.male", label: { en: "Current Children - Male", si: "දැනට සිටින ළමයින් - පිරිමි" }, type: "number" },
+    {
+      key: "residentCount.total",
+      label: { en: "Current Children - Total", si: "දැනට සිටින ළමයින් - එකතුව" },
+      type: "computed",
+      compute: (row) => {
+        const rc = (row as { residentCount?: { female?: number; male?: number } }).residentCount;
+        return (Number(rc?.female) || 0) + (Number(rc?.male) || 0);
+      },
+    },
   ];
 
   return (
@@ -150,7 +154,23 @@ export default function SocialWelfarePage() {
           {lang === "si" ? socialWelfareDict.fields.welfarePaymentHouseholdCounts.si : socialWelfareDict.fields.welfarePaymentHouseholdCounts.en}
         </h2>
         <div className="mt-4 grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4">
-          <FieldWrapper name="welfarePaymentHouseholdCounts.rs2500" label={{ en: "Rs. 2,500", si: "රු. 2,500" }}>
+          <FieldWrapper name="welfarePaymentHouseholdCountsTotal" label={{ en: "Total Household Count", si: "මුළු පවුල් ගණන" }}>
+            {({ id }) => (
+              <Input
+                id={id}
+                readOnly
+                disabled
+                value={
+                  (Number(form.watch("welfarePaymentHouseholdCounts.rs2500")) || 0) +
+                  (Number(form.watch("welfarePaymentHouseholdCounts.rs5000")) || 0) +
+                  (Number(form.watch("welfarePaymentHouseholdCounts.rs8500")) || 0) +
+                  (Number(form.watch("welfarePaymentHouseholdCounts.rs15000")) || 0)
+                }
+                className="nums-tabular"
+              />
+            )}
+          </FieldWrapper>
+          <FieldWrapper name="welfarePaymentHouseholdCounts.rs2500" label={{ en: "Rs. 2,500 - Transitional", si: "රු.2500 සංක්‍රාන්තික" }}>
             {({ id, describedBy, invalid }) => (
               <Input
                 id={id}
@@ -162,7 +182,7 @@ export default function SocialWelfarePage() {
               />
             )}
           </FieldWrapper>
-          <FieldWrapper name="welfarePaymentHouseholdCounts.rs5000" label={{ en: "Rs. 5,000", si: "රු. 5,000" }}>
+          <FieldWrapper name="welfarePaymentHouseholdCounts.rs5000" label={{ en: "Rs. 5,000 - At Risk", si: "රු.5000 අවධානමට ලක් වූ" }}>
             {({ id, describedBy, invalid }) => (
               <Input
                 id={id}
@@ -174,7 +194,7 @@ export default function SocialWelfarePage() {
               />
             )}
           </FieldWrapper>
-          <FieldWrapper name="welfarePaymentHouseholdCounts.rs8500" label={{ en: "Rs. 8,500", si: "රු. 8,500" }}>
+          <FieldWrapper name="welfarePaymentHouseholdCounts.rs8500" label={{ en: "Rs. 8,500 - Poor", si: "රු.8500 දිලිඳු" }}>
             {({ id, describedBy, invalid }) => (
               <Input
                 id={id}
@@ -186,7 +206,7 @@ export default function SocialWelfarePage() {
               />
             )}
           </FieldWrapper>
-          <FieldWrapper name="welfarePaymentHouseholdCounts.rs15000" label={{ en: "Rs. 15,000", si: "රු. 15,000" }}>
+          <FieldWrapper name="welfarePaymentHouseholdCounts.rs15000" label={{ en: "Rs. 15,000 - Extremely Poor", si: "රු.15000 අන්ත දිලිඳු" }}>
             {({ id, describedBy, invalid }) => (
               <Input
                 id={id}
@@ -198,7 +218,7 @@ export default function SocialWelfarePage() {
               />
             )}
           </FieldWrapper>
-          <FieldWrapper name="welfarePaymentHouseholdCounts.totalAswesumaRecipients" label={{ en: "Total Aswesuma Recipients", si: "අස්වැසුම ප්‍රතිලාභී මුළු" }}>
+          <FieldWrapper name="welfarePaymentHouseholdCounts.totalAswesumaRecipients" label={{ en: "Total Aswesuma Recipients", si: "අස්වැසුම ප්‍රතිලාභී මුළ" }}>
             {({ id, describedBy, invalid }) => (
               <Input
                 id={id}
@@ -218,7 +238,7 @@ export default function SocialWelfarePage() {
           {lang === "si" ? socialWelfareDict.fields.allowanceRecipientCounts.si : socialWelfareDict.fields.allowanceRecipientCounts.en}
         </h2>
         <div className="mt-4 grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4">
-          <FieldWrapper name="allowanceRecipientCounts.disabilityAllowance" label={{ en: "Disability Allowance", si: "ආබාධිත දීමනාව" }}>
+          <FieldWrapper name="allowanceRecipientCounts.disabilityAllowance" label={{ en: "Disability Allowance", si: "ආබාධිත දීමනා" }}>
             {({ id, describedBy, invalid }) => (
               <Input
                 id={id}
@@ -230,7 +250,7 @@ export default function SocialWelfarePage() {
               />
             )}
           </FieldWrapper>
-          <FieldWrapper name="allowanceRecipientCounts.elderlyAllowance" label={{ en: "Elderly Allowance", si: "වැඩිහිටි දීමනාව" }}>
+          <FieldWrapper name="allowanceRecipientCounts.elderlyAllowance" label={{ en: "Elderly Allowance", si: "වැඩිහිටි දීමනා" }}>
             {({ id, describedBy, invalid }) => (
               <Input
                 id={id}
@@ -242,7 +262,7 @@ export default function SocialWelfarePage() {
               />
             )}
           </FieldWrapper>
-          <FieldWrapper name="allowanceRecipientCounts.nutritionAllowance" label={{ en: "Nutrition Allowance", si: "පෝෂණ දීමනාව" }}>
+          <FieldWrapper name="allowanceRecipientCounts.nutritionAllowance" label={{ en: "Nutrition Stamp", si: "පෝෂණ මුද්දර" }}>
             {({ id, describedBy, invalid }) => (
               <Input
                 id={id}
@@ -254,7 +274,7 @@ export default function SocialWelfarePage() {
               />
             )}
           </FieldWrapper>
-          <FieldWrapper name="allowanceRecipientCounts.publicAssistance" label={{ en: "Public Assistance", si: "මහජන සහන ආධාර" }}>
+          <FieldWrapper name="allowanceRecipientCounts.publicAssistance" label={{ en: "Public Assistance", si: "මහජන ආධාර" }}>
             {({ id, describedBy, invalid }) => (
               <Input
                 id={id}
@@ -266,7 +286,7 @@ export default function SocialWelfarePage() {
               />
             )}
           </FieldWrapper>
-          <FieldWrapper name="allowanceRecipientCounts.diseaseAidWheelchair" label={{ en: "Disease Aid - Wheelchair", si: "රෝගාධාර - වීල්චෙයාර්" }}>
+          <FieldWrapper name="allowanceRecipientCounts.diseaseAidWheelchair" label={{ en: "Disease Aid - Kidney", si: "රෝගාධාර - වකුගඩු ආධාර" }}>
             {({ id, describedBy, invalid }) => (
               <Input
                 id={id}
@@ -290,7 +310,7 @@ export default function SocialWelfarePage() {
               />
             )}
           </FieldWrapper>
-          <FieldWrapper name="allowanceRecipientCounts.diseaseAidThalassemia" label={{ en: "Disease Aid - Thalassemia", si: "රෝගාධාර - තැලසීමියා" }}>
+          <FieldWrapper name="allowanceRecipientCounts.diseaseAidThalassemia" label={{ en: "Disease Aid - Thalassemia", si: "රෝගාධාර - තැලිසීමියා" }}>
             {({ id, describedBy, invalid }) => (
               <Input
                 id={id}
@@ -336,7 +356,6 @@ export default function SocialWelfarePage() {
           columns={eldersHomeColumns}
           emptyRowFactory={() => ({
             name: "",
-            address: "",
             authority: "govt",
             phone: "",
             infrastructureNeeds: "",
@@ -353,11 +372,8 @@ export default function SocialWelfarePage() {
           columns={childrensHomeColumns}
           emptyRowFactory={() => ({
             name: "",
-            address: "",
-            type: "childrens-home",
             authority: "govt",
-            phone: "",
-            infrastructureNeeds: "",
+            type: "childrens-home",
             capacity: 0,
             residentCount: { female: 0, male: 0 },
           })}

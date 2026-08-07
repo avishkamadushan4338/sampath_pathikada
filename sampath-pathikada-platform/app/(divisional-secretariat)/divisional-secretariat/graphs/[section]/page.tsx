@@ -162,17 +162,16 @@ function SocialWelfareTable({
   const childrensAuthorityLabel = (authority: string | undefined) => {
     if (!authority) return "—";
     if (authority === "govt") return lang === "si" ? "රාජ්‍ය" : "Government";
-    if (authority === "ngo") return lang === "si" ? "ස්වේච්ඡා" : "Voluntary";
     if (authority === "private") return lang === "si" ? "පෞද්ගලික" : "Private";
     return authority;
   };
 
   const childrensCategoryLabel = (category: string | undefined) => {
     if (!category) return "—";
-    if (category === "childrens-home") return lang === "si" ? "ළමා නිවාසය" : "Children's Home";
-    if (category === "certified-school") return lang === "si" ? "සහතික කළ පාසල" : "Certified School";
-    if (category === "probation-home") return lang === "si" ? "පරිවාස නිවාසය" : "Probation Home";
-    if (category === "detention-home") return lang === "si" ? "රඳවා තැබීමේ නිවාසය" : "Detention Home";
+    if (category === "childrens-home") return lang === "si" ? "ළමා නිවාස" : "Children's Home";
+    if (category === "certified-school") return lang === "si" ? "සහතික කල පාසල්" : "Certified School";
+    if (category === "probation-home") return lang === "si" ? "නිවර්තන නිවාස" : "Reformatory Home";
+    if (category === "detention-home") return lang === "si" ? "රැදවුම් නිවාස" : "Detention Home";
     return category;
   };
 
@@ -188,12 +187,12 @@ function SocialWelfareTable({
               <table className="w-full border-collapse text-left text-sm">
                 <thead className="bg-muted/20 text-muted-foreground">
                   <tr>
-                    <th className="px-3 py-3 whitespace-nowrap">{lang === "si" ? "මුළු පවුල් සංඛ්‍යාව" : "Total Number of Families"}</th>
-                    <th className="px-3 py-3 whitespace-nowrap">{lang === "si" ? "සංක්‍රාන්තික (රු. 2,500)" : "Transitional (Rs. 2,500)"}</th>
-                    <th className="px-3 py-3 whitespace-nowrap">{lang === "si" ? "අවදානම් / අවදානමට ලක්වූ (රු. 5,000)" : "Vulnerable / At Risk (Rs. 5,000)"}</th>
-                    <th className="px-3 py-3 whitespace-nowrap">{lang === "si" ? "දිළිඳු (රු. 8,500)" : "Poor (Rs. 8500)"}</th>
-                    <th className="px-3 py-3 whitespace-nowrap">{lang === "si" ? "අන්ත දිළිඳු (රු. 15,000)" : "Extremely Poor (Rs. 15000)"}</th>
-                    <th className="px-3 py-3 whitespace-nowrap">{lang === "si" ? "ප්‍රතිලාභීන්ගේ මුළු සංඛ්‍යාව" : "Total Number of Beneficiaries"}</th>
+                    <th className="px-3 py-3 whitespace-nowrap">{lang === "si" ? "මුළු පවුල් ගණන" : "Total Household Count"}</th>
+                    <th className="px-3 py-3 whitespace-nowrap">{lang === "si" ? "රු.2500 සංක්‍රාන්තික" : "Rs. 2,500 - Transitional"}</th>
+                    <th className="px-3 py-3 whitespace-nowrap">{lang === "si" ? "රු.5000 අවධානමට ලක් වූ" : "Rs. 5,000 - At Risk"}</th>
+                    <th className="px-3 py-3 whitespace-nowrap">{lang === "si" ? "රු.8500 දිලිඳු" : "Rs. 8,500 - Poor"}</th>
+                    <th className="px-3 py-3 whitespace-nowrap">{lang === "si" ? "රු.15000 අන්ත දිලිඳු" : "Rs. 15,000 - Extremely Poor"}</th>
+                    <th className="px-3 py-3 whitespace-nowrap">{lang === "si" ? "අස්වැසුම ප්‍රතිලාභී මුළ" : "Total Aswesuma Recipients"}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -219,19 +218,19 @@ function SocialWelfareTable({
                 <thead className="bg-muted/20 text-muted-foreground">
                   <tr>
                     <th rowSpan={2} className="px-3 py-3 align-middle whitespace-nowrap">
-                      <Bilingual en="Disability Allowance" si="ආබාධිත දීමනාව" />
+                      <Bilingual en="Disability Allowance" si="ආබාධිත දීමනා" />
                     </th>
                     <th rowSpan={2} className="px-3 py-3 align-middle whitespace-nowrap">
-                      <Bilingual en="Elderly Allowance" si="වැඩිහිටි දීමනාව" />
+                      <Bilingual en="Elderly Allowance" si="වැඩිහිටි දීමනා" />
                     </th>
                     <th rowSpan={2} className="px-3 py-3 align-middle whitespace-nowrap">
-                      <Bilingual en="Nutrition Stamps" si="පෝෂණ මුද්දර" />
+                      <Bilingual en="Nutrition Stamp" si="පෝෂණ මුද්දර" />
                     </th>
                     <th rowSpan={2} className="px-3 py-3 align-middle whitespace-nowrap">
-                      <Bilingual en="Public Assistance" si="මහජන සහන ආධාර" />
+                      <Bilingual en="Public Assistance" si="මහජන ආධාර" />
                     </th>
                     <th colSpan={4} className="px-3 py-3 text-center whitespace-nowrap">
-                      <Bilingual en="Medical Relief" si="වෛද්‍ය ආධාර" />
+                      <Bilingual en="Disease Aid" si="රෝගාධාර" />
                     </th>
                     <th rowSpan={2} className="px-3 py-3 align-middle whitespace-nowrap">
                       <Bilingual en="Other" si="වෙනත්" />
@@ -239,13 +238,13 @@ function SocialWelfareTable({
                   </tr>
                   <tr>
                     <th className="px-3 py-3 whitespace-nowrap">
-                      <Bilingual en="Kidney Disease" si="වකුගඩු රෝග" />
+                      <Bilingual en="Kidney" si="වකුගඩු ආධාර" />
                     </th>
                     <th className="px-3 py-3 whitespace-nowrap">
                       <Bilingual en="Cancer" si="පිළිකා" />
                     </th>
                     <th className="px-3 py-3 whitespace-nowrap">
-                      <Bilingual en="Thalassemia" si="තැලසීමියා" />
+                      <Bilingual en="Thalassemia" si="තැලිසීමියා" />
                     </th>
                     <th className="px-3 py-3 whitespace-nowrap">
                       <Bilingual en="Diabetes" si="දියවැඩියාව" />
@@ -278,22 +277,19 @@ function SocialWelfareTable({
                 <thead className="bg-muted/20 text-muted-foreground">
                   <tr>
                     <th rowSpan={2} className="border-b px-3 py-3 align-middle whitespace-nowrap">
-                      <Bilingual en="Name of Elders' Home" si="වැඩිහිටි නිවාසයේ නම" />
+                      <Bilingual en="Elders' Home Name" si="වැඩිහිටි නිවාසය නම" />
                     </th>
                     <th rowSpan={2} className="border-b px-3 py-3 align-middle whitespace-nowrap">
-                      <Bilingual en="Address" si="ලිපිනය" />
+                      <Bilingual en="* Maintaining Authority" si="*පාලනය කරනු ලබන ආයතනය" />
                     </th>
                     <th rowSpan={2} className="border-b px-3 py-3 align-middle whitespace-nowrap">
-                      <Bilingual en="Managing Institution" si="පාලන ආයතනය" />
+                      <Bilingual en="Phone Number" si="දුරකථන අංකය" />
                     </th>
                     <th rowSpan={2} className="border-b px-3 py-3 align-middle whitespace-nowrap">
-                      <Bilingual en="Telephone Number" si="දුරකථන අංකය" />
+                      <Bilingual en="Infrastructure Facility Needs" si="යටිතල පහසුකම්වල අවශ්‍යතාව" />
                     </th>
                     <th rowSpan={2} className="border-b px-3 py-3 align-middle whitespace-nowrap">
-                      <Bilingual en="Requirement of Infrastructure Facilities" si="යටිතල පහසුකම් අවශ්‍යතා" />
-                    </th>
-                    <th rowSpan={2} className="border-b px-3 py-3 align-middle whitespace-nowrap">
-                      <Bilingual en="Capacity of Elders' Home" si="වැඩිහිටි නිවාස ධාරිතාව" />
+                      <Bilingual en="Elders' Home Capacity" si="වැඩිහිටි නිවාසයේ ධාරිතාව" />
                     </th>
                     <th colSpan={2} className="border-b px-3 py-3 text-center whitespace-nowrap">
                       <Bilingual en="Current Number of Resident Elders" si="දැනට සිටින වැඩිහිටියන් සංඛ්‍යාව" />
@@ -301,30 +297,24 @@ function SocialWelfareTable({
                   </tr>
                   <tr>
                     <th className="border-b px-3 py-3 text-center whitespace-nowrap">
-                      <Bilingual en="Female" si="ස්ත්‍රී" />
+                      <Bilingual en="Female" si="ගැහැණු" />
                     </th>
                     <th className="border-b px-3 py-3 text-center whitespace-nowrap">
-                      <Bilingual en="Male" si="පුරුෂ" />
+                      <Bilingual en="Male" si="පිරිමි" />
                     </th>
                   </tr>
                 </thead>
                 <tbody>
                   {eldersHomesRows.length === 0 ? (
                     <tr className="border-b">
-                      <td className="px-3 py-3 nums-tabular text-center">0</td>
-                      <td className="px-3 py-3 nums-tabular text-center">0</td>
-                      <td className="px-3 py-3 nums-tabular text-center">0</td>
-                      <td className="px-3 py-3 nums-tabular text-center">0</td>
-                      <td className="px-3 py-3 nums-tabular text-center">0</td>
-                      <td className="px-3 py-3 nums-tabular text-center">0</td>
-                      <td className="px-3 py-3 nums-tabular text-center">0</td>
-                      <td className="px-3 py-3 nums-tabular text-center">0</td>
+                      <td colSpan={7} className="px-3 py-6 text-center text-muted-foreground">
+                        <Bilingual en="No elders' home records available." si="වැඩිහිටි නිවාස වාර්තා නොමැත." />
+                      </td>
                     </tr>
                   ) : (
                     eldersHomesRows.map((row, index) => (
                       <tr key={`${row.gnId}-${row.name}-${index}`} className="border-b">
                         <td className="px-3 py-3">{row.name || "—"}</td>
-                        <td className="px-3 py-3">{row.address || "—"}</td>
                         <td className="px-3 py-3">{authorityLabel(row.authority)}</td>
                         <td className="px-3 py-3 nums-tabular">{row.phone || "—"}</td>
                         <td className="px-3 py-3">{row.infrastructureNeeds || "—"}</td>
@@ -337,13 +327,16 @@ function SocialWelfareTable({
                 </tbody>
               </table>
             </SocialWelfareTableShell>
+            <p className="px-3 text-fluid-xs text-muted-foreground">
+              <Bilingual en="* 1. Government Sector 2. Private Sector." si="*1-රාජ්‍ය අංශය 2- පුද්ගලික අංශය" />
+            </p>
           </section>
 
           <section className="space-y-2">
             <h3 className="px-3 text-base font-semibold text-foreground">
               <Bilingual
                 en="Information Regarding Government and Voluntary Children's Homes"
-                si="රාජ්‍ය හා ස්වේච්ඡා ළමා නිවාස පිළිබඳ තොරතුරු"
+                si="රජයේ සහ ස්වේච්ඡා ළමා නිවාස පිළිබඳ තොරතුරු"
               />
             </h3>
             <SocialWelfareTableShell>
@@ -351,30 +344,27 @@ function SocialWelfareTable({
                 <thead className="bg-muted/20 text-muted-foreground">
                   <tr>
                     <th rowSpan={2} className="border-b px-3 py-3 align-middle whitespace-nowrap">
-                      <Bilingual en="Name of Children's Home" si="ළමා නිවාසයේ නම" />
+                      <Bilingual en="Children's Home Name" si="ළමා නිවාසය නම" />
                     </th>
                     <th rowSpan={2} className="border-b px-3 py-3 align-middle whitespace-nowrap">
-                      <Bilingual en="Address" si="ලිපිනය" />
+                      <Bilingual en="* Maintaining Authority" si="*පාලනය කරනු ලබන ආයතනය" />
                     </th>
                     <th rowSpan={2} className="border-b px-3 py-3 align-middle whitespace-nowrap">
-                      <Bilingual en="Managing Institution" si="පාලන ආයතනය" />
+                      <Bilingual en="** Type" si="**වර්ගය" />
                     </th>
                     <th rowSpan={2} className="border-b px-3 py-3 align-middle whitespace-nowrap">
-                      <Bilingual en="Category" si="වර්ගය" />
-                    </th>
-                    <th rowSpan={2} className="border-b px-3 py-3 align-middle whitespace-nowrap">
-                      <Bilingual en="Capacity of Children's Home" si="ළමා නිවාස ධාරිතාව" />
+                      <Bilingual en="Children's Home Capacity" si="ළමා නිවාසයේ ධාරිතාව" />
                     </th>
                     <th colSpan={3} className="border-b px-3 py-3 text-center whitespace-nowrap">
-                      <Bilingual en="Current Number of Resident Children" si="දැනට සිටින ළමුන් සංඛ්‍යාව" />
+                      <Bilingual en="Current Number of Resident Children" si="දැනට සිටින ළමයින් සංඛ්‍යාව" />
                     </th>
                   </tr>
                   <tr>
                     <th className="border-b px-3 py-3 text-center whitespace-nowrap">
-                      <Bilingual en="Female" si="ස්ත්‍රී" />
+                      <Bilingual en="Female" si="ගැහැණු" />
                     </th>
                     <th className="border-b px-3 py-3 text-center whitespace-nowrap">
-                      <Bilingual en="Male" si="පුරුෂ" />
+                      <Bilingual en="Male" si="පිරිමි" />
                     </th>
                     <th className="border-b px-3 py-3 text-center whitespace-nowrap">
                       <Bilingual en="Total" si="එකතුව" />
@@ -384,20 +374,14 @@ function SocialWelfareTable({
                 <tbody>
                   {childrensHomesRows.length === 0 ? (
                     <tr className="border-b">
-                      <td className="px-3 py-3 nums-tabular text-center">0</td>
-                      <td className="px-3 py-3 nums-tabular text-center">0</td>
-                      <td className="px-3 py-3 nums-tabular text-center">0</td>
-                      <td className="px-3 py-3 nums-tabular text-center">0</td>
-                      <td className="px-3 py-3 nums-tabular text-center">0</td>
-                      <td className="px-3 py-3 nums-tabular text-center">0</td>
-                      <td className="px-3 py-3 nums-tabular text-center">0</td>
-                      <td className="px-3 py-3 nums-tabular text-center">0</td>
+                      <td colSpan={7} className="px-3 py-6 text-center text-muted-foreground">
+                        <Bilingual en="No children's home records available." si="ළමා නිවාස වාර්තා නොමැත." />
+                      </td>
                     </tr>
                   ) : (
                     childrensHomesRows.map((row, index) => (
                       <tr key={`${row.gnId}-${row.name}-${index}`} className="border-b">
                         <td className="px-3 py-3">{row.name || "—"}</td>
-                        <td className="px-3 py-3">{row.address || "—"}</td>
                         <td className="px-3 py-3">{childrensAuthorityLabel(row.authority)}</td>
                         <td className="px-3 py-3">{childrensCategoryLabel(row.type)}</td>
                         <td className="px-3 py-3 nums-tabular">{(row.capacity ?? 0).toLocaleString()}</td>
@@ -410,6 +394,12 @@ function SocialWelfareTable({
                 </tbody>
               </table>
             </SocialWelfareTableShell>
+            <p className="px-3 text-fluid-xs text-muted-foreground">
+              <Bilingual
+                en="* 1. Government Sector 2. Private Sector. ** Type: 1. Children's Home 2. Certified School 3. Reformatory Home 4. Detention Home."
+                si="*1-රාජ්‍ය අංශය 2- පුද්ගලික අංශය ** වර්ගය- 1- ළමා නිවාස. 2-සහතික කල පාසල්. 3-නිවර්තන නිවාස. 4-රැදවුම් නිවාස"
+              />
+            </p>
           </section>
         </div>
       </CardContent>

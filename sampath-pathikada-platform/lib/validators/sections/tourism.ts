@@ -34,10 +34,27 @@ export const tourismSchemaStrict = z.object({
 
 export type TourismData = z.infer<typeof tourismSchemaStrict>;
 
+/* Draft-mode row schemas built from scratch rather than `.partial()` on the strict schemas
+ * above: `.partial()` only allows a field to be *missing*, it doesn't relax `min(1)`, so a row
+ * added via the "Add" button (whose fields start as "") would still fail validation and
+ * silently block saving. */
+const guestAccommodationRowPartialSchema = z.object({
+  name: z.string().optional(),
+  type: z.enum(GUEST_ACCOMMODATION_TYPES).optional(),
+  address: z.string().optional(),
+  roomCount: z.coerce.number().int().min(0).optional(),
+});
+
+const otherAccommodationRowPartialSchema = z.object({
+  name: z.string().optional(),
+  type: z.string().optional(),
+  address: z.string().optional(),
+});
+
 export const tourismSchemaPartial = z.object({
   hotelInventory: z.array(hotelInventoryRowSchema.partial()).optional(),
-  guestAccommodations: z.array(guestAccommodationRowSchema.partial()).optional(),
-  otherAccommodations: z.array(otherAccommodationRowSchema.partial()).optional(),
+  guestAccommodations: z.array(guestAccommodationRowPartialSchema).optional(),
+  otherAccommodations: z.array(otherAccommodationRowPartialSchema).optional(),
 });
 
 export { GUEST_ACCOMMODATION_TYPES, HOTEL_CATEGORIES };

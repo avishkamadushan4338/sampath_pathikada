@@ -20,10 +20,10 @@ const YES_NO_OPTIONS = [
 ];
 
 const PUBLIC_FACILITY_OPTIONS = [
-  { value: "busStand", label: { en: "Bus Stand", si: "බස් නැවතුම්පොළ" } },
-  { value: "railwayStation", label: { en: "Railway Station", si: "දුම්රිය ස්ථානය" } },
+  { value: "busStand", label: { en: "Bus Stand", si: "බස් නැවතුම් පොළ" } },
+  { value: "railwayStation", label: { en: "Railway Station", si: "දුම්රිය නැවතුම් පොළ" } },
   { value: "port", label: { en: "Port", si: "වරාය" } },
-  { value: "airport", label: { en: "Airport", si: "ගුවන්තොටුපොළ" } },
+  { value: "airport", label: { en: "Airport", si: "ගුවන්තොටුපළ" } },
 ];
 
 const ROAD_SURFACE_TYPE_OPTIONS = [
@@ -60,7 +60,7 @@ const SERVICE_CATEGORY_LABELS: Record<(typeof SERVICE_CATEGORIES)[number], Trans
   "eating-house-tea-shop": { en: "Eating House & Tea Shop", si: "ආපන ශාලා හා තේ කඩ" },
   "shoes-textiles": { en: "Shoes & Textiles", si: "සපත්තු හා රෙදිපිළි" },
   "meat-fish-shop": { en: "Meat / Fish Shop", si: "මස්, මාළු අලෙවිසැල්" },
-  "hardware-household-goods": { en: "Timber & Iron Household Goods", si: "දැව හා යකඩ ගෘහ භාණ්ඩ" },
+  "hardware-household-goods": { en: "Timber & Iron Household Goods", si: "ලී හා යකඩ ගෘහ භාණ්ඩ" },
   "electrical-equipment": { en: "Electrical Equipment", si: "විදුලි උපකරණ" },
   "general-goods-shop": { en: "General Goods Shop", si: "සාප්පු බඩු" },
   "construction-materials": { en: "Construction Materials", si: "ගොඩනැගිලි ද්‍රව්‍ය" },
@@ -82,7 +82,7 @@ const PUBLIC_FACILITY_CATEGORY_LABELS: Record<(typeof PUBLIC_FACILITY_CATEGORIES
   "childrens-park": { en: "Children's Park / Garden", si: "ළමා උයන් / ළමා උද්‍යානය" },
   "library-reading-room": { en: "Library / Reading Room", si: "පුස්තකාල / කියවීම් ශාලා" },
   "cinema-hall": { en: "Cinema Hall", si: "සිනමාශාලා" },
-  auditorium: { en: "Auditorium", si: "නාට්‍යාගාර" },
+  auditorium: { en: "Auditorium / Dance Hall", si: "නර්තනාගාර" },
   "public-playground": { en: "Public Playground", si: "පොදු ක්‍රීඩා පිටි" },
   gym: { en: "Gym", si: "කායවර්ධන මධ්‍යස්ථාන" },
   "daycare-center": { en: "Daycare Center", si: "දිවා සුරැකුම් මධ්‍යස්ථාන" },
@@ -90,7 +90,7 @@ const PUBLIC_FACILITY_CATEGORY_LABELS: Record<(typeof PUBLIC_FACILITY_CATEGORIES
   "cultural-center": { en: "Cultural Center", si: "සංස්කෘතික මධ්‍යස්ථාන" },
   "weekly-fair-market": { en: "Weekly Fair / Market", si: "සතිපොළ / කඩමණ්ඩිය / වෙළඳපොළ" },
   "community-hall": { en: "Community Hall", si: "ප්‍රජා ශාලාව" },
-  "vidatha-center": { en: "Vidatha Resource Center", si: "විද්‍යා නැණසල මධ්‍යස්ථානය" },
+  "vidatha-center": { en: "Vidatha Resource Center", si: "විදාතා නැණසල මධ්‍යස්ථානය" },
   "registered-three-wheeler-park": { en: "Registered Three-Wheeler Park", si: "ලියාපදිංචි ත්‍රිරෝද රථගාල" },
 };
 
@@ -101,52 +101,54 @@ const GN_DIVISION_COLUMN: ReadOnlyColumn = { key: "gnName", label: { en: "GN Div
 
 const PUBLIC_FACILITIES_COLUMNS: ReadOnlyColumn[] = [
   { key: "facility", label: { en: "Facility", si: "පහසුකම" }, options: PUBLIC_FACILITY_OPTIONS },
-  { key: "present", label: { en: "Present", si: "ඇත/නැත" }, options: YES_NO_OPTIONS },
+  { key: "present", label: { en: "Present", si: "ඇත/ නැත" }, options: YES_NO_OPTIONS },
   { key: "name", label: { en: "Name of the Location", si: "ස්ථානයේ නම" } },
 ];
 
 const PUBLIC_FACILITY_COUNT_FIELDS: { key: string; label: Translated }[] = PUBLIC_FACILITY_OPTIONS.map((o) => ({ key: o.value, label: o.label }));
 
 const ROAD_DEVELOPMENT_NEED_COLUMNS: ReadOnlyColumn[] = [
-  { key: "roadName", label: { en: "Road Name", si: "පාරේ නම" } },
-  { key: "roadNumber", label: { en: "Road Number", si: "පාර අංකය" } },
-  { key: "lengthMeters", label: { en: "Length (m)", si: "දිග (මීටර්)" } },
-  { key: "surfaceType", label: { en: "Surface Type", si: "මාර්ගයේ ස්වභාවය" }, options: ROAD_SURFACE_TYPE_OPTIONS },
-  { key: "maintainingAuthority", label: { en: "Maintaining Authority", si: "නඩත්තු කරනු ලබන ආයතනය" } },
+  { key: "roadName", label: { en: "Road Name", si: "මාර්ගයේ නම" } },
+  { key: "roadNumber", label: { en: "Road Number (if any)", si: "මාර්ග අංකය (තිබෙනම්)" } },
+  { key: "lengthMeters", label: { en: "Length (m)", si: "දිග ප්‍රමාණය (m)" } },
+  { key: "surfaceType", label: { en: "* Current Road Surface", si: "*දැනට මාර්ගයේ ස්වභාවය" }, options: ROAD_SURFACE_TYPE_OPTIONS },
+  { key: "maintainingAuthority", label: { en: "** Maintaining Authority", si: "**නඩත්තු කරනු ලබන ආයතනය" } },
 ];
 
 const BRIDGE_REPAIR_COLUMNS: ReadOnlyColumn[] = [
-  { key: "name", label: { en: "Name", si: "නම" } },
-  { key: "roadNumber", label: { en: "Road Number", si: "පාර අංකය" } },
-  { key: "location", label: { en: "Location", si: "පිහිටීම" } },
-  { key: "maintainingAuthority", label: { en: "Maintaining Authority", si: "නඩත්තු කරනු ලබන ආයතනය" } },
+  { key: "name", label: { en: "Bridge / Culvert / Footpath", si: "පාලම/බෝක්කුව/පැතිබැම්" } },
+  { key: "roadNumber", label: { en: "Road Number", si: "මාර්ග අංකය" } },
+  { key: "location", label: { en: "Location (Describe)", si: "පිහිටීම (විස්තර කරන්න)" } },
+  { key: "maintainingAuthority", label: { en: "** Maintaining Authority", si: "**නඩත්තු කරනු ලබන ආයතනය" } },
 ];
 
 const NEW_ROAD_BRIDGE_NEED_COLUMNS: ReadOnlyColumn[] = [
-  { key: "location", label: { en: "Location", si: "ස්ථානය" } },
-  { key: "roadNumber", label: { en: "Road Number", si: "පාර අංකය" } },
-  { key: "justification", label: { en: "Justification", si: "අවශ්‍යතාවය විස්තර කරන්න" } },
+  { key: "location", label: { en: "Required Location", si: "අවශ්‍ය ස්ථානය" } },
+  { key: "roadNumber", label: { en: "Road Number", si: "මාර්ග අංකය" } },
+  { key: "justification", label: { en: "Describe the Need", si: "අවශ්‍යතාවය විස්තර කරන්න" } },
 ];
 
 const NO_PUBLIC_TRANSPORT_AREA_COLUMNS: ReadOnlyColumn[] = [
-  { key: "roadName", label: { en: "Road Name", si: "පාරේ නම" } },
-  { key: "roadNumber", label: { en: "Road Number", si: "පාර අංකය" } },
+  { key: "roadName", label: { en: "* Road Name", si: "*මාර්ගයේ නම" } },
+  { key: "roadNumber", label: { en: "Road Number", si: "මාර්ග අංකය" } },
   { key: "startPoint", label: { en: "Start Point", si: "ආරම්භක ස්ථානය" } },
   { key: "endPoint", label: { en: "End Point", si: "අවසන් ස්ථානය" } },
-  { key: "distanceKm", label: { en: "Distance (km)", si: "දුර ප්‍රමාණය" } },
-  { key: "requiredBeneficiaryCount", label: { en: "Beneficiaries Needing Service", si: "සේවාව අවශ්‍ය ප්‍රතිලාභීන් සංඛ්‍යාව" } },
+  { key: "distanceKm", label: { en: "Distance", si: "දුර ප්‍රමාණය" } },
+  { key: "requiredBeneficiaryCount", label: { en: "Beneficiaries Needing Service", si: "සේවාව අවශ්‍ය ප්‍රතිලාභීසංඛ්‍යාව" } },
 ];
 
 const RAILWAY_CROSSING_GAP_COLUMNS: ReadOnlyColumn[] = [
-  { key: "roadName", label: { en: "Road Name", si: "පාරේ නම" } },
-  { key: "roadNumber", label: { en: "Road Number", si: "පාර අංකය" } },
+  { key: "roadName", label: { en: "Road Name at the Railway Crossing", si: "දුම්රිය මාර්ගය හරස්ව පිහිටි මාර්ගයේ නම" } },
+  { key: "roadNumber", label: { en: "Road Number", si: "මාර්ග අංකය" } },
   { key: "location", label: { en: "Location", si: "ස්ථානය" } },
 ];
 
 const POST_OFFICE_COLUMNS: ReadOnlyColumn[] = [
   { key: "name", label: { en: "Name", si: "නම" } },
-  { key: "type", label: { en: "Type", si: "වර්ගය" }, options: POST_OFFICE_TYPE_OPTIONS },
+  { key: "type", label: { en: "* Type", si: "*වර්ගය" }, options: POST_OFFICE_TYPE_OPTIONS },
 ];
+
+const FUEL_STATION_COLUMNS: ReadOnlyColumn[] = [{ key: "name", label: { en: "Filling Station Name", si: "පිරවුම්හලේ නම" } }];
 
 const NAMED_FACILITY_COLUMNS: ReadOnlyColumn[] = [{ key: "name", label: { en: "Name", si: "නම" } }];
 
@@ -156,13 +158,13 @@ const HYDROPOWER_PLANT_COLUMNS: ReadOnlyColumn[] = [
 ];
 
 const FINANCIAL_INSTITUTION_COLUMNS: ReadOnlyColumn[] = [
-  { key: "name", label: { en: "Name", si: "නම" } },
-  { key: "type", label: { en: "Type", si: "වර්ගය" }, options: FINANCIAL_INSTITUTION_TYPE_OPTIONS },
+  { key: "name", label: { en: "* Bank / Financial Institution / Insurance Institution Name", si: "*බැංකුවේ/ මූල්‍ය ආයතනයේ /රක්ෂණ ආයතනයේ නම" } },
+  { key: "type", label: { en: "Government / Private", si: "රාජ්‍ය/ පෞද්ගලික" }, options: FINANCIAL_INSTITUTION_TYPE_OPTIONS },
 ];
 
 const SERVICE_ESTABLISHMENT_COLUMNS: ReadOnlyColumn[] = [
   { key: "category", label: { en: "Category", si: "වර්ගය" }, options: SERVICE_CATEGORY_OPTIONS },
-  { key: "count", label: { en: "Count", si: "සංඛ්‍යාව" } },
+  { key: "count", label: { en: "Number of Trade Institutions", si: "වෙළඳ ආයතන සංඛ්‍යාව" } },
 ];
 
 const INDUSTRIAL_ESTATE_COLUMNS: ReadOnlyColumn[] = [
@@ -171,20 +173,23 @@ const INDUSTRIAL_ESTATE_COLUMNS: ReadOnlyColumn[] = [
 ];
 
 const PUBLIC_FACILITY_CATEGORY_COLUMNS_GN: ReadOnlyColumn[] = [
-  { key: "category", label: { en: "Facility", si: "පහසුකම" }, options: PUBLIC_FACILITY_CATEGORY_OPTIONS },
+  { key: "category", label: { en: "Type", si: "වර්ගය" }, options: PUBLIC_FACILITY_CATEGORY_OPTIONS },
   { key: "present", label: { en: "Present", si: "ඇත/නැත" }, options: YES_NO_OPTIONS },
   { key: "count", label: { en: "Count", si: "සංඛ්‍යාව" } },
-  { key: "distanceToNearestIfOutsideDivision", label: { en: "Distance to Nearest (if outside division)", si: "වසම තුළ පිහිටා නැත නම් ආසන්නතම ස්ථානයට ඇති දුර" } },
+  {
+    key: "distanceToNearestIfOutsideDivision",
+    label: { en: "Distance to Nearest (if not located within the division)", si: "වසම තුල පිහිටා නැත නම් ආසන්නතම ස්ථානයන්ට ඇති දුර" },
+  },
 ];
 
 const PUBLIC_FACILITY_CATEGORY_COLUMNS_AREA: ReadOnlyColumn[] = [
-  { key: "category", label: { en: "Facility", si: "පහසුකම" }, options: PUBLIC_FACILITY_CATEGORY_OPTIONS },
+  { key: "category", label: { en: "Type", si: "වර්ගය" }, options: PUBLIC_FACILITY_CATEGORY_OPTIONS },
   { key: "presentCount", label: { en: "GN Divisions With It", si: "පවතින ග්‍රාම නිලධාරී වසම් ගණන" } },
   { key: "totalCount", label: { en: "Total Count", si: "මුළු සංඛ්‍යාව" } },
 ];
 
 const LICENSED_LIQUOR_SHOP_COLUMNS: ReadOnlyColumn[] = [
-  { key: "name", label: { en: "Name", si: "නම" } },
+  { key: "name", label: { en: "Licensed Tavern / Bar Name", si: "බලපත්‍රලාභී තැබෑරුම් /බාර් නම" } },
   { key: "address", label: { en: "Address", si: "ලිපිනය" } },
 ];
 
@@ -294,7 +299,7 @@ function RoadInfrastructureSectionContent({ section }: { section: RoadInfrastruc
       <ReadOnlyTable title={roadInfrastructureDict.fields.noPublicTransportAreas} columns={NO_PUBLIC_TRANSPORT_AREA_COLUMNS} rows={toRows(section.noPublicTransportAreas)} />
       <ReadOnlyTable title={roadInfrastructureDict.fields.railwayCrossingGaps} columns={RAILWAY_CROSSING_GAP_COLUMNS} rows={toRows(section.railwayCrossingGaps)} />
       <ReadOnlyTable title={roadInfrastructureDict.fields.postOffices} columns={POST_OFFICE_COLUMNS} rows={toRows(section.postOffices)} />
-      <ReadOnlyTable title={roadInfrastructureDict.fields.fuelDistributionStations} columns={NAMED_FACILITY_COLUMNS} rows={toRows(section.fuelDistributionStations)} />
+      <ReadOnlyTable title={roadInfrastructureDict.fields.fuelDistributionStations} columns={FUEL_STATION_COLUMNS} rows={toRows(section.fuelDistributionStations)} />
       <ReadOnlyTable title={roadInfrastructureDict.fields.solarPowerPlants} columns={HYDROPOWER_PLANT_COLUMNS} rows={toRows(section.solarPowerPlants)} />
       <ReadOnlyTable title={roadInfrastructureDict.fields.windPowerPlants} columns={HYDROPOWER_PLANT_COLUMNS} rows={toRows(section.windPowerPlants)} />
       <ReadOnlyTable title={roadInfrastructureDict.fields.hydropowerPlants} columns={HYDROPOWER_PLANT_COLUMNS} rows={toRows(section.hydropowerPlants)} />
@@ -351,7 +356,7 @@ function RoadInfrastructureAreaWideView({ aggregate }: { aggregate: Infrastructu
       <ReadOnlyTable title={roadInfrastructureDict.fields.noPublicTransportAreas} columns={[GN_DIVISION_COLUMN, ...NO_PUBLIC_TRANSPORT_AREA_COLUMNS]} rows={toRows(aggregate.noPublicTransportAreas.rows)} />
       <ReadOnlyTable title={roadInfrastructureDict.fields.railwayCrossingGaps} columns={[GN_DIVISION_COLUMN, ...RAILWAY_CROSSING_GAP_COLUMNS]} rows={toRows(aggregate.railwayCrossingGaps.rows)} />
       <ReadOnlyTable title={roadInfrastructureDict.fields.postOffices} columns={[GN_DIVISION_COLUMN, ...POST_OFFICE_COLUMNS]} rows={toRows(aggregate.postOffices.rows)} />
-      <ReadOnlyTable title={roadInfrastructureDict.fields.fuelDistributionStations} columns={[GN_DIVISION_COLUMN, ...NAMED_FACILITY_COLUMNS]} rows={toRows(aggregate.fuelDistributionStations.rows)} />
+      <ReadOnlyTable title={roadInfrastructureDict.fields.fuelDistributionStations} columns={[GN_DIVISION_COLUMN, ...FUEL_STATION_COLUMNS]} rows={toRows(aggregate.fuelDistributionStations.rows)} />
       <ReadOnlyTable title={roadInfrastructureDict.fields.solarPowerPlants} columns={[GN_DIVISION_COLUMN, ...HYDROPOWER_PLANT_COLUMNS]} rows={toRows(aggregate.solarPowerPlants.rows)} />
       <ReadOnlyTable title={roadInfrastructureDict.fields.windPowerPlants} columns={[GN_DIVISION_COLUMN, ...HYDROPOWER_PLANT_COLUMNS]} rows={toRows(aggregate.windPowerPlants.rows)} />
       <ReadOnlyTable title={roadInfrastructureDict.fields.hydropowerPlants} columns={[GN_DIVISION_COLUMN, ...HYDROPOWER_PLANT_COLUMNS]} rows={toRows(aggregate.hydropowerPlants.rows)} />

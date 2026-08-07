@@ -211,10 +211,25 @@ export async function GET(req: NextRequest) {
 
   const communityWelfare = aggregateCommunityWelfare(rows, gnLabel);
   addSheet("Community Organizations", communityWelfare.organizationCounts.map((o) => ({ "Type": o.en, "Count": o.count })));
-  addSheet("Community - Organization Directory", communityWelfare.organizationDirectory.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Type": r.type, "Address": r.address })));
+  addSheet("Community - Village Development", communityWelfare.villageDevelopmentSocieties.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Address": r.address })));
+  addSheet("Community - Youth Societies", communityWelfare.youthSocieties.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Address": r.address })));
+  addSheet("Community - Sports Societies", communityWelfare.sportsClubs.rows.map((r) => ({ "GN Division": r.gnName, "Name & Address": r.nameAndAddress, "Members": r.memberCount ?? 0, "Needs": r.identifiedNeeds ?? "" })));
+  addSheet("Community - Funeral & Welfare", communityWelfare.funeralAidSocieties.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Address": r.address })));
+  addSheet("Community - Women's Societies", communityWelfare.womensSocieties.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Address": r.address })));
+  addSheet("Community - Elders' Societies", communityWelfare.eldersSocieties.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Address": r.address })));
+  addSheet("Community - Children's Societies", communityWelfare.childrensSocieties.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Address": r.address })));
+  addSheet("Community - Samurdhi Societies", communityWelfare.samurdhiSocieties.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Address": r.address })));
+  addSheet("Community - Friend Organizations", communityWelfare.friendOrganizations.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Address": r.address })));
+  addSheet("Community - NGOs", communityWelfare.ngoCommittees.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Address": r.address })));
+  addSheet("Community - Farmer Societies", communityWelfare.farmerSocieties.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Address": r.address })));
+  addSheet("Community - Religious Societies", communityWelfare.religiousSocieties.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Address": r.address })));
+  addSheet("Community - SANASA Societies", communityWelfare.sanasaSocieties.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Address": r.address })));
+  addSheet("Community - Civil Defense", communityWelfare.civilDefenseCommittees.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Address": r.address })));
+  addSheet("Community - Prajashakthi Societies", communityWelfare.prajashakthiSocieties.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Address": r.address })));
+  addSheet("Community - Cooperative Societies", communityWelfare.cooperativeSocieties.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name })));
   addSheet("Social Welfare Summary", [{ ...communityWelfare.welfarePaymentHouseholdCounts, ...communityWelfare.allowanceRecipientCounts }]);
-  addSheet("Social Welfare - Elders' Homes", communityWelfare.eldersHomes.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Authority": r.authority, "Capacity": r.capacity ?? "", "Residents F": r.residentCount?.female ?? 0, "Residents M": r.residentCount?.male ?? 0, "Address": r.address })));
-  addSheet("Social Welfare - Children's Homes", communityWelfare.childrensHomes.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Type": r.type, "Authority": r.authority, "Capacity": r.capacity ?? "", "Residents F": r.residentCount?.female ?? 0, "Residents M": r.residentCount?.male ?? 0, "Address": r.address })));
+  addSheet("Social Welfare - Elders' Homes", communityWelfare.eldersHomes.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Authority": r.authority, "Capacity": r.capacity ?? "", "Residents F": r.residentCount?.female ?? 0, "Residents M": r.residentCount?.male ?? 0 })));
+  addSheet("Social Welfare - Children's Homes", communityWelfare.childrensHomes.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Type": r.type, "Authority": r.authority, "Capacity": r.capacity ?? "", "Residents F": r.residentCount?.female ?? 0, "Residents M": r.residentCount?.male ?? 0 })));
 
   const infrastructure = aggregateInfrastructure(rows, gnLabel);
   addSheet("Infrastructure - Public Facilities", [{ ...infrastructure.publicFacilities }]);

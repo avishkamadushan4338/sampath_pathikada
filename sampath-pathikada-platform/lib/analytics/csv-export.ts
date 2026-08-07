@@ -118,7 +118,22 @@ export function buildCsvRows(
 
       // ── Community Organizations & Social Welfare ──
       "Community: Total Organizations": communityWelfare.organizationCounts.reduce((s, o) => s + o.count, 0),
-      "Community: Organizations Listed": communityWelfare.organizationDirectory.rows.length,
+      "Community: Organizations Listed":
+        communityWelfare.villageDevelopmentSocieties.rows.length +
+        communityWelfare.youthSocieties.rows.length +
+        communityWelfare.sportsClubs.rows.length +
+        communityWelfare.funeralAidSocieties.rows.length +
+        communityWelfare.womensSocieties.rows.length +
+        communityWelfare.eldersSocieties.rows.length +
+        communityWelfare.childrensSocieties.rows.length +
+        communityWelfare.samurdhiSocieties.rows.length +
+        communityWelfare.friendOrganizations.rows.length +
+        communityWelfare.ngoCommittees.rows.length +
+        communityWelfare.farmerSocieties.rows.length +
+        communityWelfare.religiousSocieties.rows.length +
+        communityWelfare.sanasaSocieties.rows.length +
+        communityWelfare.civilDefenseCommittees.rows.length +
+        communityWelfare.prajashakthiSocieties.rows.length,
       "Welfare: Households Receiving Payments": communityWelfare.welfarePaymentHouseholdCounts.rs2500 + communityWelfare.welfarePaymentHouseholdCounts.rs5000 + communityWelfare.welfarePaymentHouseholdCounts.rs8500 + communityWelfare.welfarePaymentHouseholdCounts.rs15000,
       "Welfare: Disability Allowance Recipients": communityWelfare.allowanceRecipientCounts.disabilityAllowance,
       "Welfare: Elderly Allowance Recipients": communityWelfare.allowanceRecipientCounts.elderlyAllowance,

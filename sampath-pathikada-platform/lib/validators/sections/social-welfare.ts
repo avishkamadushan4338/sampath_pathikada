@@ -5,11 +5,10 @@ import { sexCountSchema, sexCountPartialSchema } from "@/lib/validators/common";
 
 const ELDERS_HOME_AUTHORITY_TYPES = ["govt", "private"] as const;
 const CHILDRENS_HOME_TYPES = ["childrens-home", "certified-school", "probation-home", "detention-home"] as const;
-const CHILDRENS_HOME_AUTHORITY_TYPES = ["govt", "ngo", "private"] as const;
+const CHILDRENS_HOME_AUTHORITY_TYPES = ["govt", "private"] as const;
 
 export const eldersHomeRowSchema = z.object({
   name: z.string().min(1, "Name is required"),
-  address: z.string().min(1, "Address is required"),
   authority: z.enum(ELDERS_HOME_AUTHORITY_TYPES),
   phone: z.string().optional(),
   infrastructureNeeds: z.string().optional(),
@@ -19,11 +18,8 @@ export const eldersHomeRowSchema = z.object({
 
 export const childrensHomeRowSchema = z.object({
   name: z.string().min(1, "Name is required"),
-  address: z.string().min(1, "Address is required"),
-  type: z.enum(CHILDRENS_HOME_TYPES),
   authority: z.enum(CHILDRENS_HOME_AUTHORITY_TYPES),
-  phone: z.string().optional(),
-  infrastructureNeeds: z.string().optional(),
+  type: z.enum(CHILDRENS_HOME_TYPES),
   capacity: z.coerce.number().int().min(0).default(0),
   residentCount: sexCountSchema,
 });
@@ -53,6 +49,27 @@ export const socialWelfareSchemaStrict = z.object({
 
 export type SocialWelfareData = z.infer<typeof socialWelfareSchemaStrict>;
 
+/* Draft-mode row schemas built from scratch rather than `.partial()` on the strict schemas
+ * above: `.partial()` only allows a field to be *missing*, it doesn't relax `min(1)`, so a row
+ * added via the "Add" button (whose fields start as "") would still fail validation and
+ * silently block saving. */
+const eldersHomeRowPartialSchema = z.object({
+  name: z.string().optional(),
+  authority: z.enum(ELDERS_HOME_AUTHORITY_TYPES).optional(),
+  phone: z.string().optional(),
+  infrastructureNeeds: z.string().optional(),
+  capacity: z.coerce.number().int().min(0).optional(),
+  residentCount: sexCountPartialSchema.optional(),
+});
+
+const childrensHomeRowPartialSchema = z.object({
+  name: z.string().optional(),
+  authority: z.enum(CHILDRENS_HOME_AUTHORITY_TYPES).optional(),
+  type: z.enum(CHILDRENS_HOME_TYPES).optional(),
+  capacity: z.coerce.number().int().min(0).optional(),
+  residentCount: sexCountPartialSchema.optional(),
+});
+
 export const socialWelfareSchemaPartial = z.object({
   welfarePaymentHouseholdCounts: z
     .object({
@@ -76,12 +93,8 @@ export const socialWelfareSchemaPartial = z.object({
       other: z.coerce.number().int().min(0).optional(),
     })
     .optional(),
-  eldersHomes: z.array(
-    eldersHomeRowSchema.partial().extend({ residentCount: sexCountPartialSchema.optional() })
-  ).optional(),
-  childrensHomes: z.array(
-    childrensHomeRowSchema.partial().extend({ residentCount: sexCountPartialSchema.optional() })
-  ).optional(),
+  eldersHomes: z.array(eldersHomeRowPartialSchema).optional(),
+  childrensHomes: z.array(childrensHomeRowPartialSchema).optional(),
 });
 
 export { ELDERS_HOME_AUTHORITY_TYPES, CHILDRENS_HOME_TYPES, CHILDRENS_HOME_AUTHORITY_TYPES };
