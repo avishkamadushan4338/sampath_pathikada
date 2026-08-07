@@ -23,11 +23,11 @@ const GUEST_ACCOMMODATION_TYPE_LABELS: Record<(typeof GUEST_ACCOMMODATION_TYPES)
 };
 
 const HOTEL_CATEGORY_LABELS: Record<(typeof HOTEL_CATEGORIES)[number], { en: string; si: string }> = {
-  "star-graded": { en: "Star-Graded Hotels", si: "තරු පන්තියේ හෝටල්" },
-  "non-star-graded": { en: "Non-Star-Graded Hotels", si: "තරු පන්තියේ නොවන හෝටල්" },
-  "guest-houses": { en: "Guest Houses", si: "ගෙස්ට් හවුස්" },
-  "villa-homestay": { en: "Villas / Homestays", si: "විලා/හෝම්ස්ටේ" },
-  "conference-centers": { en: "Conference / Meeting Centers", si: "සම්මේලන මධ්‍යස්ථාන" },
+  "star-graded": { en: "Number of Star-Graded Hotels", si: "තරු පන්තියේ හෝටල් සංඛ්‍යාව" },
+  "non-star-graded": { en: "Number of Non-Star-Graded Hotels", si: "තරු පන්තියේ නොවන හෝටල් සංඛ්‍යාව" },
+  "guest-houses": { en: "Number of Guest Houses", si: "ගෙස්ට් හවුස් සංඛ්‍යාව" },
+  "villa-homestay": { en: "Villas / Home Stay", si: "විලාස්/home stay" },
+  "conference-centers": { en: "Massage Centers", si: "සම්භාහන මධ්‍යස්ථාන" },
 };
 
 function buildEmptyValues(lang: "en" | "si"): TourismDraft {
@@ -44,10 +44,12 @@ function buildEmptyValues(lang: "en" | "si"): TourismDraft {
 }
 
 function mergeWithSaved(empty: TourismDraft, saved: TourismDraft): TourismDraft {
+  const savedByCategory = new Map((saved.hotelInventory ?? []).filter((r) => r?.category).map((r) => [r!.category, r]));
+
   return {
     ...empty,
     ...saved,
-    hotelInventory: empty.hotelInventory?.map((row, i) => ({ ...row, ...saved.hotelInventory?.[i] })),
+    hotelInventory: empty.hotelInventory?.map((row) => ({ ...row, ...savedByCategory.get(row.category) })),
   };
 }
 
@@ -85,9 +87,9 @@ export default function TourismPage() {
   }
 
   const hotelInventoryColumns: RepeatableColumn[] = [
-    { key: "categoryLabel", label: { en: "Category", si: "වර්ගය" }, type: "readonly" },
+    { key: "categoryLabel", label: { en: "Hotel Category", si: "හෝටල් වර්ග" }, type: "readonly" },
     { key: "hotelCount", label: { en: "Number of Hotels", si: "හෝටල් සංඛ්‍යාව" }, type: "number" },
-    { key: "roomCount", label: { en: "Number of Rooms", si: "කාමර සංඛ්‍යාව" }, type: "number" },
+    { key: "roomCount", label: { en: "Rooms Providing Residential Facilities", si: "නේවාසික පහසුකම් ලබාදෙන කාමර ගණන" }, type: "number" },
   ];
 
   const guestAccommodationColumns: RepeatableColumn[] = [

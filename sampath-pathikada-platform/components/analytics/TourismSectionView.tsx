@@ -95,8 +95,8 @@ export function TourismSectionView({
         rooms: totals.guestHouses.rooms,
       },
       {
-        labelEn: "Villas/home stay",
-        labelSi: "විලා / හෝම්ස්ටේ",
+        labelEn: "Villas / Home Stay",
+        labelSi: "විලාස්/home stay",
         hotels: totals.villaHomeStay.hotels,
         rooms: totals.villaHomeStay.rooms,
       },
@@ -128,13 +128,13 @@ export function TourismSectionView({
             <TableHeader>
               <TableRow className="bg-muted/40 hover:bg-muted/40">
                 <TableHead>
-                  <Bilingual en="Type of hotels" si="හෝටල් වර්ගය" />
+                  <Bilingual en="Hotel Category" si="හෝටල් වර්ග" />
                 </TableHead>
                 <TableHead>
-                  <Bilingual en="Number of hotels" si="හෝටල් සංඛ්‍යාව" />
+                  <Bilingual en="Number of Hotels" si="හෝටල් සංඛ්‍යාව" />
                 </TableHead>
                 <TableHead>
-                  <Bilingual en="Number of rooms providing residential facilities" si="නවාතැන් පහසුකම් සපයන කාමර සංඛ්‍යාව" />
+                  <Bilingual en="Rooms Providing Residential Facilities" si="නේවාසික පහසුකම් ලබාදෙන කාමර ගණන" />
                 </TableHead>
               </TableRow>
             </TableHeader>
