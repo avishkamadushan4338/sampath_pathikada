@@ -80,21 +80,21 @@ const SELF_EMPLOYMENT_SECTOR_LABELS: Record<string, Bilingual> = {
 };
 
 const ORGANIZATION_TYPE_LABELS: Record<string, Bilingual> = {
-  "village-development-society": { en: "Village Development Society", si: "ග්‍රාම සංවර්ධන සමිතිය" },
-  "youth-society": { en: "Youth Society", si: "යුවජන සමිතිය" },
-  "sports-club": { en: "Sports Club", si: "ක්‍රීඩා සමාජය" },
-  "funeral-aid-society": { en: "Funeral Aid Society", si: "අවමංගල්‍ය සහන සමිතිය" },
-  "womens-society": { en: "Women's Society", si: "කාන්තා සමිතිය" },
-  "elders-society": { en: "Elders' Society", si: "වැඩිහිටි සමිතිය" },
-  "childrens-society": { en: "Children's Society", si: "ළමා සමිතිය" },
-  "samurdhi-society": { en: "Samurdhi Society", si: "සමෘද්ධි සමිතිය" },
-  "friend-organization": { en: "Friend Organization / Association", si: "මිතුරු සංවිධාන/මිතුරු හවුල්" },
-  "ngo-committee": { en: "Non-Governmental Organization Committee", si: "රාජ්‍ය නොවන සංවිධාන සමිති" },
-  "farmer-society": { en: "Farmer Society", si: "ගොවි සංවිධානය" },
-  "religious-society": { en: "Religious Society", si: "ආගමික සමිතිය" },
-  "sanasa-society": { en: "SANASA Society", si: "සණස සමිතිය" },
-  "civil-defense-committee": { en: "Civil Defense Committee", si: "සිවිල් ආරක්ෂක කමිටුව" },
-  "prajashakthi-society": { en: "Prajashakthi Society", si: "ප්‍රජාශක්ති සමිතිය" },
+  "village-development-society": { en: "Village Development Society", si: "ග්‍රාම සංවර්ධන සමිති" },
+  "youth-society": { en: "Youth Society", si: "යෞවන සමාජ සමිති" },
+  "sports-club": { en: "Sports Society", si: "ක්‍රීඩා සමාජ" },
+  "funeral-aid-society": { en: "Funeral & Welfare Society", si: "අවමංගලාය හා සුභසාධක සමිති" },
+  "womens-society": { en: "Women's Society", si: "කාන්තා සමිති" },
+  "elders-society": { en: "Elders' Society", si: "වැඩිහිටි සමිති" },
+  "childrens-society": { en: "Children's Society", si: "ළමා සමාජ" },
+  "samurdhi-society": { en: "Samurdhi Society", si: "සමෘද්ධි සමිති" },
+  "friend-organization": { en: "Friend Organization / Friend Group", si: "මිතුරු සංවිධාන/මිතුරු හවුල්" },
+  "ngo-committee": { en: "Non-Governmental Organization", si: "රාජ්‍ය නොවන සංවිධාන සමිති" },
+  "farmer-society": { en: "Farmer Society", si: "ගොවි සමිති" },
+  "religious-society": { en: "Religious Society", si: "ආගමික සමිති" },
+  "sanasa-society": { en: "SANASA Society", si: "සණස සමිති" },
+  "civil-defense-committee": { en: "Civil Defense Committee", si: "සිවිල් ආරක්ෂක කමිටු" },
+  "prajashakthi-society": { en: "Prajashakthi Society", si: "ප්‍රජාශක්ති සමිති" },
 };
 
 const SERVICE_CATEGORY_LABELS: Bilingual[] = [
@@ -102,7 +102,7 @@ const SERVICE_CATEGORY_LABELS: Bilingual[] = [
   { en: "Eating House & Tea Shop", si: "ආපන ශාලා හා තේ කඩ" },
   { en: "Shoes & Textiles", si: "සපත්තු හා රෙදිපිළි" },
   { en: "Meat / Fish Shop", si: "මස්, මාළු අලෙවිසැල්" },
-  { en: "Timber & Iron Household Goods", si: "දැව හා යකඩ ගෘහ භාණ්ඩ" },
+  { en: "Timber & Iron Household Goods", si: "ලී හා යකඩ ගෘහ භාණ්ඩ" },
   { en: "Electrical Equipment", si: "විදුලි උපකරණ" },
   { en: "General Goods Shop", si: "සාප්පු බඩු" },
   { en: "Construction Materials", si: "ගොඩනැගිලි ද්‍රව්‍ය" },
@@ -124,7 +124,7 @@ const PUBLIC_FACILITY_CATEGORY_LABELS: Bilingual[] = [
   { en: "Children's Park / Garden", si: "ළමා උයන් / ළමා උද්‍යානය" },
   { en: "Library / Reading Room", si: "පුස්තකාල / කියවීම් ශාලා" },
   { en: "Cinema Hall", si: "සිනමාශාලා" },
-  { en: "Auditorium", si: "නාට්‍යාගාර" },
+  { en: "Auditorium / Dance Hall", si: "නර්තනාගාර" },
   { en: "Public Playground", si: "පොදු ක්‍රීඩා පිටි" },
   { en: "Gym", si: "කායවර්ධන මධ්‍යස්ථාන" },
   { en: "Daycare Center", si: "දිවා සුරැකුම් මධ්‍යස්ථාන" },
@@ -132,15 +132,15 @@ const PUBLIC_FACILITY_CATEGORY_LABELS: Bilingual[] = [
   { en: "Cultural Center", si: "සංස්කෘතික මධ්‍යස්ථාන" },
   { en: "Weekly Fair / Market", si: "සතිපොළ / කඩමණ්ඩිය / වෙළඳපොළ" },
   { en: "Community Hall", si: "ප්‍රජා ශාලාව" },
-  { en: "Vidatha Resource Center", si: "විද්‍යා නැණසල මධ්‍යස්ථානය" },
+  { en: "Vidatha Resource Center", si: "විදාතා නැණසල මධ්‍යස්ථානය" },
   { en: "Registered Three-Wheeler Park", si: "ලියාපදිංචි ත්‍රිරෝද රථගාල" },
 ];
 
 const DISPOSAL_METHOD_LABELS: Bilingual[] = [
-  { en: "Burning", si: "පිලිස්සීම" },
-  { en: "Burying", si: "වළලීම" },
-  { en: "Dumping in Canal / Drain", si: "ඇළ මාර්ග/කාණුවලට බැහැර කිරීම" },
-  { en: "Public Dumpsite", si: "පොදු කසළ බැහැර කිරීමේ ස්ථානය" },
+  { en: "Burning", si: "පිළිස්සීම" },
+  { en: "Burying (Dumping in a Pit)", si: "වළදැමීම" },
+  { en: "Disposal into Drainage Systems / Canal Routes", si: "කාණු පද්ධති/ඇළ මාර්ග වලට බැහැර කිරීම" },
+  { en: "Disposal at a Public Place", si: "පොදු ස්ථානයකට බැහැර කිරීම" },
   { en: "Other", si: "වෙනත්" },
 ];
 
@@ -154,7 +154,7 @@ const COLLECTION_FREQUENCY_LABELS: Bilingual[] = [
 
 const COLLECTION_METHOD_LABELS: Bilingual[] = [
   { en: "Mixed", si: "මිශ්‍ර" },
-  { en: "Separated", si: "වෙන් කළ" },
+  { en: "Separated", si: "වෙන්කල" },
 ];
 
 const LAND_USE_LABELS_LIST: Bilingual[] = [
@@ -626,7 +626,21 @@ export function aggregateCommunityWelfare(rows: SubmissionLike[], gnLabel: (id: 
       socialWelfare: coverage(rows, "socialWelfare"),
     },
     organizationCounts: organizationCounts.sort((a, b) => b.count - a.count),
-    organizationDirectory: capRows(flattenRows(rows, gnLabel, "communityOrganizations", "organizationDirectory")),
+    villageDevelopmentSocieties: capRows(flattenRows(rows, gnLabel, "communityOrganizations", "villageDevelopmentSocieties")),
+    youthSocieties: capRows(flattenRows(rows, gnLabel, "communityOrganizations", "youthSocieties")),
+    sportsClubs: capRows(flattenRows(rows, gnLabel, "communityOrganizations", "sportsClubs")),
+    funeralAidSocieties: capRows(flattenRows(rows, gnLabel, "communityOrganizations", "funeralAidSocieties")),
+    womensSocieties: capRows(flattenRows(rows, gnLabel, "communityOrganizations", "womensSocieties")),
+    eldersSocieties: capRows(flattenRows(rows, gnLabel, "communityOrganizations", "eldersSocieties")),
+    childrensSocieties: capRows(flattenRows(rows, gnLabel, "communityOrganizations", "childrensSocieties")),
+    samurdhiSocieties: capRows(flattenRows(rows, gnLabel, "communityOrganizations", "samurdhiSocieties")),
+    friendOrganizations: capRows(flattenRows(rows, gnLabel, "communityOrganizations", "friendOrganizations")),
+    ngoCommittees: capRows(flattenRows(rows, gnLabel, "communityOrganizations", "ngoCommittees")),
+    farmerSocieties: capRows(flattenRows(rows, gnLabel, "communityOrganizations", "farmerSocieties")),
+    religiousSocieties: capRows(flattenRows(rows, gnLabel, "communityOrganizations", "religiousSocieties")),
+    sanasaSocieties: capRows(flattenRows(rows, gnLabel, "communityOrganizations", "sanasaSocieties")),
+    civilDefenseCommittees: capRows(flattenRows(rows, gnLabel, "communityOrganizations", "civilDefenseCommittees")),
+    prajashakthiSocieties: capRows(flattenRows(rows, gnLabel, "communityOrganizations", "prajashakthiSocieties")),
     cooperativeSocieties: capRows(flattenRows(rows, gnLabel, "communityOrganizations", "cooperativeSocieties")),
     welfarePaymentHouseholdCounts,
     allowanceRecipientCounts,

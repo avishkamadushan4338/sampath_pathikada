@@ -402,29 +402,29 @@ export function DivisionGraphs({ data }: DivisionGraphsProps) {
           rows={community.organizationCounts.map((r) => ({ label: t(r.en, r.si), value: r.count }))}
         />
         <BarCard
-          titleEn="Welfare Payment Households"
-          titleSi="සුබසාධන ගෙවීම් ලබන ගෘහ ඒකක"
+          titleEn="Manner in Which Aswesuma Benefits Have Been Distributed"
+          titleSi="අස්වැසුම සහනාධාර බෙදී ගොස් ඇති ආකාරය"
           color={GREEN}
           rows={[
-            { label: "Rs. 2,500", value: community.welfarePaymentHouseholdCounts.rs2500 },
-            { label: "Rs. 5,000", value: community.welfarePaymentHouseholdCounts.rs5000 },
-            { label: "Rs. 8,500", value: community.welfarePaymentHouseholdCounts.rs8500 },
-            { label: "Rs. 15,000", value: community.welfarePaymentHouseholdCounts.rs15000 },
-            { label: t("Total Aswesuma Recipients", "අස්වැසුම ප්‍රතිලාභී මුළු"), value: community.welfarePaymentHouseholdCounts.totalAswesumaRecipients },
+            { label: t("Rs. 2,500 - Transitional", "රු.2500 සංක්‍රාන්තික"), value: community.welfarePaymentHouseholdCounts.rs2500 },
+            { label: t("Rs. 5,000 - At Risk", "රු.5000 අවධානමට ලක් වූ"), value: community.welfarePaymentHouseholdCounts.rs5000 },
+            { label: t("Rs. 8,500 - Poor", "රු.8500 දිලිඳු"), value: community.welfarePaymentHouseholdCounts.rs8500 },
+            { label: t("Rs. 15,000 - Extremely Poor", "රු.15000 අන්ත දිලිඳු"), value: community.welfarePaymentHouseholdCounts.rs15000 },
+            { label: t("Total Aswesuma Recipients", "අස්වැසුම ප්‍රතිලාභී මුළ"), value: community.welfarePaymentHouseholdCounts.totalAswesumaRecipients },
           ]}
         />
         <BarCard
-          titleEn="Allowance Recipients"
-          titleSi="දීමනා ලබන්නන්"
+          titleEn="Manner in Which Disability / Elderly / Other Aid Has Been Distributed"
+          titleSi="ආබාධිත දීමනා /වැඩිහිටි දීමනා /වෙනත් ආධාර බෙදී ගොස් ඇති ආකාරය"
           color={GREEN}
           rows={[
-            { label: t("Disability Allowance", "ආබාධිත දීමනාව"), value: community.allowanceRecipientCounts.disabilityAllowance },
-            { label: t("Elderly Allowance", "වැඩිහිටි දීමනාව"), value: community.allowanceRecipientCounts.elderlyAllowance },
-            { label: t("Nutrition Allowance", "පෝෂණ දීමනාව"), value: community.allowanceRecipientCounts.nutritionAllowance },
-            { label: t("Public Assistance", "රාජ්‍ය ආධාර"), value: community.allowanceRecipientCounts.publicAssistance },
-            { label: t("Disease Aid - Wheelchair", "රෝගාධාර - වීල්චෙයාර්"), value: community.allowanceRecipientCounts.diseaseAidWheelchair },
+            { label: t("Disability Allowance", "ආබාධිත දීමනා"), value: community.allowanceRecipientCounts.disabilityAllowance },
+            { label: t("Elderly Allowance", "වැඩිහිටි දීමනා"), value: community.allowanceRecipientCounts.elderlyAllowance },
+            { label: t("Nutrition Stamp", "පෝෂණ මුද්දර"), value: community.allowanceRecipientCounts.nutritionAllowance },
+            { label: t("Public Assistance", "මහජන ආධාර"), value: community.allowanceRecipientCounts.publicAssistance },
+            { label: t("Disease Aid - Kidney", "රෝගාධාර - වකුගඩු ආධාර"), value: community.allowanceRecipientCounts.diseaseAidWheelchair },
             { label: t("Disease Aid - Cancer", "රෝගාධාර - පිළිකා"), value: community.allowanceRecipientCounts.diseaseAidCancer },
-            { label: t("Disease Aid - Thalassemia", "රෝගාධාර - තැලසීමියා"), value: community.allowanceRecipientCounts.diseaseAidThalassemia },
+            { label: t("Disease Aid - Thalassemia", "රෝගාධාර - තැලිසීමියා"), value: community.allowanceRecipientCounts.diseaseAidThalassemia },
             { label: t("Disease Aid - Diabetes", "රෝගාධාර - දියවැඩියාව"), value: community.allowanceRecipientCounts.diseaseAidDiabetes },
             { label: t("Other", "වෙනත්"), value: community.allowanceRecipientCounts.other },
           ]}
@@ -436,10 +436,10 @@ export function DivisionGraphs({ data }: DivisionGraphsProps) {
         <Card className="lg:col-span-2">
           <CardContent className="flex flex-col gap-4 pt-6">
             <div className="flex flex-wrap gap-2">
-              <YesNoBadge yes={infra.publicFacilities.busStand > 0} labelEn="Bus Stand" labelSi="බස් නැවතුම්පොළ" />
-              <YesNoBadge yes={infra.publicFacilities.railwayStation > 0} labelEn="Railway Station" labelSi="දුම්රිය ස්ථානය" />
+              <YesNoBadge yes={infra.publicFacilities.busStand > 0} labelEn="Bus Stand" labelSi="බස් නැවතුම් පොළ" />
+              <YesNoBadge yes={infra.publicFacilities.railwayStation > 0} labelEn="Railway Station" labelSi="දුම්රිය නැවතුම් පොළ" />
               <YesNoBadge yes={infra.publicFacilities.port > 0} labelEn="Port" labelSi="වරාය" />
-              <YesNoBadge yes={infra.publicFacilities.airport > 0} labelEn="Airport" labelSi="ගුවන් තොටුපොළ" />
+              <YesNoBadge yes={infra.publicFacilities.airport > 0} labelEn="Airport" labelSi="ගුවන්තොටුපළ" />
             </div>
             <StatGrid
               items={[{ en: "Road Development Needed (m)", si: "මාර්ග සංවර්ධනය අවශ්‍ය (මී.)", value: infra.totalRoadDevelopmentLengthMeters }]}
