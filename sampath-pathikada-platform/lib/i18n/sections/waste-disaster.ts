@@ -9,26 +9,26 @@ export const wasteDisasterDict: SectionDictionary<keyof WasteDisasterData & stri
   },
   fields: {
     hasWasteProgram: {
-      en: "Is there a Waste Collection Program?",
-      si: "කසළ එකතු කිරීමේ වැඩසටහනක් තිබේද?",
+      en: "Is There a Systematic Arrangement for Removing / Disposing of Garbage and Solid Waste Within the GN Division?",
+      si: "ග්‍රාම නිලධාරී වසම තුළ කසළ හා ඝන අපද්‍රව්‍ය ක්‍රමවත්ව ඉවත් කිරීම /බැහැර කිරීම සඳහා වැඩපිළිවෙළක් පවතිනවාද?",
     },
     publicInformedOfSchedule: {
-      en: "Is the Public Informed of the Collection Schedule?",
-      si: "එකතු කිරීමේ කාලසටහන පිළිබඳව මහජනතාව දැනුවත් කර ඇත්ද?",
+      en: "If Yes, Has the Public Been Informed of the Waste Collection Days and Times?",
+      si: "පිළිතුර ඔව් නම් අපද්‍රව්‍ය රැස්කරන දිනයන් හා වේලාවන් පිළිබඳව මහජනතාව දැනුවත් කර තිබේද?",
     },
-    collectionFrequency: { en: "Collection Frequency", si: "එකතු කිරීමේ සංඛ්‍යාතය" },
-    collectionMethod: { en: "Collection Method", si: "එකතු කිරීමේ ක්‍රමය" },
+    collectionFrequency: { en: "Waste Collection Frequency", si: "අපද්‍රව්‍ය රැස්කරන වාරගණන" },
+    collectionMethod: { en: "Waste Collection Method", si: "අපද්‍රව්‍ය රැස්කරන ක්‍රමවේදය" },
     disposalMethodIfNoProgram: {
-      en: "Disposal Method (Where No Program Exists)",
-      si: "බැහැර කිරීමේ ක්‍රමය (වැඩසටහනක් නොමැති අවස්ථාවලදී)",
+      en: "If There Is No Systematic Arrangement for Removal / Disposal, the Manner in Which Waste Is Currently Being Disposed Of",
+      si: "ග්‍රාම නිලධාරී වසම තුළ කසළ හා ඝන අපද්‍රව්‍ය ක්‍රමවත්ව ඉවත් කිරීම /බැහැර කිරීම සඳහා වැඩපිළිවෙළක් නොපවතීනම් මේ වන විට කසළ බැහැර කරන ආකාරය",
     },
     hasCompostOrDisposalSite: {
-      en: "Is there a Composting or Waste Disposal Site?",
-      si: "කොම්පෝස්ට් කිරීමේ හෝ කසළ බැහැර කිරීමේ ස්ථානයක් තිබේද?",
+      en: "Is There a Designated Place for Systematic Waste Removal / Disposal Within the GN Division?",
+      si: "ග්‍රාම නිලධාරී වසම තුළ කසළ හා ඝන අපද්‍රව්‍ය ක්‍රමවත්ව ඉවත් කිරීම /බැහැර කිරීම සඳහා නිශ්චිත ස්ථානයක් තිබේද?",
     },
     proposedSolutionIfNoProgram: {
-      en: "Proposed Solution (Where No Program Exists)",
-      si: "යෝජිත විසඳුම (වැඩසටහනක් නොමැති අවස්ථාවලදී)",
+      en: "If There Is No Program for Systematic Waste Removal / Disposal, Describe the Proposed Method for It",
+      si: "ග්‍රාම නිලධාරී වසම තුළ කසළ හා ඝන අපද්‍රව්‍ය ක්‍රමවත්ව ඉවත් කිරීම /බැහැර කිරීම සඳහා වැඩපිළිවෙළක් නොමැතිනම් ඒ සඳහා යෝජනා කරනු ලබන ක්‍රම වේදය දක්වන්න",
     },
   },
 };

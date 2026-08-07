@@ -39,14 +39,14 @@ const COLLECTION_FREQUENCY_OPTIONS: { value: (typeof COLLECTION_FREQUENCIES)[num
 
 const COLLECTION_METHOD_OPTIONS: { value: (typeof COLLECTION_METHODS)[number]; label: { en: string; si: string } }[] = [
   { value: "mixed", label: { en: "Mixed", si: "මිශ්‍ර" } },
-  { value: "separated", label: { en: "Separated", si: "වෙන් කළ" } },
+  { value: "separated", label: { en: "Separated", si: "වෙන්කල" } },
 ];
 
 const DISPOSAL_METHOD_LABELS: Record<(typeof DISPOSAL_METHODS)[number], { en: string; si: string }> = {
-  burning: { en: "Burning", si: "පිලිස්සීම" },
-  burying: { en: "Burying", si: "වළලීම" },
-  "canal-or-drain-dumping": { en: "Dumping in Canal / Drain", si: "ඇළ මාර්ග/කාණුවලට බැහැර කිරීම" },
-  "public-dumpsite": { en: "Public Dumpsite", si: "පොදු කසළ බැහැර කිරීමේ ස්ථානය" },
+  burning: { en: "Burning", si: "පිළිස්සීම" },
+  burying: { en: "Burying (Dumping in a Pit)", si: "වළදැමීම" },
+  "canal-or-drain-dumping": { en: "Disposal into Drainage Systems / Canal Routes", si: "කාණු පද්ධති/ඇළ මාර්ග වලට බැහැර කිරීම" },
+  "public-dumpsite": { en: "Disposal at a Public Place", si: "පොදු ස්ථානයකට බැහැර කිරීම" },
   other: { en: "Other", si: "වෙනත්" },
 };
 
@@ -67,10 +67,12 @@ function getEmptyValues(lang: "en" | "si"): WasteDisasterDraft {
 }
 
 function mergeWithSaved(empty: WasteDisasterDraft, saved: WasteDisasterDraft): WasteDisasterDraft {
+  const savedByMethod = new Map((saved.disposalMethodIfNoProgram ?? []).filter((r) => r?.method).map((r) => [r!.method, r]));
+
   return {
     ...empty,
     ...saved,
-    disposalMethodIfNoProgram: empty.disposalMethodIfNoProgram?.map((row, i) => ({ ...row, ...saved.disposalMethodIfNoProgram?.[i] })),
+    disposalMethodIfNoProgram: empty.disposalMethodIfNoProgram?.map((row) => ({ ...row, ...savedByMethod.get(row.method) })),
   };
 }
 
@@ -106,10 +108,10 @@ export default function WasteDisasterPage() {
   }
 
   const disposalMethodColumns: RepeatableColumn[] = [
-    { key: "methodLabel", label: { en: "Method", si: "ක්‍රමය" }, type: "readonly" },
+    { key: "methodLabel", label: { en: "Waste Disposal Method", si: "කසළ හා ඝන අපද්‍රව්‍ය ක්‍රමවත්ව ඉවත් කිරීම" }, type: "readonly" },
     {
       key: "present",
-      label: { en: "Practiced?", si: "පිළිපදිනු ලැබේද?" },
+      label: { en: "Present", si: "ඇත/නැත" },
       type: "select",
       options: [
         { value: "yes", label: { en: "Yes", si: "ඔව්" } },

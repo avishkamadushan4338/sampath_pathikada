@@ -183,7 +183,7 @@ export function WasteDisasterSectionView({
               <TableHeader>
                 <TableRow className="bg-muted/40 hover:bg-muted/40">
                   <TableHead>
-                    <Bilingual en="Disposal Method" si="බැහැර කිරීමේ ක්‍රමය" />
+                    <Bilingual en="Waste Disposal Method" si="කසළ හා ඝන අපද්‍රව්‍ය ක්‍රමවත්ව ඉවත් කිරීම" />
                   </TableHead>
                   <TableHead>
                     <Bilingual en="Number of GN Divisions" si="ග්‍රාම නිලධාරී වසම් සංඛ්‍යාව" />
