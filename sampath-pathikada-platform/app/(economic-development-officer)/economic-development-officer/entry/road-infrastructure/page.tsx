@@ -73,7 +73,7 @@ const SERVICE_CATEGORY_LABELS: Record<(typeof SERVICE_CATEGORIES)[number], { en:
   "eating-house-tea-shop": { en: "Eating House & Tea Shop", si: "ආපන ශාලා හා තේ කඩ" },
   "shoes-textiles": { en: "Shoes & Textiles", si: "සපත්තු හා රෙදිපිළි" },
   "meat-fish-shop": { en: "Meat / Fish Shop", si: "මස්, මාළු අලෙවිසැල්" },
-  "hardware-household-goods": { en: "Timber & Iron Household Goods", si: "දැව හා යකඩ ගෘහ භාණ්ඩ" },
+  "hardware-household-goods": { en: "Timber & Iron Household Goods", si: "ලී හා යකඩ ගෘහ භාණ්ඩ" },
   "electrical-equipment": { en: "Electrical Equipment", si: "විදුලි උපකරණ" },
   "general-goods-shop": { en: "General Goods Shop", si: "සාප්පු බඩු" },
   "construction-materials": { en: "Construction Materials", si: "ගොඩනැගිලි ද්‍රව්‍ය" },
@@ -95,7 +95,7 @@ const PUBLIC_FACILITY_CATEGORY_LABELS: Record<(typeof PUBLIC_FACILITY_CATEGORIES
   "childrens-park": { en: "Children's Park / Garden", si: "ළමා උයන් / ළමා උද්‍යානය" },
   "library-reading-room": { en: "Library / Reading Room", si: "පුස්තකාල / කියවීම් ශාලා" },
   "cinema-hall": { en: "Cinema Hall", si: "සිනමාශාලා" },
-  auditorium: { en: "Auditorium", si: "නාට්‍යාගාර" },
+  auditorium: { en: "Auditorium / Dance Hall", si: "නර්තනාගාර" },
   "public-playground": { en: "Public Playground", si: "පොදු ක්‍රීඩා පිටි" },
   gym: { en: "Gym", si: "කායවර්ධන මධ්‍යස්ථාන" },
   "daycare-center": { en: "Daycare Center", si: "දිවා සුරැකුම් මධ්‍යස්ථාන" },
@@ -103,7 +103,7 @@ const PUBLIC_FACILITY_CATEGORY_LABELS: Record<(typeof PUBLIC_FACILITY_CATEGORIES
   "cultural-center": { en: "Cultural Center", si: "සංස්කෘතික මධ්‍යස්ථාන" },
   "weekly-fair-market": { en: "Weekly Fair / Market", si: "සතිපොළ / කඩමණ්ඩිය / වෙළඳපොළ" },
   "community-hall": { en: "Community Hall", si: "ප්‍රජා ශාලාව" },
-  "vidatha-center": { en: "Vidatha Resource Center", si: "විද්‍යා නැණසල මධ්‍යස්ථානය" },
+  "vidatha-center": { en: "Vidatha Resource Center", si: "විදාතා නැණසල මධ්‍යස්ථානය" },
   "registered-three-wheeler-park": { en: "Registered Three-Wheeler Park", si: "ලියාපදිංචි ත්‍රිරෝද රථගාල" },
 };
 
@@ -189,43 +189,43 @@ export default function RoadInfrastructurePage() {
   }
 
   const roadDevelopmentNeedColumns: RepeatableColumn[] = [
-    { key: "roadName", label: { en: "Road Name", si: "පාරේ නම" }, type: "text" },
-    { key: "roadNumber", label: { en: "Road Number", si: "පාර අංකය" }, type: "text" },
-    { key: "lengthMeters", label: { en: "Length (m)", si: "දිග (මීටර්)" }, type: "number" },
+    { key: "roadName", label: { en: "Road Name", si: "මාර්ගයේ නම" }, type: "text" },
+    { key: "roadNumber", label: { en: "Road Number (if any)", si: "මාර්ග අංකය (තිබෙනම්)" }, type: "text" },
+    { key: "lengthMeters", label: { en: "Length (m)", si: "දිග ප්‍රමාණය (m)" }, type: "number" },
     {
       key: "surfaceType",
-      label: { en: "Surface Type", si: "මාර්ගයේ ස්වභාවය" },
+      label: { en: "* Current Road Surface", si: "*දැනට මාර්ගයේ ස්වභාවය" },
       type: "select",
       options: ROAD_SURFACE_TYPES.map((t) => ({ value: t, label: ROAD_SURFACE_TYPE_LABELS[t] })),
     },
-    { key: "maintainingAuthority", label: { en: "Maintaining Authority", si: "නඩත්තු කරනු ලබන ආයතනය" }, type: "text" },
+    { key: "maintainingAuthority", label: { en: "** Maintaining Authority", si: "**නඩත්තු කරනු ලබන ආයතනය" }, type: "text" },
   ];
 
   const bridgeRepairColumns: RepeatableColumn[] = [
-    { key: "name", label: { en: "Name", si: "නම" }, type: "text" },
-    { key: "roadNumber", label: { en: "Road Number", si: "පාර අංකය" }, type: "text" },
-    { key: "location", label: { en: "Location", si: "පිහිටීම" }, type: "text" },
-    { key: "maintainingAuthority", label: { en: "Maintaining Authority", si: "නඩත්තු කරනු ලබන ආයතනය" }, type: "text" },
+    { key: "name", label: { en: "Bridge / Culvert / Footpath", si: "පාලම/බෝක්කුව/පැතිබැම්" }, type: "text" },
+    { key: "roadNumber", label: { en: "Road Number", si: "මාර්ග අංකය" }, type: "text" },
+    { key: "location", label: { en: "Location (Describe)", si: "පිහිටීම (විස්තර කරන්න)" }, type: "text" },
+    { key: "maintainingAuthority", label: { en: "** Maintaining Authority", si: "**නඩත්තු කරනු ලබන ආයතනය" }, type: "text" },
   ];
 
   const newRoadBridgeNeedColumns: RepeatableColumn[] = [
-    { key: "location", label: { en: "Location", si: "ස්ථානය" }, type: "text" },
-    { key: "roadNumber", label: { en: "Road Number", si: "පාර අංකය" }, type: "text" },
-    { key: "justification", label: { en: "Justification", si: "අවශ්‍යතාවය විස්තර කරන්න" }, type: "text" },
+    { key: "location", label: { en: "Required Location", si: "අවශ්‍ය ස්ථානය" }, type: "text" },
+    { key: "roadNumber", label: { en: "Road Number", si: "මාර්ග අංකය" }, type: "text" },
+    { key: "justification", label: { en: "Describe the Need", si: "අවශ්‍යතාවය විස්තර කරන්න" }, type: "text" },
   ];
 
   const noPublicTransportAreaColumns: RepeatableColumn[] = [
-    { key: "roadName", label: { en: "Road Name", si: "පාරේ නම" }, type: "text" },
-    { key: "roadNumber", label: { en: "Road Number", si: "පාර අංකය" }, type: "text" },
+    { key: "roadName", label: { en: "* Road Name", si: "*මාර්ගයේ නම" }, type: "text" },
+    { key: "roadNumber", label: { en: "Road Number", si: "මාර්ග අංකය" }, type: "text" },
     { key: "startPoint", label: { en: "Start Point", si: "ආරම්භක ස්ථානය" }, type: "text" },
     { key: "endPoint", label: { en: "End Point", si: "අවසන් ස්ථානය" }, type: "text" },
-    { key: "distanceKm", label: { en: "Distance (km)", si: "දුර ප්‍රමාණය" }, type: "number" },
-    { key: "requiredBeneficiaryCount", label: { en: "Beneficiaries Needing Service", si: "සේවාව අවශ්‍ය ප්‍රතිලාභීන් සංඛ්‍යාව" }, type: "number" },
+    { key: "distanceKm", label: { en: "Distance", si: "දුර ප්‍රමාණය" }, type: "number" },
+    { key: "requiredBeneficiaryCount", label: { en: "Beneficiaries Needing Service", si: "සේවාව අවශ්‍ය ප්‍රතිලාභීසංඛ්‍යාව" }, type: "number" },
   ];
 
   const railwayCrossingGapColumns: RepeatableColumn[] = [
-    { key: "roadName", label: { en: "Road Name", si: "පාරේ නම" }, type: "text" },
-    { key: "roadNumber", label: { en: "Road Number", si: "පාර අංකය" }, type: "text" },
+    { key: "roadName", label: { en: "Road Name at the Railway Crossing", si: "දුම්රිය මාර්ගය හරස්ව පිහිටි මාර්ගයේ නම" }, type: "text" },
+    { key: "roadNumber", label: { en: "Road Number", si: "මාර්ග අංකය" }, type: "text" },
     { key: "location", label: { en: "Location", si: "ස්ථානය" }, type: "text" },
   ];
 
@@ -233,14 +233,14 @@ export default function RoadInfrastructurePage() {
     { key: "name", label: { en: "Name", si: "නම" }, type: "text" },
     {
       key: "type",
-      label: { en: "Type", si: "වර්ගය" },
+      label: { en: "* Type", si: "*වර්ගය" },
       type: "select",
       options: POST_OFFICE_TYPES.map((t) => ({ value: t, label: POST_OFFICE_TYPE_LABELS[t] })),
     },
   ];
 
   const namedFacilityColumns: RepeatableColumn[] = [
-    { key: "name", label: { en: "Name", si: "නම" }, type: "text" },
+    { key: "name", label: { en: "Filling Station Name", si: "පිරවුම්හලේ නම" }, type: "text" },
   ];
 
   const hydropowerPlantColumns: RepeatableColumn[] = [
@@ -254,10 +254,10 @@ export default function RoadInfrastructurePage() {
   ];
 
   const financialInstitutionColumns: RepeatableColumn[] = [
-    { key: "name", label: { en: "Name", si: "නම" }, type: "text" },
+    { key: "name", label: { en: "* Bank / Financial Institution / Insurance Institution Name", si: "*බැංකුවේ/ මූල්‍ය ආයතනයේ /රක්ෂණ ආයතනයේ නම" }, type: "text" },
     {
       key: "type",
-      label: { en: "Type", si: "වර්ගය" },
+      label: { en: "Government / Private", si: "රාජ්‍ය/ පෞද්ගලික" },
       type: "select",
       options: FINANCIAL_INSTITUTION_TYPES.map((v) => ({ value: v, label: FINANCIAL_INSTITUTION_TYPE_LABELS[v] })),
     },
@@ -265,7 +265,7 @@ export default function RoadInfrastructurePage() {
 
   const serviceEstablishmentColumns: RepeatableColumn[] = [
     { key: "categoryLabel", label: { en: "Category", si: "වර්ගය" }, type: "readonly" },
-    { key: "count", label: { en: "Count", si: "සංඛ්‍යාව" }, type: "number" },
+    { key: "count", label: { en: "Number of Trade Institutions", si: "වෙළඳ ආයතන සංඛ්‍යාව" }, type: "number" },
   ];
 
   const industrialEstateColumns: RepeatableColumn[] = [
@@ -278,14 +278,18 @@ export default function RoadInfrastructurePage() {
   ];
 
   const publicFacilityCategoryColumns: RepeatableColumn[] = [
-    { key: "categoryLabel", label: { en: "Facility", si: "පහසුකම" }, type: "readonly" },
+    { key: "categoryLabel", label: { en: "Type", si: "වර්ගය" }, type: "readonly" },
     { key: "present", label: { en: "Present", si: "ඇත/නැත" }, type: "select", options: YES_NO_OPTIONS },
     { key: "count", label: { en: "Count", si: "සංඛ්‍යාව" }, type: "number" },
-    { key: "distanceToNearestIfOutsideDivision", label: { en: "Distance to Nearest (if outside division)", si: "වසම තුළ පිහිටා නැත නම් ආසන්නතම ස්ථානයට ඇති දුර" }, type: "text" },
+    {
+      key: "distanceToNearestIfOutsideDivision",
+      label: { en: "Distance to Nearest (if not located within the division)", si: "වසම තුල පිහිටා නැත නම් ආසන්නතම ස්ථානයන්ට ඇති දුර" },
+      type: "text",
+    },
   ];
 
   const licensedLiquorShopColumns: RepeatableColumn[] = [
-    { key: "name", label: { en: "Name", si: "නම" }, type: "text" },
+    { key: "name", label: { en: "Licensed Tavern / Bar Name", si: "බලපත්‍රලාභී තැබෑරුම් /බාර් නම" }, type: "text" },
     { key: "address", label: { en: "Address", si: "ලිපිනය" }, type: "text" },
   ];
 
@@ -304,7 +308,7 @@ export default function RoadInfrastructurePage() {
           {lang === "si" ? roadInfrastructureDict.fields.publicFacilities.si : roadInfrastructureDict.fields.publicFacilities.en}
         </h2>
         <div className="mt-4 grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4">
-          <FieldWrapper name="publicFacilities.busStand.present" label={{ en: "Bus Stand Present", si: "බස් නැවතුම්පොළ පවතී ද" }}>
+          <FieldWrapper name="publicFacilities.busStand.present" label={{ en: "Bus Stand - Present?", si: "බස් නැවතුම් පොළ - ඇත/ නැත" }}>
             {({ id, describedBy, invalid }) => (
               <Select
                 value={form.watch("publicFacilities.busStand.present") ?? ""}
@@ -323,13 +327,13 @@ export default function RoadInfrastructurePage() {
               </Select>
             )}
           </FieldWrapper>
-          <FieldWrapper name="publicFacilities.busStand.name" label={{ en: "Bus Stand Name", si: "බස් නැවතුම්පොළේ නම" }}>
+          <FieldWrapper name="publicFacilities.busStand.name" label={{ en: "Bus Stand - Location Name", si: "බස් නැවතුම් පොළ - ස්ථානයේ නම" }}>
             {({ id, describedBy, invalid }) => (
               <Input id={id} aria-describedby={describedBy} aria-invalid={invalid} {...form.register("publicFacilities.busStand.name")} />
             )}
           </FieldWrapper>
 
-          <FieldWrapper name="publicFacilities.railwayStation.present" label={{ en: "Railway Station Present", si: "දුම්රිය ස්ථානය පවතී ද" }}>
+          <FieldWrapper name="publicFacilities.railwayStation.present" label={{ en: "Railway Station - Present?", si: "දුම්රිය නැවතුම් පොළ - ඇත/ නැත" }}>
             {({ id, describedBy, invalid }) => (
               <Select
                 value={form.watch("publicFacilities.railwayStation.present") ?? ""}
@@ -348,13 +352,13 @@ export default function RoadInfrastructurePage() {
               </Select>
             )}
           </FieldWrapper>
-          <FieldWrapper name="publicFacilities.railwayStation.name" label={{ en: "Railway Station Name", si: "දුම්රිය ස්ථානයේ නම" }}>
+          <FieldWrapper name="publicFacilities.railwayStation.name" label={{ en: "Railway Station - Location Name", si: "දුම්රිය නැවතුම් පොළ - ස්ථානයේ නම" }}>
             {({ id, describedBy, invalid }) => (
               <Input id={id} aria-describedby={describedBy} aria-invalid={invalid} {...form.register("publicFacilities.railwayStation.name")} />
             )}
           </FieldWrapper>
 
-          <FieldWrapper name="publicFacilities.port.present" label={{ en: "Port Present", si: "වරාය පවතී ද" }}>
+          <FieldWrapper name="publicFacilities.port.present" label={{ en: "Port - Present?", si: "වරාය - ඇත/ නැත" }}>
             {({ id, describedBy, invalid }) => (
               <Select
                 value={form.watch("publicFacilities.port.present") ?? ""}
@@ -373,13 +377,13 @@ export default function RoadInfrastructurePage() {
               </Select>
             )}
           </FieldWrapper>
-          <FieldWrapper name="publicFacilities.port.name" label={{ en: "Port Name", si: "වරායේ නම" }}>
+          <FieldWrapper name="publicFacilities.port.name" label={{ en: "Port - Location Name", si: "වරාය - ස්ථානයේ නම" }}>
             {({ id, describedBy, invalid }) => (
               <Input id={id} aria-describedby={describedBy} aria-invalid={invalid} {...form.register("publicFacilities.port.name")} />
             )}
           </FieldWrapper>
 
-          <FieldWrapper name="publicFacilities.airport.present" label={{ en: "Airport Present", si: "ගුවන්තොටුපොළ පවතී ද" }}>
+          <FieldWrapper name="publicFacilities.airport.present" label={{ en: "Airport - Present?", si: "ගුවන්තොටුපළ - ඇත/ නැත" }}>
             {({ id, describedBy, invalid }) => (
               <Select
                 value={form.watch("publicFacilities.airport.present") ?? ""}
@@ -398,7 +402,7 @@ export default function RoadInfrastructurePage() {
               </Select>
             )}
           </FieldWrapper>
-          <FieldWrapper name="publicFacilities.airport.name" label={{ en: "Airport Name", si: "ගුවන්තොටුපොළේ නම" }}>
+          <FieldWrapper name="publicFacilities.airport.name" label={{ en: "Airport - Location Name", si: "ගුවන්තොටුපළ - ස්ථානයේ නම" }}>
             {({ id, describedBy, invalid }) => (
               <Input id={id} aria-describedby={describedBy} aria-invalid={invalid} {...form.register("publicFacilities.airport.name")} />
             )}
