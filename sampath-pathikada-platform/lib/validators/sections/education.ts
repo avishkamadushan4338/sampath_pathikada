@@ -74,8 +74,9 @@ export const dhammaEducationInstitutionRowSchema = z.object({
 });
 
 export const tertiaryInstitutionRowSchema = z.object({
-  name: z.string().min(1, "Name is required"),
   type: z.enum(TERTIARY_TYPES),
+  exists: yesNo,
+  name: z.string().optional(),
 });
 
 export const tuitionCenterRowSchema = z.object({
@@ -110,13 +111,88 @@ export const educationSchemaStrict = z.object({
   vocationalInstitutes: z.array(vocationalInstituteRowSchema).default([]),
   preschools: z.array(preschoolRowSchema).default([]),
   dhammaEducationInstitutions: z.array(dhammaEducationInstitutionRowSchema).default([]),
-  tertiaryInstitutions: z.array(tertiaryInstitutionRowSchema).default([]),
+  tertiaryInstitutions: z.array(tertiaryInstitutionRowSchema).length(TERTIARY_TYPES.length),
   tuitionCenters: z.array(tuitionCenterRowSchema).default([]),
   outOfSchoolChildren: sexCountSchema,
   childrenInProbationOrDetention: sexCountSchema,
 });
 
 export type EducationData = z.infer<typeof educationSchemaStrict>;
+
+/* Draft-mode row schemas built from scratch rather than `.partial()` on the strict schemas
+ * above: `.partial()` only allows a field to be *missing*, it doesn't relax `min(1)`, so a row
+ * added via the "Add" button (whose fields start as "") would still fail validation and
+ * silently block saving. */
+const schoolFacilityRowPartialSchema = z.object({
+  schoolName: z.string().optional(),
+  accommodationAvailable: yesNo.optional(),
+  teachersFemale: z.coerce.number().int().min(0).optional(),
+  teachersMale: z.coerce.number().int().min(0).optional(),
+  studentsFemale: z.coerce.number().int().min(0).optional(),
+  studentsMale: z.coerce.number().int().min(0).optional(),
+  waterFacility: yesNo.optional(),
+  sanitationFacility: yesNo.optional(),
+  sportsGround: yesNo.optional(),
+});
+
+const specialAttentionSchoolRowPartialSchema = z.object({
+  schoolName: z.string().optional(),
+  teachersFemale: z.coerce.number().int().min(0).optional(),
+  teachersMale: z.coerce.number().int().min(0).optional(),
+  studentsFemale: z.coerce.number().int().min(0).optional(),
+  studentsMale: z.coerce.number().int().min(0).optional(),
+  developmentNeeds: z.string().optional(),
+});
+
+const closedSchoolRowPartialSchema = z.object({
+  schoolName: z.string().optional(),
+  yearClosed: z.coerce.number().int().min(0).optional(),
+  buildingCount: z.coerce.number().int().min(0).optional(),
+  buildingsUsable: yesNo.optional(),
+});
+
+const privateInternationalSchoolRowPartialSchema = z.object({
+  name: z.string().optional(),
+  teacherCount: z.coerce.number().int().min(0).optional(),
+  studentCount: z.coerce.number().int().min(0).optional(),
+});
+
+const pirivenaRowPartialSchema = z.object({
+  name: z.string().optional(),
+  type: z.string().optional(),
+  boardingFacility: yesNo.optional(),
+  teachersFemale: z.coerce.number().int().min(0).optional(),
+  teachersMale: z.coerce.number().int().min(0).optional(),
+  studentsFemale: z.coerce.number().int().min(0).optional(),
+  studentsMale: z.coerce.number().int().min(0).optional(),
+  waterFacility: yesNo.optional(),
+  sanitationFacility: yesNo.optional(),
+  sportsGround: yesNo.optional(),
+});
+
+const vocationalInstituteRowPartialSchema = z.object({
+  name: z.string().optional(),
+});
+
+const preschoolRowPartialSchema = z.object({
+  name: z.string().optional(),
+  address: z.string().optional(),
+  facilityType: z.enum(PRESCHOOL_FACILITY_TYPES).optional(),
+  teacherCount: z.coerce.number().int().min(0).optional(),
+  studentCount: z.coerce.number().int().min(0).optional(),
+});
+
+const dhammaEducationInstitutionRowPartialSchema = z.object({
+  institutionName: z.string().optional(),
+  type: z.enum(DHAMMA_TYPES).optional(),
+  teacherCount: z.coerce.number().int().min(0).optional(),
+  studentCount: z.coerce.number().int().min(0).optional(),
+});
+
+const tuitionCenterRowPartialSchema = z.object({
+  registrationNumber: z.string().optional(),
+  nameAndAddress: z.string().optional(),
+});
 
 export const educationSchemaPartial = z.object({
   institutionCounts: z
@@ -141,16 +217,16 @@ export const educationSchemaPartial = z.object({
       type3: z.coerce.number().int().min(0).optional(),
     })
     .optional(),
-  schoolFacilities: z.array(schoolFacilityRowSchema.partial()).optional(),
-  specialAttentionSchools: z.array(specialAttentionSchoolRowSchema.partial()).optional(),
-  closedSchools: z.array(closedSchoolRowSchema.partial()).optional(),
-  privateInternationalSchools: z.array(privateInternationalSchoolRowSchema.partial()).optional(),
-  pirivenas: z.array(pirivenaRowSchema.partial()).optional(),
-  vocationalInstitutes: z.array(vocationalInstituteRowSchema.partial()).optional(),
-  preschools: z.array(preschoolRowSchema.partial()).optional(),
-  dhammaEducationInstitutions: z.array(dhammaEducationInstitutionRowSchema.partial()).optional(),
+  schoolFacilities: z.array(schoolFacilityRowPartialSchema).optional(),
+  specialAttentionSchools: z.array(specialAttentionSchoolRowPartialSchema).optional(),
+  closedSchools: z.array(closedSchoolRowPartialSchema).optional(),
+  privateInternationalSchools: z.array(privateInternationalSchoolRowPartialSchema).optional(),
+  pirivenas: z.array(pirivenaRowPartialSchema).optional(),
+  vocationalInstitutes: z.array(vocationalInstituteRowPartialSchema).optional(),
+  preschools: z.array(preschoolRowPartialSchema).optional(),
+  dhammaEducationInstitutions: z.array(dhammaEducationInstitutionRowPartialSchema).optional(),
   tertiaryInstitutions: z.array(tertiaryInstitutionRowSchema.partial()).optional(),
-  tuitionCenters: z.array(tuitionCenterRowSchema.partial()).optional(),
+  tuitionCenters: z.array(tuitionCenterRowPartialSchema).optional(),
   outOfSchoolChildren: sexCountSchema.partial().optional(),
   childrenInProbationOrDetention: sexCountSchema.partial().optional(),
 });

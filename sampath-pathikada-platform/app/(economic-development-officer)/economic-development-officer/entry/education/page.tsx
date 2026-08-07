@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
@@ -27,6 +27,18 @@ import type { z } from "zod";
 const CURRENT_YEAR = 2026;
 
 type EducationDraft = z.infer<typeof educationSchemaPartial>;
+
+function buildEmptyValues(lang: "en" | "si"): EducationDraft {
+  return {
+    ...EMPTY_VALUES,
+    tertiaryInstitutions: TERTIARY_TYPES.map((type) => ({
+      type,
+      typeLabel: TERTIARY_TYPE_LABELS[type][lang],
+      exists: "no",
+      name: "",
+    })),
+  };
+}
 
 const EMPTY_VALUES: EducationDraft = {
   institutionCounts: {
@@ -67,10 +79,10 @@ const YES_NO_OPTIONS = [
 ];
 
 const TERTIARY_TYPE_LABELS: Record<(typeof TERTIARY_TYPES)[number], { en: string; si: string }> = {
-  "university-college": { en: "University College", si: "විශ්වවිද්‍යාල විද්‍යාලය" },
-  university: { en: "University", si: "විශ්වවිද්‍යාලය" },
-  "tech-institute": { en: "Technical Institute", si: "තාක්ෂණික ආයතනය" },
-  "private-university": { en: "Private University", si: "පෞද්ගලික විශ්වවිද්‍යාලය" },
+  "university-college": { en: "College of Education", si: "විද්‍යාපීඨ" },
+  university: { en: "University", si: "විශ්ව විද්‍යාල" },
+  "tech-institute": { en: "Higher Technical Institute", si: "උසස් තාක්ෂණ ආයතන" },
+  "private-university": { en: "Private University", si: "පෞද්ගලික විශ්ව විද්‍යාල" },
 };
 
 const PRESCHOOL_FACILITY_TYPE_LABELS: Record<(typeof PRESCHOOL_FACILITY_TYPES)[number], { en: string; si: string }> = {
@@ -116,17 +128,38 @@ export default function EducationPage() {
   const { saveSection, status, errorMessage } = useSaveSection(CURRENT_YEAR);
   const [openItems, setOpenItems] = useState<string[]>(() => [...SECTION_IDS]);
 
+  const emptyValues = useMemo(() => buildEmptyValues(lang), [lang]);
+
   const form = useForm<EducationDraft>({
     resolver: zodResolver(educationSchemaPartial),
-    defaultValues: EMPTY_VALUES,
+    defaultValues: emptyValues,
   });
 
   useEffect(() => {
     if (submission?.data.education) {
-      form.reset({ ...EMPTY_VALUES, ...submission.data.education });
+      const saved = submission.data.education;
+      // `tertiaryInstitutions` used to be a free-form, variable-length list of {name, type} —
+      // now it's a fixed 4-row checklist. A flat spread would replace the freshly-seeded
+      // template with whatever shape the old data happened to have. Match old rows to the
+      // template by `type` instead, inferring `exists` from whether a name was recorded.
+      const savedTertiaryByType = new Map(
+        (saved.tertiaryInstitutions ?? []).filter((r) => r?.type).map((r) => [r!.type, r])
+      );
+      form.reset({
+        ...emptyValues,
+        ...saved,
+        tertiaryInstitutions: emptyValues.tertiaryInstitutions?.map((row) => {
+          const savedRow = savedTertiaryByType.get(row.type);
+          return {
+            ...row,
+            name: savedRow?.name ?? row.name,
+            exists: savedRow?.exists ?? (savedRow?.name ? "yes" : row.exists),
+          };
+        }),
+      });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [submission]);
+  }, [submission, emptyValues]);
 
   // A validation error in a collapsed section would otherwise be invisible — force those
   // sections open whenever a submit attempt surfaces errors in them.
@@ -161,29 +194,29 @@ export default function EducationPage() {
     { key: "schoolName", label: { en: "School Name", si: "පාසලේ නම" }, type: "text" },
     {
       key: "accommodationAvailable",
-      label: { en: "Accommodation Available", si: "නවාතැන් පහසුකම් ඇත" },
+      label: { en: "* Boarding Facilities", si: "*නේවාසික පහසුකම්" },
       type: "select",
       options: YES_NO_OPTIONS,
     },
-    { key: "teachersFemale", label: { en: "Teachers (Female)", si: "ගුරුවරු (ස්ත්‍රී)" }, type: "number" },
-    { key: "teachersMale", label: { en: "Teachers (Male)", si: "ගුරුවරු (පුරුෂ)" }, type: "number" },
-    { key: "studentsFemale", label: { en: "Students (Female)", si: "සිසුන් (ගැහැණු)" }, type: "number" },
-    { key: "studentsMale", label: { en: "Students (Male)", si: "සිසුන් (පිරිමි)" }, type: "number" },
+    { key: "teachersFemale", label: { en: "Teachers (Female)", si: "ගුරුවරු ගණන - ස්ත්‍රී" }, type: "number" },
+    { key: "teachersMale", label: { en: "Teachers (Male)", si: "ගුරුවරු ගණන - පුරුෂ" }, type: "number" },
+    { key: "studentsFemale", label: { en: "Students (Female)", si: "සිසුන් ගණන - ස්ත්‍රී" }, type: "number" },
+    { key: "studentsMale", label: { en: "Students (Male)", si: "සිසුන් ගණන - පුරුෂ" }, type: "number" },
     {
       key: "waterFacility",
-      label: { en: "Water Facility", si: "ජල පහසුකම්" },
+      label: { en: "* Water Facilities", si: "*ජල පහසුකම්" },
       type: "select",
       options: YES_NO_OPTIONS,
     },
     {
       key: "sanitationFacility",
-      label: { en: "Sanitation Facility", si: "වැසිකිලි පහසුකම්" },
+      label: { en: "* Toilet Facilities", si: "*වැසිකිලි පහසුකම්" },
       type: "select",
       options: YES_NO_OPTIONS,
     },
     {
       key: "sportsGround",
-      label: { en: "Sports Ground", si: "ක්‍රීඩා පිටිය" },
+      label: { en: "* Playground", si: "*ක්‍රීඩාපිටි" },
       type: "select",
       options: YES_NO_OPTIONS,
     },
@@ -191,10 +224,10 @@ export default function EducationPage() {
 
   const specialAttentionSchoolColumns: RepeatableColumn[] = [
     { key: "schoolName", label: { en: "School Name", si: "පාසලේ නම" }, type: "text" },
-    { key: "teachersFemale", label: { en: "Teachers (Female)", si: "ගුරුවරු (ස්ත්‍රී)" }, type: "number" },
-    { key: "teachersMale", label: { en: "Teachers (Male)", si: "ගුරුවරු (පුරුෂ)" }, type: "number" },
-    { key: "studentsFemale", label: { en: "Students (Female)", si: "සිසුන් (ගැහැණු)" }, type: "number" },
-    { key: "studentsMale", label: { en: "Students (Male)", si: "සිසුන් (පිරිමි)" }, type: "number" },
+    { key: "teachersFemale", label: { en: "Teachers (Female)", si: "ගුරුවරු ගණන - ස්ත්‍රී" }, type: "number" },
+    { key: "teachersMale", label: { en: "Teachers (Male)", si: "ගුරුවරු ගණන - පුරුෂ" }, type: "number" },
+    { key: "studentsFemale", label: { en: "Students (Female)", si: "සිසුන් ගණන - ස්ත්‍රී" }, type: "number" },
+    { key: "studentsMale", label: { en: "Students (Male)", si: "සිසුන් ගණන - පුරුෂ" }, type: "number" },
     { key: "developmentNeeds", label: { en: "Development Needs", si: "සංවර්ධන අවශ්‍යතා" }, type: "text" },
   ];
 
@@ -204,93 +237,98 @@ export default function EducationPage() {
     { key: "buildingCount", label: { en: "Existing Buildings", si: "පවතින ගොඩනැගිලි සංඛ්‍යාව" }, type: "number" },
     {
       key: "buildingsUsable",
-      label: { en: "Buildings Currently Usable", si: "ගොඩනැගිලි දැනට භාවිත කළ හැකිද" },
+      label: { en: "Whether Buildings Can Currently Be Used", si: "ගොඩනැගිලි දැනට භාවිතා කලහැකි බව/නොහැකි බව" },
       type: "select",
       options: YES_NO_OPTIONS,
     },
   ];
 
   const privateInternationalSchoolColumns: RepeatableColumn[] = [
-    { key: "name", label: { en: "Name", si: "නම" }, type: "text" },
-    { key: "teacherCount", label: { en: "Teacher Count", si: "ගුරු සංඛ්‍යාව" }, type: "number" },
-    { key: "studentCount", label: { en: "Student Count", si: "සිසු සංඛ්‍යාව" }, type: "number" },
+    { key: "name", label: { en: "School Name", si: "පාසලේ නම" }, type: "text" },
+    { key: "teacherCount", label: { en: "Number of Teachers", si: "ගුරුවරු ගණන" }, type: "number" },
+    { key: "studentCount", label: { en: "Number of Students", si: "සිසුන් ගණන" }, type: "number" },
   ];
 
   const pirivenaColumns: RepeatableColumn[] = [
-    { key: "name", label: { en: "Name", si: "නම" }, type: "text" },
-    { key: "type", label: { en: "Type", si: "වර්ගය" }, type: "text" },
+    { key: "name", label: { en: "Pirivena Name", si: "පිරිවෙනේ නම" }, type: "text" },
+    { key: "type", label: { en: "* Pirivena Type", si: "*පිරිවෙනේ වර්ගය" }, type: "text" },
     {
       key: "boardingFacility",
-      label: { en: "Boarding Facility", si: "නේවාසික පහසුකම්" },
+      label: { en: "Boarding Facilities", si: "නේවාසික පහසුකම්" },
       type: "select",
       options: YES_NO_OPTIONS,
     },
-    { key: "teachersFemale", label: { en: "Teachers (Female)", si: "ගුරුවරු (ස්ත්‍රී)" }, type: "number" },
-    { key: "teachersMale", label: { en: "Teachers (Male)", si: "ගුරුවරු (පුරුෂ)" }, type: "number" },
-    { key: "studentsFemale", label: { en: "Students (Female)", si: "සිසුන් (ගැහැණු)" }, type: "number" },
-    { key: "studentsMale", label: { en: "Students (Male)", si: "සිසුන් (පිරිමි)" }, type: "number" },
+    { key: "teachersFemale", label: { en: "Teachers (Female)", si: "ගුරුවරු ගණන - ස්ත්‍රී" }, type: "number" },
+    { key: "teachersMale", label: { en: "Teachers (Male)", si: "ගුරුවරු ගණන - පුරුෂ" }, type: "number" },
+    { key: "studentsFemale", label: { en: "Students (Female)", si: "සිසුන් ගණන - ස්ත්‍රී" }, type: "number" },
+    { key: "studentsMale", label: { en: "Students (Male)", si: "සිසුන් ගණන - පුරුෂ" }, type: "number" },
     {
       key: "waterFacility",
-      label: { en: "Water Facility", si: "ජල පහසුකම්" },
+      label: { en: "Water Facilities", si: "ජල පහසුකම්" },
       type: "select",
       options: YES_NO_OPTIONS,
     },
     {
       key: "sanitationFacility",
-      label: { en: "Sanitation Facility", si: "වැසිකිලි පහසුකම්" },
+      label: { en: "Toilet Facilities", si: "වැසිකිලි පහසුකම්" },
       type: "select",
       options: YES_NO_OPTIONS,
     },
     {
       key: "sportsGround",
-      label: { en: "Sports Ground", si: "ක්‍රීඩා පිටිය" },
+      label: { en: "Playground", si: "ක්‍රීඩාපිටි" },
       type: "select",
       options: YES_NO_OPTIONS,
     },
   ];
 
   const vocationalInstituteColumns: RepeatableColumn[] = [
-    { key: "name", label: { en: "Name", si: "නම" }, type: "text" },
+    { key: "name", label: { en: "Technical and Vocational Training Institution", si: "කාර්මික හා වෘත්තීය පුහුණු ආයතන" }, type: "text" },
   ];
 
   const preschoolColumns: RepeatableColumn[] = [
-    { key: "name", label: { en: "Name", si: "නම" }, type: "text" },
+    { key: "name", label: { en: "Preschool Name", si: "පෙර පාසලේ නම" }, type: "text" },
     { key: "address", label: { en: "Address", si: "ලිපිනය" }, type: "text" },
     {
       key: "facilityType",
-      label: { en: "Facility Type", si: "පහසුකම් වර්ගය" },
+      label: { en: "Private / Government", si: "පුද්ගලික/ රජයේ" },
       type: "select",
       options: PRESCHOOL_FACILITY_TYPES.map((t) => ({ value: t, label: PRESCHOOL_FACILITY_TYPE_LABELS[t] })),
     },
-    { key: "teacherCount", label: { en: "Teacher Count", si: "ගුරු සංඛ්‍යාව" }, type: "number" },
-    { key: "studentCount", label: { en: "Student Count", si: "සිසු සංඛ්‍යාව" }, type: "number" },
+    { key: "studentCount", label: { en: "Number of Students", si: "සිසුන් ගණන" }, type: "number" },
+    { key: "teacherCount", label: { en: "Number of Teachers", si: "ගුරුවරු ගණන" }, type: "number" },
   ];
 
   const dhammaEducationInstitutionColumns: RepeatableColumn[] = [
-    { key: "institutionName", label: { en: "Institution Name", si: "ආයතනයේ නම" }, type: "text" },
+    { key: "institutionName", label: { en: "Name of Dhamma Education Institution", si: "දහම් අධ්‍යාපනය ලබාදෙන ආයතනයේ නම" }, type: "text" },
     {
       key: "type",
-      label: { en: "Type", si: "වර්ගය" },
+      label: { en: "* Dhamma Education Institution Type", si: "*දහම් අධ්‍යාපනය ලබාදෙන ආයතන වර්ගය" },
       type: "select",
       options: DHAMMA_TYPES.map((t) => ({ value: t, label: DHAMMA_TYPE_LABELS[t] })),
     },
-    { key: "teacherCount", label: { en: "Teacher Count", si: "ගුරු සංඛ්‍යාව" }, type: "number" },
-    { key: "studentCount", label: { en: "Student Count", si: "සිසු සංඛ්‍යාව" }, type: "number" },
+    { key: "teacherCount", label: { en: "Number of Teachers", si: "ගුරුවරු ගණන" }, type: "number" },
+    { key: "studentCount", label: { en: "Number of Students", si: "සිසුන් ගණන" }, type: "number" },
   ];
 
   const tertiaryInstitutionColumns: RepeatableColumn[] = [
-    { key: "name", label: { en: "Name", si: "නම" }, type: "text" },
+    { key: "typeLabel", label: { en: "Institution Type", si: "ආයතන වර්ගය" }, type: "readonly" },
     {
-      key: "type",
-      label: { en: "Type", si: "වර්ගය" },
+      key: "exists",
+      label: { en: "Exists? (Yes/No)", si: "ඇත/නැත" },
       type: "select",
-      options: TERTIARY_TYPES.map((t) => ({ value: t, label: TERTIARY_TYPE_LABELS[t] })),
+      options: YES_NO_OPTIONS,
     },
+    { key: "name", label: { en: "Institution Name (Indicate Branches Too)", si: "ආයතනයේ නම (ශාඛා ද සඳහන් කරන්න)" }, type: "text" },
   ];
 
   const tuitionCenterColumns: RepeatableColumn[] = [
     { key: "registrationNumber", label: { en: "Registration Number", si: "ලියාපදිංචි අංකය" }, type: "text" },
-    { key: "nameAndAddress", label: { en: "Name and Address", si: "නම හා ලිපිනය" }, type: "text" },
+    {
+      key: "nameAndAddress",
+      label: { en: "Name and Address of Tuition Class Institution", si: "උපකාරක පන්ති ආයතනයන්හි නම හා ලිපිනය" },
+      type: "text",
+    },
   ];
 
   const schoolFacilitiesMeta = listMeta(watched.schoolFacilities);
@@ -301,7 +339,11 @@ export default function EducationPage() {
   const vocationalInstitutesMeta = listMeta(watched.vocationalInstitutes);
   const preschoolsMeta = listMeta(watched.preschools);
   const dhammaEducationInstitutionsMeta = listMeta(watched.dhammaEducationInstitutions);
-  const tertiaryInstitutionsMeta = listMeta(watched.tertiaryInstitutions);
+  const tertiaryInstitutionsPresentCount = watched.tertiaryInstitutions?.filter((r) => r?.exists === "yes").length ?? 0;
+  const tertiaryInstitutionsMeta = {
+    status: (tertiaryInstitutionsPresentCount > 0 ? "filled" : "empty") as "filled" | "empty",
+    countLabel: entryCountLabel(tertiaryInstitutionsPresentCount),
+  };
   const tuitionCentersMeta = listMeta(watched.tuitionCenters);
 
   return (
@@ -335,12 +377,12 @@ export default function EducationPage() {
       <Accordion type="multiple" value={openItems} onValueChange={setOpenItems} className="flex flex-col">
         <CollapsibleFieldGroup value="institutionCounts" title={educationDict.fields.institutionCounts} status={hasAnyNonZero(watched.institutionCounts) ? "filled" : "empty"}>
           <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4">
-            <FieldWrapper name="institutionCounts.govtSchools" label={{ en: "Government Schools", si: "රාජ්‍ය පාසල්" }}>
+            <FieldWrapper name="institutionCounts.govtSchools" label={{ en: "Schools (Government)", si: "පාසල් (රජයේ)" }}>
               {({ id, describedBy, invalid }) => (
                 <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("institutionCounts.govtSchools")} />
               )}
             </FieldWrapper>
-            <FieldWrapper name="institutionCounts.privateOrInternationalSchools" label={{ en: "Private / International Schools", si: "පෞද්ගලික / ජාත්‍යන්තර පාසල්" }}>
+            <FieldWrapper name="institutionCounts.privateOrInternationalSchools" label={{ en: "Private Schools / International Schools", si: "පෞද්ගලික පාසල් /ජාත්‍යන්තර පාසල්" }}>
               {({ id, describedBy, invalid }) => (
                 <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("institutionCounts.privateOrInternationalSchools")} />
               )}
@@ -350,17 +392,17 @@ export default function EducationPage() {
                 <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("institutionCounts.pirivenas")} />
               )}
             </FieldWrapper>
-            <FieldWrapper name="institutionCounts.vocationalTrainingInstitutes" label={{ en: "Vocational Training Institutes", si: "වෘත්තීය පුහුණු ආයතන" }}>
+            <FieldWrapper name="institutionCounts.vocationalTrainingInstitutes" label={{ en: "Technical and Vocational Training Institutions", si: "කාර්මික හා වෘත්තීය පුහුණු ආයතන" }}>
               {({ id, describedBy, invalid }) => (
                 <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("institutionCounts.vocationalTrainingInstitutes")} />
               )}
             </FieldWrapper>
-            <FieldWrapper name="institutionCounts.registeredPreschoolsGovt" label={{ en: "Registered Preschools (Govt)", si: "ලියාපදිංචි පෙර පාසල් (රාජ්‍ය)" }}>
+            <FieldWrapper name="institutionCounts.registeredPreschoolsGovt" label={{ en: "Registered Preschools - Government", si: "ලියාපදිංචි පෙර පාසල්- රජයේ" }}>
               {({ id, describedBy, invalid }) => (
                 <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("institutionCounts.registeredPreschoolsGovt")} />
               )}
             </FieldWrapper>
-            <FieldWrapper name="institutionCounts.registeredPreschoolsPrivate" label={{ en: "Registered Preschools (Private)", si: "ලියාපදිංචි පෙර පාසල් (පෞද්ගලික)" }}>
+            <FieldWrapper name="institutionCounts.registeredPreschoolsPrivate" label={{ en: "Registered Preschools - Private", si: "ලියාපදිංචි පෙර පාසල් - පෞද්ගලික" }}>
               {({ id, describedBy, invalid }) => (
                 <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("institutionCounts.registeredPreschoolsPrivate")} />
               )}
@@ -474,6 +516,14 @@ export default function EducationPage() {
               sportsGround: "no",
             })}
           />
+          {educationDict.fields.schoolFacilities.helpEn && (
+            <Bilingual
+              as="p"
+              en={educationDict.fields.schoolFacilities.helpEn}
+              si={educationDict.fields.schoolFacilities.helpSi!}
+              className="text-fluid-xs text-muted-foreground"
+            />
+          )}
         </CollapsibleFieldGroup>
 
         <CollapsibleFieldGroup value="specialAttentionSchools" title={educationDict.fields.specialAttentionSchools} status={specialAttentionSchoolsMeta.status} countLabel={specialAttentionSchoolsMeta.countLabel}>
@@ -524,6 +574,14 @@ export default function EducationPage() {
               sportsGround: "no",
             })}
           />
+          {educationDict.fields.pirivenas.helpEn && (
+            <Bilingual
+              as="p"
+              en={educationDict.fields.pirivenas.helpEn}
+              si={educationDict.fields.pirivenas.helpSi!}
+              className="text-fluid-xs text-muted-foreground"
+            />
+          )}
         </CollapsibleFieldGroup>
 
         <CollapsibleFieldGroup value="vocationalInstitutes" title={educationDict.fields.vocationalInstitutes} status={vocationalInstitutesMeta.status} countLabel={vocationalInstitutesMeta.countLabel}>
@@ -548,13 +606,27 @@ export default function EducationPage() {
             columns={dhammaEducationInstitutionColumns}
             emptyRowFactory={() => ({ institutionName: "", type: "buddhist", teacherCount: 0, studentCount: 0 })}
           />
+          {educationDict.fields.dhammaEducationInstitutions.helpEn && (
+            <Bilingual
+              as="p"
+              en={educationDict.fields.dhammaEducationInstitutions.helpEn}
+              si={educationDict.fields.dhammaEducationInstitutions.helpSi!}
+              className="text-fluid-xs text-muted-foreground"
+            />
+          )}
         </CollapsibleFieldGroup>
 
         <CollapsibleFieldGroup value="tertiaryInstitutions" title={educationDict.fields.tertiaryInstitutions} status={tertiaryInstitutionsMeta.status} countLabel={tertiaryInstitutionsMeta.countLabel}>
           <RepeatableTable
             name="tertiaryInstitutions"
             columns={tertiaryInstitutionColumns}
-            emptyRowFactory={() => ({ name: "", type: "university" })}
+            fixedRows
+            emptyRowFactory={() => ({
+              type: TERTIARY_TYPES[0],
+              typeLabel: TERTIARY_TYPE_LABELS[TERTIARY_TYPES[0]][lang],
+              exists: "no",
+              name: "",
+            })}
           />
         </CollapsibleFieldGroup>
 
@@ -568,14 +640,25 @@ export default function EducationPage() {
 
         <CollapsibleFieldGroup value="outOfSchoolChildren" title={educationDict.fields.outOfSchoolChildren} status={hasAnyNonZero(watched.outOfSchoolChildren) ? "filled" : "empty"}>
           <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4">
+            <FieldWrapper name="outOfSchoolChildren.male" label={{ en: "Male", si: "පිරිමි" }}>
+              {({ id, describedBy, invalid }) => (
+                <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("outOfSchoolChildren.male")} />
+              )}
+            </FieldWrapper>
             <FieldWrapper name="outOfSchoolChildren.female" label={{ en: "Female", si: "ගැහැණු" }}>
               {({ id, describedBy, invalid }) => (
                 <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("outOfSchoolChildren.female")} />
               )}
             </FieldWrapper>
-            <FieldWrapper name="outOfSchoolChildren.male" label={{ en: "Male", si: "පිරිමි" }}>
-              {({ id, describedBy, invalid }) => (
-                <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("outOfSchoolChildren.male")} />
+            <FieldWrapper name="outOfSchoolChildrenTotal" label={{ en: "Total", si: "එකතුව" }}>
+              {({ id }) => (
+                <Input
+                  id={id}
+                  readOnly
+                  disabled
+                  value={(Number(form.watch("outOfSchoolChildren.male")) || 0) + (Number(form.watch("outOfSchoolChildren.female")) || 0)}
+                  className="nums-tabular"
+                />
               )}
             </FieldWrapper>
           </div>
@@ -583,14 +666,25 @@ export default function EducationPage() {
 
         <CollapsibleFieldGroup value="childrenInProbationOrDetention" title={educationDict.fields.childrenInProbationOrDetention} status={hasAnyNonZero(watched.childrenInProbationOrDetention) ? "filled" : "empty"}>
           <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4">
+            <FieldWrapper name="childrenInProbationOrDetention.male" label={{ en: "Male", si: "පිරිමි" }}>
+              {({ id, describedBy, invalid }) => (
+                <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("childrenInProbationOrDetention.male")} />
+              )}
+            </FieldWrapper>
             <FieldWrapper name="childrenInProbationOrDetention.female" label={{ en: "Female", si: "ගැහැණු" }}>
               {({ id, describedBy, invalid }) => (
                 <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("childrenInProbationOrDetention.female")} />
               )}
             </FieldWrapper>
-            <FieldWrapper name="childrenInProbationOrDetention.male" label={{ en: "Male", si: "පිරිමි" }}>
-              {({ id, describedBy, invalid }) => (
-                <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("childrenInProbationOrDetention.male")} />
+            <FieldWrapper name="childrenInProbationOrDetentionTotal" label={{ en: "Total", si: "එකතුව" }}>
+              {({ id }) => (
+                <Input
+                  id={id}
+                  readOnly
+                  disabled
+                  value={(Number(form.watch("childrenInProbationOrDetention.male")) || 0) + (Number(form.watch("childrenInProbationOrDetention.female")) || 0)}
+                  className="nums-tabular"
+                />
               )}
             </FieldWrapper>
           </div>

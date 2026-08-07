@@ -2,11 +2,10 @@ import { z } from "zod";
 
 /* ── §8 සෞඛ්‍යය — Health ──────────────────────────────────────────────────── */
 
-const GOVT_HOSPITAL_TYPES = ["teaching", "base", "divisional", "primary"] as const;
+const GOVT_HOSPITAL_TYPES = ["teaching", "base", "primary", "divisional"] as const;
 
 export const govtHospitalRowSchema = z.object({
   name: z.string().min(1, "Name is required"),
-  address: z.string().min(1, "Address is required"),
   type: z.enum(GOVT_HOSPITAL_TYPES),
 });
 
@@ -23,7 +22,6 @@ export const primaryHealthcareUnitRowSchema = z.object({
 export const traditionalPractitionerRowSchema = z.object({
   name: z.string().min(1, "Name is required"),
   specialty: z.string().min(1, "Specialty is required"),
-  address: z.string().min(1, "Address is required"),
 });
 
 export const healthSchemaStrict = z.object({
@@ -54,6 +52,30 @@ export const healthSchemaStrict = z.object({
 
 export type HealthData = z.infer<typeof healthSchemaStrict>;
 
+/* Draft-mode row schemas built from scratch rather than `.partial()` on the strict schemas
+ * above: `.partial()` only allows a field to be *missing*, it doesn't relax `min(1)`, so a row
+ * added via the "Add" button (whose fields start as "") would still fail validation and
+ * silently block saving. */
+const govtHospitalRowPartialSchema = z.object({
+  name: z.string().optional(),
+  type: z.enum(GOVT_HOSPITAL_TYPES).optional(),
+});
+
+const nameAddressHealthRowPartialSchema = z.object({
+  name: z.string().optional(),
+  address: z.string().optional(),
+});
+
+const primaryHealthcareUnitRowPartialSchema = z.object({
+  name: z.string().optional(),
+  type: z.string().optional(),
+});
+
+const traditionalPractitionerRowPartialSchema = z.object({
+  name: z.string().optional(),
+  specialty: z.string().optional(),
+});
+
 export const healthSchemaPartial = z.object({
   institutionCounts: z
     .object({
@@ -70,16 +92,16 @@ export const healthSchemaPartial = z.object({
       privatePharmacies: z.coerce.number().int().min(0).optional(),
     })
     .optional(),
-  govtHospitalsDirectory: z.array(govtHospitalRowSchema.partial()).optional(),
-  primaryHealthcareUnitsDirectory: z.array(primaryHealthcareUnitRowSchema.partial()).optional(),
-  privateHospitalsDirectory: z.array(nameAddressHealthRowSchema.partial()).optional(),
-  ayurvedicInstitutions: z.array(nameAddressHealthRowSchema.partial()).optional(),
-  specialistServiceCentersDirectory: z.array(nameAddressHealthRowSchema.partial()).optional(),
-  mohOfficesDirectory: z.array(nameAddressHealthRowSchema.partial()).optional(),
-  traditionalMedicineInstitutionsDirectory: z.array(nameAddressHealthRowSchema.partial()).optional(),
-  privateMedicalLabsDirectory: z.array(nameAddressHealthRowSchema.partial()).optional(),
-  animalClinicsDirectory: z.array(nameAddressHealthRowSchema.partial()).optional(),
-  traditionalPractitioners: z.array(traditionalPractitionerRowSchema.partial()).optional(),
+  govtHospitalsDirectory: z.array(govtHospitalRowPartialSchema).optional(),
+  primaryHealthcareUnitsDirectory: z.array(primaryHealthcareUnitRowPartialSchema).optional(),
+  privateHospitalsDirectory: z.array(nameAddressHealthRowPartialSchema).optional(),
+  ayurvedicInstitutions: z.array(nameAddressHealthRowPartialSchema).optional(),
+  specialistServiceCentersDirectory: z.array(nameAddressHealthRowPartialSchema).optional(),
+  mohOfficesDirectory: z.array(nameAddressHealthRowPartialSchema).optional(),
+  traditionalMedicineInstitutionsDirectory: z.array(nameAddressHealthRowPartialSchema).optional(),
+  privateMedicalLabsDirectory: z.array(nameAddressHealthRowPartialSchema).optional(),
+  animalClinicsDirectory: z.array(nameAddressHealthRowPartialSchema).optional(),
+  traditionalPractitioners: z.array(traditionalPractitionerRowPartialSchema).optional(),
 });
 
 export { GOVT_HOSPITAL_TYPES };

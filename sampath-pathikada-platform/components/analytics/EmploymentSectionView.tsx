@@ -95,10 +95,10 @@ export function EmploymentSectionView({
               <TableHeader>
                 <TableRow className="bg-muted/40 hover:bg-muted/40">
                   <TableHead>
-                    <Bilingual en="Number of people seeking employment by education" si="අධ්‍යාපනය අනුව රැකියා අපේක්ෂකයන්" />
+                    <Bilingual en="Number of Job-Seeking Persons by Education Level" si="අධ්‍යාපන මට්ටම අනුව රැකියා අපේක්ෂිත පුද්ගලයන් ගණන" />
                   </TableHead>
                   <TableHead>
-                    <Bilingual en="Number of Persons" si="පුද්ගලයන් සංඛ්‍යාව" />
+                    <Bilingual en="Number of Persons" si="පුද්ගල ගණන" />
                   </TableHead>
                 </TableRow>
               </TableHeader>
@@ -116,8 +116,8 @@ export function EmploymentSectionView({
           </AnalyticsTableWrapper>
           <h3 className="pt-3 font-display text-fluid-lg font-semibold text-foreground">
             <Bilingual
-              en="Number of people who wish to receive vocational training but do not meet the qualifications required for vocational training"
-              si="වෘත්තීය පුහුණුව ලබා ගැනීමට කැමති නමුත් ඒ සඳහා අවශ්‍ය සුදුසුකම් සපුරා නොමැති පුද්ගලයන් සංඛ්‍යාව"
+              en="Persons Wanting Vocational Training but Not Meeting Its Required Qualifications"
+              si="වෘත්තිය පුහුණුව ලැබීමට කැමති, එහෙත් වෘත්තිය පුහුණුවට අවශ්‍ය සුදුසුකම් සපුරා නොමැති පුද්ගලයන් ගණන"
             />
           </h3>
           <AnalyticsTableWrapper>
@@ -126,7 +126,7 @@ export function EmploymentSectionView({
                 <TableRow className="bg-muted/40 hover:bg-muted/40">
                   <TableHead />
                   <TableHead>
-                    <Bilingual en="Number of Persons" si="පුද්ගලයන් සංඛ්‍යාව" />
+                    <Bilingual en="Number of Persons" si="පුද්ගල ගණන" />
                   </TableHead>
                 </TableRow>
               </TableHeader>
@@ -149,17 +149,17 @@ export function EmploymentSectionView({
             </Table>
           </AnalyticsTableWrapper>
           <h3 className="pt-3 font-display text-fluid-lg font-semibold text-foreground">
-            <Bilingual en="Self-Employment Related Information" si="ස්වයං රැකියා ආශ්‍රිත තොරතුරු" />
+            <Bilingual en="Information Related to Self-Employment" si="ස්වයං රැකියා සම්බන්ධ තොරතුරු" />
           </h3>
           <AnalyticsTableWrapper>
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/40 hover:bg-muted/40">
                   <TableHead>
-                    <Bilingual en="Self-Employment Activity" si="ස්වයං රැකියා ක්‍රියාකාරකම" />
+                    <Bilingual en="Field" si="ක්ෂේත්‍රය" />
                   </TableHead>
                   <TableHead>
-                    <Bilingual en="Number of Persons" si="පුද්ගලයන් සංඛ්‍යාව" />
+                    <Bilingual en="Number of Persons" si="පුද්ගලයින් ගණන" />
                   </TableHead>
                 </TableRow>
               </TableHeader>
@@ -176,7 +176,7 @@ export function EmploymentSectionView({
             </Table>
           </AnalyticsTableWrapper>
           <h3 className="pt-3 font-display text-fluid-lg font-semibold text-foreground">
-            <Bilingual en="Information on Persons Engaged in Self-Employment" si="ස්වයං රැකියාවල නියුතු පුද්ගලයන් පිළිබඳ තොරතුරු" />
+            <Bilingual en="Information on Persons Engaged in Self-Employment" si="ස්වයං රැකියාවන්හි නිරත පුද්ගල තොරතුරු" />
           </h3>
           <AnalyticsTableWrapper>
             <Table>
@@ -186,13 +186,13 @@ export function EmploymentSectionView({
                     <Bilingual en="Self-Employment Field" si="ස්වයං රැකියා ක්ෂේත්‍රය" />
                   </TableHead>
                   <TableHead>
-                    <Bilingual en="Person's Name" si="පුද්ගලයාගේ නම" />
+                    <Bilingual en="Person's Name" si="පුද්ගල නම" />
                   </TableHead>
                   <TableHead>
                     <Bilingual en="Telephone Number" si="දුරකථන අංකය" />
                   </TableHead>
                   <TableHead>
-                    <Bilingual en="Market" si="වෙළඳපොළ" />
+                    <Bilingual en="* Market" si="*වෙළදපොළ" />
                   </TableHead>
                 </TableRow>
               </TableHeader>
@@ -216,6 +216,9 @@ export function EmploymentSectionView({
               </TableBody>
             </Table>
           </AnalyticsTableWrapper>
+          <p className="text-fluid-xs text-muted-foreground">
+            <Bilingual en="* Market: 1. Local 2. International." si="*වෙළදපොළ 1-දේශිය, 2-ජාත්‍යන්තර" />
+          </p>
         </>
       )}
     </div>

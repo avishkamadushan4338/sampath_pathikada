@@ -23,10 +23,10 @@ const PRESCHOOL_FACILITY_TYPE_OPTIONS = [
 ];
 
 const TERTIARY_TYPE_OPTIONS = [
-  { value: "university-college", label: { en: "University College", si: "විශ්වවිද්‍යාල විද්‍යාලය" } },
-  { value: "university", label: { en: "University", si: "විශ්වවිද්‍යාලය" } },
-  { value: "tech-institute", label: { en: "Technical Institute", si: "තාක්ෂණික ආයතනය" } },
-  { value: "private-university", label: { en: "Private University", si: "පෞද්ගලික විශ්වවිද්‍යාලය" } },
+  { value: "university-college", label: { en: "College of Education", si: "විද්‍යාපීඨ" } },
+  { value: "university", label: { en: "University", si: "විශ්ව විද්‍යාල" } },
+  { value: "tech-institute", label: { en: "Higher Technical Institute", si: "උසස් තාක්ෂණ ආයතන" } },
+  { value: "private-university", label: { en: "Private University", si: "පෞද්ගලික විශ්ව විද්‍යාල" } },
 ];
 
 const DHAMMA_TYPE_OPTIONS = [
@@ -37,15 +37,15 @@ const DHAMMA_TYPE_OPTIONS = [
 ];
 
 const INSTITUTION_COUNT_FIELDS: { key: string; label: Translated }[] = [
-  { key: "govtSchools", label: { en: "Government Schools", si: "රාජ්‍ය පාසල්" } },
-  { key: "privateOrInternationalSchools", label: { en: "Private / International Schools", si: "පෞද්ගලික / ජාත්‍යන්තර පාසල්" } },
+  { key: "govtSchools", label: { en: "Schools (Government)", si: "පාසල් (රජයේ)" } },
+  { key: "privateOrInternationalSchools", label: { en: "Private Schools / International Schools", si: "පෞද්ගලික පාසල් /ජාත්‍යන්තර පාසල්" } },
   { key: "pirivenas", label: { en: "Pirivenas", si: "පිරිවෙන්" } },
-  { key: "vocationalTrainingInstitutes", label: { en: "Vocational Training Institutes", si: "වෘත්තීය පුහුණු ආයතන" } },
-  { key: "registeredPreschoolsGovt", label: { en: "Registered Preschools (Govt)", si: "ලියාපදිංචි පෙර පාසල් (රාජ්‍ය)" } },
-  { key: "registeredPreschoolsPrivate", label: { en: "Registered Preschools (Private)", si: "ලියාපදිංචි පෙර පාසල් (පෞද්ගලික)" } },
-  { key: "dhammaEducationInstitutions", label: { en: "Dhamma Education Institutions", si: "දහම් අධ්‍යාපන ආයතන" } },
+  { key: "vocationalTrainingInstitutes", label: { en: "Technical and Vocational Training Institutions", si: "කාර්මික හා වෘත්තීය පුහුණු ආයතන" } },
+  { key: "registeredPreschoolsGovt", label: { en: "Registered Preschools - Government", si: "ලියාපදිංචි පෙර පාසල්- රජයේ" } },
+  { key: "registeredPreschoolsPrivate", label: { en: "Registered Preschools - Private", si: "ලියාපදිංචි පෙර පාසල් - පෞද්ගලික" } },
+  { key: "dhammaEducationInstitutions", label: { en: "Dhamma Education Institutions", si: "දහම් අධ්‍යාපනය ලබාදෙන ආයතන" } },
   { key: "higherEducationInstitutions", label: { en: "Higher Education Institutions", si: "උසස් අධ්‍යාපන ආයතන" } },
-  { key: "tuitionCenterInstitutions", label: { en: "Tuition Class Institutions", si: "උපකාරක පන්ති ආයතන" } },
+  { key: "tuitionCenterInstitutions", label: { en: "Tuition Class Institutions", si: "උපකාරක පන්ති පවත්වන ආයතන" } },
 ];
 
 const SCHOOL_COUNT_BY_TYPE_FIELDS: { key: string; label: Translated }[] = [
@@ -66,30 +66,44 @@ const SCHOOL_COUNT_BY_TYPE_FIELDS: { key: string; label: Translated }[] = [
 ];
 
 const SEX_COUNT_FIELDS: { key: string; label: Translated }[] = [
-  { key: "female", label: { en: "Female", si: "ගැහැණු" } },
   { key: "male", label: { en: "Male", si: "පිරිමි" } },
+  { key: "female", label: { en: "Female", si: "ගැහැණු" } },
 ];
+
+/** Appends a live-computed "Total" stat to a female/male stat pair — mirrors the entry form's
+ *  computed total field for the same two counts. */
+function withSexTotal(stats: ReadOnlyStat[], values: Record<string, number | undefined>): ReadOnlyStat[] {
+  const total = (values.male ?? 0) + (values.female ?? 0);
+  return [...stats, { key: "total", label: { en: "Total", si: "එකතුව" }, value: total.toString() }];
+}
+
+/** Appends a live-computed "Total School Count" stat — mirrors the entry form's computed total
+ *  across the 5 school-count-by-type fields. */
+function withSchoolCountTotal(stats: ReadOnlyStat[], values: Record<string, number | undefined>): ReadOnlyStat[] {
+  const total = SCHOOL_COUNT_BY_TYPE_FIELDS.reduce((sum, f) => sum + (values[f.key] ?? 0), 0);
+  return [...stats, { key: "total", label: { en: "Total School Count", si: "මුළු පාසල් සංඛ්‍යාව" }, value: total.toString() }];
+}
 
 const GN_DIVISION_COLUMN: ReadOnlyColumn = { key: "gnName", label: { en: "GN Division", si: "ග්‍රාම නිලධාරී වසම" } };
 
 const SCHOOL_FACILITY_COLUMNS: ReadOnlyColumn[] = [
   { key: "schoolName", label: { en: "School Name", si: "පාසලේ නම" } },
-  { key: "accommodationAvailable", label: { en: "Accommodation Available", si: "නවාතැන් පහසුකම් ඇත" }, options: YES_NO_OPTIONS },
-  { key: "teachersFemale", label: { en: "Teachers (Female)", si: "ගුරුවරු (ස්ත්‍රී)" } },
-  { key: "teachersMale", label: { en: "Teachers (Male)", si: "ගුරුවරු (පුරුෂ)" } },
-  { key: "studentsFemale", label: { en: "Students (Female)", si: "සිසුන් (ගැහැණු)" } },
-  { key: "studentsMale", label: { en: "Students (Male)", si: "සිසුන් (පිරිමි)" } },
-  { key: "waterFacility", label: { en: "Water Facility", si: "ජල පහසුකම්" }, options: YES_NO_OPTIONS },
-  { key: "sanitationFacility", label: { en: "Sanitation Facility", si: "වැසිකිලි පහසුකම්" }, options: YES_NO_OPTIONS },
-  { key: "sportsGround", label: { en: "Sports Ground", si: "ක්‍රීඩා පිටිය" }, options: YES_NO_OPTIONS },
+  { key: "accommodationAvailable", label: { en: "* Boarding Facilities", si: "*නේවාසික පහසුකම්" }, options: YES_NO_OPTIONS },
+  { key: "teachersFemale", label: { en: "Teachers (Female)", si: "ගුරුවරු ගණන - ස්ත්‍රී" } },
+  { key: "teachersMale", label: { en: "Teachers (Male)", si: "ගුරුවරු ගණන - පුරුෂ" } },
+  { key: "studentsFemale", label: { en: "Students (Female)", si: "සිසුන් ගණන - ස්ත්‍රී" } },
+  { key: "studentsMale", label: { en: "Students (Male)", si: "සිසුන් ගණන - පුරුෂ" } },
+  { key: "waterFacility", label: { en: "* Water Facilities", si: "*ජල පහසුකම්" }, options: YES_NO_OPTIONS },
+  { key: "sanitationFacility", label: { en: "* Toilet Facilities", si: "*වැසිකිලි පහසුකම්" }, options: YES_NO_OPTIONS },
+  { key: "sportsGround", label: { en: "* Playground", si: "*ක්‍රීඩාපිටි" }, options: YES_NO_OPTIONS },
 ];
 
 const SPECIAL_ATTENTION_SCHOOL_COLUMNS: ReadOnlyColumn[] = [
   { key: "schoolName", label: { en: "School Name", si: "පාසලේ නම" } },
-  { key: "teachersFemale", label: { en: "Teachers (Female)", si: "ගුරුවරු (ස්ත්‍රී)" } },
-  { key: "teachersMale", label: { en: "Teachers (Male)", si: "ගුරුවරු (පුරුෂ)" } },
-  { key: "studentsFemale", label: { en: "Students (Female)", si: "සිසුන් (ගැහැණු)" } },
-  { key: "studentsMale", label: { en: "Students (Male)", si: "සිසුන් (පිරිමි)" } },
+  { key: "teachersFemale", label: { en: "Teachers (Female)", si: "ගුරුවරු ගණන - ස්ත්‍රී" } },
+  { key: "teachersMale", label: { en: "Teachers (Male)", si: "ගුරුවරු ගණන - පුරුෂ" } },
+  { key: "studentsFemale", label: { en: "Students (Female)", si: "සිසුන් ගණන - ස්ත්‍රී" } },
+  { key: "studentsMale", label: { en: "Students (Male)", si: "සිසුන් ගණන - පුරුෂ" } },
   { key: "developmentNeeds", label: { en: "Development Needs", si: "සංවර්ධන අවශ්‍යතා" } },
 ];
 
@@ -97,53 +111,63 @@ const CLOSED_SCHOOL_COLUMNS: ReadOnlyColumn[] = [
   { key: "schoolName", label: { en: "School Name", si: "පාසලේ නම" } },
   { key: "yearClosed", label: { en: "Year Closed", si: "වැසීගිය වර්ෂය" } },
   { key: "buildingCount", label: { en: "Existing Buildings", si: "පවතින ගොඩනැගිලි සංඛ්‍යාව" } },
-  { key: "buildingsUsable", label: { en: "Buildings Currently Usable", si: "ගොඩනැගිලි දැනට භාවිත කළ හැකිද" }, options: YES_NO_OPTIONS },
+  {
+    key: "buildingsUsable",
+    label: { en: "Whether Buildings Can Currently Be Used", si: "ගොඩනැගිලි දැනට භාවිතා කලහැකි බව/නොහැකි බව" },
+    options: YES_NO_OPTIONS,
+  },
 ];
 
 const PRIVATE_INTERNATIONAL_SCHOOL_COLUMNS: ReadOnlyColumn[] = [
-  { key: "name", label: { en: "Name", si: "නම" } },
-  { key: "teacherCount", label: { en: "Teacher Count", si: "ගුරු සංඛ්‍යාව" } },
-  { key: "studentCount", label: { en: "Student Count", si: "සිසු සංඛ්‍යාව" } },
+  { key: "name", label: { en: "School Name", si: "පාසලේ නම" } },
+  { key: "teacherCount", label: { en: "Number of Teachers", si: "ගුරුවරු ගණන" } },
+  { key: "studentCount", label: { en: "Number of Students", si: "සිසුන් ගණන" } },
 ];
 
 const PIRIVENA_COLUMNS: ReadOnlyColumn[] = [
-  { key: "name", label: { en: "Name", si: "නම" } },
-  { key: "type", label: { en: "Type", si: "වර්ගය" } },
-  { key: "boardingFacility", label: { en: "Boarding Facility", si: "නේවාසික පහසුකම්" }, options: YES_NO_OPTIONS },
-  { key: "teachersFemale", label: { en: "Teachers (Female)", si: "ගුරුවරු (ස්ත්‍රී)" } },
-  { key: "teachersMale", label: { en: "Teachers (Male)", si: "ගුරුවරු (පුරුෂ)" } },
-  { key: "studentsFemale", label: { en: "Students (Female)", si: "සිසුන් (ගැහැණු)" } },
-  { key: "studentsMale", label: { en: "Students (Male)", si: "සිසුන් (පිරිමි)" } },
-  { key: "waterFacility", label: { en: "Water Facility", si: "ජල පහසුකම්" }, options: YES_NO_OPTIONS },
-  { key: "sanitationFacility", label: { en: "Sanitation Facility", si: "වැසිකිලි පහසුකම්" }, options: YES_NO_OPTIONS },
-  { key: "sportsGround", label: { en: "Sports Ground", si: "ක්‍රීඩා පිටිය" }, options: YES_NO_OPTIONS },
+  { key: "name", label: { en: "Pirivena Name", si: "පිරිවෙනේ නම" } },
+  { key: "type", label: { en: "* Pirivena Type", si: "*පිරිවෙනේ වර්ගය" } },
+  { key: "boardingFacility", label: { en: "Boarding Facilities", si: "නේවාසික පහසුකම්" }, options: YES_NO_OPTIONS },
+  { key: "teachersFemale", label: { en: "Teachers (Female)", si: "ගුරුවරු ගණන - ස්ත්‍රී" } },
+  { key: "teachersMale", label: { en: "Teachers (Male)", si: "ගුරුවරු ගණන - පුරුෂ" } },
+  { key: "studentsFemale", label: { en: "Students (Female)", si: "සිසුන් ගණන - ස්ත්‍රී" } },
+  { key: "studentsMale", label: { en: "Students (Male)", si: "සිසුන් ගණන - පුරුෂ" } },
+  { key: "waterFacility", label: { en: "Water Facilities", si: "ජල පහසුකම්" }, options: YES_NO_OPTIONS },
+  { key: "sanitationFacility", label: { en: "Toilet Facilities", si: "වැසිකිලි පහසුකම්" }, options: YES_NO_OPTIONS },
+  { key: "sportsGround", label: { en: "Playground", si: "ක්‍රීඩාපිටි" }, options: YES_NO_OPTIONS },
 ];
 
-const VOCATIONAL_INSTITUTE_COLUMNS: ReadOnlyColumn[] = [{ key: "name", label: { en: "Name", si: "නම" } }];
+const VOCATIONAL_INSTITUTE_COLUMNS: ReadOnlyColumn[] = [
+  { key: "name", label: { en: "Technical and Vocational Training Institution", si: "කාර්මික හා වෘත්තීය පුහුණු ආයතන" } },
+];
 
 const PRESCHOOL_COLUMNS: ReadOnlyColumn[] = [
-  { key: "name", label: { en: "Name", si: "නම" } },
+  { key: "name", label: { en: "Preschool Name", si: "පෙර පාසලේ නම" } },
   { key: "address", label: { en: "Address", si: "ලිපිනය" } },
-  { key: "facilityType", label: { en: "Facility Type", si: "පහසුකම් වර්ගය" }, options: PRESCHOOL_FACILITY_TYPE_OPTIONS },
-  { key: "teacherCount", label: { en: "Teacher Count", si: "ගුරු සංඛ්‍යාව" } },
-  { key: "studentCount", label: { en: "Student Count", si: "සිසු සංඛ්‍යාව" } },
+  { key: "facilityType", label: { en: "Private / Government", si: "පුද්ගලික/ රජයේ" }, options: PRESCHOOL_FACILITY_TYPE_OPTIONS },
+  { key: "studentCount", label: { en: "Number of Students", si: "සිසුන් ගණන" } },
+  { key: "teacherCount", label: { en: "Number of Teachers", si: "ගුරුවරු ගණන" } },
 ];
 
 const DHAMMA_EDUCATION_INSTITUTION_COLUMNS: ReadOnlyColumn[] = [
-  { key: "institutionName", label: { en: "Institution Name", si: "ආයතනයේ නම" } },
-  { key: "type", label: { en: "Type", si: "වර්ගය" }, options: DHAMMA_TYPE_OPTIONS },
-  { key: "teacherCount", label: { en: "Teacher Count", si: "ගුරු සංඛ්‍යාව" } },
-  { key: "studentCount", label: { en: "Student Count", si: "සිසු සංඛ්‍යාව" } },
+  { key: "institutionName", label: { en: "Name of Dhamma Education Institution", si: "දහම් අධ්‍යාපනය ලබාදෙන ආයතනයේ නම" } },
+  { key: "type", label: { en: "* Dhamma Education Institution Type", si: "*දහම් අධ්‍යාපනය ලබාදෙන ආයතන වර්ගය" }, options: DHAMMA_TYPE_OPTIONS },
+  { key: "teacherCount", label: { en: "Number of Teachers", si: "ගුරුවරු ගණන" } },
+  { key: "studentCount", label: { en: "Number of Students", si: "සිසුන් ගණන" } },
 ];
 
 const TERTIARY_INSTITUTION_COLUMNS: ReadOnlyColumn[] = [
-  { key: "name", label: { en: "Name", si: "නම" } },
-  { key: "type", label: { en: "Type", si: "වර්ගය" }, options: TERTIARY_TYPE_OPTIONS },
+  { key: "type", label: { en: "Institution Type", si: "ආයතන වර්ගය" }, options: TERTIARY_TYPE_OPTIONS },
+  { key: "exists", label: { en: "Exists? (Yes/No)", si: "ඇත/නැත" }, options: YES_NO_OPTIONS },
+  { key: "name", label: { en: "Institution Name (Indicate Branches Too)", si: "ආයතනයේ නම (ශාඛා ද සඳහන් කරන්න)" } },
 ];
 
 const TUITION_CENTER_COLUMNS: ReadOnlyColumn[] = [
   { key: "registrationNumber", label: { en: "Registration Number", si: "ලියාපදිංචි අංකය" } },
-  { key: "nameAndAddress", label: { en: "Name and Address", si: "නම හා ලිපිනය" } },
+  {
+    key: "nameAndAddress",
+    label: { en: "Name and Address of Tuition Class Institution", si: "උපකාරක පන්ති ආයතනයන්හි නම හා ලිපිනය" },
+  },
 ];
 
 /** Builds the {key, label, value} triples ReadOnlyStats needs from a fixed field list plus
@@ -225,7 +249,10 @@ function EducationSectionContent({ section }: { section: EducationData }) {
   return (
     <div className="flex flex-col gap-8">
       <ReadOnlyStats title={educationDict.fields.institutionCounts} stats={toStats(INSTITUTION_COUNT_FIELDS, section.institutionCounts)} />
-      <ReadOnlyStats title={educationDict.fields.schoolCountsByType} stats={toStats(SCHOOL_COUNT_BY_TYPE_FIELDS, section.schoolCountsByType)} />
+      <ReadOnlyStats
+        title={educationDict.fields.schoolCountsByType}
+        stats={withSchoolCountTotal(toStats(SCHOOL_COUNT_BY_TYPE_FIELDS, section.schoolCountsByType), section.schoolCountsByType)}
+      />
 
       <ReadOnlyTable title={educationDict.fields.schoolFacilities} columns={SCHOOL_FACILITY_COLUMNS} rows={toRows(section.schoolFacilities)} />
       <ReadOnlyTable title={educationDict.fields.specialAttentionSchools} columns={SPECIAL_ATTENTION_SCHOOL_COLUMNS} rows={toRows(section.specialAttentionSchools)} />
@@ -238,8 +265,11 @@ function EducationSectionContent({ section }: { section: EducationData }) {
       <ReadOnlyTable title={educationDict.fields.tertiaryInstitutions} columns={TERTIARY_INSTITUTION_COLUMNS} rows={toRows(section.tertiaryInstitutions)} />
       <ReadOnlyTable title={educationDict.fields.tuitionCenters} columns={TUITION_CENTER_COLUMNS} rows={toRows(section.tuitionCenters)} />
 
-      <ReadOnlyStats title={educationDict.fields.outOfSchoolChildren} stats={toStats(SEX_COUNT_FIELDS, section.outOfSchoolChildren)} />
-      <ReadOnlyStats title={educationDict.fields.childrenInProbationOrDetention} stats={toStats(SEX_COUNT_FIELDS, section.childrenInProbationOrDetention)} />
+      <ReadOnlyStats title={educationDict.fields.outOfSchoolChildren} stats={withSexTotal(toStats(SEX_COUNT_FIELDS, section.outOfSchoolChildren), section.outOfSchoolChildren)} />
+      <ReadOnlyStats
+        title={educationDict.fields.childrenInProbationOrDetention}
+        stats={withSexTotal(toStats(SEX_COUNT_FIELDS, section.childrenInProbationOrDetention), section.childrenInProbationOrDetention)}
+      />
     </div>
   );
 }
@@ -258,7 +288,10 @@ function EducationAreaWideView({ aggregate }: { aggregate: EducationAggregate })
       </p>
 
       <ReadOnlyStats title={educationDict.fields.institutionCounts} stats={toStats(INSTITUTION_COUNT_FIELDS, aggregate.institutionCounts)} />
-      <ReadOnlyStats title={educationDict.fields.schoolCountsByType} stats={toStats(SCHOOL_COUNT_BY_TYPE_FIELDS, aggregate.schoolCountsByType)} />
+      <ReadOnlyStats
+        title={educationDict.fields.schoolCountsByType}
+        stats={withSchoolCountTotal(toStats(SCHOOL_COUNT_BY_TYPE_FIELDS, aggregate.schoolCountsByType), aggregate.schoolCountsByType)}
+      />
 
       <ReadOnlyTable title={educationDict.fields.schoolFacilities} columns={[GN_DIVISION_COLUMN, ...SCHOOL_FACILITY_COLUMNS]} rows={toRows(aggregate.schoolFacilities.rows)} />
       <ReadOnlyTable title={educationDict.fields.specialAttentionSchools} columns={[GN_DIVISION_COLUMN, ...SPECIAL_ATTENTION_SCHOOL_COLUMNS]} rows={toRows(aggregate.specialAttentionSchools.rows)} />
@@ -271,8 +304,11 @@ function EducationAreaWideView({ aggregate }: { aggregate: EducationAggregate })
       <ReadOnlyTable title={educationDict.fields.tertiaryInstitutions} columns={[GN_DIVISION_COLUMN, ...TERTIARY_INSTITUTION_COLUMNS]} rows={toRows(aggregate.tertiaryInstitutions.rows)} />
       <ReadOnlyTable title={educationDict.fields.tuitionCenters} columns={[GN_DIVISION_COLUMN, ...TUITION_CENTER_COLUMNS]} rows={toRows(aggregate.tuitionCenters.rows)} />
 
-      <ReadOnlyStats title={educationDict.fields.outOfSchoolChildren} stats={toStats(SEX_COUNT_FIELDS, aggregate.outOfSchoolChildren)} />
-      <ReadOnlyStats title={educationDict.fields.childrenInProbationOrDetention} stats={toStats(SEX_COUNT_FIELDS, aggregate.childrenInProbationOrDetention)} />
+      <ReadOnlyStats title={educationDict.fields.outOfSchoolChildren} stats={withSexTotal(toStats(SEX_COUNT_FIELDS, aggregate.outOfSchoolChildren), aggregate.outOfSchoolChildren)} />
+      <ReadOnlyStats
+        title={educationDict.fields.childrenInProbationOrDetention}
+        stats={withSexTotal(toStats(SEX_COUNT_FIELDS, aggregate.childrenInProbationOrDetention), aggregate.childrenInProbationOrDetention)}
+      />
     </div>
   );
 }

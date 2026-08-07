@@ -79,14 +79,14 @@ export default function ReligiousCulturalPage() {
   }
 
   const heritageSiteColumns: RepeatableColumn[] = [
-    { key: "name", label: { en: "Name", si: "නම" }, type: "text" },
+    { key: "name", label: { en: "Name of Religious Site / Sacred Site", si: "ආගමික ස්ථානයන්හි /පූජනීය ස්ථානයේ නම" }, type: "text" },
     {
       key: "type",
-      label: { en: "Type", si: "වර්ගය" },
+      label: { en: "* Type", si: "*වර්ගය" },
       type: "select",
       options: HERITAGE_SITE_TYPES.map((t) => ({ value: t, label: HERITAGE_SITE_TYPE_LABELS[t] })),
     },
-    { key: "significance", label: { en: "Reason for Being Special", si: "සුවිශේෂි වීමට හේතු" }, type: "text" },
+    { key: "significance", label: { en: "Reason for Being Special", si: "සුවිශේෂී වීමට හේතු" }, type: "text" },
     {
       key: "usedForDhammaOrGovtPurpose",
       label: { en: "Used for Dhamma School / Pirivena / Govt Purpose?", si: "දහම් පාසල්/පිරිවෙන් හෝ රජයේ කාර්යන් සඳහා භාවිතා කරනවාද" },
@@ -97,14 +97,14 @@ export default function ReligiousCulturalPage() {
   ];
 
   const artAcademyColumns: RepeatableColumn[] = [
-    { key: "name", label: { en: "Name", si: "නම" }, type: "text" },
+    { key: "name", label: { en: "Name of Art Institution", si: "කලායතනයේ නම" }, type: "text" },
     { key: "registrationNumber", label: { en: "Registration No.", si: "ලියාපදිංචි අංකය" }, type: "text" },
-    { key: "studentCount", label: { en: "Student Count", si: "සිසු සංඛ්‍යාව" }, type: "number" },
+    { key: "studentCount", label: { en: "Student Count", si: "සිසුන් ගණන" }, type: "number" },
   ];
 
   const traditionalArtistColumns: RepeatableColumn[] = [
-    { key: "name", label: { en: "Name", si: "නම" }, type: "text" },
-    { key: "artForm", label: { en: "Art Form", si: "කලා ආකෘතිය" }, type: "text" },
+    { key: "artForm", label: { en: "* Famous Art Field", si: "*ප්‍රසිද්ධ කලා ක්ෂේත්‍රය" }, type: "text" },
+    { key: "name", label: { en: "Artists Produced", si: "බිහිවූ කලාකරුවන්" }, type: "text" },
     { key: "description", label: { en: "Description", si: "විස්තරය" }, type: "text" },
   ];
 
@@ -128,7 +128,7 @@ export default function ReligiousCulturalPage() {
 
         <div className="flex flex-col gap-2">
           <h3 lang={lang} className={subHeadingClass}>
-            {lang === "si" ? "පන්සල්" : "Temples"}
+            {lang === "si" ? "පන්සල්/ආරණ්‍ය විහාරස්ථාන/අසපුව" : "Temple / Forest Hermitage / Asapuwa"}
           </h3>
           <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4">
             <FieldWrapper name="religiousSiteCounts.temples.count" label={{ en: "Count", si: "ගණන" }}>
@@ -146,7 +146,7 @@ export default function ReligiousCulturalPage() {
 
         <div className="flex flex-col gap-2">
           <h3 lang={lang} className={subHeadingClass}>
-            {lang === "si" ? "මෙහෙණි ආරාම" : "Nun Hermitages"}
+            {lang === "si" ? "මෙහෙනි ආරාම" : "Nun Hermitages"}
           </h3>
           <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4">
             <FieldWrapper name="religiousSiteCounts.meheniArama.count" label={{ en: "Count", si: "ගණන" }}>
@@ -154,7 +154,7 @@ export default function ReligiousCulturalPage() {
                 <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("religiousSiteCounts.meheniArama.count")} />
               )}
             </FieldWrapper>
-            <FieldWrapper name="religiousSiteCounts.meheniArama.clergyCount" label={{ en: "Nuns", si: "මෙහෙනිකන් වහන්සේලා" }}>
+            <FieldWrapper name="religiousSiteCounts.meheniArama.clergyCount" label={{ en: "Nuns", si: "මෙහෙනීන් වහන්සේලා" }}>
               {({ id, describedBy, invalid }) => (
                 <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("religiousSiteCounts.meheniArama.clergyCount")} />
               )}
@@ -172,7 +172,7 @@ export default function ReligiousCulturalPage() {
                 <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("religiousSiteCounts.kovils.count")} />
               )}
             </FieldWrapper>
-            <FieldWrapper name="religiousSiteCounts.kovils.clergyCount" label={{ en: "Poojaris", si: "පූජකතුමන්ලා/පූජාරි" }}>
+            <FieldWrapper name="religiousSiteCounts.kovils.clergyCount" label={{ en: "Poojaris", si: "පූජකතුමන්ලා /පූසාරි" }}>
               {({ id, describedBy, invalid }) => (
                 <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("religiousSiteCounts.kovils.clergyCount")} />
               )}
@@ -182,7 +182,7 @@ export default function ReligiousCulturalPage() {
 
         <div className="flex flex-col gap-2">
           <h3 lang={lang} className={subHeadingClass}>
-            {lang === "si" ? "පල්ලි (මුස්ලිම්)" : "Mosques"}
+            {lang === "si" ? "ඉස්ලාම් පල්ලි" : "Mosques"}
           </h3>
           <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4">
             <FieldWrapper name="religiousSiteCounts.mosques.count" label={{ en: "Count", si: "ගණන" }}>

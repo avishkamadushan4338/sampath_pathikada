@@ -35,20 +35,26 @@ const LAND_USE_TYPE_OPTIONS = [
   { value: "pepper", label: { en: "Pepper", si: "ගම්මිරිස්" } },
   { value: "coffee", label: { en: "Coffee", si: "කෝපි" } },
   { value: "vegetables", label: { en: "Vegetables", si: "එළවළු" } },
-  { value: "fruits", label: { en: "Fruits", si: "පලතුරු" } },
-  { value: "tuber-crops", label: { en: "Tuber Crops", si: "අල බෝග වගාව" } },
-  { value: "supplementary-food-crops", label: { en: "Supplementary Food Crops", si: "අතිරේක ආහාර බෝග" } },
+  { value: "fruits", label: { en: "Fruits", si: "පළතුරු" } },
+  { value: "tuber-crops", label: { en: "Tuber Crops (Manioc / Sweet Potato / Innala / Kiri Ala)", si: "අල බෝග වගාව(මඤ්ඤොක්කා/බතල/ඉන්නල/කිරි අල)" } },
+  {
+    value: "supplementary-food-crops",
+    label: { en: "Supplementary Food Crops (Maize / Green Gram / Cowpea / Kurakkan / Sesame / Groundnut)", si: "අතිරේක ආහාර බෝග(බඩඉරිඟු/මුං/කවුපි/කුරක්කන්/තල/රටකජු)" },
+  },
   { value: "inland-reservoirs", label: { en: "Inland Reservoirs", si: "අභ්‍යන්තර ජලාශ" } },
-  { value: "roads-sports-homegardens", label: { en: "Roads / Sports Grounds / Home Gardens", si: "මාර්ග/ක්‍රීඩා භූමි/ගෙවතු වගාව" } },
-  { value: "scrub-chena-barren", label: { en: "Scrubland / Chena / Barren Land", si: "ඵලදු කැළෑ/හේන්/මුඩු බිම" } },
-  { value: "ornamental-nurseries", label: { en: "Ornamental Plant Nurseries", si: "විසිතුරු පැල තවාන්" } },
-  { value: "plantation-crop-nurseries", label: { en: "Plantation Crop Nurseries", si: "වැවිලි බෝග පැල තවාන්" } },
-  { value: "aquaculture-land", label: { en: "Aquaculture Land", si: "ජල ජීවි වගාව" } },
+  { value: "roads-sports-homegardens", label: { en: "Roads / Sports Grounds / Home Gardens", si: "මාර්ග/ක්‍රීඩා භූමි / ගෙවතු වගාව" } },
+  { value: "scrub-chena-barren", label: { en: "Fertile Jungle / Chena / Barren Land / Abandoned Land", si: "ලදු කැලෑ / හේන්/ මුඩු බිම් / අත්හැර දමන ලද බිම්" } },
+  {
+    value: "ornamental-nurseries",
+    label: { en: "Commercial Flower Nurseries / Ornamental Plant Nurseries / Other Plant Nurseries", si: "වාණිජ මල් තවාන් / විසිතුරු පැල තවාන් / වෙනත් පැල තවාන්" },
+  },
+  { value: "plantation-crop-nurseries", label: { en: "Plantation Crop Nurseries (Cinnamon / Tea / Pepper)", si: "වැවිලි බෝග පැල තවාන් (කුරුඳු/තේ/ගම්මිරිස්)" } },
+  { value: "aquaculture-land", label: { en: "Aquaculture", si: "ජල ජීවී වගාව" } },
 ];
 
 const FLORAL_CULTIVATION_TYPE_OPTIONS = [
   { value: "floor-flower-cultivation", label: { en: "Floor Flower Cultivation", si: "බිම් මල් වගාව" } },
-  { value: "greenhouse-cultivation", label: { en: "Protected Greenhouse Cultivation", si: "ආරක්ෂිත ගෘහකුළ වගාව" } },
+  { value: "greenhouse-cultivation", label: { en: "Protected Greenhouse Cultivation", si: "ආරක්ෂිත ගෘහතුල වගාව" } },
   { value: "beekeeping", label: { en: "Beekeeping", si: "මීමැසි පාලනය" } },
 ];
 
@@ -60,24 +66,24 @@ const MARKETPLACE_OPTIONS = [
 
 const AGRI_MACHINERY_TYPE_OPTIONS = [
   { value: "two-wheel-tractor", label: { en: "2-Wheel Tractor", si: "රෝද දෙකේ ට්‍රැක්ටර්" } },
-  { value: "two-wheel-tractor-rotavator", label: { en: "2-Wheel Tractor + Rotavator", si: "රෝද දෙකේ ට්‍රැක්ටර් රොටවේටර්" } },
-  { value: "two-wheel-tractor-mouldboard-plough", label: { en: "2-Wheel Tractor + Mould Board Plough", si: "රෝද දෙකේ ට්‍රැක්ටර් මෝල්ඩ් බෝඩ් නගුල" } },
+  { value: "two-wheel-tractor-rotavator", label: { en: "2-Wheel Tractor Rotavator", si: "රෝද දෙකේ ට්‍රැක්ටර් රොටවේටර්" } },
+  { value: "two-wheel-tractor-mouldboard-plough", label: { en: "2-Wheel Tractor Mould Board Plough", si: "රෝද දෙකේ ට්‍රැක්ටර් මෝල්ඩ් බෝඩ් නගුල්" } },
   { value: "four-wheel-tractor", label: { en: "4-Wheel Tractor", si: "රෝද හතරේ ට්‍රැක්ටර්" } },
-  { value: "four-wheel-tractor-rotavator", label: { en: "4-Wheel Tractor + Rotavator", si: "රෝද හතරේ ට්‍රැක්ටර් රොටවේටර්" } },
-  { value: "four-wheel-tractor-disc-plough", label: { en: "4-Wheel Tractor + Disc Plough", si: "රෝද හතරේ ට්‍රැක්ටර් ඩිස්ක් නගුල" } },
+  { value: "four-wheel-tractor-rotavator", label: { en: "4-Wheel Tractor Rotavator", si: "රෝද හතරේ ට්‍රැක්ටර් රොටවේටර්" } },
+  { value: "four-wheel-tractor-hook-plough", label: { en: "4-Wheel Tractor Hook Plough", si: "රෝදහතරේ ට්‍රැක්ටර් කොකු නගුල්" } },
   { value: "water-pump", label: { en: "Water Pump", si: "වතුර පොම්ප" } },
-  { value: "transplanter", label: { en: "Transplanter", si: "නෙළුම් සිටුවන යන්ත්‍ර" } },
-  { value: "weeder", label: { en: "Weeder", si: "වල් නෙළීම් කර" } },
-  { value: "harvester", label: { en: "Harvester", si: "අස්වනු නෙළන යන්ත්‍ර" } },
+  { value: "paddy-harvesting-machine", label: { en: "Paddy Harvesting Machine", si: "ගොයම් කපන යන්ත්‍ර" } },
+  { value: "paddy-threshing-machine", label: { en: "Paddy Threshing Machine", si: "ගොයම් පාගන යන්ත්‍ර" } },
+  { value: "combine-harvester", label: { en: "Combine Harvester", si: "කම්බයින් හාවෙස්ටර්" } },
+  { value: "transplanter", label: { en: "Transplanter", si: "පැල සිටුවන යන්ත්‍ර" } },
   { value: "power-sprayer", label: { en: "Power Sprayer", si: "බලවේග දියර ඉසින යන්ත්‍ර" } },
-  { value: "sprinkler-irrigation", label: { en: "Sprinkler Irrigation Equipment", si: "වර්ෂණ ජලාපවහන යන්ත්‍ර" } },
-  { value: "water-spraying-equipment", label: { en: "Water Spraying Equipment", si: "ජල විජලන යන්ත්‍ර" } },
-  { value: "grass-cutter", label: { en: "Grass Cutter", si: "තෘණ නෙළන යන්ත්‍ර" } },
-  { value: "food-processing-equipment", label: { en: "Food Processing Equipment", si: "ආහාර විජලන යන්ත්‍ර" } },
-  { value: "paddy-dryer-parboiling", label: { en: "Paddy Dryer / Parboiling Equipment", si: "බිම් මට්ටමේ මාධ්‍ය හිරවුම් යන්ත්‍ර" } },
-  { value: "paddy-miller", label: { en: "Paddy Miller", si: "බිම් මට්ටමේ මාධ්‍ය මාළු ම යන්ත්‍ර" } },
-  { value: "chena-planting-equipment", label: { en: "Chena Planting Equipment", si: "පෑළ සිටුවන යන්ත්‍ර" } },
-  { value: "paddy-winnower", label: { en: "Paddy Winnower", si: "වී වේළන යන්ත්‍ර" } },
+  { value: "hand-sprayer", label: { en: "Hand Sprayer", si: "අත් ඉසින යන්ත්‍ර" } },
+  { value: "weeder", label: { en: "Weeder", si: "වල් නෙළුම් කර" } },
+  { value: "food-drying-machine", label: { en: "Food Drying Machine", si: "ආහාර විජ්ජලන යන්ත්‍ර" } },
+  { value: "floor-flower-media-filling-machine", label: { en: "Floor Flower Media Filling Machine", si: "බිම් මල් මාධ්‍ය පිරවුම් යන්ත්‍ර" } },
+  { value: "floor-flower-media-boiling-machine", label: { en: "Floor Flower Media Boiling Machine", si: "බිම් මල් මාධ්‍ය මල් තම්බන යන්ත්‍ර" } },
+  { value: "seedling-planting-machine", label: { en: "Seedling Planting Machine", si: "පැළ සිටුවන යන්ත්‍ර" } },
+  { value: "paddy-reaping-machine", label: { en: "Paddy Reaping Machine", si: "වී වෙළන යන්ත්‍ර" } },
   { value: "oil-mill", label: { en: "Oil Mill", si: "තෙල් මෝල්" } },
   { value: "rubber-mill", label: { en: "Rubber Mill", si: "රබර් මෝල්" } },
   { value: "paddy-mill", label: { en: "Paddy Mill", si: "වී මෝල්" } },
@@ -85,10 +91,10 @@ const AGRI_MACHINERY_TYPE_OPTIONS = [
 ];
 
 const CROP_DAMAGE_TYPE_OPTIONS = [
-  { value: "elephant-conflict", label: { en: "Wild Elephant Conflict", si: "අලි ගැටළුව/අලි මිනිස් ගැටුම" } },
-  { value: "wildlife-damage", label: { en: "Monkey / Porcupine / Wild Boar Damage", si: "රිලව්/වඳුරන්/දඬුලේණා/ඌරා ආදී වන හානි" } },
-  { value: "peacock-damage", label: { en: "Peacock Damage", si: "මොණර හානිය" } },
-  { value: "flood-damage", label: { en: "Flood Damage", si: "ගංවතුර හානිය" } },
+  { value: "elephant-conflict", label: { en: "Elephant Village Raids / Human-Elephant Conflict", si: "අලි ගම්වැදීම/ අලි මිනිස් ගැටුම" } },
+  { value: "wildlife-damage", label: { en: "Damage by Monkeys / Porcupines / Wild Boar", si: "රිලව් /වදුරන්/ දඬුලේනා/ඌරා මගින් වන හානි" } },
+  { value: "peacock-damage", label: { en: "Peacock Damage", si: "මොනර හානි" } },
+  { value: "flood-damage", label: { en: "Flood Conditions", si: "ගං වතුර තත්ත්ව" } },
   { value: "drought", label: { en: "Drought", si: "නියඟය" } },
   { value: "pest-disease", label: { en: "Pest & Disease Conditions", si: "කෘමි උවදුරු හා රෝග තත්ත්ව" } },
   { value: "other", label: { en: "Other", si: "වෙනත්" } },
@@ -106,12 +112,12 @@ const FISH_SITE_TYPE_OPTIONS = [
 ];
 
 const WATER_TYPE_OPTIONS = [
-  { value: "marine", label: { en: "Marine", si: "මුහුදු" } },
-  { value: "inland", label: { en: "Inland", si: "අභ්‍යන්තර" } },
+  { value: "marine", label: { en: "Marine", si: "කරදිය" } },
+  { value: "inland", label: { en: "Inland / Freshwater", si: "මිරිදිය" } },
 ];
 
 const INLAND_WATER_BODY_TYPE_OPTIONS = [
-  { value: "perennial", label: { en: "Perennial", si: "නිත්‍ය" } },
+  { value: "perennial", label: { en: "Perennial", si: "නිතය" } },
   { value: "seasonal", label: { en: "Seasonal", si: "කාලීන" } },
 ];
 
@@ -128,17 +134,17 @@ const ANIMAL_HUSBANDRY_COUNT_COLUMNS: ReadOnlyColumn[] = [
 ];
 
 const ANIMAL_HUSBANDRY_DIRECTORY_COLUMNS: ReadOnlyColumn[] = [
-  { key: "name", label: { en: "Name", si: "නම" } },
+  { key: "type", label: { en: "* Cultivation Type (1/2/3)", si: "*වගා වර්ගය(1/2/3)" }, options: FLORAL_CULTIVATION_TYPE_OPTIONS },
+  { key: "name", label: { en: "Person's Name", si: "පුද්ගල නම" } },
   { key: "address", label: { en: "Address", si: "ලිපිනය" } },
-  { key: "phone", label: { en: "Phone", si: "දුරකථන අංකය" } },
-  { key: "type", label: { en: "Type", si: "වර්ගය" }, options: FLORAL_CULTIVATION_TYPE_OPTIONS },
-  { key: "marketplace", label: { en: "Marketplace", si: "වෙළඳපොල" }, options: MARKETPLACE_OPTIONS },
+  { key: "phone", label: { en: "Phone Number", si: "දුරකථන අංකය" } },
+  { key: "marketplace", label: { en: "** Marketplace", si: "**වෙළඳපොළ" }, options: MARKETPLACE_OPTIONS },
 ];
 
 const SPECIAL_ECONOMIC_ACTIVITY_COLUMNS: ReadOnlyColumn[] = [
-  { key: "activity", label: { en: "Activity", si: "ආර්ථික කටයුත්ත" } },
-  { key: "natureOfActivity", label: { en: "Nature / Scope", si: "ආර්ථික කටයුත්තේ ස්වභාවය" } },
-  { key: "resourceOrProductUsed", label: { en: "Resource / Product Used", si: "යොදාගන්නා ස්වභාවික සම්පත්/නිෂ්පාදනය" } },
+  { key: "activity", label: { en: "Area-Specific / Special Economic Activity", si: "ආවේණික / විශේෂිත ආර්ථික කටයුතු" } },
+  { key: "natureOfActivity", label: { en: "Nature of the Economic Activity", si: "ආර්ථික කටයුත්තේ ස්වභාවය" } },
+  { key: "resourceOrProductUsed", label: { en: "Natural Resource / Raw Material Used", si: "යොදාගන්නා ස්වභාවික සම්පත්/අමුද්‍රව්‍ය" } },
 ];
 
 const AGRI_MACHINERY_COLUMNS: ReadOnlyColumn[] = [
@@ -165,27 +171,27 @@ const LIVESTOCK_FARM_COLUMNS: ReadOnlyColumn[] = [
   { key: "broilerChickens", label: { en: "Broiler Chickens", si: "මස් සඳහා කුකුළන්" } },
   { key: "goats", label: { en: "Goats", si: "එළුවන්" } },
   { key: "pigs", label: { en: "Pigs", si: "ඌරන්" } },
-  { key: "peacock", label: { en: "Peacock / Turkey", si: "තුරාවන්" } },
+  { key: "peacock", label: { en: "Turkeys", si: "තාරාවන්" } },
   { key: "other", label: { en: "Other", si: "වෙනත්" } },
 ];
 
 const INDUSTRY_COLUMNS: ReadOnlyColumn[] = [
-  { key: "name", label: { en: "Name", si: "නම" } },
-  { key: "productionType", label: { en: "Production Type", si: "නිෂ්පාදන වර්ගය" } },
-  { key: "employeeCount", label: { en: "Employee Count", si: "සේවක සංඛ්‍යාව" } },
-  { key: "phone", label: { en: "Phone", si: "දුරකථන අංකය" } },
-  { key: "marketplace", label: { en: "Marketplace", si: "වෙළඳපොල" }, options: MARKETPLACE_OPTIONS },
+  { key: "name", label: { en: "Industry Name", si: "කර්මාන්තයේ නම" } },
+  { key: "productionType", label: { en: "Production Type", si: "නිෂ්පාදන වර්ග" } },
+  { key: "employeeCount", label: { en: "Employee Count", si: "සේවක ගණන" } },
+  { key: "phone", label: { en: "Phone Number", si: "දුරකථන අංකය" } },
+  { key: "marketplace", label: { en: "* Marketplace", si: "*වෙළඳපොළ" }, options: MARKETPLACE_OPTIONS },
 ];
 
 const FISHERIES_SOCIETY_COLUMNS: ReadOnlyColumn[] = [
-  { key: "name", label: { en: "Society Name", si: "සමිතියේ නම" } },
-  { key: "address", label: { en: "Address", si: "ලිපිනය" } },
+  { key: "name", label: { en: "Fisheries Society Name", si: "ධීවර සමිතියේ නම" } },
+  { key: "address", label: { en: "Fisheries Society Address", si: "ධීවර සමිතියේ ලිපිනය" } },
   { key: "memberCount", label: { en: "Member Count", si: "සාමාජික ගණන" } },
 ];
 
 const INLAND_WATER_BODY_COLUMNS: ReadOnlyColumn[] = [
-  { key: "name", label: { en: "Name of Tank / Reservoir", si: "වැව/ජලාශයේ නම" } },
-  { key: "type", label: { en: "Type", si: "වර්ගය" }, options: INLAND_WATER_BODY_TYPE_OPTIONS },
+  { key: "name", label: { en: "Name of Tank / Reservoir (Perennial / Seasonal)", si: "වැව්/ජලාශ නම (නිතය/කාලීන)" } },
+  { key: "type", label: { en: "* Type", si: "*වර්ගය" }, options: INLAND_WATER_BODY_TYPE_OPTIONS },
 ];
 
 const NAME_ADDRESS_PHONE_COLUMNS: ReadOnlyColumn[] = [
@@ -195,41 +201,43 @@ const NAME_ADDRESS_PHONE_COLUMNS: ReadOnlyColumn[] = [
 ];
 
 const FISH_LANDING_SITE_COLUMNS: ReadOnlyColumn[] = [
-  { key: "name", label: { en: "Name", si: "නම" } },
+  { key: "name", label: { en: "Fish Harbor / Fish Landing Site Name", si: "ධීවර වරාය/ධීවර තොටුපොළ නම" } },
   { key: "address", label: { en: "Address", si: "ලිපිනය" } },
-  { key: "siteType", label: { en: "Site Type", si: "වර්ගය" }, options: FISH_SITE_TYPE_OPTIONS },
-  { key: "waterType", label: { en: "Marine / Inland", si: "මුහුදු/අභ්‍යන්තර" }, options: WATER_TYPE_OPTIONS },
+  { key: "siteType", label: { en: "* Type", si: "*වර්ගය" }, options: FISH_SITE_TYPE_OPTIONS },
+  { key: "waterType", label: { en: "** Marine or Inland (Freshwater)", si: "**කරදිය හෝ මිරිදියද" }, options: WATER_TYPE_OPTIONS },
 ];
 
 const NAME_ADDRESS_COLUMNS: ReadOnlyColumn[] = [
-  { key: "name", label: { en: "Name", si: "නම" } },
+  { key: "name", label: { en: "Ice Factory Name", si: "අයිස් නිෂ්පාදනාගාරයන්හි නම" } },
   { key: "address", label: { en: "Address", si: "ලිපිනය" } },
 ];
 
 const TEA_ESTATE_COLUMNS: ReadOnlyColumn[] = [
-  { key: "name", label: { en: "Name", si: "නම" } },
-  { key: "ownership", label: { en: "Ownership", si: "හිමිකාරිත්වය" }, options: TEA_ESTATE_OWNERSHIP_OPTIONS },
-  { key: "extentAcres", label: { en: "Extent (Acres)", si: "ප්‍රමාණය (අක්කර)" } },
-  { key: "employeesFemale", label: { en: "Employees - Female", si: "සේවකයන් - ස්ත්‍රී" } },
-  { key: "employeesMale", label: { en: "Employees - Male", si: "සේවකයන් - පුරුෂ" } },
+  { key: "name", label: { en: "Tea Estate Name", si: "තේ වත්තේ නම" } },
+  { key: "ownership", label: { en: "* Ownership", si: "*අයිතිය" }, options: TEA_ESTATE_OWNERSHIP_OPTIONS },
+  { key: "extentAcres", label: { en: "Extent - Acres", si: "භූමි ප්‍රමාණය - අක්." } },
+  { key: "extentRoods", label: { en: "Extent - Roods", si: "භූමි ප්‍රමාණය - රුඩ්." } },
+  { key: "extentPerches", label: { en: "Extent - Perches", si: "භූමි ප්‍රමාණය - පර්." } },
+  { key: "employeesFemale", label: { en: "Employees - Female", si: "සේවකයින් ගණන - ස්ත්‍රී" } },
+  { key: "employeesMale", label: { en: "Employees - Male", si: "සේවකයින් ගණන - පුරුෂ" } },
 ];
 
 const ABANDONED_PADDY_LAND_FIELDS: { key: string; label: Translated }[] = [
-  { key: "extentAcres", label: { en: "Extent (Acres)", si: "ප්‍රමාණය (අක්කර)" } },
-  { key: "canBeReactivatedExtent", label: { en: "Extent That Can Be Reactivated", si: "යළි වගා කළ හැකි ප්‍රමාණය" } },
+  { key: "extentAcres", label: { en: "Abandoned Paddy Land Extent (Acres)", si: "පුරන් කුඹුරු බිම් ප්‍රමාණය (අක්.)" } },
+  { key: "canBeReactivatedExtent", label: { en: "Extent That Can Be Recultivated", si: "නැවත වගාකල හැකි පුරන් කුඹුරු බිම් ප්‍රමාණය" } },
 ];
 
 const INDUSTRY_COUNT_FIELDS: { key: string; label: Translated }[] = [
-  { key: "householdIndustry", label: { en: "Household Industries", si: "ගෘහස්ථ කර්මාන්ත" } },
-  { key: "under5Employees", label: { en: "Industries with <5 Employees", si: "සේවක සංඛ්‍යාව 5ට අඩු කර්මාන්ත" } },
-  { key: "over5Employees", label: { en: "Industries with 5+ Employees", si: "සේවක සංඛ්‍යාව 5ට වැඩි කර්මාන්ත" } },
+  { key: "householdIndustry", label: { en: "* Household Industry Count", si: "*ගෘහස්ථ කර්මාන්ත ගණන" } },
+  { key: "under5Employees", label: { en: "** Factories with Under 5 Employees", si: "**සේවක සංඛ්‍යාව 5ට අඩු කර්මාන්තශාලා ගණන" } },
+  { key: "over5Employees", label: { en: "*** Factories with 5+ Employees", si: "***සේවක සංඛ්‍යාව 5ට වැඩි කර්මාන්තශාලා ගණන" } },
 ];
 
 const FISHERIES_STAT_FIELDS: { key: string; label: Translated }[] = [
-  { key: "householdCount", label: { en: "Household Count", si: "ගෘහ ඒකක සංඛ්‍යාව" } },
+  { key: "householdCount", label: { en: "* Fishing Household Count", si: "*ධීවර පවුල් ගණන" } },
   { key: "fishingPopulation", label: { en: "Fishing Population", si: "ධීවර ජනගහනය" } },
-  { key: "activeFishermenCount", label: { en: "Active Fishermen Count", si: "ක්‍රියාකාරී ධීවරයන් සංඛ්‍යාව" } },
-  { key: "societyCount", label: { en: "Society Count", si: "සංගම් සංඛ්‍යාව" } },
+  { key: "activeFishermenCount", label: { en: "Number of Active Fishermen", si: "සක්‍රිය ධීවරයින් සංඛ්‍යාව" } },
+  { key: "societyCount", label: { en: "Number of Fisheries Societies", si: "ධීවර සමිති ගණන" } },
 ];
 
 /** Builds the {key, label, value} triples ReadOnlyStats needs from a fixed field list plus
@@ -237,6 +245,11 @@ const FISHERIES_STAT_FIELDS: { key: string; label: Translated }[] = [
  *  renderings so both stay in sync with the same field set. */
 function toStats(fields: { key: string; label: Translated }[], values: Record<string, number | undefined>): ReadOnlyStat[] {
   return fields.map((f) => ({ key: f.key, label: f.label, value: values[f.key]?.toString() }));
+}
+
+function withIndustryTotal(stats: ReadOnlyStat[], values: Record<string, number | undefined>): ReadOnlyStat[] {
+  const total = (values.householdIndustry ?? 0) + (values.under5Employees ?? 0) + (values.over5Employees ?? 0);
+  return [...stats, { key: "total", label: { en: "Total Factory Count", si: "මුළු කර්මාන්තශාලා ගණන" }, value: total.toString() }];
 }
 
 /** Converts a repeatable-row object into the string-valued record ReadOnlyTable expects,
@@ -336,7 +349,7 @@ function EconomicAgricultureSectionContent({ section }: { section: EconomicAgric
             {section.abandonedPaddyLand.reason && (
               <div className="rounded-xl border border-border bg-muted/30 p-4">
                 <p className="text-fluid-sm font-medium text-foreground">
-                  <Bilingual en="Reason" si="හේතුව" />
+                  <Bilingual en="Reason for Being Abandoned" si="පුරන් වීමට හේතු" />
                 </p>
                 <p className="mt-1 text-fluid-sm text-muted-foreground">{section.abandonedPaddyLand.reason}</p>
               </div>
@@ -344,7 +357,10 @@ function EconomicAgricultureSectionContent({ section }: { section: EconomicAgric
             {section.abandonedPaddyLand.actionPlan && (
               <div className="rounded-xl border border-border bg-muted/30 p-4">
                 <p className="text-fluid-sm font-medium text-foreground">
-                  <Bilingual en="Action Plan" si="ක්‍රියාකාරී සැලැස්ම" />
+                  <Bilingual
+                    en="Alternative Action to Take for Recultivation, or If Not Recultivating"
+                    si="නැවත වගාව සඳහා හෝ නැතිනම් එසේ නොමැතිනම් ගතයුතු විකල්ප ක්‍රියා මාර්ග"
+                  />
                 </p>
                 <p className="mt-1 text-fluid-sm text-muted-foreground">{section.abandonedPaddyLand.actionPlan}</p>
               </div>
@@ -357,7 +373,10 @@ function EconomicAgricultureSectionContent({ section }: { section: EconomicAgric
       <ReadOnlyTable title={economicAgricultureDict.fields.forestDamage} columns={FOREST_DAMAGE_COLUMNS} rows={toRows(section.forestDamage)} />
       <ReadOnlyTable title={economicAgricultureDict.fields.livestockFarms} columns={LIVESTOCK_FARM_COLUMNS} rows={toRows(section.livestockFarms)} />
 
-      <ReadOnlyStats title={economicAgricultureDict.fields.industryCounts} stats={toStats(INDUSTRY_COUNT_FIELDS, section.industryCounts)} />
+      <ReadOnlyStats
+        title={economicAgricultureDict.fields.industryCounts}
+        stats={withIndustryTotal(toStats(INDUSTRY_COUNT_FIELDS, section.industryCounts), section.industryCounts)}
+      />
       <ReadOnlyTable title={economicAgricultureDict.fields.industries} columns={INDUSTRY_COLUMNS} rows={toRows(section.industries)} />
 
       <ReadOnlyStats title={economicAgricultureDict.fields.marineFisheries} stats={toStats(FISHERIES_STAT_FIELDS, section.marineFisheries)} />
@@ -417,7 +436,10 @@ function EconomicAgricultureAreaWideView({ aggregate }: { aggregate: EconomicAgr
       <ReadOnlyTable title={economicAgricultureDict.fields.forestDamage} columns={FOREST_DAMAGE_AREA_COLUMNS} rows={toRows(forestDamageRows)} />
       <ReadOnlyTable title={economicAgricultureDict.fields.livestockFarms} columns={[GN_DIVISION_COLUMN, ...LIVESTOCK_FARM_COLUMNS]} rows={toRows(aggregate.livestockFarms.rows)} />
 
-      <ReadOnlyStats title={economicAgricultureDict.fields.industryCounts} stats={toStats(INDUSTRY_COUNT_FIELDS, aggregate.industryCounts)} />
+      <ReadOnlyStats
+        title={economicAgricultureDict.fields.industryCounts}
+        stats={withIndustryTotal(toStats(INDUSTRY_COUNT_FIELDS, aggregate.industryCounts), aggregate.industryCounts)}
+      />
       <ReadOnlyTable title={economicAgricultureDict.fields.industries} columns={[GN_DIVISION_COLUMN, ...INDUSTRY_COLUMNS]} rows={toRows(aggregate.industries.rows)} />
 
       <ReadOnlyStats title={economicAgricultureDict.fields.marineFisheries} stats={toStats(FISHERIES_STAT_FIELDS, aggregate.marineFisheries)} />

@@ -13,54 +13,75 @@ import type { HealthAggregate } from "@/lib/analytics/aggregate-sections";
 import type { HealthData } from "@/lib/validators/sections/health";
 
 const GOVT_HOSPITAL_TYPE_OPTIONS = [
-  { value: "teaching", label: { en: "Teaching Hospital", si: "ශික්ෂණ රෝහල" } },
-  { value: "base", label: { en: "Base Hospital", si: "පදනම් රෝහල" } },
-  { value: "divisional", label: { en: "Divisional Hospital", si: "කොට්ඨාස රෝහල" } },
-  { value: "primary", label: { en: "Primary Medical Care Unit", si: "ප්‍රාථමික සෞඛ්‍ය සේවා ඒකකය" } },
+  { value: "teaching", label: { en: "Teaching Hospital", si: "ශික්ෂණ රෝහල්" } },
+  { value: "base", label: { en: "Base Hospital", si: "මහරෝහල්" } },
+  { value: "primary", label: { en: "Primary Hospital", si: "මූලික රෝහල්" } },
+  { value: "divisional", label: { en: "Divisional Hospital", si: "ප්‍රාදේශිය රෝහල්" } },
 ];
 
 const INSTITUTION_COUNT_FIELDS: { key: string; label: Translated }[] = [
-  { key: "govtHospitals", label: { en: "Government Hospitals", si: "රාජ්‍ය රෝහල්" } },
-  { key: "primaryHealthcareUnits", label: { en: "Primary Healthcare Units", si: "ප්‍රාථමික සෞඛ්‍ය සේවා ඒකක" } },
-  { key: "privateHospitals", label: { en: "Private Hospitals", si: "පෞද්ගලික රෝහල්" } },
-  { key: "ayurvedicHospitals", label: { en: "Ayurvedic Hospitals", si: "ආයුර්වේද රෝහල්" } },
-  { key: "specialistServiceCenters", label: { en: "Specialist Service Centers", si: "විශේෂඥ සේවා මධ්‍යස්ථාන" } },
+  { key: "govtHospitals", label: { en: "Number of Government Hospitals", si: "රජයේ රෝහල් සංඛ්‍යාව" } },
+  {
+    key: "primaryHealthcareUnits",
+    label: { en: "Primary Healthcare Units (Central Dispensary - Western) / Maternity Homes", si: "ප්‍රාථමික සෞඛ්‍ය සත්කාර ඒකක-( මධ්‍යම බෙහෙත් ශාලා- බටහිර )/මාතෘ නිවාස" },
+  },
+  {
+    key: "privateHospitals",
+    label: { en: "Number of Private Hospitals (with Residential Facilities)", si: "පෞද්ගලික රෝහල් සංඛ්‍යාව (නේවාසික පහසුකම් සහිත)" },
+  },
+  {
+    key: "ayurvedicHospitals",
+    label: { en: "Number of Ayurvedic Hospitals / Ayurvedic Central Dispensaries", si: "ආයුර්වේද රෝහල් /ආයුර්වේද මධ්‍යම බෙහෙත් ශාලා සංඛ්‍යාව" },
+  },
+  {
+    key: "specialistServiceCenters",
+    label: { en: "Number of Institutions Providing Specialist Medical Services (Wellness Center)", si: "විශේෂඥ වෛද්‍ය සේවා ලබාගතහැකි ආයතන සංඛ්‍යාව (වැනලින් සෙන්ටර්)" },
+  },
   {
     key: "mohOfficesOrCommunityHealthCenters",
-    label: { en: "MOH Offices / Community Health Centers", si: "ප්‍රාදේශීය සෞඛ්‍ය සේවා කාර්යාල / ප්‍රජා සෞඛ්‍ය මධ්‍යස්ථාන" },
+    label: { en: "MOH Offices / Village Health Centers", si: "සෞඛ්‍ය වෛද්‍ය නිලධාරි කාර්යාල/ ග්‍රාමෝදය සෞඛ්‍ය මධ්‍යස්ථාන" },
   },
-  { key: "privateMedicalLabs", label: { en: "Private Medical Labs", si: "පෞද්ගලික වෛද්‍ය රසායනාගාර" } },
   {
     key: "traditionalMedicineRegisteredInstitutions",
-    label: { en: "Traditional Sinhala Medicine Registered Institutions", si: "පාරම්පරික සිංහල වෙදකම සිදු කරන ලියාපදිංචි ආයතන" },
+    label: { en: "Registered Institutions Practicing Traditional Sinhala Medicine", si: "පාරම්පරික සිංහල වෙදකම සිදු කරන ලියාපදිංචි ආයතන" },
   },
-  { key: "animalClinicCenters", label: { en: "Animal / Veterinary Clinic Centers", si: "සත්ත්ව සායන මධ්‍යස්ථාන" } },
-  { key: "govtPharmacies", label: { en: "Government Pharmacies", si: "රාජ්‍ය ඖෂධශාලා" } },
-  { key: "privatePharmacies", label: { en: "Private Pharmacies", si: "පෞද්ගලික ඖෂධශාලා" } },
+  { key: "privateMedicalLabs", label: { en: "Private Medical Clinic Centers", si: "පෞද්ගලික වෛද්‍ය සායන මධ්‍යස්ථාන" } },
+  { key: "animalClinicCenters", label: { en: "Animal Clinic Centers", si: "සත්ත්ව සායන මධ්‍යස්ථාන" } },
+  { key: "govtPharmacies", label: { en: "Government Pharmacies", si: "රාජ්‍ය ඖෂධශල" } },
+  { key: "privatePharmacies", label: { en: "Private Pharmacies", si: "පෞද්ගලික ෆාමසි" } },
 ];
 
 const GN_DIVISION_COLUMN: ReadOnlyColumn = { key: "gnName", label: { en: "GN Division", si: "ග්‍රාම නිලධාරී වසම" } };
 
 const GOVT_HOSPITAL_COLUMNS: ReadOnlyColumn[] = [
-  { key: "name", label: { en: "Name", si: "නම" } },
-  { key: "address", label: { en: "Address", si: "ලිපිනය" } },
-  { key: "type", label: { en: "Type", si: "වර්ගය" }, options: GOVT_HOSPITAL_TYPE_OPTIONS },
+  { key: "name", label: { en: "Government Hospital Name", si: "රජයේ රෝහලේ නම" } },
+  { key: "type", label: { en: "Hospital Type", si: "රෝහල් වර්ගය" }, options: GOVT_HOSPITAL_TYPE_OPTIONS },
 ];
 
 const PRIMARY_HEALTHCARE_UNIT_COLUMNS: ReadOnlyColumn[] = [
-  { key: "name", label: { en: "Name", si: "නම" } },
-  { key: "type", label: { en: "Type", si: "වර්ගය" } },
+  {
+    key: "name",
+    label: {
+      en: "Primary Healthcare Unit Name (Central Dispensary - Western) / Maternity Home",
+      si: "ප්‍රාථමික සෞඛ්‍ය සත්කාර ඒකකයේ නම -( මධ්‍යම බෙහෙත් ශාලා- බටහිර )/මාතෘ නිවාස)",
+    },
+  },
+  { key: "type", label: { en: "* Type", si: "*වර්ගය" } },
 ];
 
 const NAME_ADDRESS_COLUMNS: ReadOnlyColumn[] = [
-  { key: "name", label: { en: "Name", si: "නම" } },
+  { key: "name", label: { en: "Name of Institution", si: "ආයතනයේ නම" } },
+  { key: "address", label: { en: "Address", si: "ලිපිනය" } },
+];
+
+const PRIVATE_HOSPITAL_COLUMNS: ReadOnlyColumn[] = [
+  { key: "name", label: { en: "Private Hospital Name", si: "පෞද්ගලික රෝහලේ නම" } },
   { key: "address", label: { en: "Address", si: "ලිපිනය" } },
 ];
 
 const TRADITIONAL_PRACTITIONER_COLUMNS: ReadOnlyColumn[] = [
-  { key: "name", label: { en: "Name", si: "නම" } },
-  { key: "specialty", label: { en: "Specialty", si: "විශේෂඥතාව" } },
-  { key: "address", label: { en: "Address", si: "ලිපිනය" } },
+  { key: "name", label: { en: "Practitioner Name", si: "පාරම්පරික සිංහල වෙදකම සිදු කරන වෛද්‍යවරුන්ගේ නම" } },
+  { key: "specialty", label: { en: "* Field of Practice", si: "*කටයුතු කරන වෛද්‍ය ක්ෂේත්‍රය" } },
 ];
 
 /** Builds the {key, label, value} triples ReadOnlyStats needs from a fixed field list plus
@@ -144,7 +165,7 @@ function HealthSectionContent({ section }: { section: HealthData }) {
 
       <ReadOnlyTable title={healthDict.fields.govtHospitalsDirectory} columns={GOVT_HOSPITAL_COLUMNS} rows={toRows(section.govtHospitalsDirectory)} />
       <ReadOnlyTable title={healthDict.fields.primaryHealthcareUnitsDirectory} columns={PRIMARY_HEALTHCARE_UNIT_COLUMNS} rows={toRows(section.primaryHealthcareUnitsDirectory)} />
-      <ReadOnlyTable title={healthDict.fields.privateHospitalsDirectory} columns={NAME_ADDRESS_COLUMNS} rows={toRows(section.privateHospitalsDirectory)} />
+      <ReadOnlyTable title={healthDict.fields.privateHospitalsDirectory} columns={PRIVATE_HOSPITAL_COLUMNS} rows={toRows(section.privateHospitalsDirectory)} />
       <ReadOnlyTable title={healthDict.fields.ayurvedicInstitutions} columns={NAME_ADDRESS_COLUMNS} rows={toRows(section.ayurvedicInstitutions)} />
       <ReadOnlyTable title={healthDict.fields.specialistServiceCentersDirectory} columns={NAME_ADDRESS_COLUMNS} rows={toRows(section.specialistServiceCentersDirectory)} />
       <ReadOnlyTable title={healthDict.fields.mohOfficesDirectory} columns={NAME_ADDRESS_COLUMNS} rows={toRows(section.mohOfficesDirectory)} />
@@ -173,7 +194,7 @@ function HealthAreaWideView({ aggregate }: { aggregate: HealthAggregate }) {
 
       <ReadOnlyTable title={healthDict.fields.govtHospitalsDirectory} columns={[GN_DIVISION_COLUMN, ...GOVT_HOSPITAL_COLUMNS]} rows={toRows(aggregate.govtHospitalsDirectory.rows)} />
       <ReadOnlyTable title={healthDict.fields.primaryHealthcareUnitsDirectory} columns={[GN_DIVISION_COLUMN, ...PRIMARY_HEALTHCARE_UNIT_COLUMNS]} rows={toRows(aggregate.primaryHealthcareUnitsDirectory.rows)} />
-      <ReadOnlyTable title={healthDict.fields.privateHospitalsDirectory} columns={[GN_DIVISION_COLUMN, ...NAME_ADDRESS_COLUMNS]} rows={toRows(aggregate.privateHospitalsDirectory.rows)} />
+      <ReadOnlyTable title={healthDict.fields.privateHospitalsDirectory} columns={[GN_DIVISION_COLUMN, ...PRIVATE_HOSPITAL_COLUMNS]} rows={toRows(aggregate.privateHospitalsDirectory.rows)} />
       <ReadOnlyTable title={healthDict.fields.ayurvedicInstitutions} columns={[GN_DIVISION_COLUMN, ...NAME_ADDRESS_COLUMNS]} rows={toRows(aggregate.ayurvedicInstitutions.rows)} />
       <ReadOnlyTable title={healthDict.fields.specialistServiceCentersDirectory} columns={[GN_DIVISION_COLUMN, ...NAME_ADDRESS_COLUMNS]} rows={toRows(aggregate.specialistServiceCentersDirectory.rows)} />
       <ReadOnlyTable title={healthDict.fields.mohOfficesDirectory} columns={[GN_DIVISION_COLUMN, ...NAME_ADDRESS_COLUMNS]} rows={toRows(aggregate.mohOfficesDirectory.rows)} />

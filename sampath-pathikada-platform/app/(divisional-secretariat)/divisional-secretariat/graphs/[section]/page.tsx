@@ -621,7 +621,7 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
     : isDemographics
     ? { en: "Division Demographics Overview", si: "ජනගහන සාරාංශය" }
     : isEmployment
-    ? { en: "Employment", si: "රැකියා තොරතුරු" }
+    ? { en: "Employment Aspiration", si: "රැකියා අපේක්ෂාව" }
     : isStateInstitutionsLand
     ? { en: "State Institutions & Land", si: "රාජ්‍ය ආයතන හා ඉඩම්" }
     : isPhysicalEnvironment
@@ -631,7 +631,7 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
     : isEducation
     ? { en: "Education", si: "අධ්‍යාපනය" }
     : isReligiousCultural
-    ? { en: "Religious & Cultural", si: "ආගමික හා සංස්කෘතික" }
+    ? { en: "Religious & Cultural Affairs", si: "ආගමික හා සංස්කෘතික කටයුතු" }
     : isHealth
     ? { en: "Health", si: "සෞඛ්‍යය" }
     : isEconomicAgriculture
@@ -683,8 +683,8 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
       }
     : isEducation
     ? {
-        en: "Search or select a GN division to view its schools, preschools, tertiary institutions, and education-related facilities.",
-        si: "පාසල්, පෙර පාසල්, තෘතීයික අධ්‍යාපන ආයතන සහ අධ්‍යාපන පහසුකම් දත්ත බැලීමට ග්‍රාම නිලධාරී වසමක් සොයන්න හෝ තෝරන්න.",
+        en: "Search or select a GN division to view its schools, preschools, higher education institutions, and education-related facilities.",
+        si: "පාසල්, පෙර පාසල්, උසස් අධ්‍යාපන ආයතන සහ අධ්‍යාපන පහසුකම් දත්ත බැලීමට ග්‍රාම නිලධාරී වසමක් සොයන්න හෝ තෝරන්න.",
       }
     : isReligiousCultural
     ? {
@@ -776,33 +776,33 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
 
     return [
       {
-        en: "Number of job seekers who have received vocational training",
-        si: "වෘත්තීය පුහුණුව ලබා ඇති රැකියා අපේක්ෂකයන් සංඛ්‍යාව",
+        en: "Number of job-seeking persons who received vocational training",
+        si: "වෘත්තිය පුහුණුව ලද රැකියා අපේක්ෂිත පුද්ගලයන් ගණන",
         count: employment?.jobSeekersByEducation[0]?.count ?? 0,
       },
       {
-        en: "Number of job seekers with qualifications below G.C.E. O/L",
-        si: "අ.පො.ස. සාමාන්‍ය පෙළට අඩු සුදුසුකම් ඇති රැකියා අපේක්ෂකයන් සංඛ්‍යාව",
+        en: "Number of job-seeking persons with qualifications below G.C.E. O/L",
+        si: "අ.පො.ස. සා/පෙළට පහළ සුදුසුකම් සහිත රැකියා අපේක්ෂිත පුද්ගලයන් ගණන",
         count: employment?.jobSeekersByEducation[1]?.count ?? 0,
       },
       {
-        en: "Number of people seeking employment with G.C.E. O/L passes",
-        si: "අ.පො.ස. සාමාන්‍ය පෙළ සමත් රැකියා අපේක්ෂකයන් සංඛ්‍යාව",
+        en: "Number of job-seeking persons who passed G.C.E. O/L",
+        si: "අ.පො.ස. සා/පෙළ සමත් රැකියා අපේක්ෂිත පුද්ගලයන් ගණන",
         count: employment?.jobSeekersByEducation[2]?.count ?? 0,
       },
       {
-        en: "Number of people seeking employment after passing Advanced Level",
-        si: "අ.පො.ස. උසස් පෙළ සමත් රැකියා අපේක්ෂකයන් සංඛ්‍යාව",
+        en: "Number of job-seeking persons who passed G.C.E. A/L",
+        si: "උසස්පෙළ සමත් රැකියා අපේක්ෂිත පුද්ගලයන් ගණන",
         count: employment?.jobSeekersByEducation[3]?.count ?? 0,
       },
       {
-        en: "Number of job seekers with bachelor's degree or higher qualifications",
-        si: "උපාධිය හෝ ඊට ඉහළ සුදුසුකම් ඇති රැකියා අපේක්ෂකයන් සංඛ්‍යාව",
+        en: "Number of job-seeking persons with a degree or higher qualifications",
+        si: "උපාධිය හා ඊට ඉහළ සුදුසුකම් සහිත රැකියා අපේක්ෂිත පුද්ගලයන් ගණන",
         count: employment?.jobSeekersByEducation[4]?.count ?? 0,
       },
       {
-        en: "Total number of persons expected to be employed",
-        si: "රැකියාවට එක්වීමට අපේක්ෂිත මුළු පුද්ගලයන් සංඛ්‍යාව",
+        en: "Total number of job-seeking persons",
+        si: "රැකියා අපේක්ෂිත මුළු පුද්ගලයන් ගණන",
         count: employment?.totalJobSeekers ?? 0,
       },
     ];
@@ -813,15 +813,15 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
 
     return [
       {
-        en: "Number of people with informal training who need to obtain formal, certified training but do not have the opportunity to do so (due to reasons such as increasing age)",
-        si: "අවිධිමත් පුහුණුවක් ඇති නමුත් වයස වැඩිවීම වැනි හේතු නිසා විධිමත් සහතික ලත් පුහුණුවක් ලබා ගැනීමට අවස්ථාව නොලැබෙන පුද්ගලයන් සංඛ්‍යාව",
+        en: "Number of persons with informal training who need to obtain formal, certified training but do not have the opportunity to do so (due to reasons such as increasing age)",
+        si: "අවිධිමත් පුහුණුව සහිත නමුත් විධිමත් සහතික සහිත පුහුණුවක් ලබා ගැනීමට අවශ්‍යතාවය සහිත එහෙත් ඒ සඳහා අවස්ථාව හිමි නොවුන පුද්ගලයින් ගණන(වයස වැඩි වීම වැනි හේතු නිසා)",
         enLines: [
-          "Number of people with informal training who need to obtain formal, certified training",
+          "Number of persons with informal training who need to obtain formal, certified training",
           "but do not have the opportunity to do so (due to reasons such as increasing age)",
         ],
         siLines: [
-          "විධිමත් සහතික ලත් පුහුණුවක් ලබා ගැනීමට අවශ්‍ය අවිධිමත් පුහුණුවක් ඇති පුද්ගලයන් සංඛ්‍යාව",
-          "වයස වැඩිවීම වැනි හේතු නිසා එම අවස්ථාව නොලැබෙන අය",
+          "අවිධිමත් පුහුණුව සහිත නමුත් විධිමත් සහතික සහිත පුහුණුවක් ලබා ගැනීමට අවශ්‍යතාවය සහිත",
+          "එහෙත් ඒ සඳහා අවස්ථාව හිමි නොවුන පුද්ගලයින් ගණන (වයස වැඩි වීම වැනි හේතු නිසා)",
         ],
         count: employment?.vocationalTrainingOpportunityGapCount ?? 0,
       },
