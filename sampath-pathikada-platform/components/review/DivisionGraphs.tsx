@@ -152,10 +152,10 @@ export function DivisionGraphs({ data }: DivisionGraphsProps) {
               items={[
                 { en: "Total Population", si: "මුළු ජනගහනය", value: demo.totalPopulation },
                 { en: "Female %", si: "ස්ත්‍රී %", value: demo.femalePercentage !== null ? `${demo.femalePercentage}%` : "—" },
-                { en: "Households", si: "ගෘහ ඒකක", value: demo.households.total },
-                { en: "Female-Headed Households", si: "ස්ත්‍රී ප්‍රධාන ගෘහ ඒකක", value: demo.households.femaleHeaded },
-                { en: "Displaced Households", si: "අවතැන් වූ ගෘහ ඒකක", value: demo.households.displaced },
-                { en: "Registered Voters", si: "ලියාපදිංචි ඡන්දදායකයන්", value: demo.registeredVoters.total },
+                { en: "Number of Families", si: "පවුල් සංඛ්‍යාව", value: demo.households.total },
+                { en: "Female-Headed Families", si: "කාන්තා ගෘහමූලික පවුල් සංඛ්‍යාව", value: demo.households.femaleHeaded },
+                { en: "Families with Children in Probation Care", si: "පරිවාසගත ළමුන් සිටින පවුල් සංඛ්‍යාව", value: demo.households.displaced },
+                { en: "Registered Voters", si: "ලියාපදිංචි ඡන්ද දායකයින්", value: demo.registeredVoters.total },
               ]}
             />
           </CardContent>
@@ -201,12 +201,12 @@ export function DivisionGraphs({ data }: DivisionGraphsProps) {
           <CardContent className="pt-6">
             <StatGrid
               items={[
-                { en: "Total Housing Units", si: "මුළු නිවාස ඒකක", value: housing.housingCounts.total },
-                { en: "Households Without Housing", si: "නිවාස රහිත ගෘහ ඒකක", value: housing.householdsWithoutHousing },
-                { en: "With Electricity", si: "විදුලි පහසුකම් සහිත", value: housing.electricityAccess.withElectricity },
-                { en: "Without Electricity", si: "විදුලි පහසුකම් නොමැති", value: housing.electricityAccess.withoutElectricity },
-                { en: "Without Safe Sanitation", si: "ආරක්ෂිත සනීපාරක්ෂක නොමැති", value: housing.sanitation.withoutSafeSanitation },
-                { en: "Needing Sanitation Assistance", si: "සනීපාරක්ෂක සහාය අවශ්‍ය", value: housing.sanitation.needingAssistance },
+                { en: "Total Housing Count", si: "මුළු නිවාස සංඛ්‍යාව", value: housing.housingCounts.total },
+                { en: "Families Without Housing", si: "නිවාස නොමැති පවුල් සංඛ්‍යාව", value: housing.householdsWithoutHousing },
+                { en: "With Electricity Facility", si: "විදුලිබල පහසුකම් සහිත", value: housing.electricityAccess.withElectricity },
+                { en: "Without Electricity Facility", si: "විදුලිබල පහසුකම් නොමැති", value: housing.electricityAccess.withoutElectricity },
+                { en: "Without Hygienic Toilet Facilities", si: "සෞඛ්‍යාරක්ෂිත වැසිකිලි පහසුකම් නොමැති", value: housing.sanitation.withoutSafeSanitation },
+                { en: "Should Be Given Toilet Assistance", si: "වැසිකිලි ආධාර ලබාදිය යුතු", value: housing.sanitation.needingAssistance },
               ]}
             />
           </CardContent>

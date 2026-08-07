@@ -27,6 +27,11 @@ export const disabilityRowSchema = z.object({
   over18: sexCountSchema,
 });
 
+export const registeredVotersSchema = z.object({
+  electoralArea: z.string().optional(),
+  ...sexCountSchema.shape,
+});
+
 export const demographicsSchemaStrict = z.object({
   populationByAge: z.array(ageSexRowSchema).length(AGE_BANDS.length),
   populationByEthnicity: z.array(ethnicityRowSchema).length(ETHNICITIES.length),
@@ -38,7 +43,7 @@ export const demographicsSchemaStrict = z.object({
     displaced: z.coerce.number().int().min(0),
   }),
   disabilities: z.array(disabilityRowSchema).length(DISABILITY_TYPES.length),
-  registeredVoters: sexCountSchema,
+  registeredVoters: registeredVotersSchema,
 });
 
 export type DemographicsData = z.infer<typeof demographicsSchemaStrict>;
@@ -58,7 +63,7 @@ export const demographicsSchemaPartial = z.object({
   disabilities: z
     .array(z.object({ type: z.enum(DISABILITY_TYPES).optional(), under18: sexCountPartialSchema.optional(), over18: sexCountPartialSchema.optional() }))
     .optional(),
-  registeredVoters: sexCountPartialSchema.optional(),
+  registeredVoters: z.object({ electoralArea: z.string().optional(), ...sexCountPartialSchema.shape }).optional(),
 });
 
 export { AGE_BANDS, ETHNICITIES, RELIGIONS, DISABILITY_TYPES };

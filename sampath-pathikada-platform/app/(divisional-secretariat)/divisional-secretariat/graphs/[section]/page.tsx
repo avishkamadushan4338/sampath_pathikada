@@ -58,6 +58,18 @@ interface RegistrationsResponse {
   pageSize: number;
 }
 
+interface SubmissionListRow {
+  gnDivision: string;
+  officerDesignation: string | null;
+}
+
+interface SubmissionsResponse {
+  data: SubmissionListRow[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
 interface AnalyticsGnBreakdownRow {
   gnId: string;
   gnName: string;
@@ -82,6 +94,13 @@ const fetcher = async (url: string) => {
   const json = await res.json();
   if (!res.ok || !json.ok) throw new Error(json.message ?? "Failed to load");
   return json as RegistrationsResponse;
+};
+
+const submissionsFetcher = async (url: string) => {
+  const res = await fetch(url);
+  const json = await res.json();
+  if (!res.ok || !json.ok) throw new Error(json.message ?? "Failed to load submissions");
+  return json as SubmissionsResponse;
 };
 
 const analyticsFetcher = async (url: string) => {
@@ -542,6 +561,17 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
     isIdentification ? "/api/registrations?role=gn&status=all&limit=100" : null,
     fetcher
   );
+  const { data: submissionsData } = useSWR(
+    isIdentification ? `/api/submissions?year=${CURRENT_YEAR}&status=all&limit=100` : null,
+    submissionsFetcher
+  );
+  const designationByGn = React.useMemo(() => {
+    const map = new Map<string, string>();
+    for (const row of submissionsData?.data ?? []) {
+      if (row.officerDesignation) map.set(row.gnDivision, row.officerDesignation);
+    }
+    return map;
+  }, [submissionsData]);
 
   const employmentGnOptions = React.useMemo(() => {
     if (!user?.dsDivision) return [];
@@ -817,15 +847,17 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
       {
         en: "Sweets / Confectionery production",
         si: "රසකැවිලි / කොන්ෆෙක්ෂනරි නිෂ්පාදනය",
-        sourceLabel: "Confectionery",
+        sourceLabel: "Confectionery Production",
       },
       {
         en: "Spices / Condiments production",
         si: "කුළුබඩු / රසකාරක නිෂ්පාදනය",
+        sourceLabel: "Spice Production",
       },
       {
         en: "Rice packet preparation / production",
         si: "බත් පැකට් සකස් කිරීම / නිෂ්පාදනය",
+        sourceLabel: "Rice-Parcel Production",
       },
       {
         en: "Bakery products / production",
@@ -835,86 +867,92 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
       {
         en: "Garment / Apparel manufacturing",
         si: "ඇඟලුම් / ඇපරල් නිෂ්පාදනය",
-        sourceLabel: "Textile Production",
+        sourceLabel: "Garment Production",
       },
       {
         en: "Dressmaking / Tailoring",
         si: "ඇඳුම් මැසීම / ටේලරින්",
-        sourceLabel: "Garment Sewing",
+        sourceLabel: "Dressmaking / Sewing",
       },
       {
         en: "Doormat production",
         si: "පාපිස්නා නිෂ්පාදනය",
+        sourceLabel: "Doormat Production",
       },
       {
         en: "Beeralu / Lace production",
         si: "බීරලු / ලේස් නිෂ්පාදනය",
-        sourceLabel: "Knitting",
+        sourceLabel: "Beeralu / Lace Production",
       },
       {
         en: "Handicrafts / Ornamental items production",
         si: "අත්කම් / අලංකාර භාණ්ඩ නිෂ්පාදනය",
-        sourceLabel: "Decorative Items",
+        sourceLabel: "Ornamental Items Production",
       },
       {
         en: "Coconut shell-based products",
         si: "පොල් කටු ආශ්‍රිත නිෂ්පාදන",
-        sourceLabel: "Coconut Shell Crafts",
+        sourceLabel: "Coconut-Shell Related Production",
       },
       {
         en: "Soldering works",
         si: "පෑස්සුම් වැඩ",
+        sourceLabel: "Welding Work",
       },
       {
         en: "Motor vehicle repair",
         si: "මෝටර් වාහන අලුත්වැඩියාව",
-        sourceLabel: "Auto Mechanic",
+        sourceLabel: "Motor Vehicle Repair",
       },
       {
         en: "Bicycle repair",
         si: "බයිසිකල් අලුත්වැඩියාව",
+        sourceLabel: "Bicycle Repair",
       },
       {
         en: "Masonry industry",
         si: "පෙදරේරු කර්මාන්තය",
-        sourceLabel: "Masonry Work",
+        sourceLabel: "Masonry Industry",
       },
       {
         en: "Carpentry industry",
         si: "වඩු කර්මාන්තය",
-        sourceLabel: "Carpentry",
+        sourceLabel: "Carpentry Industry",
       },
       {
         en: "Electrical equipment repair",
         si: "විදුලි උපකරණ අලුත්වැඩියාව",
-        sourceLabel: "Electrical Appliance Repair",
+        sourceLabel: "Electrical Equipment Repair",
       },
       {
         en: "Jewelry manufacturing",
         si: "ස්වර්ණාභරණ නිෂ්පාදනය",
+        sourceLabel: "Jewelry Production",
       },
       {
         en: "Concrete block production",
         si: "කොන්ක්‍රීට් බ්ලොක් නිෂ්පාදනය",
-        sourceLabel: "Brick Making",
+        sourceLabel: "Concrete Block Production",
       },
       {
         en: "Cinnamon peeling",
         si: "කුරුඳු තැලීම",
+        sourceLabel: "Cinnamon Peeling",
       },
       {
         en: "Fish-based products (dry fish, Jaadi, etc.)",
         si: "මාළු ආශ්‍රිත නිෂ්පාදන (කරවල, ජාඩි ආදිය)",
-        sourceLabel: "Seafood Processing",
+        sourceLabel: "Fish-Related Production (Dried Fish / Jaadi / ...)",
       },
       {
         en: "Fishing gear repair",
         si: "ධීවර ආම්පන්න අලුත්වැඩියාව",
+        sourceLabel: "Fishing Gear Repair",
       },
       {
         en: "Fish selling (via vehicles)",
         si: "ජංගම රථ මගින් මාළු අලෙවිය",
-        sourceLabel: "Fish Transport / Other",
+        sourceLabel: "Fish Trade (Mobile Vehicle)",
       },
     ];
 
@@ -943,14 +981,16 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
 
   const selfEmployedPersonRows = React.useMemo(() => {
     const rows = analytics?.sections.employment.selfEmployedPersons.rows ?? [];
+    const marketLabel = (m: string | undefined) =>
+      m === "local" ? (lang === "si" ? "දේශීය" : "Local") : m === "international" ? (lang === "si" ? "ජාත්‍යන්තර" : "International") : "—";
     return rows.map((row, index) => ({
       id: `${row.gnId}-${row.name}-${index}`,
       field: row.sector,
       personName: row.name,
       telephone: row.phone ?? "—",
-      market: row.address,
+      market: marketLabel(row.marketplace),
     }));
-  }, [analytics]);
+  }, [analytics, lang]);
 
   const religiousHeritageRows = React.useMemo(() => {
     const rows = analytics?.sections.areaProfile.heritageSites.rows ?? [];
@@ -1375,7 +1415,7 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
                     <td className="border-r px-3 py-3 font-medium whitespace-nowrap">{gnName}</td>
                     <td className="border-r px-3 py-3 whitespace-nowrap">{row.gnDivision}</td>
                     <td className="border-r px-3 py-3 whitespace-nowrap">{row.name}</td>
-                    <td className="border-r px-3 py-3 whitespace-nowrap text-muted-foreground">—</td>
+                    <td className="border-r px-3 py-3 whitespace-nowrap">{designationByGn.get(row.gnDivision) ?? "—"}</td>
                     <td className="border-r px-3 py-3 whitespace-nowrap">{row.phone ?? "—"}</td>
                     <td className="border-r px-3 py-3 whitespace-nowrap">{districtName ?? "—"}</td>
                     <td className="border-r px-3 py-3 whitespace-nowrap">{dsDivisionName ?? "—"}</td>

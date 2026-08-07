@@ -30,9 +30,12 @@ import { cn } from "@/lib/utils";
 export interface RepeatableColumn {
   key: string;
   label: Translated;
-  type: "text" | "number" | "select" | "readonly";
+  type: "text" | "number" | "select" | "readonly" | "computed";
   options?: { value: string; label: Translated }[];
   placeholder?: Translated;
+  /** Required when type is "computed" — derives a live display value (e.g. a row total) from
+   *  the row's current values. Reactive: recomputes on every keystroke in that row. */
+  compute?: (row: Record<string, unknown>) => string | number;
 }
 
 interface RepeatableTableProps<T extends FieldValues> {
@@ -88,6 +91,10 @@ export function RepeatableTable<T extends FieldValues>({
       return (
         <span className="text-fluid-sm text-muted-foreground">{String(readonlyValue ?? "")}</span>
       );
+    }
+
+    if (column.type === "computed") {
+      return <ComputedField rowName={`${name}.${rowIndex}`} compute={column.compute!} />;
     }
 
     if (column.type === "select") {
@@ -233,6 +240,14 @@ export function RepeatableTable<T extends FieldValues>({
       </AlertDialog>
     </div>
   );
+}
+
+/** Live read-only value derived from the rest of the row (e.g. a per-row total) — recomputes
+ *  on every change to any field in the row, since it watches the whole row object. */
+function ComputedField({ rowName, compute }: { rowName: string; compute: (row: Record<string, unknown>) => string | number }) {
+  const { watch } = useFormContext();
+  const row = watch(rowName as never) as unknown as Record<string, unknown>;
+  return <span className="text-fluid-sm font-medium text-foreground nums-tabular">{compute(row ?? {})}</span>;
 }
 
 /** Controlled (watch + setValue) rather than `register()`-bound: RepeatableTable renders both

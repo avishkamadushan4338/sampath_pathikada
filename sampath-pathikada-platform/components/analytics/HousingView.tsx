@@ -20,68 +20,75 @@ import type { HousingAggregate } from "@/lib/analytics/aggregate-sections";
 type ViewMode = "stats" | "graph";
 
 const HOUSING_COUNTS_FIELDS: { key: string; label: Translated }[] = [
-  { key: "total", label: { en: "Total Houses", si: "මුළු නිවාස ගණන" } },
-  { key: "permanent", label: { en: "Permanent", si: "ස්ථිර" } },
-  { key: "semiPermanent", label: { en: "Semi-Permanent", si: "අර්ධ ස්ථිර" } },
-  { key: "nonPermanent", label: { en: "Non-Permanent", si: "අස්ථිර" } },
+  { key: "total", label: { en: "Total Housing Count", si: "මුළු නිවාස සංඛ්‍යාව" } },
+  { key: "permanent", label: { en: "* Permanent Housing Count", si: "*ස්ථීර නිවාස සංඛ්‍යාව" } },
+  { key: "semiPermanent", label: { en: "** Semi-Permanent Housing Count", si: "**අර්ධ ස්ථීර නිවාස සංඛ්‍යාව" } },
+  { key: "nonPermanent", label: { en: "*** Non-Permanent Housing Count", si: "***අස්ථීර නිවාස සංඛ්‍යාව" } },
 ];
 
 const SANITATION_FIELDS: { key: string; label: Translated }[] = [
-  { key: "total", label: { en: "Total Households", si: "මුළු ගෘහ ඒකක" } },
-  { key: "withoutSafeSanitation", label: { en: "Without Safe Sanitation", si: "ආරක්ෂිත සනීපාරක්ෂාව නොමැති" } },
-  { key: "needingAssistance", label: { en: "Needing Assistance", si: "සහාය අවශ්‍ය" } },
+  { key: "total", label: { en: "Total Housing Count", si: "මුළු නිවාස සංඛ්‍යාව" } },
+  {
+    key: "withoutSafeSanitation",
+    label: { en: "Houses Without Hygienic Toilet Facilities", si: "සෞඛ්‍යාරක්ෂිත වැසිකිලි පහසුකම් නොමැති නිවාස සංඛ්‍යාව" },
+  },
+  {
+    key: "needingAssistance",
+    label: { en: "Houses That Should Be Given Toilet Assistance", si: "වැසිකිලි ආධාර ලබාදිය යුතු නිවාස සංඛ්‍යාව" },
+  },
 ];
 
-/** Mirrors the official GN report's *භූගත ජලය / **නල ජලය / ***අනෙකුත් grouping — 10
+/** Mirrors the official GN report's *භූගත ජලය / **නල ජලය / ***අනෙකුත් grouping — 11
  *  underlying fields organized under those 3 headers. */
 const DRINKING_WATER_GROUPS: { label: Translated; fields: { key: string; label: Translated }[] }[] = [
   {
     label: { en: "Groundwater", si: "භූගත ජලය" },
     fields: [
-      { key: "well", label: { en: "Well", si: "ළිං" } },
-      { key: "tubeWell", label: { en: "Tube Well", si: "නළ ළිං" } },
-      { key: "spring", label: { en: "Spring", si: "බුබුළු/උල්පත්" } },
+      { key: "well", label: { en: "Well", si: "ළිඳ" } },
+      { key: "tubeWell", label: { en: "Tube Well", si: "නල ළිඳ" } },
+      { key: "spring", label: { en: "Bubble / Spring", si: "බුබුළු/උල්පත" } },
     ],
   },
   {
-    label: { en: "Pipe-Borne Water Supply", si: "නල ජලය" },
+    label: { en: "Piped Water", si: "නල ජලය" },
     fields: [
-      { key: "pipedNational", label: { en: "National Water Board", si: "ජාතික ජල සම්පාදන මණ්ඩලය" } },
-      { key: "pipedLocalGovt", label: { en: "Local Govt Institution", si: "පළාත් පාලන ආයතන" } },
-      { key: "pipedCommunity", label: { en: "Community-Based Organization", si: "ප්‍රජාමූල සංවිධාන" } },
+      { key: "pipedNational", label: { en: "National Water Supply Board", si: "ජාතික ජල සම්පාදන මණ්ඩලය" } },
+      { key: "pipedLocalGovt", label: { en: "Provincial Water Board Institutions", si: "පළාත් ජල පාලන ආයතන" } },
+      { key: "pipedCommunity", label: { en: "Community-Based Organizations", si: "ප්‍රජාමූල සංවිධාන" } },
     ],
   },
   {
     label: { en: "Other", si: "අනෙකුත්" },
     fields: [
-      { key: "tankRiverCanalOther", label: { en: "Tank / River / Canal", si: "වැව්/ගඟ/ඇල" } },
+      { key: "tankRiverCanalOther", label: { en: "Tank / River / Canal / Stream / Other", si: "වැව්/ගංගා/ඇල/දොළ/වෙනත්" } },
       { key: "bottled", label: { en: "Bottled Water", si: "බෝතල් කළ ජලය" } },
-      { key: "treated", label: { en: "Treated / Recycled Water", si: "ප්‍රති ආශ්‍රිත ජලය" } },
+      { key: "treated", label: { en: "Associated / Treated Water", si: "ප්‍රති ආශ්‍රිත ජලය" } },
+      { key: "bowser", label: { en: "Bowser", si: "බවුසර්" } },
       { key: "other", label: { en: "Other", si: "වෙනත්" } },
     ],
   },
 ];
 
 const ELECTRICITY_ACCESS_FIELDS: { key: string; label: Translated }[] = [
-  { key: "total", label: { en: "Total Houses", si: "මුළු නිවාස ගණන" } },
-  { key: "withElectricity", label: { en: "With Electricity", si: "විදුලි පහසුකම් සහිත" } },
+  { key: "total", label: { en: "Total Housing Count", si: "මුළු නිවාස සංඛ්‍යාව" } },
+  { key: "withElectricity", label: { en: "With Electricity Facility", si: "විදුලිබල පහසුකම් සහිත" } },
   { key: "withSolar", label: { en: "With Solar Power", si: "සූර්ය බල ශක්තිය සහිත" } },
-  { key: "withoutElectricity", label: { en: "Without Electricity", si: "විදුලි පහසුකම් නොමැති" } },
-  { key: "needingAssistance", label: { en: "Needing Assistance", si: "විදුලි ආධාර ලැබිය යුතු" } },
+  { key: "withoutElectricity", label: { en: "Without Electricity Facility", si: "විදුලිබල පහසුකම් නොමැති" } },
+  { key: "needingAssistance", label: { en: "Should Be Given Electricity Assistance", si: "විදුලි ආධාර ලබාදිය යුතු" } },
 ];
 
 const UNDERSERVED_AREA_COLUMNS: ReadOnlyColumn[] = [
-  { key: "area", label: { en: "Area Name", si: "ප්‍රදේශයේ නම" } },
-  { key: "difficultyDescription", label: { en: "Difficulty", si: "දුෂ්කරතාවය" } },
-  { key: "households", label: { en: "Households", si: "ගෘහ ඒකක" } },
-  { key: "proposal", label: { en: "Proposal", si: "යෝජනාව" } },
+  { key: "area", label: { en: "Area with Difficulty", si: "දුෂ්කරතා සහිත ප්‍රදේශ" } },
+  { key: "difficultyDescription", label: { en: "The Difficulty", si: "දුෂ්කරතාවය" } },
+  { key: "households", label: { en: "Number of Families", si: "පවුල් සංඛ්‍යාව" } },
+  { key: "proposal", label: { en: "Proposed Remedy", si: "දුෂ්කරතාවයට යෝජනා කරන පිළියම" } },
 ];
 
 const COMMUNITY_WATER_PROJECT_COLUMNS: ReadOnlyColumn[] = [
-  { key: "name", label: { en: "Project Name", si: "ව්‍යාපෘතියේ නම" } },
-  { key: "functional", label: { en: "Functional?", si: "ක්‍රියාත්මකද?" } },
-  { key: "householdsServed", label: { en: "Households Served", si: "සේවා ලබන ගෘහ ඒකක" } },
-  { key: "authority", label: { en: "Authority", si: "අධිකාරිය" } },
+  { key: "name", label: { en: "Name of the Water Project", si: "ජල ව්‍යාපෘතියේ නම" } },
+  { key: "functional", label: { en: "Is It Operational?", si: "ක්‍රියාත්මක තත්ත්වයේ ඇත්/නැත" } },
+  { key: "householdsServed", label: { en: "Number of Families Benefiting", si: "පහසුකම් ලබාගන්නා පවුල් සංඛ්‍යාව" } },
+  { key: "authority", label: { en: "* Ownership", si: "*අයිතිය" } },
 ];
 
 const GN_DIVISION_COLUMN: ReadOnlyColumn = { key: "gnName", label: { en: "GN Division", si: "ග්‍රාම නිලධාරී වසම" } };
@@ -152,15 +159,15 @@ function HousingGraphSection({ data }: { data: HousingNumericData }) {
       <DonutCard
         titleEn={housingDict.fields.housingCounts.en}
         titleSi={housingDict.fields.housingCounts.si}
-        totalLabel={{ en: "Total Houses", si: "මුළු නිවාස ගණන" }}
+        totalLabel={{ en: "Total Housing Count", si: "මුළු නිවාස සංඛ්‍යාව" }}
         slices={[
-          { label: t("Permanent", "ස්ථිර"), value: data.housingCounts.permanent, color: HOUSING_TYPE_COLORS.permanent },
-          { label: t("Semi-Permanent", "අර්ධ ස්ථිර"), value: data.housingCounts.semiPermanent, color: HOUSING_TYPE_COLORS.semiPermanent },
-          { label: t("Non-Permanent", "අස්ථිර"), value: data.housingCounts.nonPermanent, color: HOUSING_TYPE_COLORS.nonPermanent },
+          { label: t("Permanent", "ස්ථීර"), value: data.housingCounts.permanent, color: HOUSING_TYPE_COLORS.permanent },
+          { label: t("Semi-Permanent", "අර්ධ ස්ථීර"), value: data.housingCounts.semiPermanent, color: HOUSING_TYPE_COLORS.semiPermanent },
+          { label: t("Non-Permanent", "අස්ථීර"), value: data.housingCounts.nonPermanent, color: HOUSING_TYPE_COLORS.nonPermanent },
         ]}
         footer={
           <p className="mt-4 border-t border-border pt-3 text-fluid-sm text-muted-foreground">
-            <Bilingual en="Without proper housing: " si="නිසි නිවාසයක් නොමැති: " />
+            <Bilingual en="Families without housing: " si="නිවාස නොමැති පවුල්: " />
             <span className="font-semibold nums-tabular text-foreground">{data.householdsWithoutHousing}</span>
           </p>
         }
@@ -169,15 +176,19 @@ function HousingGraphSection({ data }: { data: HousingNumericData }) {
       <DonutCard
         titleEn={housingDict.fields.sanitation.en}
         titleSi={housingDict.fields.sanitation.si}
-        totalLabel={{ en: "Total Households", si: "මුළු ගෘහ ඒකක" }}
+        totalLabel={{ en: "Total Housing Count", si: "මුළු නිවාස සංඛ්‍යාව" }}
         slices={[
           {
             label: t("Adequately Served", "ප්‍රමාණවත් සේවා ලබන"),
             value: Math.max(0, data.sanitation.total - data.sanitation.withoutSafeSanitation - data.sanitation.needingAssistance),
             color: GREEN,
           },
-          { label: t("Without Safe Sanitation", "ආරක්ෂිත සනීපාරක්ෂාව නොමැති"), value: data.sanitation.withoutSafeSanitation, color: MAROON },
-          { label: t("Needing Assistance", "සහාය අවශ්‍ය"), value: data.sanitation.needingAssistance, color: AMBER },
+          {
+            label: t("Without Hygienic Toilet Facilities", "සෞඛ්‍යාරක්ෂිත වැසිකිලි පහසුකම් නොමැති"),
+            value: data.sanitation.withoutSafeSanitation,
+            color: MAROON,
+          },
+          { label: t("Needing Toilet Assistance", "වැසිකිලි ආධාර ලබාදිය යුතු"), value: data.sanitation.needingAssistance, color: AMBER },
         ]}
       />
 
@@ -196,15 +207,15 @@ function HousingGraphSection({ data }: { data: HousingNumericData }) {
       <DonutCard
         titleEn={housingDict.fields.electricityAccess.en}
         titleSi={housingDict.fields.electricityAccess.si}
-        totalLabel={{ en: "Total Houses", si: "මුළු නිවාස ගණන" }}
+        totalLabel={{ en: "Total Housing Count", si: "මුළු නිවාස සංඛ්‍යාව" }}
         slices={[
-          { label: t("With Electricity", "විදුලි පහසුකම් සහිත"), value: data.electricityAccess.withElectricity, color: GREEN },
+          { label: t("With Electricity Facility", "විදුලිබල පහසුකම් සහිත"), value: data.electricityAccess.withElectricity, color: GREEN },
           { label: t("With Solar Power", "සූර්ය බල ශක්තිය සහිත"), value: data.electricityAccess.withSolar, color: GOLD },
-          { label: t("Without Electricity", "විදුලි පහසුකම් නොමැති"), value: data.electricityAccess.withoutElectricity, color: MAROON },
+          { label: t("Without Electricity Facility", "විදුලිබල පහසුකම් නොමැති"), value: data.electricityAccess.withoutElectricity, color: MAROON },
         ]}
         footer={
           <p className="mt-4 border-t border-border pt-3 text-fluid-sm text-muted-foreground">
-            <Bilingual en="Needing electricity assistance: " si="විදුලි ආධාර ලැබිය යුතු: " />
+            <Bilingual en="Should be given electricity assistance: " si="විදුලි ආධාර ලබාදිය යුතු: " />
             <span className="font-semibold nums-tabular text-foreground">{data.electricityAccess.needingAssistance}</span>
           </p>
         }

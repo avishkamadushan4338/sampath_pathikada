@@ -204,19 +204,19 @@ export function DivisionDemographicsSection({
                     </p>
                   </div>
                   <div>
-                    <p className="text-muted-foreground">Female</p>
+                    <p className="text-muted-foreground"><Bilingual en="Female" si="ස්ත්‍රී" /></p>
                     <p className="mt-1 text-fluid-lg font-semibold nums-tabular text-foreground">
                       {analytics.demographics.female.toLocaleString()}
                     </p>
                   </div>
                   <div>
-                    <p className="text-muted-foreground">Male</p>
+                    <p className="text-muted-foreground"><Bilingual en="Male" si="පුරුෂ" /></p>
                     <p className="mt-1 text-fluid-lg font-semibold nums-tabular text-foreground">
                       {analytics.demographics.male.toLocaleString()}
                     </p>
                   </div>
                   <div>
-                    <p className="text-muted-foreground">Households</p>
+                    <p className="text-muted-foreground"><Bilingual en="Number of Families" si="පවුල් සංඛ්‍යාව" /></p>
                     <p className="mt-1 text-fluid-lg font-semibold nums-tabular text-foreground">
                       {analytics.demographics.households.total.toLocaleString()}
                     </p>
@@ -259,8 +259,8 @@ export function DivisionDemographicsSection({
                       <tr>
                         <th className="px-3 py-3">GN Division</th>
                         <th className="px-3 py-3">Total Population</th>
-                        <th className="px-3 py-3">Female</th>
-                        <th className="px-3 py-3">Male</th>
+                        <th className="px-3 py-3"><Bilingual en="Female" si="ස්ත්‍රී" /></th>
+                        <th className="px-3 py-3"><Bilingual en="Male" si="පුරුෂ" /></th>
                         <th className="px-3 py-3">Families</th>
                       </tr>
                     </thead>
@@ -285,8 +285,8 @@ export function DivisionDemographicsSection({
                                         <thead className="bg-muted/40 text-muted-foreground">
                                           <tr>
                                             <th className="px-3 py-2">Religion</th>
-                                            <th className="px-3 py-2">Female</th>
-                                            <th className="px-3 py-2">Male</th>
+                                            <th className="px-3 py-2"><Bilingual en="Female" si="ස්ත්‍රී" /></th>
+                                            <th className="px-3 py-2"><Bilingual en="Male" si="පුරුෂ" /></th>
                                             <th className="px-3 py-2">Total</th>
                                           </tr>
                                         </thead>
@@ -526,8 +526,8 @@ export function DivisionDemographicsSection({
 
       <TopicCard
         icon={Globe2}
-        titleEn="Foreign nationals in the division"
-        titleSi="වසමේ විදේශ ජාතිකයන්"
+        titleEn="Expatriate population"
+        titleSi="විදේශගත ජනගහනය"
         onClick={() => setShowForeignNationals((value) => !value)}
         buttonLabel={{ en: showForeignNationals ? "Hide" : "View", si: showForeignNationals ? "සඟවන්න" : "බලන්න" }}
       />
@@ -535,12 +535,12 @@ export function DivisionDemographicsSection({
         <Card className="card-lift overflow-hidden border-border/60 shadow-md">
           <CardHeader>
             <CardTitle className="font-display text-fluid-xl font-semibold text-foreground">
-              <Bilingual en="Foreign Nationals Residing in the Division" si="වසමේ පදිංචි විදේශ ජාතිකයන්" />
+              <Bilingual en="Expatriate Population (Residents Living Abroad)" si="විදේශගත ජනගහනය" />
             </CardTitle>
           </CardHeader>
           <CardContent>
             {analyticsError ? (
-              <div className="text-sm text-destructive">Unable to load foreign nationals data.</div>
+              <div className="text-sm text-destructive">Unable to load expatriate population data.</div>
             ) : !analytics ? (
               <div className="text-sm text-muted-foreground">Loading…</div>
             ) : (
@@ -550,9 +550,9 @@ export function DivisionDemographicsSection({
                     <thead className="bg-muted/40 text-muted-foreground">
                       <tr>
                         <th className="px-3 py-3">GN Division</th>
-                        <th className="px-3 py-3">Female</th>
-                        <th className="px-3 py-3">Male</th>
-                        <th className="px-3 py-3">Collection</th>
+                        <th className="px-3 py-3"><Bilingual en="Female Count" si="ගැහැණු සංඛ්‍යාව" /></th>
+                        <th className="px-3 py-3"><Bilingual en="Male Count" si="පිරිමි සංඛ්‍යාව" /></th>
+                        <th className="px-3 py-3"><Bilingual en="Total Count" si="මුළු සංඛ්‍යාව" /></th>
                       </tr>
                     </thead>
                     <tbody>
@@ -597,8 +597,8 @@ export function DivisionDemographicsSection({
 
       <TopicCard
         icon={Home}
-        titleEn="Households"
-        titleSi="ගෘහස්ථයන්"
+        titleEn="Number of Families"
+        titleSi="මුළු පවුල් සංඛ්‍යාව"
         onClick={() => setShowHouseholds((value) => !value)}
         buttonLabel={{ en: showHouseholds ? "Hide" : "View", si: showHouseholds ? "සඟවන්න" : "බලන්න" }}
       />
@@ -606,12 +606,12 @@ export function DivisionDemographicsSection({
         <Card className="card-lift overflow-hidden border-border/60 shadow-md">
           <CardHeader>
             <CardTitle className="font-display text-fluid-xl font-semibold text-foreground">
-              <Bilingual en="Households in the Division" si="වසමේ ගෘහස්ථයන්" />
+              <Bilingual en="Number of Families in the Division" si="වසමේ මුළු පවුල් සංඛ්‍යාව" />
             </CardTitle>
           </CardHeader>
           <CardContent>
             {analyticsError ? (
-              <div className="text-sm text-destructive">Unable to load households data.</div>
+              <div className="text-sm text-destructive">Unable to load families data.</div>
             ) : !analytics ? (
               <div className="text-sm text-muted-foreground">Loading…</div>
             ) : (
@@ -621,9 +621,9 @@ export function DivisionDemographicsSection({
                     <thead className="bg-muted/40 text-muted-foreground">
                       <tr>
                         <th className="px-3 py-3">GN Division</th>
-                        <th className="px-3 py-3">Total Households</th>
-                        <th className="px-3 py-3">Female-Headed Households</th>
-                        <th className="px-3 py-3">Displaced Households</th>
+                        <th className="px-3 py-3"><Bilingual en="Total Number of Families" si="මුළු පවුල් සංඛ්‍යාව" /></th>
+                        <th className="px-3 py-3"><Bilingual en="Female-Headed Families" si="කාන්තා ගෘහමූලික පවුල් සංඛ්‍යාව" /></th>
+                        <th className="px-3 py-3"><Bilingual en="Families with Children in Probation Care" si="පරිවාසගත ළමුන් සිටින පවුල් සංඛ්‍යාව" /></th>
                       </tr>
                     </thead>
                     <tbody>
@@ -668,8 +668,8 @@ export function DivisionDemographicsSection({
 
       <TopicCard
         icon={UserCheck}
-        titleEn="Registered voters"
-        titleSi="රෙජිස්ටර් කර ඇති ඡන්ද දායකයින්"
+        titleEn="Number of registered voters"
+        titleSi="ලියාපදිංචි ඡන්ද දායකයින් සංඛ්‍යාව"
         onClick={() => setShowRegisteredVoters((value) => !value)}
         buttonLabel={{ en: showRegisteredVoters ? "Hide" : "View", si: showRegisteredVoters ? "සඟවන්න" : "බලන්න" }}
       />
@@ -677,7 +677,7 @@ export function DivisionDemographicsSection({
         <Card className="card-lift overflow-hidden border-border/60 shadow-md">
           <CardHeader>
             <CardTitle className="font-display text-fluid-xl font-semibold text-foreground">
-              <Bilingual en="Registered Voters in the Division" si="වසමේ ලියාපදිංචි ඡන්දදායකයන්" />
+              <Bilingual en="Number of Registered Voters" si="ලියාපදිංචි ඡන්ද දායකයින් සංඛ්‍යාව" />
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -692,9 +692,9 @@ export function DivisionDemographicsSection({
                     <thead className="bg-muted/40 text-muted-foreground">
                       <tr>
                         <th className="px-3 py-3">GN Division</th>
-                        <th className="px-3 py-3">Female</th>
-                        <th className="px-3 py-3">Male</th>
-                        <th className="px-3 py-3">Collection</th>
+                        <th className="px-3 py-3"><Bilingual en="Female" si="ස්ත්‍රී" /></th>
+                        <th className="px-3 py-3"><Bilingual en="Male" si="පුරුෂ" /></th>
+                        <th className="px-3 py-3"><Bilingual en="Total" si="එකතුව" /></th>
                       </tr>
                     </thead>
                     <tbody>
