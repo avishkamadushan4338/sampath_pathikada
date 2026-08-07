@@ -18,17 +18,18 @@ import {
   MARKETPLACES,
   JOB_SEEKER_EDUCATION_LEVELS,
 } from "@/lib/validators/sections/employment";
+import { cn } from "@/lib/utils";
 
 const CURRENT_YEAR = 2026;
 
 type EmploymentDraft = z.infer<typeof employmentSchemaPartial>;
 
 const JOB_SEEKER_EDUCATION_LABELS: Record<(typeof JOB_SEEKER_EDUCATION_LEVELS)[number], { en: string; si: string }> = {
-  "vocational-training": { en: "Vocational Training", si: "වෘත්තීය පුහුණුව ලත්" },
-  "below-ol": { en: "Below O/L", si: "සාමාන්‍ය පෙළට අඩු" },
-  "ol-pass": { en: "O/L Pass", si: "සාමාන්‍ය පෙළ සමත්" },
-  "al-pass": { en: "A/L Pass", si: "උසස් පෙළ සමත්" },
-  "degree-and-above": { en: "Degree and Above", si: "උපාධි සහ ඊට වැඩි" },
+  "vocational-training": { en: "Received Vocational Training", si: "වෘත්තිය පුහුණුව ලද" },
+  "below-ol": { en: "Qualifications Below G.C.E. O/L", si: "අ.පො.ස. සා/පෙළට පහළ සුදුසුකම් සහිත" },
+  "ol-pass": { en: "G.C.E. O/L Pass", si: "අ.පො.ස. සා/පෙළ සමත්" },
+  "al-pass": { en: "G.C.E. A/L Pass", si: "උසස්පෙළ සමත්" },
+  "degree-and-above": { en: "Degree or Higher Qualifications", si: "උපාධිය හා ඊට ඉහළ සුදුසුකම් සහිත" },
 };
 
 const SELF_EMPLOYMENT_SECTOR_LABELS: Record<(typeof SELF_EMPLOYMENT_SECTORS)[number], { en: string; si: string }> = {
@@ -37,31 +38,37 @@ const SELF_EMPLOYMENT_SECTOR_LABELS: Record<(typeof SELF_EMPLOYMENT_SECTORS)[num
   "spice-production": { en: "Spice Production", si: "කුළුබඩු නිෂ්පාදනය" },
   "rice-parcel-production": { en: "Rice-Parcel Production", si: "බත් පාර්සල් නිෂ්පාදනය" },
   "bakery-production": { en: "Bakery Production", si: "බේකරි නිෂ්පාදන" },
-  "garment-knitwear-production": { en: "Garment / Knitwear Production", si: "ඇහළුම් නිෂ්පාදන" },
+  "garment-production": { en: "Garment Production", si: "ඇඟලුම් නිෂ්පාදන" },
   dressmaking: { en: "Dressmaking / Sewing", si: "ඇදුම් මැසීම" },
-  "cleaning-products-production": { en: "Cleaning Products Production", si: "පාහිසි නිෂ්පාදනය" },
-  "beverage-soda-production": { en: "Beverage / Soda Production", si: "බීරලු/සෝඩා නිෂ්පාදනය" },
-  "decorative-items-production": { en: "Decorative Items Production", si: "විසිතුරු භාණ්ඩ නිෂ්පාදනය" },
+  "doormat-production": { en: "Doormat Production", si: "පාපිසි නිෂ්පාදනය" },
+  "beeralu-lace-production": { en: "Beeralu / Lace Production", si: "බීරළු/රේන්ද නිෂ්පාදනය" },
+  "ornamental-items-production": { en: "Ornamental Items Production", si: "විසිතුරු භාණ්ඩ නිෂ්පාදනය" },
   "coconut-shell-production": { en: "Coconut-Shell Related Production", si: "පොල්කටු ආශ්‍රිත නිෂ්පාදන" },
-  "masonry-work": { en: "Masonry Work", si: "පැස්සුම් වැඩ" },
-  "motor-vehicle-repair": { en: "Motor Vehicle Repair", si: "මෝටර් රථ කාර්මික වැඩියාව" },
-  "bicycle-repair": { en: "Bicycle Repair", si: "පාපැදි කාර්මික වැඩියාව" },
-  "traditional-craft-work": { en: "Traditional Craft Work", si: "පෙදරේරු කර්මාන්තය" },
-  carpentry: { en: "Carpentry", si: "වඩු කර්මාන්තය" },
-  "electrical-appliance-repair": { en: "Electrical Appliance Repair", si: "විදුලිඋපකරණ කාර්මික වැඩියාව" },
-  "jewelry-production": { en: "Jewelry / Ornaments Production", si: "ස්වර්ණාභරණ නිෂ්පාදනය" },
-  "floriculture-production": { en: "Floriculture Production", si: "ෆ්ලෝරිකල්චර් නිෂ්පාදනය" },
-  "cinnamon-peeling": { en: "Cinnamon Peeling", si: "කුරුදු තැලීම" },
-  "fish-related-production": { en: "Fish-Related Production (Dried Fish / Jars)", si: "මාළු ආශ්‍රිත නිෂ්පාදන (කරවල/ජාඩි)" },
-  "fishing-gear-repair": { en: "Fishing Gear / Net Repair", si: "දිවර ආම්පන්න අළුත්වැඩියාව" },
+  "welding-work": { en: "Welding Work", si: "පැස්සුම් වැඩ" },
+  "motor-vehicle-repair": { en: "Motor Vehicle Repair", si: "මෝටර් රථ අළුත්වැඩියාව" },
+  "bicycle-repair": { en: "Bicycle Repair", si: "පාපැදි අළුත්වැඩියාව" },
+  "masonry-work": { en: "Masonry Industry", si: "පෙදරේරු කර්මාන්තය" },
+  carpentry: { en: "Carpentry Industry", si: "වඩු කර්මාන්තය" },
+  "electrical-appliance-repair": { en: "Electrical Equipment Repair", si: "විදුලිඋපකරණ අළුත්වැඩියාව" },
+  "jewelry-production": { en: "Jewelry Production", si: "ස්වර්ණාභරණ නිෂ්පාදනය" },
+  "concrete-block-production": { en: "Concrete Block Production", si: "බ්ලොක්ගල් නිෂ්පාදනය" },
+  "cinnamon-peeling": { en: "Cinnamon Peeling", si: "කුරුඳු තැලීම" },
+  "fish-related-production": { en: "Fish-Related Production (Dried Fish / Jaadi / ...)", si: "මාළු ආශ්‍රිත නිෂ්පාදන (කරවල/ජාඩි/...)" },
+  "fishing-gear-repair": { en: "Fishing Gear Repair", si: "ධීවර ආම්පන්න අළුත්වැඩියාව" },
   "fish-trade": { en: "Fish Trade (Mobile Vehicle)", si: "මාළු වෙළදාම (ජංගම රථ මගින්)" },
 };
 
 const MARKETPLACE_LABELS: Record<(typeof MARKETPLACES)[number], { en: string; si: string }> = {
   local: { en: "Local", si: "දේශීය" },
-  national: { en: "National", si: "ජාතික" },
   international: { en: "International", si: "ජාත්‍යන්තර" },
 };
+
+function sumCounts(rows: { count?: unknown }[] | undefined): number {
+  if (!Array.isArray(rows)) return 0;
+  let total = 0;
+  for (const row of rows) total += Number(row?.count) || 0;
+  return total;
+}
 
 function buildEmptyValues(lang: "en" | "si"): EmploymentDraft {
   return {
@@ -90,13 +97,12 @@ function mergeWithSaved(empty: EmploymentDraft, saved: EmploymentDraft): Employm
 }
 
 const selfEmployedPersonColumns: RepeatableColumn[] = [
-  { key: "name", label: { en: "Name", si: "නම" }, type: "text" },
-  { key: "address", label: { en: "Address", si: "ලිපිනය" }, type: "text" },
-  { key: "phone", label: { en: "Phone", si: "දුරකථන අංකය" }, type: "text" },
-  { key: "sector", label: { en: "Sector / Field", si: "ක්ෂේත්‍රය" }, type: "text" },
+  { key: "sector", label: { en: "Self-Employment Field", si: "ස්වයං රැකියා ක්ෂේත්‍රය" }, type: "text" },
+  { key: "name", label: { en: "Person's Name", si: "පුද්ගල නම" }, type: "text" },
+  { key: "phone", label: { en: "Telephone Number", si: "දුරකථන අංකය" }, type: "text" },
   {
     key: "marketplace",
-    label: { en: "Marketplace", si: "වෙළඳපොල" },
+    label: { en: "* Market", si: "*වෙළදපොළ" },
     type: "select",
     options: MARKETPLACES.map((m) => ({ value: m, label: MARKETPLACE_LABELS[m] })),
   },
@@ -137,13 +143,15 @@ export default function EmploymentPage() {
 
   const jobSeekerColumns: RepeatableColumn[] = [
     { key: "levelLabel", label: { en: "Education Level", si: "අධ්‍යාපන මට්ටම" }, type: "readonly" },
-    { key: "count", label: { en: "Count", si: "සංඛ්‍යාව" }, type: "number" },
+    { key: "count", label: { en: "Number of Persons", si: "පුද්ගල ගණන" }, type: "number" },
   ];
 
   const selfEmploymentSectorColumns: RepeatableColumn[] = [
-    { key: "sectorLabel", label: { en: "Sector", si: "ක්ෂේත්‍රය" }, type: "readonly" },
-    { key: "count", label: { en: "Count", si: "සංඛ්‍යාව" }, type: "number" },
+    { key: "sectorLabel", label: { en: "Field", si: "ක්ෂේත්‍රය" }, type: "readonly" },
+    { key: "count", label: { en: "Number of Persons", si: "පුද්ගලයින් ගණන" }, type: "number" },
   ];
+
+  const totalJobSeekers = sumCounts(form.watch("jobSeekersByEducation"));
 
   return (
     <SectionForm
@@ -167,6 +175,12 @@ export default function EmploymentPage() {
             count: 0,
           })}
         />
+        <div className="mt-3 flex items-center justify-between rounded-lg border border-border bg-muted/40 px-4 py-3">
+          <span lang={lang} className={cn("text-fluid-sm font-medium text-foreground", lang === "si" && "font-si")}>
+            {lang === "si" ? "රැකියා අපේක්ෂිත මුළු පුද්ගලයන් ගණන" : "Total Number of Job-Seeking Persons"}
+          </span>
+          <span className="text-fluid-lg font-semibold nums-tabular text-foreground">{totalJobSeekers}</span>
+        </div>
       </div>
 
       <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4 border-t border-border pt-6">
@@ -206,7 +220,7 @@ export default function EmploymentPage() {
           name="selfEmployedPersons"
           title={employmentDict.fields.selfEmployedPersons}
           columns={selfEmployedPersonColumns}
-          emptyRowFactory={() => ({ name: "", address: "", phone: "", sector: "", marketplace: "local" })}
+          emptyRowFactory={() => ({ sector: "", name: "", phone: "", marketplace: "local" })}
         />
       </div>
     </SectionForm>

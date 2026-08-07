@@ -62,9 +62,17 @@ export async function GET(req: NextRequest) {
         updatedAt: true,
         reviewedAt: true,
         submittedBy: { select: { id: true, name: true, email: true, phone: true } },
+        data: true,
       },
     }),
   ]);
 
-  return NextResponse.json({ ok: true, data: submissions, total, page, pageSize });
+  // Only the Identification section's officer designation is surfaced here — the rest of
+  // `data` is the full yearly survey payload and reviewers browsing this list don't need it.
+  const shaped = submissions.map(({ data, ...rest }) => ({
+    ...rest,
+    officerDesignation: (data as { identification?: { officerDesignation?: string } } | null)?.identification?.officerDesignation ?? null,
+  }));
+
+  return NextResponse.json({ ok: true, data: shaped, total, page, pageSize });
 }

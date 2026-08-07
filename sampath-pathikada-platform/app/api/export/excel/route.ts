@@ -166,7 +166,7 @@ export async function GET(req: NextRequest) {
   const employment = aggregateEmployment(rows, gnLabel);
   addSheet("Employment - By Education", employment.jobSeekersByEducation.map((r) => ({ "Education Level": r.en, "Count": r.count })));
   addSheet("Employment - Self-Employment", employment.selfEmploymentSectors.map((r) => ({ "Sector": r.en, "Count": r.count })));
-  addSheet("Employment - Directory", employment.selfEmployedPersons.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Sector": r.sector, "Marketplace": r.marketplace ?? "", "Phone": r.phone ?? "", "Address": r.address })));
+  addSheet("Employment - Directory", employment.selfEmployedPersons.rows.map((r) => ({ "GN Division": r.gnName, "Name": r.name, "Sector": r.sector, "Marketplace": r.marketplace ?? "", "Phone": r.phone ?? "" })));
 
   const education = aggregateEducation(rows, gnLabel);
   addSheet("Education Summary", [{

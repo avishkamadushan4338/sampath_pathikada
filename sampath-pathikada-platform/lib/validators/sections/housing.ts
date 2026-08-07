@@ -42,6 +42,7 @@ export const housingSchemaStrict = z.object({
     tankRiverCanalOther: z.coerce.number().int().min(0),
     bottled: z.coerce.number().int().min(0),
     treated: z.coerce.number().int().min(0),
+    bowser: z.coerce.number().int().min(0),
     other: z.coerce.number().int().min(0),
   }),
   underservedAreas: z.array(underservedAreaRowSchema).default([]),
@@ -56,6 +57,24 @@ export const housingSchemaStrict = z.object({
 });
 
 export type HousingData = z.infer<typeof housingSchemaStrict>;
+
+/* Draft-mode row schemas built from scratch rather than `.partial()` on the strict schemas
+ * above: `.partial()` only allows a field to be *missing*, it doesn't relax `min(1)`, so a row
+ * added via the "Add" button (whose fields start as "") would still fail validation and
+ * silently block saving. A GN division without one of these should be able to leave it blank. */
+const underservedAreaRowPartialSchema = z.object({
+  area: z.string().optional(),
+  difficultyDescription: z.string().optional(),
+  households: z.coerce.number().int().min(0).optional(),
+  proposal: z.string().optional(),
+});
+
+const communityWaterProjectRowPartialSchema = z.object({
+  name: z.string().optional(),
+  functional: yesNo.optional(),
+  householdsServed: z.coerce.number().int().min(0).optional(),
+  authority: z.enum(COMMUNITY_WATER_AUTHORITIES).optional(),
+});
 
 export const housingSchemaPartial = z.object({
   housingCounts: z
@@ -85,10 +104,11 @@ export const housingSchemaPartial = z.object({
       tankRiverCanalOther: z.coerce.number().int().min(0).optional(),
       bottled: z.coerce.number().int().min(0).optional(),
       treated: z.coerce.number().int().min(0).optional(),
+      bowser: z.coerce.number().int().min(0).optional(),
       other: z.coerce.number().int().min(0).optional(),
     })
     .optional(),
-  underservedAreas: z.array(underservedAreaRowSchema.partial()).optional(),
+  underservedAreas: z.array(underservedAreaRowPartialSchema).optional(),
   electricityAccess: z
     .object({
       total: z.coerce.number().int().min(0).optional(),
@@ -98,7 +118,7 @@ export const housingSchemaPartial = z.object({
       needingAssistance: z.coerce.number().int().min(0).optional(),
     })
     .optional(),
-  communityWaterProjects: z.array(communityWaterProjectRowSchema.partial()).optional(),
+  communityWaterProjects: z.array(communityWaterProjectRowPartialSchema).optional(),
 });
 
 export { COMMUNITY_WATER_AUTHORITIES };

@@ -51,15 +51,24 @@ const RELIGION_LABELS: Record<(typeof RELIGIONS)[number], { en: string; si: stri
 };
 
 const DISABILITY_LABELS: Record<(typeof DISABILITY_TYPES)[number], { en: string; si: string }> = {
-  mentalIllness: { en: "Mental Illness (Insane)", si: "මානසික ආබාධ (උමතු)" },
+  mentalIllness: { en: "Mental Illness - Insane", si: "මානසික ආබාධ - උමතු" },
   intellectualDisability: { en: "Intellectual Disability", si: "මන්ද මානසික" },
   paralysis: { en: "Paralysis", si: "අංශභාගය" },
   speechImpairment: { en: "Speech Impairment", si: "කථන ආබාධ" },
-  hearingImpairment: { en: "Hearing Impairment", si: "ශ්‍රවණ ආබාධ" },
+  hearingImpairment: { en: "Hearing Deficiency", si: "ශ්‍රවණ ඌනතා" },
   visualImpairment: { en: "Visual Impairment", si: "දෘෂ්ටි ආබාධ" },
-  physicalMobility: { en: "Physical / Mobility Disability", si: "ශාරීරික/චලන ආබාධ" },
-  multipleDisability: { en: "Multiple Disability", si: "බහුවිධ ආබාධ" },
+  physicalMobility: { en: "Limb Deficiency / Difficulty Walking", si: "අත්පා අභිමි / ඇවිදීමට අපහසු" },
+  multipleDisability: { en: "Multiple Disabilities", si: "බහු ආබාධ" },
 };
+
+function sumSexCounts(row: Record<string, unknown>): number {
+  const under18 = (row.under18 ?? {}) as { female?: unknown; male?: unknown };
+  const over18 = (row.over18 ?? {}) as { female?: unknown; male?: unknown };
+  const values = [under18.female, under18.male, over18.female, over18.male];
+  let total = 0;
+  for (const v of values) total += Number(v) || 0;
+  return total;
+}
 
 function buildEmptyValues(lang: "en" | "si"): DemographicsDraft {
   return {
@@ -89,7 +98,7 @@ function buildEmptyValues(lang: "en" | "si"): DemographicsDraft {
       under18: { female: 0, male: 0 },
       over18: { female: 0, male: 0 },
     })),
-    registeredVoters: { female: 0, male: 0 },
+    registeredVoters: { electoralArea: "", female: 0, male: 0 },
   };
 }
 
@@ -103,12 +112,28 @@ function mergeWithSaved(empty: DemographicsDraft, saved: DemographicsDraft): Dem
   return {
     ...empty,
     ...saved,
-    populationByAge: empty.populationByAge?.map((row, i) => ({ ...row, ...saved.populationByAge?.[i] })),
-    populationByEthnicity: empty.populationByEthnicity?.map((row, i) => ({ ...row, ...saved.populationByEthnicity?.[i] })),
-    populationByReligion: empty.populationByReligion?.map((row, i) => ({ ...row, ...saved.populationByReligion?.[i] })),
+    // `band`/`ethnicity`/`religion`/`type` are pinned to the freshly-seeded template rather than
+    // spread from saved data: unlike the `*Label` fields, these ARE real schema fields, so a
+    // naive `{ ...row, ...saved[i] }` merge would silently overwrite a row's identity with
+    // whatever saved value happens to sit at that index — corrupting the fixed row order (e.g.
+    // duplicating one category while dropping another) if the saved array was ever out of order.
+    populationByAge: empty.populationByAge?.map((row, i) => ({
+      ...row,
+      female: saved.populationByAge?.[i]?.female ?? row.female,
+      male: saved.populationByAge?.[i]?.male ?? row.male,
+    })),
+    populationByEthnicity: empty.populationByEthnicity?.map((row, i) => ({
+      ...row,
+      female: saved.populationByEthnicity?.[i]?.female ?? row.female,
+      male: saved.populationByEthnicity?.[i]?.male ?? row.male,
+    })),
+    populationByReligion: empty.populationByReligion?.map((row, i) => ({
+      ...row,
+      female: saved.populationByReligion?.[i]?.female ?? row.female,
+      male: saved.populationByReligion?.[i]?.male ?? row.male,
+    })),
     disabilities: empty.disabilities?.map((row, i) => ({
       ...row,
-      ...saved.disabilities?.[i],
       under18: { ...row.under18, ...saved.disabilities?.[i]?.under18 },
       over18: { ...row.over18, ...saved.disabilities?.[i]?.over18 },
     })),
@@ -150,28 +175,29 @@ export default function DemographicsPage() {
 
   const ageColumns: RepeatableColumn[] = [
     { key: "bandLabel", label: { en: "Age Band", si: "වයස් කාණ්ඩය" }, type: "readonly" },
-    { key: "female", label: { en: "Female", si: "ගැහැණු" }, type: "number" },
-    { key: "male", label: { en: "Male", si: "පිරිමි" }, type: "number" },
+    { key: "female", label: { en: "Female", si: "ස්ත්‍රී" }, type: "number" },
+    { key: "male", label: { en: "Male", si: "පුරුෂ" }, type: "number" },
   ];
 
   const ethnicityColumns: RepeatableColumn[] = [
     { key: "ethnicityLabel", label: { en: "Ethnicity", si: "ජාතිකත්වය" }, type: "readonly" },
-    { key: "female", label: { en: "Female", si: "ගැහැණු" }, type: "number" },
-    { key: "male", label: { en: "Male", si: "පිරිමි" }, type: "number" },
+    { key: "female", label: { en: "Female", si: "ස්ත්‍රී" }, type: "number" },
+    { key: "male", label: { en: "Male", si: "පුරුෂ" }, type: "number" },
   ];
 
   const religionColumns: RepeatableColumn[] = [
     { key: "religionLabel", label: { en: "Religion", si: "ආගම" }, type: "readonly" },
-    { key: "female", label: { en: "Female", si: "ගැහැණු" }, type: "number" },
-    { key: "male", label: { en: "Male", si: "පිරිමි" }, type: "number" },
+    { key: "female", label: { en: "Female", si: "ස්ත්‍රී" }, type: "number" },
+    { key: "male", label: { en: "Male", si: "පුරුෂ" }, type: "number" },
   ];
 
   const disabilityColumns: RepeatableColumn[] = [
-    { key: "typeLabel", label: { en: "Disability Type", si: "ආබාධ වර්ගය" }, type: "readonly" },
-    { key: "under18.female", label: { en: "Under 18 - Female", si: "අවු. 18ට අඩු - ගැහැණු" }, type: "number" },
-    { key: "under18.male", label: { en: "Under 18 - Male", si: "අවු. 18ට අඩු - පිරිමි" }, type: "number" },
-    { key: "over18.female", label: { en: "18 & Over - Female", si: "අවු. 18ට වැඩි - ගැහැණු" }, type: "number" },
-    { key: "over18.male", label: { en: "18 & Over - Male", si: "අවු. 18ට වැඩි - පිරිමි" }, type: "number" },
+    { key: "typeLabel", label: { en: "Persons with Special Needs", si: "විශේෂ අවශ්‍යතා සහිත පුද්ගලයින් සංඛ්‍යාව" }, type: "readonly" },
+    { key: "under18.female", label: { en: "Under 18 - Female", si: "වයස 18ට අඩු - ස්ත්‍රී" }, type: "number" },
+    { key: "under18.male", label: { en: "Under 18 - Male", si: "වයස 18ට අඩු - පුරුෂ" }, type: "number" },
+    { key: "over18.female", label: { en: "18 & Over - Female", si: "වයස 18ට වැඩි - ස්ත්‍රී" }, type: "number" },
+    { key: "over18.male", label: { en: "18 & Over - Male", si: "වයස 18ට වැඩි - පුරුෂ" }, type: "number" },
+    { key: "total", label: { en: "Total", si: "මුළු එකතුව" }, type: "computed", compute: sumSexCounts },
   ];
 
   return (
@@ -244,14 +270,19 @@ export default function DemographicsPage() {
           {lang === "si" ? demographicsDict.fields.foreignNationals.si : demographicsDict.fields.foreignNationals.en}
         </h2>
         <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4">
-          <FieldWrapper name="foreignNationals.female" label={{ en: "Female", si: "ගැහැණු" }}>
+          <FieldWrapper name="foreignNationals.female" label={{ en: "Female Count", si: "ගැහැණු සංඛ්‍යාව" }}>
             {({ id, describedBy, invalid }) => (
               <Input id={id} type="number" inputMode="numeric" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("foreignNationals.female")} />
             )}
           </FieldWrapper>
-          <FieldWrapper name="foreignNationals.male" label={{ en: "Male", si: "පිරිමි" }}>
+          <FieldWrapper name="foreignNationals.male" label={{ en: "Male Count", si: "පිරිමි සංඛ්‍යාව" }}>
             {({ id, describedBy, invalid }) => (
               <Input id={id} type="number" inputMode="numeric" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("foreignNationals.male")} />
+            )}
+          </FieldWrapper>
+          <FieldWrapper name="foreignNationals.total" label={{ en: "Total Count", si: "මුළු සංඛ්‍යාව" }}>
+            {({ id }) => (
+              <Input id={id} readOnly disabled value={(Number(form.watch("foreignNationals.female")) || 0) + (Number(form.watch("foreignNationals.male")) || 0)} className="nums-tabular" />
             )}
           </FieldWrapper>
         </div>
@@ -262,17 +293,20 @@ export default function DemographicsPage() {
           {lang === "si" ? demographicsDict.fields.households.si : demographicsDict.fields.households.en}
         </h2>
         <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4">
-          <FieldWrapper name="households.total" label={{ en: "Total Households", si: "මුළු ගෘහ ඒකක" }}>
+          <FieldWrapper name="households.total" label={{ en: "Total Number of Families", si: "මුළු පවුල් සංඛ්‍යාව" }}>
             {({ id, describedBy, invalid }) => (
               <Input id={id} type="number" inputMode="numeric" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("households.total")} />
             )}
           </FieldWrapper>
-          <FieldWrapper name="households.femaleHeaded" label={{ en: "Female-Headed Households", si: "කාන්තා ප්‍රධාන ගෘහ ඒකක" }}>
+          <FieldWrapper name="households.femaleHeaded" label={{ en: "Female-Headed Families", si: "කාන්තා ගෘහමූලික පවුල් සංඛ්‍යාව" }}>
             {({ id, describedBy, invalid }) => (
               <Input id={id} type="number" inputMode="numeric" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("households.femaleHeaded")} />
             )}
           </FieldWrapper>
-          <FieldWrapper name="households.displaced" label={{ en: "Displaced Households", si: "අවතැන් වූ ගෘහ ඒකක" }}>
+          <FieldWrapper
+            name="households.displaced"
+            label={{ en: "Families with Children in Probation Care", si: "පරිවාසගත ළමුන් සිටින පවුල් සංඛ්‍යාව" }}
+          >
             {({ id, describedBy, invalid }) => (
               <Input id={id} type="number" inputMode="numeric" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("households.displaced")} />
             )}
@@ -285,17 +319,35 @@ export default function DemographicsPage() {
           {lang === "si" ? demographicsDict.fields.registeredVoters.si : demographicsDict.fields.registeredVoters.en}
         </h2>
         <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4">
-          <FieldWrapper name="registeredVoters.female" label={{ en: "Female", si: "ගැහැණු" }}>
+          <FieldWrapper
+            name="registeredVoters.electoralArea"
+            label={{ en: "Electoral (Voting) Power Area(s)", si: "මැතිවරණ (ඡන්ද) බල ප්‍රදේශය/ ප්‍රදේශ" }}
+          >
+            {({ id, describedBy, invalid }) => (
+              <Input id={id} aria-describedby={describedBy} aria-invalid={invalid} {...form.register("registeredVoters.electoralArea")} />
+            )}
+          </FieldWrapper>
+          <FieldWrapper name="registeredVoters.female" label={{ en: "Female", si: "ස්ත්‍රී" }}>
             {({ id, describedBy, invalid }) => (
               <Input id={id} type="number" inputMode="numeric" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("registeredVoters.female")} />
             )}
           </FieldWrapper>
-          <FieldWrapper name="registeredVoters.male" label={{ en: "Male", si: "පිරිමි" }}>
+          <FieldWrapper name="registeredVoters.male" label={{ en: "Male", si: "පුරුෂ" }}>
             {({ id, describedBy, invalid }) => (
               <Input id={id} type="number" inputMode="numeric" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("registeredVoters.male")} />
             )}
           </FieldWrapper>
+          <FieldWrapper name="registeredVoters.total" label={{ en: "Total", si: "එකතුව" }}>
+            {({ id }) => (
+              <Input id={id} readOnly disabled value={(Number(form.watch("registeredVoters.female")) || 0) + (Number(form.watch("registeredVoters.male")) || 0)} className="nums-tabular" />
+            )}
+          </FieldWrapper>
         </div>
+        {(lang === "si" ? demographicsDict.fields.registeredVoters.helpSi : demographicsDict.fields.registeredVoters.helpEn) && (
+          <p lang={lang} className={cn("mt-3 text-fluid-xs text-muted-foreground", lang === "si" && "font-si")}>
+            {lang === "si" ? demographicsDict.fields.registeredVoters.helpSi : demographicsDict.fields.registeredVoters.helpEn}
+          </p>
+        )}
       </div>
     </SectionForm>
   );

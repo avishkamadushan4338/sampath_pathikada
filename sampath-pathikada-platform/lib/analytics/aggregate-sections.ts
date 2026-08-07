@@ -59,23 +59,23 @@ const SELF_EMPLOYMENT_SECTOR_LABELS: Record<string, Bilingual> = {
   "spice-production": { en: "Spice Production", si: "කුළුබඩු නිෂ්පාදනය" },
   "rice-parcel-production": { en: "Rice-Parcel Production", si: "බත් පාර්සල් නිෂ්පාදනය" },
   "bakery-production": { en: "Bakery Production", si: "බේකරි නිෂ්පාදන" },
-  "garment-knitwear-production": { en: "Garment / Knitwear Production", si: "ඇහළුම් නිෂ්පාදන" },
+  "garment-production": { en: "Garment Production", si: "ඇඟලුම් නිෂ්පාදන" },
   dressmaking: { en: "Dressmaking / Sewing", si: "ඇදුම් මැසීම" },
-  "cleaning-products-production": { en: "Cleaning Products Production", si: "පාහිසි නිෂ්පාදනය" },
-  "beverage-soda-production": { en: "Beverage / Soda Production", si: "බීරලු/සෝඩා නිෂ්පාදනය" },
-  "decorative-items-production": { en: "Decorative Items Production", si: "විසිතුරු භාණ්ඩ නිෂ්පාදනය" },
+  "doormat-production": { en: "Doormat Production", si: "පාපිසි නිෂ්පාදනය" },
+  "beeralu-lace-production": { en: "Beeralu / Lace Production", si: "බීරළු/රේන්ද නිෂ්පාදනය" },
+  "ornamental-items-production": { en: "Ornamental Items Production", si: "විසිතුරු භාණ්ඩ නිෂ්පාදනය" },
   "coconut-shell-production": { en: "Coconut-Shell Related Production", si: "පොල්කටු ආශ්‍රිත නිෂ්පාදන" },
-  "masonry-work": { en: "Masonry Work", si: "පැස්සුම් වැඩ" },
-  "motor-vehicle-repair": { en: "Motor Vehicle Repair", si: "මෝටර් රථ කාර්මික වැඩියාව" },
-  "bicycle-repair": { en: "Bicycle Repair", si: "පාපැදි කාර්මික වැඩියාව" },
-  "traditional-craft-work": { en: "Traditional Craft Work", si: "පෙදරේරු කර්මාන්තය" },
-  carpentry: { en: "Carpentry", si: "වඩු කර්මාන්තය" },
-  "electrical-appliance-repair": { en: "Electrical Appliance Repair", si: "විදුලිඋපකරණ කාර්මික වැඩියාව" },
-  "jewelry-production": { en: "Jewelry / Ornaments Production", si: "ස්වර්ණාභරණ නිෂ්පාදනය" },
-  "floriculture-production": { en: "Floriculture Production", si: "ෆ්ලෝරිකල්චර් නිෂ්පාදනය" },
-  "cinnamon-peeling": { en: "Cinnamon Peeling", si: "කුරුදු තැලීම" },
-  "fish-related-production": { en: "Fish-Related Production (Dried Fish / Jars)", si: "මාළු ආශ්‍රිත නිෂ්පාදන (කරවල/ජාඩි)" },
-  "fishing-gear-repair": { en: "Fishing Gear / Net Repair", si: "දිවර ආම්පන්න අළුත්වැඩියාව" },
+  "welding-work": { en: "Welding Work", si: "පැස්සුම් වැඩ" },
+  "motor-vehicle-repair": { en: "Motor Vehicle Repair", si: "මෝටර් රථ අළුත්වැඩියාව" },
+  "bicycle-repair": { en: "Bicycle Repair", si: "පාපැදි අළුත්වැඩියාව" },
+  "masonry-work": { en: "Masonry Industry", si: "පෙදරේරු කර්මාන්තය" },
+  carpentry: { en: "Carpentry Industry", si: "වඩු කර්මාන්තය" },
+  "electrical-appliance-repair": { en: "Electrical Equipment Repair", si: "විදුලිඋපකරණ අළුත්වැඩියාව" },
+  "jewelry-production": { en: "Jewelry Production", si: "ස්වර්ණාභරණ නිෂ්පාදනය" },
+  "concrete-block-production": { en: "Concrete Block Production", si: "බ්ලොක්ගල් නිෂ්පාදනය" },
+  "cinnamon-peeling": { en: "Cinnamon Peeling", si: "කුරුඳු තැලීම" },
+  "fish-related-production": { en: "Fish-Related Production (Dried Fish / Jaadi / ...)", si: "මාළු ආශ්‍රිත නිෂ්පාදන (කරවල/ජාඩි/...)" },
+  "fishing-gear-repair": { en: "Fishing Gear Repair", si: "ධීවර ආම්පන්න අළුත්වැඩියාව" },
   "fish-trade": { en: "Fish Trade (Mobile Vehicle)", si: "මාළු වෙළදාම (ජංගම රථ මගින්)" },
 };
 
@@ -334,6 +334,7 @@ export function aggregateHousing(rows: SubmissionLike[], gnLabel: (id: string) =
     tankRiverCanalOther: 0,
     bottled: 0,
     treated: 0,
+    bowser: 0,
     other: 0,
   };
   const electricityAccess = { total: 0, withElectricity: 0, withSolar: 0, withoutElectricity: 0, needingAssistance: 0 };
@@ -363,6 +364,7 @@ export function aggregateHousing(rows: SubmissionLike[], gnLabel: (id: string) =
       water.tankRiverCanalOther += h.drinkingWaterSource.tankRiverCanalOther ?? 0;
       water.bottled += h.drinkingWaterSource.bottled ?? 0;
       water.treated += h.drinkingWaterSource.treated ?? 0;
+      water.bowser += h.drinkingWaterSource.bowser ?? 0;
       water.other += h.drinkingWaterSource.other ?? 0;
     }
     if (h.electricityAccess) {
