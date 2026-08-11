@@ -3,6 +3,7 @@ import prisma from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import { isSectionKey } from "@/lib/types/submission";
 import { getSectionPartialSchema } from "@/lib/validators/section-registry";
+import { POPULATION_MISMATCH_ERROR_PREFIX } from "@/lib/validators/sections/demographics";
 import { verifyOrigin } from "@/lib/csrf";
 
 function parseYear(raw: string): number | null {
@@ -112,6 +113,29 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ ye
   const schema = getSectionPartialSchema(section);
   const parsed = schema.safeParse(data);
   if (!parsed.success) {
+    // A routine "still filling this in" required-field error is expected and needs no attention
+    // beyond what the officer already sees. A population-total mismatch is different — the
+    // numbers the officer entered are internally inconsistent (the same population counted three
+    // different ways gives three different answers), which is worth a Divisional
+    // Secretariat/Super Admin flag even though (per policy) it still doesn't block the save
+    // itself succeeding once corrected — the flag exists precisely because it *can't* fail here.
+    const isPopulationMismatch =
+      section === "demographics" && parsed.error.issues.some((issue) => issue.message.startsWith(POPULATION_MISMATCH_ERROR_PREFIX));
+
+    if (isPopulationMismatch) {
+      await prisma.auditLog.create({
+        data: {
+          action: "Invalid Demographic Data Attempted",
+          description: `${session.name} attempted to save Demographics data for the ${year} submission with population totals that don't match across the Age, Ethnicity, and Religion breakdowns.`,
+          category: "DATA",
+          severity: "ERROR",
+          userId: session.userId,
+          userName: session.name,
+          metadata: { submissionId: submission.id, year, section, issues: parsed.error.flatten() },
+        },
+      });
+    }
+
     return NextResponse.json(
       { ok: false, message: "Validation failed.", errors: parsed.error.flatten() },
       { status: 400 }
