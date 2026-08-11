@@ -1,124 +1,113 @@
 import { z } from "zod";
-import { yesNo } from "@/lib/validators/common";
+import { yesNo, requiredCount } from "@/lib/validators/common";
 
 /* ── §4 නිවාස තොරතුරු — Housing ────────────────────────────────────────────── */
 
 const COMMUNITY_WATER_AUTHORITIES = ["main-ministry", "agri-ministry", "private"] as const;
 
+// Every field in these two rows is required — once the officer adds a row via "+", it must be
+// filled in completely before it can be saved; there's no "fill in some of it for now" state.
 export const communityWaterProjectRowSchema = z.object({
   name: z.string().min(1, "Project name is required"),
   functional: yesNo,
-  householdsServed: z.coerce.number().int().min(0).optional(),
-  authority: z.enum(COMMUNITY_WATER_AUTHORITIES).optional(),
+  householdsServed: requiredCount("Number of families benefiting is required"),
+  authority: z.enum(COMMUNITY_WATER_AUTHORITIES, { required_error: "Ownership is required" }),
 });
 
 export const underservedAreaRowSchema = z.object({
   area: z.string().min(1, "Area name is required"),
   difficultyDescription: z.string().min(1, "Difficulty description is required"),
-  households: z.coerce.number().int().min(0).default(0),
-  proposal: z.string().optional(),
+  households: requiredCount("Number of families is required"),
+  proposal: z.string().min(1, "Proposed remedy is required"),
 });
 
 export const housingSchemaStrict = z.object({
   housingCounts: z.object({
-    total: z.coerce.number().int().min(0),
-    permanent: z.coerce.number().int().min(0),
-    semiPermanent: z.coerce.number().int().min(0),
-    nonPermanent: z.coerce.number().int().min(0),
+    total: requiredCount("Total housing count is required"),
+    permanent: requiredCount("Permanent housing count is required"),
+    semiPermanent: requiredCount("Semi-permanent housing count is required"),
+    nonPermanent: requiredCount("Non-permanent housing count is required"),
   }),
-  householdsWithoutHousing: z.coerce.number().int().min(0),
+  householdsWithoutHousing: requiredCount("This count is required"),
   sanitation: z.object({
-    total: z.coerce.number().int().min(0),
-    withoutSafeSanitation: z.coerce.number().int().min(0),
-    needingAssistance: z.coerce.number().int().min(0),
+    total: requiredCount("Total housing count is required"),
+    withoutSafeSanitation: requiredCount("This count is required"),
+    needingAssistance: requiredCount("This count is required"),
   }),
   drinkingWaterSource: z.object({
-    well: z.coerce.number().int().min(0),
-    tubeWell: z.coerce.number().int().min(0),
-    spring: z.coerce.number().int().min(0),
-    pipedNational: z.coerce.number().int().min(0),
-    pipedLocalGovt: z.coerce.number().int().min(0),
-    pipedCommunity: z.coerce.number().int().min(0),
-    tankRiverCanalOther: z.coerce.number().int().min(0),
-    bottled: z.coerce.number().int().min(0),
-    treated: z.coerce.number().int().min(0),
-    bowser: z.coerce.number().int().min(0),
-    other: z.coerce.number().int().min(0),
+    well: requiredCount("This count is required"),
+    tubeWell: requiredCount("This count is required"),
+    spring: requiredCount("This count is required"),
+    pipedNational: requiredCount("This count is required"),
+    pipedLocalGovt: requiredCount("This count is required"),
+    pipedCommunity: requiredCount("This count is required"),
+    tankRiverCanalOther: requiredCount("This count is required"),
+    bottled: requiredCount("This count is required"),
+    treated: requiredCount("This count is required"),
+    bowser: requiredCount("This count is required"),
+    other: requiredCount("This count is required"),
   }),
   underservedAreas: z.array(underservedAreaRowSchema).default([]),
   electricityAccess: z.object({
-    total: z.coerce.number().int().min(0),
-    withElectricity: z.coerce.number().int().min(0),
-    withSolar: z.coerce.number().int().min(0),
-    withoutElectricity: z.coerce.number().int().min(0),
-    needingAssistance: z.coerce.number().int().min(0),
+    total: requiredCount("Total housing count is required"),
+    withElectricity: requiredCount("This count is required"),
+    withSolar: requiredCount("This count is required"),
+    withoutElectricity: requiredCount("This count is required"),
+    needingAssistance: requiredCount("This count is required"),
   }),
   communityWaterProjects: z.array(communityWaterProjectRowSchema).default([]),
 });
 
 export type HousingData = z.infer<typeof housingSchemaStrict>;
 
-/* Draft-mode row schemas built from scratch rather than `.partial()` on the strict schemas
- * above: `.partial()` only allows a field to be *missing*, it doesn't relax `min(1)`, so a row
- * added via the "Add" button (whose fields start as "") would still fail validation and
- * silently block saving. A GN division without one of these should be able to leave it blank. */
-const underservedAreaRowPartialSchema = z.object({
-  area: z.string().optional(),
-  difficultyDescription: z.string().optional(),
-  households: z.coerce.number().int().min(0).optional(),
-  proposal: z.string().optional(),
-});
-
-const communityWaterProjectRowPartialSchema = z.object({
-  name: z.string().optional(),
-  functional: yesNo.optional(),
-  householdsServed: z.coerce.number().int().min(0).optional(),
-  authority: z.enum(COMMUNITY_WATER_AUTHORITIES).optional(),
-});
-
+/* Draft-mode reuses the strict row schemas directly — a row's required fields (e.g. `area`)
+ * still fail validation if blank, surfacing a "required" error in the UI, but that no longer
+ * blocks saving: SectionForm always saves the draft regardless of validation outcome, it just
+ * shows the errors alongside. Only the *array itself* is optional here, so an empty/untouched
+ * directory (no rows added yet) is still a valid draft. */
 export const housingSchemaPartial = z.object({
   housingCounts: z
     .object({
-      total: z.coerce.number().int().min(0).optional(),
-      permanent: z.coerce.number().int().min(0).optional(),
-      semiPermanent: z.coerce.number().int().min(0).optional(),
-      nonPermanent: z.coerce.number().int().min(0).optional(),
+      total: requiredCount("Total housing count is required"),
+      permanent: requiredCount("Permanent housing count is required"),
+      semiPermanent: requiredCount("Semi-permanent housing count is required"),
+      nonPermanent: requiredCount("Non-permanent housing count is required"),
     })
     .optional(),
-  householdsWithoutHousing: z.coerce.number().int().min(0).optional(),
+  householdsWithoutHousing: requiredCount("This count is required").optional(),
   sanitation: z
     .object({
-      total: z.coerce.number().int().min(0).optional(),
-      withoutSafeSanitation: z.coerce.number().int().min(0).optional(),
-      needingAssistance: z.coerce.number().int().min(0).optional(),
+      total: requiredCount("Total housing count is required"),
+      withoutSafeSanitation: requiredCount("This count is required"),
+      needingAssistance: requiredCount("This count is required"),
     })
     .optional(),
   drinkingWaterSource: z
     .object({
-      well: z.coerce.number().int().min(0).optional(),
-      tubeWell: z.coerce.number().int().min(0).optional(),
-      spring: z.coerce.number().int().min(0).optional(),
-      pipedNational: z.coerce.number().int().min(0).optional(),
-      pipedLocalGovt: z.coerce.number().int().min(0).optional(),
-      pipedCommunity: z.coerce.number().int().min(0).optional(),
-      tankRiverCanalOther: z.coerce.number().int().min(0).optional(),
-      bottled: z.coerce.number().int().min(0).optional(),
-      treated: z.coerce.number().int().min(0).optional(),
-      bowser: z.coerce.number().int().min(0).optional(),
-      other: z.coerce.number().int().min(0).optional(),
+      well: requiredCount("This count is required"),
+      tubeWell: requiredCount("This count is required"),
+      spring: requiredCount("This count is required"),
+      pipedNational: requiredCount("This count is required"),
+      pipedLocalGovt: requiredCount("This count is required"),
+      pipedCommunity: requiredCount("This count is required"),
+      tankRiverCanalOther: requiredCount("This count is required"),
+      bottled: requiredCount("This count is required"),
+      treated: requiredCount("This count is required"),
+      bowser: requiredCount("This count is required"),
+      other: requiredCount("This count is required"),
     })
     .optional(),
-  underservedAreas: z.array(underservedAreaRowPartialSchema).optional(),
+  underservedAreas: z.array(underservedAreaRowSchema).optional(),
   electricityAccess: z
     .object({
-      total: z.coerce.number().int().min(0).optional(),
-      withElectricity: z.coerce.number().int().min(0).optional(),
-      withSolar: z.coerce.number().int().min(0).optional(),
-      withoutElectricity: z.coerce.number().int().min(0).optional(),
-      needingAssistance: z.coerce.number().int().min(0).optional(),
+      total: requiredCount("Total housing count is required"),
+      withElectricity: requiredCount("This count is required"),
+      withSolar: requiredCount("This count is required"),
+      withoutElectricity: requiredCount("This count is required"),
+      needingAssistance: requiredCount("This count is required"),
     })
     .optional(),
-  communityWaterProjects: z.array(communityWaterProjectRowPartialSchema).optional(),
+  communityWaterProjects: z.array(communityWaterProjectRowSchema).optional(),
 });
 
 export { COMMUNITY_WATER_AUTHORITIES };
