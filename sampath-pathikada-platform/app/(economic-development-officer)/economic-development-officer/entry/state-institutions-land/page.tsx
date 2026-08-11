@@ -50,30 +50,31 @@ export default function StateInstitutionsLandPage() {
   }
 
   const stateInstitutionColumns: RepeatableColumn[] = [
-    { key: "name", label: { en: "Institution Name", si: "ආයතනයේ නම" }, type: "text" },
-    { key: "address", label: { en: "Address", si: "ලිපිනය" }, type: "text" },
+    { key: "name", label: { en: "Institution Name", si: "ආයතනයේ නම" }, type: "text", required: true },
+    { key: "address", label: { en: "Address", si: "ලිපිනය" }, type: "text", required: true },
   ];
 
   const illegalStructureColumns: RepeatableColumn[] = [
-    { key: "buildingName", label: { en: "Name of the Abandoned Building", si: "අත්හැර දමන ලද ගොඩනැගිල්ලේ නම" }, type: "text" },
-    { key: "purposeUsed", label: { en: "Purpose Used For", si: "යොදා ගත් කාර්යය" }, type: "text" },
+    { key: "buildingName", label: { en: "Name of the Abandoned Building", si: "අත්හැර දමන ලද ගොඩනැගිල්ලේ නම" }, type: "text", required: true },
+    { key: "purposeUsed", label: { en: "Purpose Used For", si: "යොදා ගත් කාර්යය" }, type: "text", required: true },
     {
       key: "usable",
       label: { en: "Usable Condition", si: "භාවිතයට ගත හැකි මට්ටමක පවතිනවාද" },
       type: "select",
+      required: true,
       options: [
         { value: "yes", label: { en: "Yes", si: "ඔව්" } },
         { value: "no", label: { en: "No", si: "නැත" } },
       ],
     },
-    { key: "owningInstitution", label: { en: "Owning Institution", si: "ගොඩනැගිල්ල අයත් ආයතනය" }, type: "text" },
+    { key: "owningInstitution", label: { en: "Owning Institution", si: "ගොඩනැගිල්ල අයත් ආයතනය" }, type: "text", required: true },
   ];
 
   const developmentProjectColumns: RepeatableColumn[] = [
-    { key: "projectName", label: { en: "Name of the Stalled Project(s)", si: "අතරමං නවතාදමා ඇති ව්‍යාපෘතියේ/වල නම" }, type: "text" },
-    { key: "owningInstitution", label: { en: "Owning Institution", si: "ව්‍යාපෘතිය අයත් ආයතනය" }, type: "text" },
-    { key: "reasonForHalt", label: { en: "Reason for Halting", si: "නවතාදැමීමට හේතුව" }, type: "text" },
-    { key: "currentStatus", label: { en: "Current Status", si: "වර්තමාන තත්වය" }, type: "text" },
+    { key: "projectName", label: { en: "Name of the Stalled Project(s)", si: "අතරමං නවතාදමා ඇති ව්‍යාපෘතියේ/වල නම" }, type: "text", required: true },
+    { key: "owningInstitution", label: { en: "Owning Institution", si: "ව්‍යාපෘතිය අයත් ආයතනය" }, type: "text", required: true },
+    { key: "reasonForHalt", label: { en: "Reason for Halting", si: "නවතාදැමීමට හේතුව" }, type: "text", required: true },
+    { key: "currentStatus", label: { en: "Current Status", si: "වර්තමාන තත්වය" }, type: "text", required: true },
   ];
 
   return (
