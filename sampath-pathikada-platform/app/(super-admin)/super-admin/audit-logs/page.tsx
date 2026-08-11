@@ -1,17 +1,18 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
+import useSWR from "swr";
 import {
   Search, Filter, Download, RefreshCw, ChevronLeft, ChevronRight, ChevronDown,
   AlertTriangle, Info, AlertCircle, CheckCircle2,
-  User, Shield, Database, Settings, LogIn,
+  User, Shield, Database, Settings, LogIn, UserPlus,
 } from "lucide-react";
 
 /* ─── Brand tokens ─────────────────────────────────────────────────────── */
 const NAVY  = "#0E2B4E";
 
 type Severity = "info" | "warning" | "error" | "success";
-type Category = "auth" | "user" | "admin" | "system" | "data";
+type Category = "auth" | "user" | "admin" | "system" | "data" | "registration";
 
 interface AuditEntry {
   id: string; action: string; description: string;
@@ -20,20 +21,54 @@ interface AuditEntry {
   metadata?: Record<string, string>;
 }
 
-const MOCK_AUDIT: AuditEntry[] = [
-  { id: "AUD-001", action: "User Login",            description: "Successful login via password",           user: "Super Admin",    userId: "SA-001",  ip: "192.168.1.1",  userAgent: "Chrome 125 / Windows", category: "auth",   severity: "success", timestamp: "2026-07-02 09:14:22" },
-  { id: "AUD-002", action: "Registration Approved", description: "Approved REG-2026-003 (Ruwan Fernando)", user: "Super Admin",    userId: "SA-001",  ip: "192.168.1.1",  userAgent: "Chrome 125 / Windows", category: "user",   severity: "info",    timestamp: "2026-07-02 09:02:11" },
-  { id: "AUD-003", action: "Admin Created",          description: "New admin account created for Sumudu.S", user: "Super Admin",    userId: "SA-001",  ip: "192.168.1.1",  userAgent: "Chrome 125 / Windows", category: "admin",  severity: "info",    timestamp: "2026-07-01 16:30:05", metadata: { "New Admin ID": "ADM-004", "Email": "sumudu.s@sampath.lk" } },
-  { id: "AUD-004", action: "Failed Login",           description: "Repeated failed login for admin@sampath.lk", user: "Unknown",   userId: "—",       ip: "203.94.12.55", userAgent: "curl/7.68.0",          category: "auth",   severity: "error",   timestamp: "2026-07-01 15:44:31", metadata: { "Attempts": "5", "Locked": "Yes" } },
-  { id: "AUD-005", action: "Permission Updated",     description: "Economic Development Officer permissions modified",        user: "Super Admin",    userId: "SA-001",  ip: "192.168.1.1",  userAgent: "Chrome 125 / Windows", category: "system", severity: "warning", timestamp: "2026-07-01 14:20:18" },
-  { id: "AUD-006", action: "Database Backup",        description: "Scheduled backup completed successfully", user: "System",        userId: "SYS",     ip: "localhost",     userAgent: "Node.js Cron",         category: "system", severity: "success", timestamp: "2026-07-01 12:00:00" },
-  { id: "AUD-007", action: "Registration Rejected",  description: "Rejected REG-2026-004 — NIC mismatch",  user: "Super Admin",    userId: "SA-001",  ip: "192.168.1.1",  userAgent: "Chrome 125 / Windows", category: "user",   severity: "info",    timestamp: "2026-07-01 11:03:44" },
-  { id: "AUD-008", action: "Password Reset",         description: "Admin Nimal Perera reset their password", user: "Nimal Perera", userId: "ADM-002", ip: "10.0.0.5",    userAgent: "Firefox 118 / macOS",  category: "auth",   severity: "info",    timestamp: "2026-07-01 10:15:09" },
-  { id: "AUD-009", action: "System Settings Updated", description: "Session timeout changed to 30 minutes", user: "Super Admin",   userId: "SA-001",  ip: "192.168.1.1",  userAgent: "Chrome 125 / Windows", category: "system", severity: "warning", timestamp: "2026-06-30 17:45:00" },
-  { id: "AUD-010", action: "User Deactivated",       description: "Admin Dilshan Fernando deactivated",     user: "Super Admin",   userId: "SA-001",  ip: "192.168.1.1",  userAgent: "Chrome 125 / Windows", category: "admin",  severity: "warning", timestamp: "2026-06-30 16:10:22" },
-  { id: "AUD-011", action: "Export Generated",       description: "Excel export of registrations data",     user: "Admin Kamal",   userId: "ADM-001", ip: "10.0.0.3",    userAgent: "Chrome 125 / Windows", category: "data",   severity: "info",    timestamp: "2026-06-30 14:33:55" },
-  { id: "AUD-012", action: "User Login",             description: "Successful login via password",          user: "Admin Nimal",   userId: "ADM-002", ip: "10.0.0.5",    userAgent: "Firefox 118 / macOS",  category: "auth",   severity: "success", timestamp: "2026-06-30 09:00:11" },
-];
+interface ApiAuditLog {
+  id: string;
+  action: string;
+  description: string;
+  category: string;
+  severity: string;
+  userId: string | null;
+  userName: string;
+  userIp: string | null;
+  userAgent: string | null;
+  metadata: Record<string, unknown> | null;
+  createdAt: string;
+}
+
+function toDisplayValue(value: unknown): string {
+  return typeof value === "object" && value !== null ? JSON.stringify(value) : String(value);
+}
+
+function toAuditEntry(row: ApiAuditLog): AuditEntry {
+  return {
+    id: row.id,
+    action: row.action,
+    description: row.description,
+    user: row.userName,
+    userId: row.userId ?? "—",
+    ip: row.userIp ?? "—",
+    userAgent: row.userAgent ?? "—",
+    category: row.category.toLowerCase() as Category,
+    severity: row.severity.toLowerCase() as Severity,
+    timestamp: new Date(row.createdAt).toLocaleString(),
+    metadata: row.metadata
+      ? Object.fromEntries(Object.entries(row.metadata).map(([k, v]) => [k, toDisplayValue(v)]))
+      : undefined,
+  };
+}
+
+const fetcher = async (url: string) => {
+  const res = await fetch(url);
+  const json = await res.json();
+  if (!res.ok || !json.ok) throw new Error(json.message ?? "Failed to load audit logs");
+  return json as { data: ApiAuditLog[]; total: number; page: number; pageSize: number };
+};
+
+/** Only reads `total` from each response — used for the severity summary cards, which need a
+ *  count across *all* matching logs regardless of which page/severity the main list is
+ *  currently showing. Piggybacks on the existing list endpoint (limit=1) rather than adding a
+ *  dedicated stats endpoint for four numbers. */
+const totalFetcher = async (url: string) => (await fetcher(url)).total;
 
 const SEV_MAP: Record<Severity, { bg: string; color: string; border: string; dot: string; Icon: React.ElementType; label: string }> = {
   success: { bg: "#ecfdf5", color: "#065f46", border: "#a7f3d0", dot: "#10b981", Icon: CheckCircle2, label: "Success" },
@@ -43,10 +78,18 @@ const SEV_MAP: Record<Severity, { bg: string; color: string; border: string; dot
 };
 
 const CAT_ICONS: Record<Category, React.ElementType> = {
-  auth: LogIn, user: User, admin: Shield, system: Settings, data: Database,
+  auth: LogIn, user: User, admin: Shield, system: Settings, data: Database, registration: UserPlus,
 };
 
 const PER_PAGE = 8;
+
+function useSeverityCount(severity: Severity, search: string, category: Category | "all") {
+  const params = new URLSearchParams({ severity, limit: "1" });
+  if (search) params.set("search", search);
+  if (category !== "all") params.set("category", category);
+  const { data } = useSWR(`/api/audit-logs?${params.toString()}`, totalFetcher);
+  return data ?? 0;
+}
 
 export default function AuditLogsPage() {
   const [search, setSearch] = useState("");
@@ -55,15 +98,34 @@ export default function AuditLogsPage() {
   const [page, setPage] = useState(1);
   const [expanded, setExpanded] = useState<string | null>(null);
 
-  const filtered = useMemo(() => MOCK_AUDIT.filter(e => {
-    const q = search.toLowerCase();
-    return (!q || e.action.toLowerCase().includes(q) || e.user.toLowerCase().includes(q) || e.ip.includes(q) || e.description.toLowerCase().includes(q))
-      && (sevFilter === "all" || e.severity === sevFilter)
-      && (catFilter === "all" || e.category === catFilter);
-  }), [search, sevFilter, catFilter]);
+  const listParams = new URLSearchParams({ page: String(page), limit: String(PER_PAGE) });
+  if (search) listParams.set("search", search);
+  if (sevFilter !== "all") listParams.set("severity", sevFilter);
+  if (catFilter !== "all") listParams.set("category", catFilter);
 
-  const totalPages = Math.ceil(filtered.length / PER_PAGE);
-  const pageData = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE);
+  const { data, isLoading, mutate } = useSWR(`/api/audit-logs?${listParams.toString()}`, fetcher);
+  const pageData = (data?.data ?? []).map(toAuditEntry);
+  const total = data?.total ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
+
+  const successCount = useSeverityCount("success", search, catFilter);
+  const infoCount = useSeverityCount("info", search, catFilter);
+  const warningCount = useSeverityCount("warning", search, catFilter);
+  const errorCount = useSeverityCount("error", search, catFilter);
+  const countBySeverity: Record<Severity, number> = { success: successCount, info: infoCount, warning: warningCount, error: errorCount };
+
+  function updateSearch(value: string) {
+    setSearch(value);
+    setPage(1);
+  }
+  function updateSeverity(sev: Severity) {
+    setSevFilter((f) => (f === sev ? "all" : sev));
+    setPage(1);
+  }
+  function updateCategory(cat: Category | "all") {
+    setCatFilter(cat);
+    setPage(1);
+  }
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-6">
@@ -83,6 +145,7 @@ export default function AuditLogsPage() {
         </div>
         <div className="flex items-center gap-2">
           <button
+            onClick={() => mutate()}
             className="flex items-center gap-2 px-3.5 py-2 text-[12.5px] font-medium rounded-xl transition-colors"
             style={{ border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", color: "hsl(var(--foreground))" }}
             onMouseEnter={e => (e.currentTarget.style.background = "hsl(var(--muted))")}
@@ -108,12 +171,12 @@ export default function AuditLogsPage() {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {(["success", "info", "warning", "error"] as Severity[]).map(s => {
           const { bg, color, border, Icon, label } = SEV_MAP[s];
-          const count = MOCK_AUDIT.filter(e => e.severity === s).length;
+          const count = countBySeverity[s];
           const isActive = sevFilter === s;
           return (
             <button
               key={s}
-              onClick={() => setSevFilter(sevFilter === s ? "all" : s)}
+              onClick={() => updateSeverity(s)}
               className="rounded-xl p-4 text-left transition-all"
               style={{
                 background: bg,
@@ -139,20 +202,20 @@ export default function AuditLogsPage() {
           <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2" style={{ color: "hsl(var(--muted-foreground))" }} />
           <input
             value={search}
-            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+            onChange={(e) => updateSearch(e.target.value)}
             placeholder="Search action, user, IP..."
             className="w-full h-10 pl-10 pr-4 rounded-xl text-[13px] focus:outline-none focus:ring-2 focus:ring-[hsl(var(--ring))]"
             style={{ border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", color: "hsl(var(--foreground))" }}
           />
         </div>
         <div className="flex gap-2 flex-wrap">
-          {(["all", "auth", "user", "admin", "system", "data"] as const).map(c => {
+          {(["all", "auth", "user", "admin", "system", "data", "registration"] as const).map(c => {
             const Icon = c !== "all" ? CAT_ICONS[c as Category] : Filter;
             const isActive = catFilter === c;
             return (
               <button
                 key={c}
-                onClick={() => { setCatFilter(c as any); setPage(1); }}
+                onClick={() => updateCategory(c as Category | "all")}
                 className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-[12px] font-semibold capitalize transition-colors"
                 style={isActive
                   ? { background: NAVY, color: "#fff", border: "1px solid transparent" }
@@ -174,7 +237,11 @@ export default function AuditLogsPage() {
         style={{ border: "1px solid hsl(var(--border))", background: "hsl(var(--card))" }}
       >
         <div style={{ borderBottom: 0 }}>
-          {pageData.length === 0 ? (
+          {isLoading ? (
+            <div className="py-16 text-center text-sm" style={{ color: "hsl(var(--muted-foreground))" }}>
+              Loading audit entries…
+            </div>
+          ) : pageData.length === 0 ? (
             <div className="py-16 text-center text-sm" style={{ color: "hsl(var(--muted-foreground))" }}>
               No audit entries match your filters.
             </div>
@@ -285,7 +352,7 @@ export default function AuditLogsPage() {
             style={{ borderTop: "1px solid hsl(var(--border))" }}
           >
             <p className="text-[12px]" style={{ color: "hsl(var(--muted-foreground))" }}>
-              {(page - 1) * PER_PAGE + 1}–{Math.min(page * PER_PAGE, filtered.length)} of {filtered.length} entries
+              {(page - 1) * PER_PAGE + 1}–{Math.min(page * PER_PAGE, total)} of {total} entries
             </p>
             <div className="flex items-center gap-1.5">
               <button
