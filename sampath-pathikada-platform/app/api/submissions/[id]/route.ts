@@ -5,11 +5,15 @@ import { verifyOrigin } from "@/lib/csrf";
 
 const REVIEWER_ROLES = ["DIVISIONAL_SECRETARIAT", "ADMIN", "SUPER_ADMIN"];
 
-/** A Divisional Secretariat outside a submission's DS division must see the same
- *  404 as a genuinely-missing submission — a 403 would leak that a submission
- *  exists somewhere outside their authorization boundary. */
+/** A Divisional Secretariat or division-scoped Admin outside a submission's DS
+ *  division must see the same 404 as a genuinely-missing submission — a 403
+ *  would leak that a submission exists somewhere outside their authorization
+ *  boundary. Matches the scoping already enforced in GET /api/submissions. */
 function isOutOfScope(session: { role: string; dsDivision: string | null }, submissionDsDivision: string): boolean {
-  return session.role === "DIVISIONAL_SECRETARIAT" && submissionDsDivision !== session.dsDivision;
+  return (
+    (session.role === "DIVISIONAL_SECRETARIAT" || session.role === "ADMIN") &&
+    submissionDsDivision !== session.dsDivision
+  );
 }
 
 /* ── GET /api/submissions/[id] ── reviewer view of one officer's submission ──── */
