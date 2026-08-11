@@ -247,12 +247,13 @@ export default function EconomicAgriculturePage() {
   const animalHusbandryDirectoryColumns: RepeatableColumn[] = [
     {
       key: "type",
-      label: { en: "* Cultivation Type (1/2/3)", si: "*වගා වර්ගය(1/2/3)" },
+      label: { en: "Cultivation Type (1/2/3)", si: "වගා වර්ගය(1/2/3)" },
       type: "select",
       options: FLORAL_CULTIVATION_TYPES.map((t) => ({ value: t, label: FLORAL_CULTIVATION_LABELS[t] })),
+      required: true,
     },
-    { key: "name", label: { en: "Person's Name", si: "පුද්ගල නම" }, type: "text" },
-    { key: "address", label: { en: "Address", si: "ලිපිනය" }, type: "text" },
+    { key: "name", label: { en: "Person's Name", si: "පුද්ගල නම" }, type: "text", required: true },
+    { key: "address", label: { en: "Address", si: "ලිපිනය" }, type: "text", required: true },
     { key: "phone", label: { en: "Phone Number", si: "දුරකථන අංකය" }, type: "text" },
     {
       key: "marketplace",
@@ -263,7 +264,12 @@ export default function EconomicAgriculturePage() {
   ];
 
   const specialEconomicActivityColumns: RepeatableColumn[] = [
-    { key: "activity", label: { en: "Area-Specific / Special Economic Activity", si: "ආවේණික / විශේෂිත ආර්ථික කටයුතු" }, type: "text" },
+    {
+      key: "activity",
+      label: { en: "Area-Specific / Special Economic Activity", si: "ආවේණික / විශේෂිත ආර්ථික කටයුතු" },
+      type: "text",
+      required: true,
+    },
     { key: "natureOfActivity", label: { en: "Nature of the Economic Activity", si: "ආර්ථික කටයුත්තේ ස්වභාවය" }, type: "text" },
     { key: "resourceOrProductUsed", label: { en: "Natural Resource / Raw Material Used", si: "යොදාගන්නා ස්වභාවික සම්පත්/අමුද්‍රව්‍ය" }, type: "text" },
   ];
@@ -275,12 +281,12 @@ export default function EconomicAgriculturePage() {
 
   const forestDamageColumns: RepeatableColumn[] = [
     { key: "typeLabel", label: { en: "Type of Damage", si: "හානියේ ස්වභාවය" }, type: "readonly" },
-    { key: "present", label: { en: "Present", si: "ඇත/නැත" }, type: "select", options: YES_NO_OPTIONS },
+    { key: "present", label: { en: "Present", si: "ඇත/නැත" }, type: "select", options: YES_NO_OPTIONS, required: true },
   ];
 
   const livestockFarmColumns: RepeatableColumn[] = [
-    { key: "name", label: { en: "Name", si: "නම" }, type: "text" },
-    { key: "address", label: { en: "Address", si: "ලිපිනය" }, type: "text" },
+    { key: "name", label: { en: "Name", si: "නම" }, type: "text", required: true },
+    { key: "address", label: { en: "Address", si: "ලිපිනය" }, type: "text", required: true },
     { key: "phone", label: { en: "Phone", si: "දුරකථන අංකය" }, type: "text" },
     { key: "cattle", label: { en: "Cattle", si: "ගවයන්" }, type: "number" },
     { key: "layerChickens", label: { en: "Layer Chickens", si: "බිත්තර සඳහා කුකුළන්" }, type: "number" },
@@ -292,8 +298,8 @@ export default function EconomicAgriculturePage() {
   ];
 
   const industryColumns: RepeatableColumn[] = [
-    { key: "name", label: { en: "Industry Name", si: "කර්මාන්තයේ නම" }, type: "text" },
-    { key: "productionType", label: { en: "Production Type", si: "නිෂ්පාදන වර්ග" }, type: "text" },
+    { key: "name", label: { en: "Industry Name", si: "කර්මාන්තයේ නම" }, type: "text", required: true },
+    { key: "productionType", label: { en: "Production Type", si: "නිෂ්පාදන වර්ග" }, type: "text", required: true },
     { key: "employeeCount", label: { en: "Employee Count", si: "සේවක ගණන" }, type: "number" },
     { key: "phone", label: { en: "Phone Number", si: "දුරකථන අංකය" }, type: "text" },
     {
@@ -305,56 +311,70 @@ export default function EconomicAgriculturePage() {
   ];
 
   const fisheriesSocietyColumns: RepeatableColumn[] = [
-    { key: "name", label: { en: "Fisheries Society Name", si: "ධීවර සමිතියේ නම" }, type: "text" },
-    { key: "address", label: { en: "Fisheries Society Address", si: "ධීවර සමිතියේ ලිපිනය" }, type: "text" },
+    { key: "name", label: { en: "Fisheries Society Name", si: "ධීවර සමිතියේ නම" }, type: "text", required: true },
+    { key: "address", label: { en: "Fisheries Society Address", si: "ධීවර සමිතියේ ලිපිනය" }, type: "text", required: true },
     { key: "memberCount", label: { en: "Member Count", si: "සාමාජික ගණන" }, type: "number" },
   ];
 
   const inlandWaterBodyColumns: RepeatableColumn[] = [
-    { key: "name", label: { en: "Name of Tank / Reservoir (Perennial / Seasonal)", si: "වැව්/ජලාශ නම (නිතය/කාලීන)" }, type: "text" },
+    {
+      key: "name",
+      label: { en: "Name of Tank / Reservoir (Perennial / Seasonal)", si: "වැව්/ජලාශ නම (නිතය/කාලීන)" },
+      type: "text",
+      required: true,
+    },
     {
       key: "type",
-      label: { en: "* Type", si: "*වර්ගය" },
+      label: { en: "Type", si: "වර්ගය" },
       type: "select",
       options: INLAND_WATER_BODY_TYPES.map((t) => ({ value: t, label: INLAND_WATER_BODY_TYPE_LABELS[t] })),
+      required: true,
     },
   ];
 
   const namePhoneColumns: RepeatableColumn[] = [
-    { key: "name", label: { en: "Name", si: "නම" }, type: "text" },
-    { key: "address", label: { en: "Address", si: "ලිපිනය" }, type: "text" },
+    { key: "name", label: { en: "Name", si: "නම" }, type: "text", required: true },
+    { key: "address", label: { en: "Address", si: "ලිපිනය" }, type: "text", required: true },
     { key: "phone", label: { en: "Phone", si: "දුරකථන අංකය" }, type: "text" },
   ];
 
   const fishLandingSiteColumns: RepeatableColumn[] = [
-    { key: "name", label: { en: "Fish Harbor / Fish Landing Site Name", si: "ධීවර වරාය/ධීවර තොටුපොළ නම" }, type: "text" },
-    { key: "address", label: { en: "Address", si: "ලිපිනය" }, type: "text" },
+    {
+      key: "name",
+      label: { en: "Fish Harbor / Fish Landing Site Name", si: "ධීවර වරාය/ධීවර තොටුපොළ නම" },
+      type: "text",
+      required: true,
+    },
+    { key: "address", label: { en: "Address", si: "ලිපිනය" }, type: "text", required: true },
     {
       key: "siteType",
-      label: { en: "* Type", si: "*වර්ගය" },
+      label: { en: "Type", si: "වර්ගය" },
       type: "select",
       options: FISH_SITE_TYPES.map((t) => ({ value: t, label: FISH_SITE_TYPE_LABELS[t] })),
+      required: true,
     },
     {
       key: "waterType",
-      label: { en: "** Whether the Site is Marine or Inland (Freshwater)", si: "**තොටුපොළ /වරාය කරදිය හෝ මිරිදියද යන්න" },
+      label: { en: "Whether the Site is Marine or Inland (Freshwater)", si: "තොටුපොළ /වරාය කරදිය හෝ මිරිදියද යන්න" },
       type: "select",
       options: WATER_TYPES.map((t) => ({ value: t, label: WATER_TYPE_LABELS[t] })),
+      required: true,
     },
   ];
 
   const nameAddressColumns: RepeatableColumn[] = [
-    { key: "name", label: { en: "Ice Factory Name", si: "අයිස් නිෂ්පාදනාගාරයන්හි නම" }, type: "text" },
-    { key: "address", label: { en: "Address", si: "ලිපිනය" }, type: "text" },
+    { key: "name", label: { en: "Ice Factory Name", si: "අයිස් නිෂ්පාදනාගාරයන්හි නම" }, type: "text", required: true },
+    { key: "address", label: { en: "Address", si: "ලිපිනය" }, type: "text", required: true },
   ];
 
   const teaEstateColumns: RepeatableColumn[] = [
-    { key: "name", label: { en: "Tea Estate Name", si: "තේ වත්තේ නම" }, type: "text" },
+    { key: "name", label: { en: "Tea Estate Name", si: "තේ වත්තේ නම" }, type: "text", required: true },
     {
       key: "ownership",
-      label: { en: "* Ownership", si: "*අයිතිය" },
+      label: { en: "Ownership", si: "අයිතිය" },
       type: "select",
       options: TEA_ESTATE_OWNERSHIP.map((o) => ({ value: o, label: TEA_ESTATE_OWNERSHIP_LABELS[o] })),
+      required: true,
     },
     { key: "extentAcres", label: { en: "Extent - Acres", si: "භූමි ප්‍රමාණය - අක්." }, type: "number" },
     { key: "extentRoods", label: { en: "Extent - Roods", si: "භූමි ප්‍රමාණය - රුඩ්." }, type: "number" },
@@ -675,7 +695,7 @@ export default function EconomicAgriculturePage() {
       </div>
 
       <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4 border-t border-border pt-6">
-        <FieldWrapper name="fishLandingSitePresent" label={economicAgricultureDict.fields.fishLandingSitePresent}>
+        <FieldWrapper name="fishLandingSitePresent" label={economicAgricultureDict.fields.fishLandingSitePresent} required>
           {({ id, describedBy, invalid }) => (
             <Select
               value={form.watch("fishLandingSitePresent") ?? ""}
@@ -706,7 +726,7 @@ export default function EconomicAgriculturePage() {
       </div>
 
       <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4 border-t border-border pt-6">
-        <FieldWrapper name="iceProductionPresent" label={economicAgricultureDict.fields.iceProductionPresent}>
+        <FieldWrapper name="iceProductionPresent" label={economicAgricultureDict.fields.iceProductionPresent} required>
           {({ id, describedBy, invalid }) => (
             <Select
               value={form.watch("iceProductionPresent") ?? ""}
