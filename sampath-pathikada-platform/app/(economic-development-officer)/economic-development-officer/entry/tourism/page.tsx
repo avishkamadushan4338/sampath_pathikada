@@ -93,21 +93,22 @@ export default function TourismPage() {
   ];
 
   const guestAccommodationColumns: RepeatableColumn[] = [
-    { key: "name", label: { en: "Name", si: "නම" }, type: "text" },
+    { key: "name", label: { en: "Name", si: "නම" }, type: "text", required: true },
     {
       key: "type",
       label: { en: "Type", si: "වර්ගය" },
       type: "select",
       options: GUEST_ACCOMMODATION_TYPES.map((t) => ({ value: t, label: GUEST_ACCOMMODATION_TYPE_LABELS[t] })),
+      required: true,
     },
-    { key: "address", label: { en: "Address", si: "ලිපිනය" }, type: "text" },
+    { key: "address", label: { en: "Address", si: "ලිපිනය" }, type: "text", required: true },
     { key: "roomCount", label: { en: "Number of Rooms", si: "කාමර සංඛ්‍යාව" }, type: "number" },
   ];
 
   const otherAccommodationColumns: RepeatableColumn[] = [
-    { key: "name", label: { en: "Name", si: "නම" }, type: "text" },
-    { key: "type", label: { en: "Type", si: "වර්ගය" }, type: "text" },
-    { key: "address", label: { en: "Address", si: "ලිපිනය" }, type: "text" },
+    { key: "name", label: { en: "Name", si: "නම" }, type: "text", required: true },
+    { key: "type", label: { en: "Type", si: "වර්ගය" }, type: "text", required: true },
+    { key: "address", label: { en: "Address", si: "ලිපිනය" }, type: "text", required: true },
   ];
 
   return (
