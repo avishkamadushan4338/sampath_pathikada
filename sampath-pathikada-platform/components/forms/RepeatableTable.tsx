@@ -24,6 +24,7 @@ import {
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { Bilingual } from "@/components/Bilingual";
 import { dictionary } from "@/lib/i18n/dictionary";
+import { getErrorAtPath } from "@/components/forms/FormField";
 import type { Translated } from "@/lib/i18n/types";
 import { cn } from "@/lib/utils";
 
@@ -33,9 +34,21 @@ export interface RepeatableColumn {
   type: "text" | "number" | "select" | "readonly" | "computed";
   options?: { value: string; label: Translated }[];
   placeholder?: Translated;
+  /** Marks the column as mandatory per the row's Zod schema (e.g. a directory row's "name")
+   *  — shows the same "*" indicator FieldWrapper uses for standalone required fields, so
+   *  required-ness reads consistently whether a field lives in a table or its own row. */
+  required?: boolean;
   /** Required when type is "computed" — derives a live display value (e.g. a row total) from
    *  the row's current values. Reactive: recomputes on every keystroke in that row. */
   compute?: (row: Record<string, unknown>) => string | number;
+  /** Card-layout only: columns sharing the same group text render together in one labeled
+   *  sub-box instead of as separate cells scattered across the card's field grid — e.g. an
+   *  "Under 18" group containing just Female/Male, rather than each cell independently
+   *  spelling out "Under 18 - Female" / "Under 18 - Male" and wrapping awkwardly at narrow
+   *  widths. Columns must be adjacent in the `columns` array to be grouped together. In the
+   *  wide `<table>` layout (only reachable via `preferTableLayout`), the same grouping becomes
+   *  a spanning group header above the individual field headers instead. */
+  group?: Translated;
 }
 
 interface RepeatableTableProps<T extends FieldValues> {
@@ -44,6 +57,13 @@ interface RepeatableTableProps<T extends FieldValues> {
   title?: Translated;
   /** When true, rows can't be added/removed — used for schema-fixed matrices (e.g. age bands). */
   fixedRows?: boolean;
+  /** Overrides the "6+ columns always uses cards" rule. That rule exists because a wide row of
+   *  *text* fields (names, addresses) forces each one into an unreadable sliver — but a row of
+   *  narrow number/select fields doesn't have that problem, and for a table with many rows (e.g.
+   *  8 disability types), one compact row per record beats one tall card per record. Only makes
+   *  sense for columns that are actually narrow; a text-heavy 6+ column table should still use
+   *  the default card layout. */
+  preferTableLayout?: boolean;
   emptyRowFactory: () => Record<string, unknown>;
 }
 
@@ -51,24 +71,58 @@ function hasAnyValue(row: Record<string, unknown>): boolean {
   return Object.values(row).some((v) => v !== "" && v !== undefined && v !== null);
 }
 
+interface ColumnGroup {
+  group?: Translated;
+  columns: RepeatableColumn[];
+}
+
+/** Adjacent columns sharing the same `group` collapse into one entry; everything else stays its
+ *  own single-column "group". Comparing by the *active-language* text (not object identity)
+ *  means callers can just repeat the same `{ en, si }` literal on each column without having to
+ *  share a single object reference. */
+function groupColumns(columns: RepeatableColumn[], lang: "en" | "si"): ColumnGroup[] {
+  const groups: ColumnGroup[] = [];
+  for (const col of columns) {
+    const label = col.group ? col.group[lang] : undefined;
+    const last = groups[groups.length - 1];
+    const lastLabel = last?.group ? last.group[lang] : undefined;
+    if (label && last && label === lastLabel) {
+      last.columns.push(col);
+    } else {
+      groups.push({ group: col.group, columns: [col] });
+    }
+  }
+  return groups;
+}
+
 export function RepeatableTable<T extends FieldValues>({
   name,
   columns,
   title,
   fixedRows = false,
+  preferTableLayout = false,
   emptyRowFactory,
 }: RepeatableTableProps<T>) {
   const { lang } = useLanguage();
-  const { control, watch } = useFormContext<T>();
+  const { control, watch, formState } = useFormContext<T>();
   const { fields, append, remove } = useFieldArray({ control, name });
   const [pendingDeleteIndex, setPendingDeleteIndex] = useState<number | null>(null);
+
+  // A cross-field rule (e.g. "at least one row required") targets the array field itself, not
+  // any single row — react-hook-form files that under `<name>.root` once the array already has
+  // per-row errors of its own, but falls back to `<name>` directly when it doesn't, so check both.
+  const arrayError =
+    getErrorAtPath(formState.errors as Record<string, unknown>, `${name}.root`) ??
+    getErrorAtPath(formState.errors as Record<string, unknown>, name);
 
   /** Past ~5 columns, a horizontal table forces every input into a sliver too narrow to read
    *  or type into (school names, multi-word select options), no matter how wide the screen is —
    *  it's not a viewport problem, it's a "too many fields for one row" problem. So heavy rows
    *  always render as the labeled-card layout instead of only falling back to it on narrow
-   *  containers; simpler rows keep the space-efficient table on wide containers. */
-  const useCardLayout = columns.length >= 6;
+   *  containers; simpler rows keep the space-efficient table on wide containers.
+   *  `preferTableLayout` opts a specific heavy-but-narrow table (see prop doc) back out of that
+   *  default. */
+  const useCardLayout = columns.length >= 6 && !preferTableLayout;
 
   function requestRemove(index: number) {
     const row = watch(`${name}.${index}` as never) as unknown as Record<string, unknown>;
@@ -97,22 +151,31 @@ export function RepeatableTable<T extends FieldValues>({
       return <ComputedField rowName={`${name}.${rowIndex}`} compute={column.compute!} />;
     }
 
+    const error = getErrorAtPath(formState.errors as Record<string, unknown>, fieldName);
+
     if (column.type === "select") {
       return (
-        <SelectField fieldName={fieldName} options={column.options ?? []} lang={lang} onCard={onCard} />
+        <>
+          <SelectField fieldName={fieldName} options={column.options ?? []} lang={lang} onCard={onCard} invalid={!!error} />
+          {onCard && error?.message && <p className="text-fluid-xs text-destructive">{String(error.message)}</p>}
+        </>
       );
     }
 
     return (
-      <TextField
-        fieldName={fieldName}
-        type={column.type === "number" ? "number" : "text"}
-        placeholder={column.placeholder ? (lang === "si" ? column.placeholder.si : column.placeholder.en) : undefined}
-        // The card layout's bg-card surface is the same tone as the default input border
-        // (--input is defined as "card tone"), so an empty field is otherwise invisible —
-        // give it a background+border that actually contrast against the card.
-        className={cn("min-w-32 text-fluid-sm", onCard && "border-border bg-background shadow-sm")}
-      />
+      <>
+        <TextField
+          fieldName={fieldName}
+          type={column.type === "number" ? "number" : "text"}
+          placeholder={column.placeholder ? (lang === "si" ? column.placeholder.si : column.placeholder.en) : undefined}
+          // The card layout's bg-card surface is the same tone as the default input border
+          // (--input is defined as "card tone"), so an empty field is otherwise invisible —
+          // give it a background+border that actually contrast against the card.
+          className={cn("min-w-32 text-fluid-sm", onCard && "border-border bg-background shadow-sm")}
+          invalid={!!error}
+        />
+        {onCard && error?.message && <p className="text-fluid-xs text-destructive">{String(error.message)}</p>}
+      </>
     );
   }
 
@@ -132,14 +195,79 @@ export function RepeatableTable<T extends FieldValues>({
         <div className={cn("overflow-x-auto rounded-lg border border-border", useCardLayout ? "hidden" : "hidden @2xl:block")}>
           <table className="w-full border-collapse text-fluid-sm">
             <thead>
-              <tr className="border-b border-border bg-muted/50">
-                {columns.map((col) => (
-                  <th key={col.key} lang={lang} className={cn("px-3 py-2 text-left font-medium text-foreground", lang === "si" && "font-si")}>
-                    {lang === "si" ? col.label.si : col.label.en}
-                  </th>
-                ))}
-                {!fixedRows && <th className="w-12 px-3 py-2" aria-label={dictionary.delete[lang]} />}
-              </tr>
+              {columns.some((c) => c.group) ? (
+                <>
+                  {/* Group row: a grouped column's Female/Male labels move to the row below, under
+                      one spanning header ("Under 18") — an ungrouped column (e.g. "Total") has
+                      nothing to put below it, so it spans both header rows instead. */}
+                  <tr className="border-b border-border bg-muted/50">
+                    {groupColumns(columns, lang).map((grp, gi) =>
+                      grp.group ? (
+                        <th
+                          key={gi}
+                          colSpan={grp.columns.length}
+                          lang={lang}
+                          className={cn(
+                            "border-l border-border px-3 py-1.5 text-center text-fluid-xs font-semibold text-foreground first:border-l-0",
+                            lang === "si" && "font-si"
+                          )}
+                        >
+                          {grp.group[lang]}
+                        </th>
+                      ) : (
+                        <th
+                          key={gi}
+                          rowSpan={2}
+                          lang={lang}
+                          className={cn("px-3 py-2 text-left align-bottom font-medium text-foreground", lang === "si" && "font-si")}
+                        >
+                          {lang === "si" ? grp.columns[0].label.si : grp.columns[0].label.en}
+                          {grp.columns[0].required && (
+                            <span className="ml-1 text-destructive" aria-label={dictionary.required[lang]}>
+                              *
+                            </span>
+                          )}
+                        </th>
+                      )
+                    )}
+                    {!fixedRows && <th rowSpan={2} className="w-12 px-3 py-2" aria-label={dictionary.delete[lang]} />}
+                  </tr>
+                  <tr className="border-b border-border bg-muted/50">
+                    {groupColumns(columns, lang).flatMap((grp) =>
+                      grp.group
+                        ? grp.columns.map((col) => (
+                            <th
+                              key={col.key}
+                              lang={lang}
+                              className={cn("border-l border-border px-3 py-1.5 text-left font-medium text-foreground first:border-l-0", lang === "si" && "font-si")}
+                            >
+                              {lang === "si" ? col.label.si : col.label.en}
+                              {col.required && (
+                                <span className="ml-1 text-destructive" aria-label={dictionary.required[lang]}>
+                                  *
+                                </span>
+                              )}
+                            </th>
+                          ))
+                        : []
+                    )}
+                  </tr>
+                </>
+              ) : (
+                <tr className="border-b border-border bg-muted/50">
+                  {columns.map((col) => (
+                    <th key={col.key} lang={lang} className={cn("px-3 py-2 text-left font-medium text-foreground", lang === "si" && "font-si")}>
+                      {lang === "si" ? col.label.si : col.label.en}
+                      {col.required && (
+                        <span className="ml-1 text-destructive" aria-label={dictionary.required[lang]}>
+                          *
+                        </span>
+                      )}
+                    </th>
+                  ))}
+                  {!fixedRows && <th className="w-12 px-3 py-2" aria-label={dictionary.delete[lang]} />}
+                </tr>
+              )}
             </thead>
             <tbody>
               {fields.map((field, index) => (
@@ -172,36 +300,86 @@ export function RepeatableTable<T extends FieldValues>({
         {/* Card layout: always used for heavy (6+ column) rows, and as the narrow-container
             fallback otherwise. Each field gets its own labeled auto-fit grid cell instead of a
             single cramped column, so a 9-10 field row wraps into a readable mini-form instead
-            of either a crushed table row or an unnecessarily tall single-column stack. */}
+            of either a crushed table row or an unnecessarily tall single-column stack.
+            A leading readonly column (e.g. "Mental Illness", "0-4 years") identifies the row —
+            its column caption is identical on every card, so showing "caption: value" like the
+            other fields just repeats the same label N times while the one thing that actually
+            differs between cards sits in small muted text. Promoting it to the card title makes
+            cards distinguishable at a glance instead of all looking the same. */}
         <div className={cn("flex flex-col gap-3", !useCardLayout && "@2xl:hidden")}>
-          {fields.map((field, index) => (
-            <div key={field.id} className="rounded-lg border border-border bg-card p-3">
-              <div className="grid grid-cols-[repeat(auto-fit,minmax(160px,1fr))] gap-3">
-                {columns.map((col) => (
-                  <div key={col.key} className="flex flex-col gap-1">
-                    <span lang={lang} className={cn("text-fluid-xs font-medium text-muted-foreground", lang === "si" && "font-si")}>
-                      {lang === "si" ? col.label.si : col.label.en}
-                    </span>
-                    {renderInput(index, col, (field as Record<string, unknown>)[col.key], true)}
+          {fields.map((field, index) => {
+            const hasIdentifierColumn = columns[0]?.type === "readonly";
+            const identifierColumn = hasIdentifierColumn ? columns[0] : undefined;
+            const restColumns = hasIdentifierColumn ? columns.slice(1) : columns;
+            return (
+              <div key={field.id} className="rounded-lg border border-border bg-card p-3">
+                {identifierColumn && (
+                  <div
+                    lang={lang}
+                    className={cn(
+                      "mb-3 border-b border-border pb-2 text-fluid-base font-semibold text-foreground",
+                      lang === "si" && "font-si-heading"
+                    )}
+                  >
+                    {String((field as Record<string, unknown>)[identifierColumn.key] ?? "")}
                   </div>
-                ))}
+                )}
+                {(() => {
+                  function renderField(col: RepeatableColumn) {
+                    return (
+                      <div key={col.key} className="flex flex-col gap-1">
+                        <span lang={lang} className={cn("text-fluid-xs font-medium text-muted-foreground", lang === "si" && "font-si")}>
+                          {lang === "si" ? col.label.si : col.label.en}
+                          {col.required && (
+                            <span className="ml-1 text-destructive" aria-label={dictionary.required[lang]}>
+                              *
+                            </span>
+                          )}
+                        </span>
+                        {renderInput(index, col, (field as Record<string, unknown>)[col.key], true)}
+                      </div>
+                    );
+                  }
+                  return (
+                    <div className="grid grid-cols-[repeat(auto-fit,minmax(160px,1fr))] gap-3">
+                      {groupColumns(restColumns, lang).map((grp, gi) =>
+                        grp.group ? (
+                          <div key={gi} className="flex min-w-64 flex-col gap-2 rounded-md border border-border/70 bg-background/50 p-2.5">
+                            <span lang={lang} className={cn("text-fluid-xs font-semibold text-foreground", lang === "si" && "font-si")}>
+                              {grp.group[lang]}
+                            </span>
+                            <div className="grid grid-cols-2 gap-3">{grp.columns.map(renderField)}</div>
+                          </div>
+                        ) : (
+                          renderField(grp.columns[0])
+                        )
+                      )}
+                    </div>
+                  );
+                })()}
+                {!fixedRows && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="touch-target mt-3 w-full gap-1.5 text-destructive hover:text-destructive"
+                    onClick={() => requestRemove(index)}
+                  >
+                    <Trash2 className="size-4" />
+                    <Bilingual {...dictionary.delete} />
+                  </Button>
+                )}
               </div>
-              {!fixedRows && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="touch-target mt-3 w-full gap-1.5 text-destructive hover:text-destructive"
-                  onClick={() => requestRemove(index)}
-                >
-                  <Trash2 className="size-4" />
-                  <Bilingual {...dictionary.delete} />
-                </Button>
-              )}
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
+
+      {arrayError?.message && (
+        <p role="alert" className="flex items-center gap-1.5 text-fluid-sm font-medium text-destructive">
+          {String(arrayError.message)}
+        </p>
+      )}
 
       {!fixedRows && (
         <Button
@@ -262,11 +440,13 @@ function TextField({
   type,
   placeholder,
   className,
+  invalid = false,
 }: {
   fieldName: string;
   type: "text" | "number";
   placeholder?: string;
   className?: string;
+  invalid?: boolean;
 }) {
   const { setValue, watch } = useFormContext();
   const value = watch(fieldName as never) as unknown as string | number | undefined;
@@ -278,6 +458,7 @@ function TextField({
       placeholder={placeholder}
       className={className}
       value={value ?? ""}
+      aria-invalid={invalid}
       onChange={(e) => setValue(fieldName as never, e.target.value as never, { shouldDirty: true })}
     />
   );
@@ -288,18 +469,20 @@ function SelectField({
   options,
   lang,
   onCard = false,
+  invalid = false,
 }: {
   fieldName: string;
   options: { value: string; label: Translated }[];
   lang: "en" | "si";
   onCard?: boolean;
+  invalid?: boolean;
 }) {
   const { setValue, watch } = useFormContext();
   const value = watch(fieldName as never) as unknown as string | undefined;
 
   return (
     <Select value={value ?? ""} onValueChange={(v) => setValue(fieldName as never, v as never, { shouldDirty: true })}>
-      <SelectTrigger className={cn("min-w-32 text-fluid-sm", onCard && "border-border bg-background shadow-sm")}>
+      <SelectTrigger aria-invalid={invalid} className={cn("min-w-32 text-fluid-sm", onCard && "border-border bg-background shadow-sm")}>
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
