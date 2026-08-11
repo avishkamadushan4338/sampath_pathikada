@@ -65,17 +65,22 @@ export type ReligiousCulturalData = z.infer<typeof religiousCulturalSchemaStrict
 
 export { HERITAGE_SITE_TYPES };
 
+/* Draft-mode reuses the strict row schemas directly — a row's required fields (e.g. `name`)
+ * still fail validation if blank, surfacing a "required" error in the UI, but that no longer
+ * blocks saving: SectionForm always saves the draft regardless of validation outcome, it just
+ * shows the errors alongside. Only the *array itself* (or, for `religiousSiteCounts`, the
+ * nested objects) is optional here, so an empty/untouched table is still a valid draft. */
 export const religiousCulturalSchemaPartial = z.object({
   religiousSiteCounts: z
     .object({
-      temples: religiousSiteCountSchema.partial().optional(),
-      meheniArama: religiousSiteCountSchema.partial().optional(),
-      kovils: religiousSiteCountSchema.partial().optional(),
-      mosques: religiousSiteCountSchema.partial().optional(),
-      churches: catholicChurchCountSchema.partial().optional(),
+      temples: religiousSiteCountSchema.optional(),
+      meheniArama: religiousSiteCountSchema.optional(),
+      kovils: religiousSiteCountSchema.optional(),
+      mosques: religiousSiteCountSchema.optional(),
+      churches: catholicChurchCountSchema.optional(),
     })
     .optional(),
-  heritageSites: z.array(heritageSiteRowSchema.partial()).optional(),
-  artAcademies: z.array(artAcademyRowSchema.partial()).optional(),
-  traditionalArtists: z.array(traditionalArtistRowSchema.partial()).optional(),
+  heritageSites: z.array(heritageSiteRowSchema).optional(),
+  artAcademies: z.array(artAcademyRowSchema).optional(),
+  traditionalArtists: z.array(traditionalArtistRowSchema).optional(),
 });
