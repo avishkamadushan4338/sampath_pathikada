@@ -52,30 +52,11 @@ export const healthSchemaStrict = z.object({
 
 export type HealthData = z.infer<typeof healthSchemaStrict>;
 
-/* Draft-mode row schemas built from scratch rather than `.partial()` on the strict schemas
- * above: `.partial()` only allows a field to be *missing*, it doesn't relax `min(1)`, so a row
- * added via the "Add" button (whose fields start as "") would still fail validation and
- * silently block saving. */
-const govtHospitalRowPartialSchema = z.object({
-  name: z.string().optional(),
-  type: z.enum(GOVT_HOSPITAL_TYPES).optional(),
-});
-
-const nameAddressHealthRowPartialSchema = z.object({
-  name: z.string().optional(),
-  address: z.string().optional(),
-});
-
-const primaryHealthcareUnitRowPartialSchema = z.object({
-  name: z.string().optional(),
-  type: z.string().optional(),
-});
-
-const traditionalPractitionerRowPartialSchema = z.object({
-  name: z.string().optional(),
-  specialty: z.string().optional(),
-});
-
+/* Draft-mode reuses the strict row schemas directly — a row's required fields (e.g. `name`)
+ * still fail validation if blank, surfacing a "required" error in the UI, but that no longer
+ * blocks saving: SectionForm always saves the draft regardless of validation outcome, it just
+ * shows the errors alongside. Only the *array itself* is optional here, so an empty/untouched
+ * directory (no rows added yet) is still a valid draft. */
 export const healthSchemaPartial = z.object({
   institutionCounts: z
     .object({
@@ -92,16 +73,16 @@ export const healthSchemaPartial = z.object({
       privatePharmacies: z.coerce.number().int().min(0).optional(),
     })
     .optional(),
-  govtHospitalsDirectory: z.array(govtHospitalRowPartialSchema).optional(),
-  primaryHealthcareUnitsDirectory: z.array(primaryHealthcareUnitRowPartialSchema).optional(),
-  privateHospitalsDirectory: z.array(nameAddressHealthRowPartialSchema).optional(),
-  ayurvedicInstitutions: z.array(nameAddressHealthRowPartialSchema).optional(),
-  specialistServiceCentersDirectory: z.array(nameAddressHealthRowPartialSchema).optional(),
-  mohOfficesDirectory: z.array(nameAddressHealthRowPartialSchema).optional(),
-  traditionalMedicineInstitutionsDirectory: z.array(nameAddressHealthRowPartialSchema).optional(),
-  privateMedicalLabsDirectory: z.array(nameAddressHealthRowPartialSchema).optional(),
-  animalClinicsDirectory: z.array(nameAddressHealthRowPartialSchema).optional(),
-  traditionalPractitioners: z.array(traditionalPractitionerRowPartialSchema).optional(),
+  govtHospitalsDirectory: z.array(govtHospitalRowSchema).optional(),
+  primaryHealthcareUnitsDirectory: z.array(primaryHealthcareUnitRowSchema).optional(),
+  privateHospitalsDirectory: z.array(nameAddressHealthRowSchema).optional(),
+  ayurvedicInstitutions: z.array(nameAddressHealthRowSchema).optional(),
+  specialistServiceCentersDirectory: z.array(nameAddressHealthRowSchema).optional(),
+  mohOfficesDirectory: z.array(nameAddressHealthRowSchema).optional(),
+  traditionalMedicineInstitutionsDirectory: z.array(nameAddressHealthRowSchema).optional(),
+  privateMedicalLabsDirectory: z.array(nameAddressHealthRowSchema).optional(),
+  animalClinicsDirectory: z.array(nameAddressHealthRowSchema).optional(),
+  traditionalPractitioners: z.array(traditionalPractitionerRowSchema).optional(),
 });
 
 export { GOVT_HOSPITAL_TYPES };

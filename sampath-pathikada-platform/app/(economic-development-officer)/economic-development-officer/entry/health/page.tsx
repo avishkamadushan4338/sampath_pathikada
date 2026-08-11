@@ -82,23 +82,24 @@ export default function HealthPage() {
   }
 
   const govtHospitalColumns: RepeatableColumn[] = [
-    { key: "name", label: { en: "Government Hospital Name", si: "රජයේ රෝහලේ නම" }, type: "text" },
+    { key: "name", label: { en: "Government Hospital Name", si: "රජයේ රෝහලේ නම" }, type: "text", required: true },
     {
       key: "type",
       label: { en: "Hospital Type", si: "රෝහල් වර්ගය" },
       type: "select",
       options: GOVT_HOSPITAL_TYPES.map((t) => ({ value: t, label: GOVT_HOSPITAL_TYPE_LABELS[t] })),
+      required: true,
     },
   ];
 
   const nameAddressColumns: RepeatableColumn[] = [
-    { key: "name", label: { en: "Name of Institution", si: "ආයතනයේ නම" }, type: "text" },
-    { key: "address", label: { en: "Address", si: "ලිපිනය" }, type: "text" },
+    { key: "name", label: { en: "Name of Institution", si: "ආයතනයේ නම" }, type: "text", required: true },
+    { key: "address", label: { en: "Address", si: "ලිපිනය" }, type: "text", required: true },
   ];
 
   const privateHospitalColumns: RepeatableColumn[] = [
-    { key: "name", label: { en: "Private Hospital Name", si: "පෞද්ගලික රෝහලේ නම" }, type: "text" },
-    { key: "address", label: { en: "Address", si: "ලිපිනය" }, type: "text" },
+    { key: "name", label: { en: "Private Hospital Name", si: "පෞද්ගලික රෝහලේ නම" }, type: "text", required: true },
+    { key: "address", label: { en: "Address", si: "ලිපිනය" }, type: "text", required: true },
   ];
 
   const primaryHealthcareUnitColumns: RepeatableColumn[] = [
@@ -109,13 +110,14 @@ export default function HealthPage() {
         si: "ප්‍රාථමික සෞඛ්‍ය සත්කාර ඒකකයේ නම -( මධ්‍යම බෙහෙත් ශාලා- බටහිර )/මාතෘ නිවාස)",
       },
       type: "text",
+      required: true,
     },
     { key: "type", label: { en: "* Type", si: "*වර්ගය" }, type: "text" },
   ];
 
   const traditionalPractitionerColumns: RepeatableColumn[] = [
-    { key: "name", label: { en: "Practitioner Name", si: "පාරම්පරික සිංහල වෙදකම සිදු කරන වෛද්‍යවරුන්ගේ නම" }, type: "text" },
-    { key: "specialty", label: { en: "* Field of Practice", si: "*කටයුතු කරන වෛද්‍ය ක්ෂේත්‍රය" }, type: "text" },
+    { key: "name", label: { en: "Practitioner Name", si: "පාරම්පරික සිංහල වෙදකම සිදු කරන වෛද්‍යවරුන්ගේ නම" }, type: "text", required: true },
+    { key: "specialty", label: { en: "Field of Practice", si: "කටයුතු කරන වෛද්‍ය ක්ෂේත්‍රය" }, type: "text", required: true },
   ];
 
   const headingClass = cn("text-fluid-lg font-semibold text-foreground", lang === "si" && "font-si-heading");
