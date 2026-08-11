@@ -65,43 +65,29 @@ export const communityOrganizationsSchemaStrict = z.object({
 
 export type CommunityOrganizationsData = z.infer<typeof communityOrganizationsSchemaStrict>;
 
-/* Draft-mode row schemas built from scratch rather than `.partial()` on the strict schemas
- * above: `.partial()` only allows a field to be *missing*, it doesn't relax `min(1)`, so a row
- * added via the "Add" button (whose fields start as "") would still fail validation and
- * silently block saving. */
-const nameAddressRowPartialSchema = z.object({
-  name: z.string().optional(),
-  address: z.string().optional(),
-});
-
-const sportsClubRowPartialSchema = z.object({
-  nameAndAddress: z.string().optional(),
-  memberCount: z.coerce.number().int().min(0).optional(),
-  identifiedNeeds: z.string().optional(),
-});
-
-const cooperativeSocietyRowPartialSchema = z.object({
-  name: z.string().optional(),
-});
-
+/* Draft-mode reuses the strict row schemas directly — a row's required fields (e.g. `name`)
+ * still fail validation if blank, surfacing a "required" error in the UI, but that no longer
+ * blocks saving: SectionForm always saves the draft regardless of validation outcome, it just
+ * shows the errors alongside. Only the *array itself* is optional here, so an empty/untouched
+ * directory (no rows added yet) is still a valid draft. */
 export const communityOrganizationsSchemaPartial = z.object({
-  organizationCounts: z.array(organizationCountRowSchema.partial()).optional(),
-  villageDevelopmentSocieties: z.array(nameAddressRowPartialSchema).optional(),
-  youthSocieties: z.array(nameAddressRowPartialSchema).optional(),
-  sportsClubs: z.array(sportsClubRowPartialSchema).optional(),
-  funeralAidSocieties: z.array(nameAddressRowPartialSchema).optional(),
-  womensSocieties: z.array(nameAddressRowPartialSchema).optional(),
-  eldersSocieties: z.array(nameAddressRowPartialSchema).optional(),
-  childrensSocieties: z.array(nameAddressRowPartialSchema).optional(),
-  samurdhiSocieties: z.array(nameAddressRowPartialSchema).optional(),
-  friendOrganizations: z.array(nameAddressRowPartialSchema).optional(),
-  ngoCommittees: z.array(nameAddressRowPartialSchema).optional(),
-  farmerSocieties: z.array(nameAddressRowPartialSchema).optional(),
-  religiousSocieties: z.array(nameAddressRowPartialSchema).optional(),
-  sanasaSocieties: z.array(nameAddressRowPartialSchema).optional(),
-  civilDefenseCommittees: z.array(nameAddressRowPartialSchema).optional(),
-  prajashakthiSocieties: z.array(nameAddressRowPartialSchema).optional(),
-  cooperativeSocieties: z.array(cooperativeSocietyRowPartialSchema).optional(),
+  organizationCounts: z.array(organizationCountRowSchema).optional(),
+  villageDevelopmentSocieties: z.array(nameAddressRowSchema).optional(),
+  youthSocieties: z.array(nameAddressRowSchema).optional(),
+  sportsClubs: z.array(sportsClubRowSchema).optional(),
+  funeralAidSocieties: z.array(nameAddressRowSchema).optional(),
+  womensSocieties: z.array(nameAddressRowSchema).optional(),
+  eldersSocieties: z.array(nameAddressRowSchema).optional(),
+  childrensSocieties: z.array(nameAddressRowSchema).optional(),
+  samurdhiSocieties: z.array(nameAddressRowSchema).optional(),
+  friendOrganizations: z.array(nameAddressRowSchema).optional(),
+  ngoCommittees: z.array(nameAddressRowSchema).optional(),
+  farmerSocieties: z.array(nameAddressRowSchema).optional(),
+  religiousSocieties: z.array(nameAddressRowSchema).optional(),
+  sanasaSocieties: z.array(nameAddressRowSchema).optional(),
+  civilDefenseCommittees: z.array(nameAddressRowSchema).optional(),
+  prajashakthiSocieties: z.array(nameAddressRowSchema).optional(),
+  cooperativeSocieties: z.array(cooperativeSocietyRowSchema).optional(),
 });
 
 export { ORGANIZATION_TYPES };
