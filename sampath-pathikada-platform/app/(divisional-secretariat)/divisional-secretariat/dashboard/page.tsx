@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import useSWR from "swr";
-import { Eye, ClipboardList, CheckCircle2, XCircle, MessageSquareWarning, Inbox, BarChart3, ArrowRight, CircleDashed, UserX } from "lucide-react";
+import { Eye, ClipboardList, CheckCircle2, XCircle, MessageSquareWarning, Inbox, BarChart3, ArrowRight, CircleDashed, UserX, AlertOctagon, AlertTriangle } from "lucide-react";
 import { useSession } from "@/hooks/use-session";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { Bilingual } from "@/components/Bilingual";
@@ -45,6 +45,71 @@ const analyticsFetcher = async (url: string) => {
   if (!res.ok || !json.ok) throw new Error(json.message ?? "Failed to load");
   return json as { notRegisteredCount: number; gnBreakdown: AnalyticsGnRow[] };
 };
+
+interface DataQualityAlert {
+  id: string;
+  action: string;
+  description: string;
+  severity: "WARNING" | "ERROR";
+  userName: string;
+  createdAt: string;
+}
+
+const alertsFetcher = async (url: string) => {
+  const res = await fetch(url);
+  const json = await res.json();
+  if (!res.ok || !json.ok) throw new Error(json.message ?? "Failed to load");
+  return json as { data: DataQualityAlert[]; total: number };
+};
+
+/** /api/audit-logs auto-scopes a Divisional Secretariat's query server-side (their own division,
+ *  DATA category, WARNING/ERROR severity only) regardless of what's passed here — this just asks
+ *  for the most recent handful to show as a compact dashboard flag, not a full log browser. */
+function DataQualityAlerts({ dsDivision }: { dsDivision: string | null | undefined }) {
+  const { lang } = useLanguage();
+  const { data } = useSWR(dsDivision ? "/api/audit-logs?limit=5" : null, alertsFetcher);
+  const alerts = data?.data ?? [];
+
+  if (alerts.length === 0) return null;
+
+  return (
+    <Card className="mb-8 border-l-4" style={{ borderLeftColor: "hsl(var(--status-rejected))" }}>
+      <CardHeader className="flex-row items-center gap-3 space-y-0">
+        <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[hsl(var(--status-rejected))]/15 text-[hsl(var(--status-rejected))]">
+          <AlertOctagon className="size-5" aria-hidden="true" />
+        </span>
+        <div>
+          <CardTitle className="text-fluid-base">
+            <Bilingual en="Data Quality Alerts" si="දත්ත ගුණාත්මක අනතුරු ඇඟවීම්" />
+          </CardTitle>
+          <p className="text-fluid-xs text-muted-foreground">
+            <Bilingual
+              en={`${data?.total ?? alerts.length} flagged issue(s) from officers in your division`}
+              si={`ඔබගේ ප්‍රදේශයේ නිලධාරීන්ගෙන් සලකුණු කළ ගැටළු ${data?.total ?? alerts.length} ක්`}
+            />
+          </p>
+        </div>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-3">
+        {alerts.map((alert) => (
+          <div key={alert.id} className="flex items-start gap-3 rounded-lg border border-border p-3">
+            <AlertTriangle
+              className={`mt-0.5 size-4 shrink-0 ${alert.severity === "ERROR" ? "text-[hsl(var(--status-rejected))]" : "text-[hsl(var(--status-pending))]"}`}
+              aria-hidden="true"
+            />
+            <div className="min-w-0 flex-1">
+              <p className="text-fluid-sm font-medium text-foreground">{alert.action}</p>
+              <p className="text-fluid-xs text-muted-foreground">{alert.description}</p>
+              <p className="mt-1 text-fluid-xs text-muted-foreground">
+                {alert.userName} · {new Date(alert.createdAt).toLocaleString(lang === "si" ? "si-LK" : "en-US")}
+              </p>
+            </div>
+          </div>
+        ))}
+      </CardContent>
+    </Card>
+  );
+}
 
 function DashboardSkeleton() {
   return (
@@ -170,6 +235,8 @@ export default function DivisionalSecretariatDashboardPage() {
           {CURRENT_YEAR}/{(CURRENT_YEAR + 1) % 100}
         </p>
       </div>
+
+      <DataQualityAlerts dsDivision={user?.dsDivision} />
 
       {/* Stat row */}
       <div className="mb-8 grid grid-cols-[repeat(auto-fit,minmax(clamp(180px,25vw,240px),1fr))] gap-4">
