@@ -1,14 +1,23 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
-import { useForm } from "react-hook-form";
+import { useEffect, useMemo, useState } from "react";
+import { useForm, useFormContext, type FieldErrors } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2 } from "lucide-react";
+import { AlertTriangle, Loader2 } from "lucide-react";
 import { z } from "zod";
 import { SectionForm } from "@/components/forms/SectionForm";
 import { FieldWrapper } from "@/components/forms/FormField";
 import { RepeatableTable, type RepeatableColumn } from "@/components/forms/RepeatableTable";
 import { Input } from "@/components/ui/input";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Bilingual } from "@/components/Bilingual";
 import { useSubmission, useSaveSection } from "@/hooks/use-submission";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { demographicsDict } from "@/lib/i18n/sections/demographics";
@@ -70,36 +79,41 @@ function sumSexCounts(row: Record<string, unknown>): number {
   return total;
 }
 
+// Every count here starts blank (not 0) so the officer must explicitly type a value — even
+// "0" — for each one; a pre-filled 0 would never trigger the "required" validation, since 0 is
+// already a legitimate answer. `as never` per row mirrors how RepeatableTable's own
+// `emptyRowFactory` results are cast — the runtime shape is a string here, not the post-parse
+// `number` the Zod-inferred DemographicsDraft type declares for these fields.
 function buildEmptyValues(lang: "en" | "si"): DemographicsDraft {
   return {
     populationByAge: AGE_BANDS.map((band) => ({
       band,
       bandLabel: AGE_BAND_LABELS[band][lang],
-      female: 0,
-      male: 0,
+      female: "",
+      male: "",
     })),
     populationByEthnicity: ETHNICITIES.map((ethnicity) => ({
       ethnicity,
       ethnicityLabel: ETHNICITY_LABELS[ethnicity][lang],
-      female: 0,
-      male: 0,
+      female: "",
+      male: "",
     })),
     populationByReligion: RELIGIONS.map((religion) => ({
       religion,
       religionLabel: RELIGION_LABELS[religion][lang],
-      female: 0,
-      male: 0,
+      female: "",
+      male: "",
     })),
-    foreignNationals: { female: 0, male: 0 },
-    households: { total: 0, femaleHeaded: 0, displaced: 0 },
+    foreignNationals: { female: "", male: "" },
+    households: { total: "", femaleHeaded: "", displaced: "" },
     disabilities: DISABILITY_TYPES.map((type) => ({
       type,
       typeLabel: DISABILITY_LABELS[type][lang],
-      under18: { female: 0, male: 0 },
-      over18: { female: 0, male: 0 },
+      under18: { female: "", male: "" },
+      over18: { female: "", male: "" },
     })),
-    registeredVoters: { electoralArea: "", female: 0, male: 0 },
-  };
+    registeredVoters: { electoralArea: "", female: "", male: "" },
+  } as never as DemographicsDraft;
 }
 
 /**
@@ -144,6 +158,7 @@ export default function DemographicsPage() {
   const { lang } = useLanguage();
   const { submission, isLoading } = useSubmission(CURRENT_YEAR);
   const { saveSection, status, errorMessage } = useSaveSection(CURRENT_YEAR);
+  const [showMismatchDialog, setShowMismatchDialog] = useState(false);
 
   const emptyValues = useMemo(() => buildEmptyValues(lang), [lang]);
 
@@ -165,6 +180,15 @@ export default function DemographicsPage() {
     await saveSection("demographics", values);
   }
 
+  // A blocked "required field" is routine and already obvious from the red text right under the
+  // field — no need to interrupt with a dialog. A population-total mismatch is a genuine data
+  // entry error (numbers that were typed in don't add up to a consistent population), easy to
+  // miss as just one more inline banner on a long page, so it gets escalated to a popup on top
+  // of the inline banner that's already there.
+  function handleInvalidSubmit(errors: FieldErrors<DemographicsDraft>) {
+    if ((errors as Record<string, unknown>).populationTotalsMismatch) setShowMismatchDialog(true);
+  }
+
   if (isLoading) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
@@ -175,28 +199,30 @@ export default function DemographicsPage() {
 
   const ageColumns: RepeatableColumn[] = [
     { key: "bandLabel", label: { en: "Age Band", si: "වයස් කාණ්ඩය" }, type: "readonly" },
-    { key: "female", label: { en: "Female", si: "ස්ත්‍රී" }, type: "number" },
-    { key: "male", label: { en: "Male", si: "පුරුෂ" }, type: "number" },
+    { key: "female", label: { en: "Female", si: "ස්ත්‍රී" }, type: "number", required: true },
+    { key: "male", label: { en: "Male", si: "පුරුෂ" }, type: "number", required: true },
   ];
 
   const ethnicityColumns: RepeatableColumn[] = [
     { key: "ethnicityLabel", label: { en: "Ethnicity", si: "ජාතිකත්වය" }, type: "readonly" },
-    { key: "female", label: { en: "Female", si: "ස්ත්‍රී" }, type: "number" },
-    { key: "male", label: { en: "Male", si: "පුරුෂ" }, type: "number" },
+    { key: "female", label: { en: "Female", si: "ස්ත්‍රී" }, type: "number", required: true },
+    { key: "male", label: { en: "Male", si: "පුරුෂ" }, type: "number", required: true },
   ];
 
   const religionColumns: RepeatableColumn[] = [
     { key: "religionLabel", label: { en: "Religion", si: "ආගම" }, type: "readonly" },
-    { key: "female", label: { en: "Female", si: "ස්ත්‍රී" }, type: "number" },
-    { key: "male", label: { en: "Male", si: "පුරුෂ" }, type: "number" },
+    { key: "female", label: { en: "Female", si: "ස්ත්‍රී" }, type: "number", required: true },
+    { key: "male", label: { en: "Male", si: "පුරුෂ" }, type: "number", required: true },
   ];
 
+  const UNDER_18_GROUP = { en: "Under 18", si: "වයස 18ට අඩු" };
+  const OVER_18_GROUP = { en: "18 & Over", si: "වයස 18ට වැඩි" };
   const disabilityColumns: RepeatableColumn[] = [
     { key: "typeLabel", label: { en: "Persons with Special Needs", si: "විශේෂ අවශ්‍යතා සහිත පුද්ගලයින් සංඛ්‍යාව" }, type: "readonly" },
-    { key: "under18.female", label: { en: "Under 18 - Female", si: "වයස 18ට අඩු - ස්ත්‍රී" }, type: "number" },
-    { key: "under18.male", label: { en: "Under 18 - Male", si: "වයස 18ට අඩු - පුරුෂ" }, type: "number" },
-    { key: "over18.female", label: { en: "18 & Over - Female", si: "වයස 18ට වැඩි - ස්ත්‍රී" }, type: "number" },
-    { key: "over18.male", label: { en: "18 & Over - Male", si: "වයස 18ට වැඩි - පුරුෂ" }, type: "number" },
+    { key: "under18.female", label: { en: "Female", si: "ස්ත්‍රී" }, type: "number", required: true, group: UNDER_18_GROUP },
+    { key: "under18.male", label: { en: "Male", si: "පුරුෂ" }, type: "number", required: true, group: UNDER_18_GROUP },
+    { key: "over18.female", label: { en: "Female", si: "ස්ත්‍රී" }, type: "number", required: true, group: OVER_18_GROUP },
+    { key: "over18.male", label: { en: "Male", si: "පුරුෂ" }, type: "number", required: true, group: OVER_18_GROUP },
     { key: "total", label: { en: "Total", si: "මුළු එකතුව" }, type: "computed", compute: sumSexCounts },
   ];
 
@@ -209,7 +235,9 @@ export default function DemographicsPage() {
       saveStatus={status}
       saveErrorMessage={errorMessage}
       onSaveDraft={handleSave}
+      onInvalidSubmit={handleInvalidSubmit}
     >
+      <PopulationMismatchDialog lang={lang} open={showMismatchDialog} onOpenChange={setShowMismatchDialog} />
       <div>
         <RepeatableTable
           name="populationByAge"
@@ -248,6 +276,7 @@ export default function DemographicsPage() {
             male: 0,
           })}
         />
+        <PopulationTotalsMismatchBanner lang={lang} />
       </div>
 
       <div className="border-t border-border pt-6">
@@ -256,6 +285,7 @@ export default function DemographicsPage() {
           title={demographicsDict.fields.disabilities}
           columns={disabilityColumns}
           fixedRows
+          preferTableLayout
           emptyRowFactory={() => ({
             type: "mentalIllness",
             typeLabel: DISABILITY_LABELS.mentalIllness[lang],
@@ -270,12 +300,12 @@ export default function DemographicsPage() {
           {lang === "si" ? demographicsDict.fields.foreignNationals.si : demographicsDict.fields.foreignNationals.en}
         </h2>
         <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4">
-          <FieldWrapper name="foreignNationals.female" label={{ en: "Female Count", si: "ගැහැණු සංඛ්‍යාව" }}>
+          <FieldWrapper name="foreignNationals.female" label={{ en: "Female Count", si: "ගැහැණු සංඛ්‍යාව" }} required>
             {({ id, describedBy, invalid }) => (
               <Input id={id} type="number" inputMode="numeric" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("foreignNationals.female")} />
             )}
           </FieldWrapper>
-          <FieldWrapper name="foreignNationals.male" label={{ en: "Male Count", si: "පිරිමි සංඛ්‍යාව" }}>
+          <FieldWrapper name="foreignNationals.male" label={{ en: "Male Count", si: "පිරිමි සංඛ්‍යාව" }} required>
             {({ id, describedBy, invalid }) => (
               <Input id={id} type="number" inputMode="numeric" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("foreignNationals.male")} />
             )}
@@ -293,12 +323,12 @@ export default function DemographicsPage() {
           {lang === "si" ? demographicsDict.fields.households.si : demographicsDict.fields.households.en}
         </h2>
         <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4">
-          <FieldWrapper name="households.total" label={{ en: "Total Number of Families", si: "මුළු පවුල් සංඛ්‍යාව" }}>
+          <FieldWrapper name="households.total" label={{ en: "Count", si: "ගණන" }} required>
             {({ id, describedBy, invalid }) => (
               <Input id={id} type="number" inputMode="numeric" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("households.total")} />
             )}
           </FieldWrapper>
-          <FieldWrapper name="households.femaleHeaded" label={{ en: "Female-Headed Families", si: "කාන්තා ගෘහමූලික පවුල් සංඛ්‍යාව" }}>
+          <FieldWrapper name="households.femaleHeaded" label={{ en: "Female-Headed Families", si: "කාන්තා ගෘහමූලික පවුල් සංඛ්‍යාව" }} required>
             {({ id, describedBy, invalid }) => (
               <Input id={id} type="number" inputMode="numeric" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("households.femaleHeaded")} />
             )}
@@ -306,6 +336,7 @@ export default function DemographicsPage() {
           <FieldWrapper
             name="households.displaced"
             label={{ en: "Families with Children in Probation Care", si: "පරිවාසගත ළමුන් සිටින පවුල් සංඛ්‍යාව" }}
+            required
           >
             {({ id, describedBy, invalid }) => (
               <Input id={id} type="number" inputMode="numeric" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("households.displaced")} />
@@ -322,17 +353,18 @@ export default function DemographicsPage() {
           <FieldWrapper
             name="registeredVoters.electoralArea"
             label={{ en: "Electoral (Voting) Power Area(s)", si: "මැතිවරණ (ඡන්ද) බල ප්‍රදේශය/ ප්‍රදේශ" }}
+            required
           >
             {({ id, describedBy, invalid }) => (
               <Input id={id} aria-describedby={describedBy} aria-invalid={invalid} {...form.register("registeredVoters.electoralArea")} />
             )}
           </FieldWrapper>
-          <FieldWrapper name="registeredVoters.female" label={{ en: "Female", si: "ස්ත්‍රී" }}>
+          <FieldWrapper name="registeredVoters.female" label={{ en: "Female", si: "ස්ත්‍රී" }} required>
             {({ id, describedBy, invalid }) => (
               <Input id={id} type="number" inputMode="numeric" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("registeredVoters.female")} />
             )}
           </FieldWrapper>
-          <FieldWrapper name="registeredVoters.male" label={{ en: "Male", si: "පුරුෂ" }}>
+          <FieldWrapper name="registeredVoters.male" label={{ en: "Male", si: "පුරුෂ" }} required>
             {({ id, describedBy, invalid }) => (
               <Input id={id} type="number" inputMode="numeric" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("registeredVoters.male")} />
             )}
@@ -350,5 +382,169 @@ export default function DemographicsPage() {
         )}
       </div>
     </SectionForm>
+  );
+}
+
+interface PopulationTotals {
+  hasMismatch: boolean;
+  ageFemale: number;
+  ageMale: number;
+  ethnicityFemale: number;
+  ethnicityMale: number;
+  religionFemale: number;
+  religionMale: number;
+}
+
+/** Shared by the inline banner and the popup dialog below, so both always show the exact same
+ *  numbers computed the exact same way. */
+function usePopulationMismatchTotals(): PopulationTotals {
+  const { watch, formState } = useFormContext<DemographicsDraft>();
+  const hasMismatch = !!(formState.errors as Record<string, unknown>).populationTotalsMismatch;
+
+  const ageRows = watch("populationByAge") ?? [];
+  const ethnicityRows = watch("populationByEthnicity") ?? [];
+  const religionRows = watch("populationByReligion") ?? [];
+
+  function sum(rows: { female?: unknown; male?: unknown }[], key: "female" | "male") {
+    return rows.reduce((total, row) => total + (Number(row[key]) || 0), 0);
+  }
+
+  return {
+    hasMismatch,
+    ageFemale: sum(ageRows, "female"),
+    ageMale: sum(ageRows, "male"),
+    ethnicityFemale: sum(ethnicityRows, "female"),
+    ethnicityMale: sum(ethnicityRows, "male"),
+    religionFemale: sum(religionRows, "female"),
+    religionMale: sum(religionRows, "male"),
+  };
+}
+
+/** Every other Zod validation message in this codebase is English-only and rendered verbatim
+ *  via `error.message` (FieldWrapper/RepeatableTable) — acceptable for short, static labels like
+ *  "Name is required", which read fine either way. This one is different: it's a full sentence
+ *  quoting live numbers, so a bilingual UI showing it only in English would be a real gap for a
+ *  Sinhala-reading officer. Rather than trying to make Zod itself bilingual, the schema's
+ *  `populationTotalsMismatch` issue is used purely as a "should this show at all" signal — this
+ *  renders the same totals, recomputed from the live form values, in the active language,
+ *  ignoring the issue's own (English) message text entirely. */
+function PopulationMismatchMessage({ lang, totals }: { lang: "en" | "si"; totals: PopulationTotals }) {
+  const { ageFemale, ageMale, ethnicityFemale, ethnicityMale, religionFemale, religionMale } = totals;
+  return lang === "si" ? (
+    <>
+      වලංගු නොවන දත්ත: වයස, ජාතිකත්වය සහ ආගම යන කාණ්ඩ තුනෙන්ම ජනගහන එකතුව සමාන විය යුතුය. ස්ත්‍රී එකතුව —
+      වයස: {ageFemale}, ජාතිකත්වය: {ethnicityFemale}, ආගම: {religionFemale}. පුරුෂ එකතුව — වයස: {ageMale},
+      ජාතිකත්වය: {ethnicityMale}, ආගම: {religionMale}. කරුණාකර ඔබගේ ප්‍රවේශයන් නැවත පරීක්ෂා කරන්න.
+    </>
+  ) : (
+    <>
+      Invalid data: the total population count must match across Age, Ethnicity, and Religion breakdowns.
+      Female totals — Age: {ageFemale}, Ethnicity: {ethnicityFemale}, Religion: {religionFemale}. Male
+      totals — Age: {ageMale}, Ethnicity: {ethnicityMale}, Religion: {religionMale}. Please recheck your
+      entries.
+    </>
+  );
+}
+
+function PopulationTotalsMismatchBanner({ lang }: { lang: "en" | "si" }) {
+  const totals = usePopulationMismatchTotals();
+  if (!totals.hasMismatch) return null;
+
+  return (
+    <div role="alert" className="mt-4 flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-fluid-sm text-destructive">
+      <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+      <span lang={lang} className={cn(lang === "si" && "font-si")}>
+        <PopulationMismatchMessage lang={lang} totals={totals} />
+      </span>
+    </div>
+  );
+}
+
+/** Escalates the same mismatch the inline banner already shows into a popup the moment Save is
+ *  blocked by it — a data entry error where the totals genuinely don't add up is easy to miss as
+ *  just one more red banner on a long page, so this makes it impossible to miss. Triggered via
+ *  SectionForm's onInvalidSubmit (see the page component), which only fires on a blocked save
+ *  attempt — never on page load or while still typing.
+ *
+ *  Presented as a Female/Male × Age/Ethnicity/Religion comparison table rather than a sentence
+ *  quoting all six numbers inline — a table is scannable at a glance, and the mismatched column
+ *  (Female and/or Male, whichever doesn't agree across all three rows) is called out in red so
+ *  the officer sees immediately which number(s) to go recheck instead of having to do the
+ *  arithmetic themselves. */
+function PopulationMismatchDialog({ lang, open, onOpenChange }: { lang: "en" | "si"; open: boolean; onOpenChange: (open: boolean) => void }) {
+  const totals = usePopulationMismatchTotals();
+  const { ageFemale, ageMale, ethnicityFemale, ethnicityMale, religionFemale, religionMale } = totals;
+  const femaleMismatch = !(ageFemale === ethnicityFemale && ageFemale === religionFemale);
+  const maleMismatch = !(ageMale === ethnicityMale && ageMale === religionMale);
+
+  const rows: { label: { en: string; si: string }; female: number; male: number }[] = [
+    { label: { en: "Age", si: "වයස" }, female: ageFemale, male: ageMale },
+    { label: { en: "Ethnicity", si: "ජාතිකත්වය" }, female: ethnicityFemale, male: ethnicityMale },
+    { label: { en: "Religion", si: "ආගම" }, female: religionFemale, male: religionMale },
+  ];
+
+  return (
+    <AlertDialog open={open} onOpenChange={onOpenChange}>
+      <AlertDialogContent className="sm:max-w-md">
+        <AlertDialogHeader className="items-center text-center">
+          <span className="flex size-14 items-center justify-center rounded-full bg-destructive/10 text-destructive">
+            <AlertTriangle className="size-7" aria-hidden="true" />
+          </span>
+          <AlertDialogTitle lang={lang} className={cn("text-fluid-lg", lang === "si" && "font-si-heading")}>
+            <Bilingual en="Data Entry Error" si="දත්ත ඇතුළත් කිරීමේ දෝෂයක්" />
+          </AlertDialogTitle>
+          <AlertDialogDescription asChild>
+            <span lang={lang} className={cn("text-fluid-sm text-muted-foreground", lang === "si" && "font-si")}>
+              <Bilingual
+                en="The total population count must be the same across all three breakdowns below."
+                si="පහත කාණ්ඩ තුනෙන්ම ජනගහන එකතුව සමාන විය යුතුය."
+              />
+            </span>
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+
+        <div className="overflow-hidden rounded-lg border border-border">
+          <table className="w-full text-fluid-sm">
+            <thead>
+              <tr className="bg-muted/50">
+                <th className="px-3 py-2 text-left font-medium text-muted-foreground" />
+                <th lang={lang} className={cn("px-3 py-2 text-right font-medium", lang === "si" && "font-si", femaleMismatch ? "text-destructive" : "text-foreground")}>
+                  <Bilingual en="Female" si="ස්ත්‍රී" />
+                </th>
+                <th lang={lang} className={cn("px-3 py-2 text-right font-medium", lang === "si" && "font-si", maleMismatch ? "text-destructive" : "text-foreground")}>
+                  <Bilingual en="Male" si="පුරුෂ" />
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((row, i) => (
+                <tr key={i} className="border-t border-border">
+                  <td lang={lang} className={cn("px-3 py-2 font-medium text-foreground", lang === "si" && "font-si")}>
+                    {lang === "si" ? row.label.si : row.label.en}
+                  </td>
+                  <td className={cn("px-3 py-2 text-right nums-tabular", femaleMismatch ? "font-semibold text-destructive" : "text-foreground")}>
+                    {row.female}
+                  </td>
+                  <td className={cn("px-3 py-2 text-right nums-tabular", maleMismatch ? "font-semibold text-destructive" : "text-foreground")}>
+                    {row.male}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <p lang={lang} className={cn("text-fluid-xs text-muted-foreground", lang === "si" && "font-si")}>
+          <Bilingual
+            en="Please recheck your entries in the Age, Ethnicity, and Religion tables before saving."
+            si="සුරැකීමට පෙර වයස, ජාතිකත්වය සහ ආගම වගු වල ඇතුළත් කළ දත්ත නැවත පරීක්ෂා කරන්න."
+          />
+        </p>
+
+        <AlertDialogAction onClick={() => onOpenChange(false)} className="w-full">
+          <Bilingual en="OK, I'll fix it" si="හරි, මම එය නිවැරදි කරමි" />
+        </AlertDialogAction>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }
