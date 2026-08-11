@@ -191,72 +191,13 @@ export default function EducationPage() {
   const watched = form.watch();
 
   const schoolFacilityColumns: RepeatableColumn[] = [
-    { key: "schoolName", label: { en: "School Name", si: "පාසලේ නම" }, type: "text" },
+    { key: "schoolName", label: { en: "School Name", si: "පාසලේ නම" }, type: "text", required: true },
     {
       key: "accommodationAvailable",
-      label: { en: "* Boarding Facilities", si: "*නේවාසික පහසුකම්" },
-      type: "select",
-      options: YES_NO_OPTIONS,
-    },
-    { key: "teachersFemale", label: { en: "Teachers (Female)", si: "ගුරුවරු ගණන - ස්ත්‍රී" }, type: "number" },
-    { key: "teachersMale", label: { en: "Teachers (Male)", si: "ගුරුවරු ගණන - පුරුෂ" }, type: "number" },
-    { key: "studentsFemale", label: { en: "Students (Female)", si: "සිසුන් ගණන - ස්ත්‍රී" }, type: "number" },
-    { key: "studentsMale", label: { en: "Students (Male)", si: "සිසුන් ගණන - පුරුෂ" }, type: "number" },
-    {
-      key: "waterFacility",
-      label: { en: "* Water Facilities", si: "*ජල පහසුකම්" },
-      type: "select",
-      options: YES_NO_OPTIONS,
-    },
-    {
-      key: "sanitationFacility",
-      label: { en: "* Toilet Facilities", si: "*වැසිකිලි පහසුකම්" },
-      type: "select",
-      options: YES_NO_OPTIONS,
-    },
-    {
-      key: "sportsGround",
-      label: { en: "* Playground", si: "*ක්‍රීඩාපිටි" },
-      type: "select",
-      options: YES_NO_OPTIONS,
-    },
-  ];
-
-  const specialAttentionSchoolColumns: RepeatableColumn[] = [
-    { key: "schoolName", label: { en: "School Name", si: "පාසලේ නම" }, type: "text" },
-    { key: "teachersFemale", label: { en: "Teachers (Female)", si: "ගුරුවරු ගණන - ස්ත්‍රී" }, type: "number" },
-    { key: "teachersMale", label: { en: "Teachers (Male)", si: "ගුරුවරු ගණන - පුරුෂ" }, type: "number" },
-    { key: "studentsFemale", label: { en: "Students (Female)", si: "සිසුන් ගණන - ස්ත්‍රී" }, type: "number" },
-    { key: "studentsMale", label: { en: "Students (Male)", si: "සිසුන් ගණන - පුරුෂ" }, type: "number" },
-    { key: "developmentNeeds", label: { en: "Development Needs", si: "සංවර්ධන අවශ්‍යතා" }, type: "text" },
-  ];
-
-  const closedSchoolColumns: RepeatableColumn[] = [
-    { key: "schoolName", label: { en: "School Name", si: "පාසලේ නම" }, type: "text" },
-    { key: "yearClosed", label: { en: "Year Closed", si: "වැසීගිය වර්ෂය" }, type: "number" },
-    { key: "buildingCount", label: { en: "Existing Buildings", si: "පවතින ගොඩනැගිලි සංඛ්‍යාව" }, type: "number" },
-    {
-      key: "buildingsUsable",
-      label: { en: "Whether Buildings Can Currently Be Used", si: "ගොඩනැගිලි දැනට භාවිතා කලහැකි බව/නොහැකි බව" },
-      type: "select",
-      options: YES_NO_OPTIONS,
-    },
-  ];
-
-  const privateInternationalSchoolColumns: RepeatableColumn[] = [
-    { key: "name", label: { en: "School Name", si: "පාසලේ නම" }, type: "text" },
-    { key: "teacherCount", label: { en: "Number of Teachers", si: "ගුරුවරු ගණන" }, type: "number" },
-    { key: "studentCount", label: { en: "Number of Students", si: "සිසුන් ගණන" }, type: "number" },
-  ];
-
-  const pirivenaColumns: RepeatableColumn[] = [
-    { key: "name", label: { en: "Pirivena Name", si: "පිරිවෙනේ නම" }, type: "text" },
-    { key: "type", label: { en: "* Pirivena Type", si: "*පිරිවෙනේ වර්ගය" }, type: "text" },
-    {
-      key: "boardingFacility",
       label: { en: "Boarding Facilities", si: "නේවාසික පහසුකම්" },
       type: "select",
       options: YES_NO_OPTIONS,
+      required: true,
     },
     { key: "teachersFemale", label: { en: "Teachers (Female)", si: "ගුරුවරු ගණන - ස්ත්‍රී" }, type: "number" },
     { key: "teachersMale", label: { en: "Teachers (Male)", si: "ගුරුවරු ගණන - පුරුෂ" }, type: "number" },
@@ -267,45 +208,115 @@ export default function EducationPage() {
       label: { en: "Water Facilities", si: "ජල පහසුකම්" },
       type: "select",
       options: YES_NO_OPTIONS,
+      required: true,
     },
     {
       key: "sanitationFacility",
       label: { en: "Toilet Facilities", si: "වැසිකිලි පහසුකම්" },
       type: "select",
       options: YES_NO_OPTIONS,
+      required: true,
     },
     {
       key: "sportsGround",
       label: { en: "Playground", si: "ක්‍රීඩාපිටි" },
       type: "select",
       options: YES_NO_OPTIONS,
+      required: true,
+    },
+  ];
+
+  const specialAttentionSchoolColumns: RepeatableColumn[] = [
+    { key: "schoolName", label: { en: "School Name", si: "පාසලේ නම" }, type: "text", required: true },
+    { key: "teachersFemale", label: { en: "Teachers (Female)", si: "ගුරුවරු ගණන - ස්ත්‍රී" }, type: "number" },
+    { key: "teachersMale", label: { en: "Teachers (Male)", si: "ගුරුවරු ගණන - පුරුෂ" }, type: "number" },
+    { key: "studentsFemale", label: { en: "Students (Female)", si: "සිසුන් ගණන - ස්ත්‍රී" }, type: "number" },
+    { key: "studentsMale", label: { en: "Students (Male)", si: "සිසුන් ගණන - පුරුෂ" }, type: "number" },
+    { key: "developmentNeeds", label: { en: "Development Needs", si: "සංවර්ධන අවශ්‍යතා" }, type: "text", required: true },
+  ];
+
+  const closedSchoolColumns: RepeatableColumn[] = [
+    { key: "schoolName", label: { en: "School Name", si: "පාසලේ නම" }, type: "text", required: true },
+    { key: "yearClosed", label: { en: "Year Closed", si: "වැසීගිය වර්ෂය" }, type: "number" },
+    { key: "buildingCount", label: { en: "Existing Buildings", si: "පවතින ගොඩනැගිලි සංඛ්‍යාව" }, type: "number" },
+    {
+      key: "buildingsUsable",
+      label: { en: "Whether Buildings Can Currently Be Used", si: "ගොඩනැගිලි දැනට භාවිතා කලහැකි බව/නොහැකි බව" },
+      type: "select",
+      options: YES_NO_OPTIONS,
+      required: true,
+    },
+  ];
+
+  const privateInternationalSchoolColumns: RepeatableColumn[] = [
+    { key: "name", label: { en: "School Name", si: "පාසලේ නම" }, type: "text", required: true },
+    { key: "teacherCount", label: { en: "Number of Teachers", si: "ගුරුවරු ගණන" }, type: "number" },
+    { key: "studentCount", label: { en: "Number of Students", si: "සිසුන් ගණන" }, type: "number" },
+  ];
+
+  const pirivenaColumns: RepeatableColumn[] = [
+    { key: "name", label: { en: "Pirivena Name", si: "පිරිවෙනේ නම" }, type: "text", required: true },
+    { key: "type", label: { en: "Pirivena Type", si: "පිරිවෙනේ වර්ගය" }, type: "text", required: true },
+    {
+      key: "boardingFacility",
+      label: { en: "Boarding Facilities", si: "නේවාසික පහසුකම්" },
+      type: "select",
+      options: YES_NO_OPTIONS,
+      required: true,
+    },
+    { key: "teachersFemale", label: { en: "Teachers (Female)", si: "ගුරුවරු ගණන - ස්ත්‍රී" }, type: "number" },
+    { key: "teachersMale", label: { en: "Teachers (Male)", si: "ගුරුවරු ගණන - පුරුෂ" }, type: "number" },
+    { key: "studentsFemale", label: { en: "Students (Female)", si: "සිසුන් ගණන - ස්ත්‍රී" }, type: "number" },
+    { key: "studentsMale", label: { en: "Students (Male)", si: "සිසුන් ගණන - පුරුෂ" }, type: "number" },
+    {
+      key: "waterFacility",
+      label: { en: "Water Facilities", si: "ජල පහසුකම්" },
+      type: "select",
+      options: YES_NO_OPTIONS,
+      required: true,
+    },
+    {
+      key: "sanitationFacility",
+      label: { en: "Toilet Facilities", si: "වැසිකිලි පහසුකම්" },
+      type: "select",
+      options: YES_NO_OPTIONS,
+      required: true,
+    },
+    {
+      key: "sportsGround",
+      label: { en: "Playground", si: "ක්‍රීඩාපිටි" },
+      type: "select",
+      options: YES_NO_OPTIONS,
+      required: true,
     },
   ];
 
   const vocationalInstituteColumns: RepeatableColumn[] = [
-    { key: "name", label: { en: "Technical and Vocational Training Institution", si: "කාර්මික හා වෘත්තීය පුහුණු ආයතන" }, type: "text" },
+    { key: "name", label: { en: "Technical and Vocational Training Institution", si: "කාර්මික හා වෘත්තීය පුහුණු ආයතන" }, type: "text", required: true },
   ];
 
   const preschoolColumns: RepeatableColumn[] = [
-    { key: "name", label: { en: "Preschool Name", si: "පෙර පාසලේ නම" }, type: "text" },
-    { key: "address", label: { en: "Address", si: "ලිපිනය" }, type: "text" },
+    { key: "name", label: { en: "Preschool Name", si: "පෙර පාසලේ නම" }, type: "text", required: true },
+    { key: "address", label: { en: "Address", si: "ලිපිනය" }, type: "text", required: true },
     {
       key: "facilityType",
       label: { en: "Private / Government", si: "පුද්ගලික/ රජයේ" },
       type: "select",
       options: PRESCHOOL_FACILITY_TYPES.map((t) => ({ value: t, label: PRESCHOOL_FACILITY_TYPE_LABELS[t] })),
+      required: true,
     },
     { key: "studentCount", label: { en: "Number of Students", si: "සිසුන් ගණන" }, type: "number" },
     { key: "teacherCount", label: { en: "Number of Teachers", si: "ගුරුවරු ගණන" }, type: "number" },
   ];
 
   const dhammaEducationInstitutionColumns: RepeatableColumn[] = [
-    { key: "institutionName", label: { en: "Name of Dhamma Education Institution", si: "දහම් අධ්‍යාපනය ලබාදෙන ආයතනයේ නම" }, type: "text" },
+    { key: "institutionName", label: { en: "Name of Dhamma Education Institution", si: "දහම් අධ්‍යාපනය ලබාදෙන ආයතනයේ නම" }, type: "text", required: true },
     {
       key: "type",
-      label: { en: "* Dhamma Education Institution Type", si: "*දහම් අධ්‍යාපනය ලබාදෙන ආයතන වර්ගය" },
+      label: { en: "Dhamma Education Institution Type", si: "දහම් අධ්‍යාපනය ලබාදෙන ආයතන වර්ගය" },
       type: "select",
       options: DHAMMA_TYPES.map((t) => ({ value: t, label: DHAMMA_TYPE_LABELS[t] })),
+      required: true,
     },
     { key: "teacherCount", label: { en: "Number of Teachers", si: "ගුරුවරු ගණන" }, type: "number" },
     { key: "studentCount", label: { en: "Number of Students", si: "සිසුන් ගණන" }, type: "number" },
@@ -318,16 +329,18 @@ export default function EducationPage() {
       label: { en: "Exists? (Yes/No)", si: "ඇත/නැත" },
       type: "select",
       options: YES_NO_OPTIONS,
+      required: true,
     },
     { key: "name", label: { en: "Institution Name (Indicate Branches Too)", si: "ආයතනයේ නම (ශාඛා ද සඳහන් කරන්න)" }, type: "text" },
   ];
 
   const tuitionCenterColumns: RepeatableColumn[] = [
-    { key: "registrationNumber", label: { en: "Registration Number", si: "ලියාපදිංචි අංකය" }, type: "text" },
+    { key: "registrationNumber", label: { en: "Registration Number", si: "ලියාපදිංචි අංකය" }, type: "text", required: true },
     {
       key: "nameAndAddress",
       label: { en: "Name and Address of Tuition Class Institution", si: "උපකාරක පන්ති ආයතනයන්හි නම හා ලිපිනය" },
       type: "text",
+      required: true,
     },
   ];
 

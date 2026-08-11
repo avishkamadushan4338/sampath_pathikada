@@ -195,89 +195,16 @@ export const economicAgricultureSchemaStrict = z.object({
 
 export type EconomicAgricultureData = z.infer<typeof economicAgricultureSchemaStrict>;
 
-/* Draft-mode row schemas built from scratch rather than `.partial()` on the strict schemas
- * above: `.partial()` only allows a field to be *missing*, it doesn't relax `min(1)`, so a row
- * added via the "Add" button (whose fields start as "") would still fail validation and
- * silently block saving. */
-const animalHusbandryDirectoryRowPartialSchema = z.object({
-  name: z.string().optional(),
-  address: z.string().optional(),
-  phone: z.string().optional(),
-  type: z.enum(FLORAL_CULTIVATION_TYPES).optional(),
-  marketplace: z.enum(MARKETPLACES).optional(),
-});
-
-const specialEconomicActivityRowPartialSchema = z.object({
-  activity: z.string().optional(),
-  natureOfActivity: z.string().optional(),
-  resourceOrProductUsed: z.string().optional(),
-});
-
-const livestockFarmRowPartialSchema = z.object({
-  name: z.string().optional(),
-  address: z.string().optional(),
-  phone: z.string().optional(),
-  cattle: z.coerce.number().int().min(0).optional(),
-  layerChickens: z.coerce.number().int().min(0).optional(),
-  broilerChickens: z.coerce.number().int().min(0).optional(),
-  goats: z.coerce.number().int().min(0).optional(),
-  pigs: z.coerce.number().int().min(0).optional(),
-  peacock: z.coerce.number().int().min(0).optional(),
-  other: z.coerce.number().int().min(0).optional(),
-});
-
-const industryRowPartialSchema = z.object({
-  name: z.string().optional(),
-  productionType: z.string().optional(),
-  employeeCount: z.coerce.number().int().min(0).optional(),
-  phone: z.string().optional(),
-  marketplace: z.enum(MARKETPLACES).optional(),
-});
-
-const fisheriesSocietyRowPartialSchema = z.object({
-  name: z.string().optional(),
-  address: z.string().optional(),
-  memberCount: z.coerce.number().int().min(0).optional(),
-});
-
-const inlandWaterBodyRowPartialSchema = z.object({
-  name: z.string().optional(),
-  type: z.enum(INLAND_WATER_BODY_TYPES).optional(),
-});
-
-const nameAddressPhoneRowPartialSchema = z.object({
-  name: z.string().optional(),
-  address: z.string().optional(),
-  phone: z.string().optional(),
-});
-
-const fishLandingSiteRowPartialSchema = z.object({
-  name: z.string().optional(),
-  address: z.string().optional(),
-  siteType: z.enum(FISH_SITE_TYPES).optional(),
-  waterType: z.enum(WATER_TYPES).optional(),
-});
-
-const iceProductionRowPartialSchema = z.object({
-  name: z.string().optional(),
-  address: z.string().optional(),
-});
-
-const teaEstateRowPartialSchema = z.object({
-  name: z.string().optional(),
-  ownership: z.enum(TEA_ESTATE_OWNERSHIP).optional(),
-  extentAcres: z.coerce.number().int().min(0).optional(),
-  extentRoods: z.coerce.number().int().min(0).optional(),
-  extentPerches: z.coerce.number().min(0).optional(),
-  employeesFemale: z.coerce.number().int().min(0).optional(),
-  employeesMale: z.coerce.number().int().min(0).optional(),
-});
-
+/* Draft-mode reuses the strict row schemas directly — a row's required fields (e.g. `name`)
+ * still fail validation if blank, surfacing a "required" error in the UI, but that no longer
+ * blocks saving: SectionForm always saves the draft regardless of validation outcome, it just
+ * shows the errors alongside. Only the *array itself* (or the outer object, for nested objects)
+ * is optional here, so an empty/untouched directory (no rows added yet) is still a valid draft. */
 export const economicAgricultureSchemaPartial = z.object({
-  landUse: z.array(landUseRowSchema.partial()).optional(),
-  animalHusbandryCounts: z.array(z.object({ type: z.enum(FLORAL_CULTIVATION_TYPES).optional(), count: z.coerce.number().int().min(0).optional() })).optional(),
-  animalHusbandryDirectory: z.array(animalHusbandryDirectoryRowPartialSchema).optional(),
-  specialEconomicActivities: z.array(specialEconomicActivityRowPartialSchema).optional(),
+  landUse: z.array(landUseRowSchema).optional(),
+  animalHusbandryCounts: z.array(z.object({ type: z.enum(FLORAL_CULTIVATION_TYPES), count: z.coerce.number().int().min(0).optional() })).optional(),
+  animalHusbandryDirectory: z.array(animalHusbandryDirectoryRowSchema).optional(),
+  specialEconomicActivities: z.array(specialEconomicActivityRowSchema).optional(),
   abandonedPaddyLand: z
     .object({
       extentAcres: z.coerce.number().min(0).optional(),
@@ -286,9 +213,9 @@ export const economicAgricultureSchemaPartial = z.object({
       actionPlan: z.string().optional(),
     })
     .optional(),
-  agriMachinery: z.array(agriMachineryRowSchema.partial()).optional(),
-  forestDamage: z.array(forestDamageRowSchema.partial()).optional(),
-  livestockFarms: z.array(livestockFarmRowPartialSchema).optional(),
+  agriMachinery: z.array(agriMachineryRowSchema).optional(),
+  forestDamage: z.array(forestDamageRowSchema).optional(),
+  livestockFarms: z.array(livestockFarmRowSchema).optional(),
   industryCounts: z
     .object({
       householdIndustry: z.coerce.number().int().min(0).optional(),
@@ -296,7 +223,7 @@ export const economicAgricultureSchemaPartial = z.object({
       over5Employees: z.coerce.number().int().min(0).optional(),
     })
     .optional(),
-  industries: z.array(industryRowPartialSchema).optional(),
+  industries: z.array(industryRowSchema).optional(),
   marineFisheries: z
     .object({
       householdCount: z.coerce.number().int().min(0).optional(),
@@ -305,7 +232,7 @@ export const economicAgricultureSchemaPartial = z.object({
       societyCount: z.coerce.number().int().min(0).optional(),
     })
     .optional(),
-  marineFisheriesSocieties: z.array(fisheriesSocietyRowPartialSchema).optional(),
+  marineFisheriesSocieties: z.array(fisheriesSocietyRowSchema).optional(),
   inlandFisheries: z
     .object({
       householdCount: z.coerce.number().int().min(0).optional(),
@@ -314,15 +241,15 @@ export const economicAgricultureSchemaPartial = z.object({
       societyCount: z.coerce.number().int().min(0).optional(),
     })
     .optional(),
-  inlandFisheriesSocieties: z.array(fisheriesSocietyRowPartialSchema).optional(),
-  inlandWaterBodies: z.array(inlandWaterBodyRowPartialSchema).optional(),
-  aquacultureDirectory: z.array(nameAddressPhoneRowPartialSchema).optional(),
-  ornamentalFishDirectory: z.array(nameAddressPhoneRowPartialSchema).optional(),
-  fishLandingSitePresent: yesNo.optional(),
-  fishLandingSites: z.array(fishLandingSiteRowPartialSchema).optional(),
-  iceProductionPresent: yesNo.optional(),
-  iceProductionDirectory: z.array(iceProductionRowPartialSchema).optional(),
-  teaEstates: z.array(teaEstateRowPartialSchema).optional(),
+  inlandFisheriesSocieties: z.array(fisheriesSocietyRowSchema).optional(),
+  inlandWaterBodies: z.array(inlandWaterBodyRowSchema).optional(),
+  aquacultureDirectory: z.array(nameAddressPhoneRowSchema).optional(),
+  ornamentalFishDirectory: z.array(nameAddressPhoneRowSchema).optional(),
+  fishLandingSitePresent: yesNo,
+  fishLandingSites: z.array(fishLandingSiteRowSchema).optional(),
+  iceProductionPresent: yesNo,
+  iceProductionDirectory: z.array(iceProductionRowSchema).optional(),
+  teaEstates: z.array(teaEstateRowSchema).optional(),
 });
 
 export {

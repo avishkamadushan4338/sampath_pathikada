@@ -33,6 +33,26 @@ export const sexCountPartialSchema = sexCountSchema.partial();
 export const yesNo = z.enum(["yes", "no"]);
 export type YesNo = z.infer<typeof yesNo>;
 
+/** Every count in this app is normally allowed to default to 0 (via `.default(0)` elsewhere in
+ *  this file) — but a handful of sections need the stronger guarantee that the officer has
+ *  actually looked at and entered every cell, not left it on a silent default. A blank input
+ *  binds as an empty string, not `undefined`, and `z.coerce.number()` on its own would coerce ""
+ *  to 0 (JS: `Number("") === 0`), silently treating "never touched" as a valid zero — the
+ *  preprocess step here catches "" (and null) first and turns it back into `undefined`, so a
+ *  genuinely blank cell surfaces as a real "required" error instead of quietly passing as zero.
+ *
+ *  `z.preprocess` statically types its input as `unknown` (unlike `z.coerce.number()`, which —
+ *  despite coercing at runtime — declares both its input and output as `number`, matching what
+ *  every other count field in this codebase relies on for `useForm<T>` compatibility). Cast to
+ *  the same `number`-in/`number`-out shape so this field type-checks the same way as a plain
+ *  `z.coerce.number()` field would; the runtime behavior above is unaffected by the cast. */
+export function requiredCount(message: string): z.ZodType<number, z.ZodTypeDef, number> {
+  return z.preprocess(
+    (val) => (val === "" || val === null ? undefined : val),
+    z.coerce.number({ required_error: message, invalid_type_error: message }).int().min(0, message)
+  ) as unknown as z.ZodType<number, z.ZodTypeDef, number>;
+}
+
 /** Phone numbers as entered on Sri Lankan government forms: 0XXXXXXXXX (10 digits). */
 export const phoneSchema = z
   .string()

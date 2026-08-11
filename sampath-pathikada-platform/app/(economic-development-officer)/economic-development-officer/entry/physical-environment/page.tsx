@@ -1,12 +1,14 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
-import { useForm } from "react-hook-form";
+import { useEffect, useMemo, useState } from "react";
+import { useForm, useFieldArray, useFormContext, type FieldArrayWithId } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2 } from "lucide-react";
+import { Loader2, Plus, Trash2 } from "lucide-react";
 import { SectionForm } from "@/components/forms/SectionForm";
 import { FieldWrapper } from "@/components/forms/FormField";
 import { RepeatableTable, type RepeatableColumn } from "@/components/forms/RepeatableTable";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -14,10 +16,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Bilingual } from "@/components/Bilingual";
+import { dictionary } from "@/lib/i18n/dictionary";
 import { useSubmission, useSaveSection } from "@/hooks/use-submission";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { physicalEnvironmentDict } from "@/lib/i18n/sections/physical-environment";
 import { physicalEnvironmentSchemaPartial, HAZARD_TYPES, WATER_SOURCE_TYPES } from "@/lib/validators/sections/physical-environment";
+import { cn } from "@/lib/utils";
 import { z } from "zod";
 
 const CURRENT_YEAR = 2026;
@@ -75,15 +89,21 @@ function buildEmptyValues(lang: "en" | "si"): PhysicalEnvironmentDraft {
   };
 }
 
-function mergeWithSaved(empty: PhysicalEnvironmentDraft, saved: PhysicalEnvironmentDraft): PhysicalEnvironmentDraft {
+function mergeWithSaved(empty: PhysicalEnvironmentDraft, saved: PhysicalEnvironmentDraft, lang: "en" | "si"): PhysicalEnvironmentDraft {
   return {
     ...empty,
     ...saved,
-    // `type`/`typeLabel` are pinned to the freshly-seeded template, not spread from saved data:
-    // older drafts (from before water sources became a fixed checklist) may carry a blank or
-    // free-form `type` that no longer matches the WATER_SOURCE_TYPES enum, which would fail
-    // validation and block saving. Only the officer-entered `name` carries over.
-    waterSources: empty.waterSources?.map((row, i) => ({ ...row, name: saved.waterSources?.[i]?.name ?? row.name })),
+    // Water sources are no longer a fixed 7-row checklist — the officer can add extra rows per
+    // category (e.g. a second River), so a saved draft's array may be longer than the seeded
+    // template and can't be zipped by index. Trust the saved array's own rows wholesale (falling
+    // back to the freshly-seeded 7-category template only when nothing's been saved yet), just
+    // refreshing `typeLabel` for the active language since that's display-only, not persisted
+    // for translation purposes.
+    waterSources: (saved.waterSources?.length ? saved.waterSources : empty.waterSources)?.map((row) => ({
+      ...row,
+      typeLabel:
+        WATER_SOURCE_TYPE_LABELS[row.type as (typeof WATER_SOURCE_TYPES)[number]]?.[lang] ?? (row as Record<string, unknown>).typeLabel,
+    })),
     hazards: empty.hazards?.map((row, i) => ({
       ...row,
       occurred: saved.hazards?.[i]?.occurred ?? row.occurred,
@@ -93,24 +113,20 @@ function mergeWithSaved(empty: PhysicalEnvironmentDraft, saved: PhysicalEnvironm
   };
 }
 
-const waterSourceColumns: RepeatableColumn[] = [
-  { key: "typeLabel", label: { en: "Water Source", si: "ජල මූලාශ්‍රය" }, type: "readonly" },
-  { key: "name", label: { en: "Name", si: "නම" }, type: "text" },
-];
-
 const sensitiveZoneColumns: RepeatableColumn[] = [
-  { key: "zoneName", label: { en: "* Environmentally Sensitive Zone / Location", si: "* පාරිසරික වශයෙන් සංවේදී කලාප/ස්ථාන" }, type: "text" },
-  { key: "significance", label: { en: "Importance of the Location / Zone", si: "ස්ථානයේ /කලාපයේ වැදගත්කම" }, type: "text" },
-  { key: "managingAuthority", label: { en: "Managing Institution", si: "පාලනය කරනු ලබන ආයතනය" }, type: "text" },
+  { key: "zoneName", label: { en: "Environmentally Sensitive Zone / Location", si: "පාරිසරික වශයෙන් සංවේදී කලාප/ස්ථාන" }, type: "text", required: true },
+  { key: "significance", label: { en: "Importance of the Location / Zone", si: "ස්ථානයේ /කලාපයේ වැදගත්කම" }, type: "text", required: true },
+  { key: "managingAuthority", label: { en: "Managing Institution", si: "පාලනය කරනු ලබන ආයතනය" }, type: "text", required: true },
 ];
 
 const naturalResourceColumns: RepeatableColumn[] = [
-  { key: "resource", label: { en: "* Physical Resource Identified in the Area", si: "*ප්‍රදේශයේ හඳුනා ගන්නා ලද භෞතික සම්පත්" }, type: "text" },
+  { key: "resource", label: { en: "Physical Resource Identified in the Area", si: "ප්‍රදේශයේ හඳුනා ගන්නා ලද භෞතික සම්පත්" }, type: "text", required: true },
   {
     key: "utilizedForProduction",
     label: { en: "Used for Production / Development? (Yes/No)", si: "නිෂ්පාදනය කටයුත්තකට, සංවර්ධනයට යොදාගෙන තිබේද (ඇත/නැත)" },
     type: "select",
     options: YES_NO_OPTIONS,
+    required: true,
   },
   { key: "notes", label: { en: "Notes", si: "සටහන්" }, type: "text" },
 ];
@@ -122,24 +138,26 @@ const hazardColumns: RepeatableColumn[] = [
     label: { en: "Occurred?", si: "ඇත/නැත" },
     type: "select",
     options: YES_NO_OPTIONS,
+    required: true,
   },
   { key: "frequency", label: { en: "If Yes, the Common Time Period", si: "ඇත්නම් බහුලව සිදුවන කාල සීමාව" }, type: "text" },
   { key: "mitigationProposal", label: { en: "Proposed Remedial Measures for the Problem", si: "ගැටළුව සඳහා ගතයුතු පිළියම් යෝජනා" }, type: "text" },
 ];
 
 const safeLocationColumns: RepeatableColumn[] = [
-  { key: "name", label: { en: "Name of the Safe Location", si: "ආරක්ෂිත ස්ථානයේ නම" }, type: "text" },
-  { key: "address", label: { en: "Address", si: "ලිපිනය" }, type: "text" },
+  { key: "name", label: { en: "Name of the Safe Location", si: "ආරක්ෂිත ස්ථානයේ නම" }, type: "text", required: true },
+  { key: "address", label: { en: "Address", si: "ලිපිනය" }, type: "text", required: true },
 ];
 
 const touristSiteColumns: RepeatableColumn[] = [
-  { key: "siteName", label: { en: "Name of Location with Tourist Attraction", si: "සංචාරක ආකර්ෂණය සහිත ස්ථානය නම" }, type: "text" },
+  { key: "siteName", label: { en: "Name of Location with Tourist Attraction", si: "සංචාරක ආකර්ෂණය සහිත ස්ථානය නම" }, type: "text", required: true },
   {
     key: "reasonForAttraction",
     label: { en: "Reason for Attraction / Specialty of the Location", si: "සංචාරක ආකර්ෂණය ඇතිවීමට හේතුව/ස්ථානයේ විශේෂත්වය" },
     type: "text",
+    required: true,
   },
-  { key: "maintainedBy", label: { en: "Managing Institution / Ownership", si: "පාලනය කරනු ලබන ආයතනය / අයිතිය" }, type: "text" },
+  { key: "maintainedBy", label: { en: "Managing Institution / Ownership", si: "පාලනය කරනු ලබන ආයතනය / අයිතිය" }, type: "text", required: true },
   {
     key: "frequency",
     label: { en: "* Tourist Visitation", si: "*සංචාරකයන්ගේ පැමිණීම" },
@@ -152,8 +170,8 @@ const touristSiteColumns: RepeatableColumn[] = [
 ];
 
 const proposedTouristSiteColumns: RepeatableColumn[] = [
-  { key: "siteName", label: { en: "Name of Proposed Suitable Location", si: "සංචාරක ආකර්ෂණය ඇතිකිරීමට සුදුසු යෝජිත ස්ථානයේ නම" }, type: "text" },
-  { key: "specialFeatures", label: { en: "Specialty of the Proposed Location", si: "සංචාරක ආකර්ෂණය ඇතිකිරීමට යෝජිත ස්ථානයේ විශේෂත්වය" }, type: "text" },
+  { key: "siteName", label: { en: "Name of Proposed Suitable Location", si: "සංචාරක ආකර්ෂණය ඇතිකිරීමට සුදුසු යෝජිත ස්ථානයේ නම" }, type: "text", required: true },
+  { key: "specialFeatures", label: { en: "Specialty of the Proposed Location", si: "සංචාරක ආකර්ෂණය ඇතිකිරීමට යෝජිත ස්ථානයේ විශේෂත්වය" }, type: "text", required: true },
   {
     key: "possibleActivities",
     label: { en: "Activities Possible at the Location", si: "සංචාරක ආකර්ෂණය ඇතිකිරීමට එම ස්ථානයේ සිදුකිරීමට හැකි ක්‍රියාකාරකම්" },
@@ -176,7 +194,7 @@ export default function PhysicalEnvironmentPage() {
 
   useEffect(() => {
     if (submission?.data.physicalEnvironment) {
-      form.reset(mergeWithSaved(emptyValues, submission.data.physicalEnvironment));
+      form.reset(mergeWithSaved(emptyValues, submission.data.physicalEnvironment, lang));
     } else {
       form.reset(emptyValues);
     }
@@ -206,17 +224,7 @@ export default function PhysicalEnvironmentPage() {
       onSaveDraft={handleSave}
     >
       <div>
-        <RepeatableTable
-          name="waterSources"
-          title={physicalEnvironmentDict.fields.waterSources}
-          columns={waterSourceColumns}
-          fixedRows
-          emptyRowFactory={() => ({
-            type: WATER_SOURCE_TYPES[0],
-            typeLabel: WATER_SOURCE_TYPE_LABELS[WATER_SOURCE_TYPES[0]][lang],
-            name: "",
-          })}
-        />
+        <WaterSourcesTable lang={lang} title={physicalEnvironmentDict.fields.waterSources} />
       </div>
 
       <div className="border-t border-border pt-6">
@@ -258,6 +266,7 @@ export default function PhysicalEnvironmentPage() {
           <FieldWrapper
             name="safeLocationsIdentified"
             label={physicalEnvironmentDict.fields.safeLocationsIdentified}
+            required
           >
             {({ id, describedBy, invalid }) => (
               <Select
@@ -304,5 +313,112 @@ export default function PhysicalEnvironmentPage() {
         />
       </div>
     </SectionForm>
+  );
+}
+
+type WaterSourceRow = { type: (typeof WATER_SOURCE_TYPES)[number]; typeLabel: string; name?: string };
+
+/** Water sources are a fixed 7-category checklist (river, reservoir, ...), but a GN division can
+ *  have more than one of a given category (e.g. two rivers) — unlike every other RepeatableTable
+ *  in this app, "add a row" here means "add another row for THIS category", inserted right after
+ *  it, not an unrelated blank row appended at the end. The first row of each category is the
+ *  checklist anchor and can't be removed (every category must stay represented); rows added via
+ *  "+" are extras and can be deleted again. This per-category insert/anchor behavior is specific
+ *  enough to this one table that it isn't worth generalizing into the shared RepeatableTable. */
+function WaterSourcesTable({ lang, title }: { lang: "en" | "si"; title: Parameters<typeof RepeatableTable>[0]["title"] }) {
+  const { control, register } = useFormContext<PhysicalEnvironmentDraft>();
+  const { fields, insert, remove } = useFieldArray({ control, name: "waterSources" });
+  const [pendingDeleteIndex, setPendingDeleteIndex] = useState<number | null>(null);
+
+  const seenTypes = new Set<string>();
+  const isAnchor = fields.map((field) => {
+    const row = field as FieldArrayWithId<PhysicalEnvironmentDraft, "waterSources"> & WaterSourceRow;
+    const first = !seenTypes.has(row.type);
+    seenTypes.add(row.type);
+    return first;
+  });
+
+  function addAnother(index: number) {
+    const row = fields[index] as FieldArrayWithId<PhysicalEnvironmentDraft, "waterSources"> & WaterSourceRow;
+    // `typeLabel` is a display-only field seeded by buildEmptyValues/mergeWithSaved — it isn't
+    // part of the Zod-inferred type useFieldArray expects, same as elsewhere in this codebase
+    // (e.g. RepeatableTable's own `append(emptyRowFactory() as never)`).
+    insert(index + 1, { type: row.type, typeLabel: row.typeLabel, name: "" } as never);
+  }
+
+  function requestRemove(index: number) {
+    const row = fields[index] as FieldArrayWithId<PhysicalEnvironmentDraft, "waterSources"> & WaterSourceRow;
+    if (row.name) setPendingDeleteIndex(index);
+    else remove(index);
+  }
+
+  return (
+    <div className="flex flex-col gap-3">
+      {title && (
+        <h2 lang={lang} className={cn("text-fluid-lg font-semibold text-foreground", lang === "si" && "font-si-heading")}>
+          {lang === "si" ? title.si : title.en}
+        </h2>
+      )}
+      <div className="flex flex-col gap-2 rounded-lg border border-border p-3">
+        {fields.map((field, index) => {
+          const row = field as FieldArrayWithId<PhysicalEnvironmentDraft, "waterSources"> & WaterSourceRow;
+          return (
+            <div key={field.id} className="flex items-center gap-3">
+              <span lang={lang} className={cn("w-40 shrink-0 text-fluid-sm text-muted-foreground", lang === "si" && "font-si")}>
+                {row.typeLabel}
+              </span>
+              <Input className="flex-1" placeholder={dictionary.name?.[lang]} {...register(`waterSources.${index}.name`)} />
+              {isAnchor[index] ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="touch-target shrink-0"
+                  onClick={() => addAnother(index)}
+                  aria-label={dictionary.add[lang]}
+                >
+                  <Plus className="size-4" />
+                </Button>
+              ) : (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="touch-target shrink-0 text-destructive hover:text-destructive"
+                  onClick={() => requestRemove(index)}
+                  aria-label={dictionary.delete[lang]}
+                >
+                  <Trash2 className="size-4" />
+                </Button>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      <AlertDialog open={pendingDeleteIndex !== null} onOpenChange={(open) => !open && setPendingDeleteIndex(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              <Bilingual {...dictionary.deleteConfirm} />
+            </AlertDialogTitle>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>
+              <Bilingual {...dictionary.cancel} />
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (pendingDeleteIndex !== null) remove(pendingDeleteIndex);
+                setPendingDeleteIndex(null);
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              <Bilingual {...dictionary.delete} />
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
   );
 }

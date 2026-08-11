@@ -79,14 +79,15 @@ export default function ReligiousCulturalPage() {
   }
 
   const heritageSiteColumns: RepeatableColumn[] = [
-    { key: "name", label: { en: "Name of Religious Site / Sacred Site", si: "ආගමික ස්ථානයන්හි /පූජනීය ස්ථානයේ නම" }, type: "text" },
+    { key: "name", label: { en: "Name of Religious Site / Sacred Site", si: "ආගමික ස්ථානයන්හි /පූජනීය ස්ථානයේ නම" }, type: "text", required: true },
     {
       key: "type",
-      label: { en: "* Type", si: "*වර්ගය" },
+      label: { en: "Type", si: "වර්ගය" },
       type: "select",
       options: HERITAGE_SITE_TYPES.map((t) => ({ value: t, label: HERITAGE_SITE_TYPE_LABELS[t] })),
+      required: true,
     },
-    { key: "significance", label: { en: "Reason for Being Special", si: "සුවිශේෂී වීමට හේතු" }, type: "text" },
+    { key: "significance", label: { en: "Reason for Being Special", si: "සුවිශේෂී වීමට හේතු" }, type: "text", required: true },
     {
       key: "usedForDhammaOrGovtPurpose",
       label: { en: "Used for Dhamma School / Pirivena / Govt Purpose?", si: "දහම් පාසල්/පිරිවෙන් හෝ රජයේ කාර්යන් සඳහා භාවිතා කරනවාද" },
@@ -97,14 +98,14 @@ export default function ReligiousCulturalPage() {
   ];
 
   const artAcademyColumns: RepeatableColumn[] = [
-    { key: "name", label: { en: "Name of Art Institution", si: "කලායතනයේ නම" }, type: "text" },
+    { key: "name", label: { en: "Name of Art Institution", si: "කලායතනයේ නම" }, type: "text", required: true },
     { key: "registrationNumber", label: { en: "Registration No.", si: "ලියාපදිංචි අංකය" }, type: "text" },
     { key: "studentCount", label: { en: "Student Count", si: "සිසුන් ගණන" }, type: "number" },
   ];
 
   const traditionalArtistColumns: RepeatableColumn[] = [
-    { key: "artForm", label: { en: "* Famous Art Field", si: "*ප්‍රසිද්ධ කලා ක්ෂේත්‍රය" }, type: "text" },
-    { key: "name", label: { en: "Artists Produced", si: "බිහිවූ කලාකරුවන්" }, type: "text" },
+    { key: "artForm", label: { en: "Famous Art Field", si: "ප්‍රසිද්ධ කලා ක්ෂේත්‍රය" }, type: "text", required: true },
+    { key: "name", label: { en: "Artists Produced", si: "බිහිවූ කලාකරුවන්" }, type: "text", required: true },
     { key: "description", label: { en: "Description", si: "විස්තරය" }, type: "text" },
   ];
 

@@ -171,92 +171,40 @@ export const roadInfrastructureSchemaStrict = z.object({
 
 export type RoadInfrastructureData = z.infer<typeof roadInfrastructureSchemaStrict>;
 
-/* Draft-mode row schemas built from scratch rather than `.partial()` on the strict schemas
- * above: `.partial()` only allows a field to be *missing*, it doesn't relax `min(1)`, so a row
- * added via the "Add" button (whose fields start as "") would still fail validation and
- * silently block saving. (solarPowerPlants/windPowerPlants/hydropowerPlants intentionally left
- * on plain `.partial()` — not touched, per instruction.) */
-const roadDevelopmentNeedRowPartialSchema = z.object({
-  roadName: z.string().optional(),
-  roadNumber: z.string().optional(),
-  lengthMeters: z.coerce.number().min(0).optional(),
-  surfaceType: z.enum(ROAD_SURFACE_TYPES).optional(),
-  maintainingAuthority: z.string().optional(),
-});
-
-const bridgeRepairRowPartialSchema = z.object({
-  name: z.string().optional(),
-  roadNumber: z.string().optional(),
-  location: z.string().optional(),
-  maintainingAuthority: z.string().optional(),
-});
-
-const newRoadBridgeNeedRowPartialSchema = z.object({
-  location: z.string().optional(),
-  roadNumber: z.string().optional(),
-  justification: z.string().optional(),
-});
-
-const noPublicTransportAreaRowPartialSchema = z.object({
-  roadName: z.string().optional(),
-  roadNumber: z.string().optional(),
-  startPoint: z.string().optional(),
-  endPoint: z.string().optional(),
-  distanceKm: z.coerce.number().min(0).optional(),
-  requiredBeneficiaryCount: z.coerce.number().int().min(0).optional(),
-});
-
-const postOfficeRowPartialSchema = z.object({
-  name: z.string().optional(),
-  type: z.enum(POST_OFFICE_TYPES).optional(),
-});
-
-const railwayCrossingGapRowPartialSchema = z.object({
-  roadName: z.string().optional(),
-  roadNumber: z.string().optional(),
-  location: z.string().optional(),
-});
-
-const namedFacilityRowPartialSchema = z.object({
-  name: z.string().optional(),
-});
-
-const financialInstitutionRowPartialSchema = z.object({
-  name: z.string().optional(),
-  type: z.enum(FINANCIAL_INSTITUTION_TYPES).optional(),
-});
-
-const licensedLiquorShopRowPartialSchema = z.object({
-  name: z.string().optional(),
-  address: z.string().optional(),
-});
-
+/* Draft-mode reuses the strict row schemas directly — a row's required fields (e.g. `name`)
+ * still fail validation if blank, surfacing a "required" error in the UI, but that no longer
+ * blocks saving: SectionForm always saves the draft regardless of validation outcome, it just
+ * shows the errors alongside. Only the *array itself* (or, for `publicFacilities`, the nested
+ * object) is optional here, so an empty/untouched table is still a valid draft.
+ * solarPowerPlants/windPowerPlants/hydropowerPlants used to be intentionally left on plain
+ * `.partial()` per an earlier instruction — that no longer applies, so they now follow the
+ * same pattern as every other table below. */
 export const roadInfrastructureSchemaPartial = z.object({
   publicFacilities: z
     .object({
-      busStand: publicFacilityPresenceSchema.partial().optional(),
-      railwayStation: publicFacilityPresenceSchema.partial().optional(),
-      port: publicFacilityPresenceSchema.partial().optional(),
-      airport: publicFacilityPresenceSchema.partial().optional(),
+      busStand: publicFacilityPresenceSchema.optional(),
+      railwayStation: publicFacilityPresenceSchema.optional(),
+      port: publicFacilityPresenceSchema.optional(),
+      airport: publicFacilityPresenceSchema.optional(),
     })
     .optional(),
-  roadDevelopmentNeeds: z.array(roadDevelopmentNeedRowPartialSchema).optional(),
-  bridgeRepairs: z.array(bridgeRepairRowPartialSchema).optional(),
-  newRoadBridgeNeeds: z.array(newRoadBridgeNeedRowPartialSchema).optional(),
-  noPublicTransportAreas: z.array(noPublicTransportAreaRowPartialSchema).optional(),
-  railwayCrossingGaps: z.array(railwayCrossingGapRowPartialSchema).optional(),
-  postOffices: z.array(postOfficeRowPartialSchema).optional(),
-  fuelDistributionStations: z.array(namedFacilityRowPartialSchema).optional(),
-  solarPowerPlants: z.array(solarPowerPlantRowSchema.partial()).optional(),
-  windPowerPlants: z.array(windPowerPlantRowSchema.partial()).optional(),
-  hydropowerPlants: z.array(hydropowerPlantRowSchema.partial()).optional(),
-  financialInstitutions: z.array(financialInstitutionRowPartialSchema).optional(),
-  serviceEstablishments: z.array(serviceEstablishmentRowSchema.partial()).optional(),
-  industrialEstates: z.array(industrialEstateRowSchema.partial()).optional(),
-  waterReservoirs: z.array(waterReservoirRowSchema.partial()).optional(),
-  publicFacilityCategories: z.array(publicFacilityCategoryRowSchema.partial()).optional(),
-  licensedLiquorShopsPresent: yesNo.optional(),
-  licensedLiquorShops: z.array(licensedLiquorShopRowPartialSchema).optional(),
+  roadDevelopmentNeeds: z.array(roadDevelopmentNeedRowSchema).optional(),
+  bridgeRepairs: z.array(bridgeRepairRowSchema).optional(),
+  newRoadBridgeNeeds: z.array(newRoadBridgeNeedRowSchema).optional(),
+  noPublicTransportAreas: z.array(noPublicTransportAreaRowSchema).optional(),
+  railwayCrossingGaps: z.array(railwayCrossingGapRowSchema).optional(),
+  postOffices: z.array(postOfficeRowSchema).optional(),
+  fuelDistributionStations: z.array(namedFacilityRowSchema).optional(),
+  solarPowerPlants: z.array(solarPowerPlantRowSchema).optional(),
+  windPowerPlants: z.array(windPowerPlantRowSchema).optional(),
+  hydropowerPlants: z.array(hydropowerPlantRowSchema).optional(),
+  financialInstitutions: z.array(financialInstitutionRowSchema).optional(),
+  serviceEstablishments: z.array(serviceEstablishmentRowSchema).optional(),
+  industrialEstates: z.array(industrialEstateRowSchema).optional(),
+  waterReservoirs: z.array(waterReservoirRowSchema).optional(),
+  publicFacilityCategories: z.array(publicFacilityCategoryRowSchema).optional(),
+  licensedLiquorShopsPresent: yesNo,
+  licensedLiquorShops: z.array(licensedLiquorShopRowSchema).optional(),
 });
 
 export { HYDROPOWER_SCALES, FINANCIAL_INSTITUTION_TYPES, ROAD_SURFACE_TYPES, POST_OFFICE_TYPES, SERVICE_CATEGORIES, PUBLIC_FACILITY_CATEGORIES };

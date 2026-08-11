@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { FormProvider, type FieldValues, type UseFormReturn } from "react-hook-form";
+import { FormProvider, type FieldErrors, type FieldValues, type UseFormReturn } from "react-hook-form";
 import { AlertTriangle, Loader2, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
@@ -19,6 +19,12 @@ interface SectionFormProps<T extends FieldValues> {
   saveStatus: SaveStatus;
   saveErrorMessage?: string | null;
   onSaveDraft: (values: T) => void | Promise<void>;
+  /** Fires when a save attempt is blocked by validation — receives the full error set so a
+   *  section can react to one specific failure (e.g. popping a dialog for a data-integrity
+   *  issue that's too easy to miss as just an inline banner) without every other section having
+   *  to know about it. The inline error summary above always shows regardless; this is for
+   *  section-specific escalation on top of that default. */
+  onInvalidSubmit?: (errors: FieldErrors<T>) => void;
   children: React.ReactNode;
 }
 
@@ -30,6 +36,7 @@ export function SectionForm<T extends FieldValues>({
   saveStatus,
   saveErrorMessage,
   onSaveDraft,
+  onInvalidSubmit,
   children,
 }: SectionFormProps<T>) {
   const { lang } = useLanguage();
@@ -45,7 +52,11 @@ export function SectionForm<T extends FieldValues>({
   return (
     <FormProvider {...form}>
       <form
-        onSubmit={form.handleSubmit(onSaveDraft)}
+        // Required fields must be filled in before a save succeeds — react-hook-form's
+        // handleSubmit only calls onSaveDraft when validation passes; on failure it just
+        // populates formState.errors (rendered by FieldWrapper/RepeatableTable) and leaves
+        // the save action a no-op, so the user sees exactly what's missing.
+        onSubmit={form.handleSubmit(onSaveDraft, onInvalidSubmit)}
         noValidate
         className="mx-auto flex max-w-4xl flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8"
       >
@@ -79,8 +90,8 @@ export function SectionForm<T extends FieldValues>({
               <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
               <span>
                 <Bilingual
-                  en={`${errorCount} field(s) need attention before this section can be marked complete. You can still save as a draft.`}
-                  si={`මෙම කොටස සම්පූර්ණ ලෙස සලකුණු කිරීමට පෙර ක්ෂේත්‍ර ${errorCount} ක් සකස් කළ යුතුය. ඔබට තවමත් කෙටුම්පතක් ලෙස සුරැකිය හැක.`}
+                  en={`${errorCount} required field(s) need to be filled in before this section can be saved.`}
+                  si={`මෙම කොටස සුරැකීමට පෙර අනිවාර්ය ක්ෂේත්‍ර ${errorCount} ක් සම්පූර්ණ කළ යුතුය.`}
                 />
               </span>
             </div>

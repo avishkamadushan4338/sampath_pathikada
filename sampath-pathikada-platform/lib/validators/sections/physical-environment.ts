@@ -46,12 +46,29 @@ export const naturalResourceRowSchema = z.object({
   notes: z.string().optional(),
 });
 
-export const hazardRowSchema = z.object({
-  type: z.enum(HAZARD_TYPES),
-  occurred: yesNo,
-  frequency: z.string().optional(),
-  mitigationProposal: z.string().optional(),
-});
+/** `frequency`/`mitigationProposal` are only meaningful once a hazard is confirmed to have
+ *  occurred — conditionally required via `superRefine` (rather than always-required) so a
+ *  "no" row doesn't force the officer to describe a problem that doesn't exist here. */
+export const hazardRowSchema = z
+  .object({
+    type: z.enum(HAZARD_TYPES),
+    occurred: yesNo,
+    frequency: z.string().optional(),
+    mitigationProposal: z.string().optional(),
+  })
+  .superRefine((row, ctx) => {
+    if (row.occurred !== "yes") return;
+    if (!row.frequency?.trim()) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["frequency"], message: "Time period is required once a hazard has occurred" });
+    }
+    if (!row.mitigationProposal?.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["mitigationProposal"],
+        message: "Proposed remedial measures are required once a hazard has occurred",
+      });
+    }
+  });
 
 export const safeLocationRowSchema = z.object({
   name: z.string().min(1, "Safe location name is required"),
@@ -72,63 +89,54 @@ export const proposedTouristSiteRowSchema = z.object({
   currentAuthority: z.string().optional(),
 });
 
-export const physicalEnvironmentSchemaStrict = z.object({
-  waterSources: z.array(waterSourceRowSchema).length(WATER_SOURCE_TYPES.length),
-  sensitiveZones: z.array(sensitiveZoneRowSchema).default([]),
-  naturalResources: z.array(naturalResourceRowSchema).default([]),
-  hazards: z.array(hazardRowSchema).length(HAZARD_TYPES.length),
-  safeLocationsIdentified: yesNo,
-  safeLocations: z.array(safeLocationRowSchema).default([]),
-  touristSites: z.array(touristSiteRowSchema).default([]),
-  proposedTouristSites: z.array(proposedTouristSiteRowSchema).default([]),
-});
+/** Once the officer confirms a safe location/evacuation center has been identified, the
+ *  directory below it must actually list at least one — otherwise "yes" is a claim with no
+ *  backing data. Attached to both strict and partial schemas so it's enforced identically in
+ *  either mode; the issue's path targets the array field so the error surfaces near the table. */
+function requireSafeLocationWhenIdentified(data: { safeLocationsIdentified?: string; safeLocations?: unknown[] }, ctx: z.RefinementCtx) {
+  if (data.safeLocationsIdentified === "yes" && (data.safeLocations ?? []).length === 0) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["safeLocations"],
+      message: "At least one safe location is required once you've indicated one has been identified",
+    });
+  }
+}
+
+export const physicalEnvironmentSchemaStrict = z
+  .object({
+    // At least one row per checklist category, but the officer can add extra rows for the same
+    // category (e.g. a second River) via "+" in the UI, so this is a floor, not an exact count.
+    waterSources: z.array(waterSourceRowSchema).min(WATER_SOURCE_TYPES.length, "All water source categories must be listed"),
+    sensitiveZones: z.array(sensitiveZoneRowSchema).default([]),
+    naturalResources: z.array(naturalResourceRowSchema).default([]),
+    hazards: z.array(hazardRowSchema).length(HAZARD_TYPES.length),
+    safeLocationsIdentified: yesNo,
+    safeLocations: z.array(safeLocationRowSchema).default([]),
+    touristSites: z.array(touristSiteRowSchema).default([]),
+    proposedTouristSites: z.array(proposedTouristSiteRowSchema).default([]),
+  })
+  .superRefine(requireSafeLocationWhenIdentified);
 
 export type PhysicalEnvironmentData = z.infer<typeof physicalEnvironmentSchemaStrict>;
 
-/* Draft-mode row schemas built from scratch rather than `.partial()` on the strict schemas
- * above: `.partial()` only allows a field to be *missing*, it doesn't relax `min(1)`, so a row
- * added via the "Add" button (whose fields start as "") would still fail validation and
- * silently block saving. A GN division without one of these should be able to leave it blank. */
-const sensitiveZoneRowPartialSchema = z.object({
-  zoneName: z.string().optional(),
-  significance: z.string().optional(),
-  managingAuthority: z.string().optional(),
-});
-
-const safeLocationRowPartialSchema = z.object({
-  name: z.string().optional(),
-  address: z.string().optional(),
-});
-
-const touristSiteRowPartialSchema = z.object({
-  siteName: z.string().optional(),
-  reasonForAttraction: z.string().optional(),
-  maintainedBy: z.string().optional(),
-  frequency: z.enum(["seasonal", "year-round"]).optional(),
-});
-
-const naturalResourceRowPartialSchema = z.object({
-  resource: z.string().optional(),
-  utilizedForProduction: yesNo.optional(),
-  notes: z.string().optional(),
-});
-
-const proposedTouristSiteRowPartialSchema = z.object({
-  siteName: z.string().optional(),
-  specialFeatures: z.string().optional(),
-  possibleActivities: z.string().optional(),
-  currentAuthority: z.string().optional(),
-});
-
-export const physicalEnvironmentSchemaPartial = z.object({
-  waterSources: z.array(waterSourceRowSchema.partial()).optional(),
-  sensitiveZones: z.array(sensitiveZoneRowPartialSchema).optional(),
-  naturalResources: z.array(naturalResourceRowPartialSchema).optional(),
-  hazards: z.array(hazardRowSchema.partial()).optional(),
-  safeLocationsIdentified: yesNo.optional(),
-  safeLocations: z.array(safeLocationRowPartialSchema).optional(),
-  touristSites: z.array(touristSiteRowPartialSchema).optional(),
-  proposedTouristSites: z.array(proposedTouristSiteRowPartialSchema).optional(),
-});
+/* Draft-mode reuses the strict row schemas directly — a row's required fields (e.g. `zoneName`)
+ * still fail validation if blank, surfacing a "required" error in the UI. Required fields (and
+ * the safeLocations/hazard conditional rules above) DO block saving — SectionForm only calls
+ * onSaveDraft once validation passes. Only the *array itself* is optional here, so an
+ * empty/untouched directory (no rows added yet) is still a valid draft — a GN division without
+ * one of these can still leave it blank. */
+export const physicalEnvironmentSchemaPartial = z
+  .object({
+    waterSources: z.array(waterSourceRowSchema).optional(),
+    sensitiveZones: z.array(sensitiveZoneRowSchema).optional(),
+    naturalResources: z.array(naturalResourceRowSchema).optional(),
+    hazards: z.array(hazardRowSchema).optional(),
+    safeLocationsIdentified: yesNo.optional(),
+    safeLocations: z.array(safeLocationRowSchema).optional(),
+    touristSites: z.array(touristSiteRowSchema).optional(),
+    proposedTouristSites: z.array(proposedTouristSiteRowSchema).optional(),
+  })
+  .superRefine(requireSafeLocationWhenIdentified);
 
 export { HAZARD_TYPES, WATER_SOURCE_TYPES };

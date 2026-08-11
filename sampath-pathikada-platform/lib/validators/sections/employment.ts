@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { requiredCount } from "@/lib/validators/common";
 
 /* ── §5 රැකියා අපේක්ෂාව — Employment ──────────────────────────────────────── */
 
@@ -34,46 +35,42 @@ const JOB_SEEKER_EDUCATION_LEVELS = ["vocational-training", "below-ol", "ol-pass
 
 export const jobSeekerRowSchema = z.object({
   level: z.enum(JOB_SEEKER_EDUCATION_LEVELS),
-  count: z.coerce.number().int().min(0).default(0),
+  count: requiredCount("Person count is required"),
 });
 
 export const selfEmploymentSectorRowSchema = z.object({
   sector: z.enum(SELF_EMPLOYMENT_SECTORS),
-  count: z.coerce.number().int().min(0).default(0),
+  count: requiredCount("Person count is required"),
 });
 
+// Every field in this row is required — once the officer adds a row via "+", it must be filled
+// in completely before it can be saved; there's no "fill in some of it for now" state.
 export const selfEmployedPersonRowSchema = z.object({
   name: z.string().min(1, "Name is required"),
-  phone: z.string().optional(),
+  phone: z.string().min(1, "Phone number is required"),
   sector: z.string().min(1, "Sector / field is required"),
-  marketplace: z.enum(MARKETPLACES).optional(),
+  marketplace: z.enum(MARKETPLACES, { required_error: "Marketplace is required" }),
 });
 
 export const employmentSchemaStrict = z.object({
   jobSeekersByEducation: z.array(jobSeekerRowSchema).length(5),
-  vocationalTrainingOpportunityGapCount: z.coerce.number().int().min(0).default(0),
+  vocationalTrainingOpportunityGapCount: requiredCount("This count is required"),
   selfEmploymentSectors: z.array(selfEmploymentSectorRowSchema).length(SELF_EMPLOYMENT_SECTORS.length),
   selfEmployedPersons: z.array(selfEmployedPersonRowSchema).default([]),
 });
 
 export type EmploymentData = z.infer<typeof employmentSchemaStrict>;
 
-/* Draft-mode row schema built from scratch rather than `.partial()` on the strict schema
- * above: `.partial()` only allows a field to be *missing*, it doesn't relax `min(1)`, so a row
- * added via the "Add" button (whose fields start as "") would still fail validation and
- * silently block saving. */
-const selfEmployedPersonRowPartialSchema = z.object({
-  name: z.string().optional(),
-  phone: z.string().optional(),
-  sector: z.string().optional(),
-  marketplace: z.enum(MARKETPLACES).optional(),
-});
-
+/* Draft-mode reuses the strict row schemas directly — a row's required fields (e.g. `name`)
+ * still fail validation if blank, surfacing a "required" error in the UI. Required fields DO
+ * block saving — SectionForm only calls onSaveDraft once validation passes. Only the *array
+ * itself* (or a top-level scalar's own key) is optional here, so an empty/untouched directory
+ * (no rows added yet) is still a valid draft. */
 export const employmentSchemaPartial = z.object({
-  jobSeekersByEducation: z.array(jobSeekerRowSchema.partial()).optional(),
-  vocationalTrainingOpportunityGapCount: z.coerce.number().int().min(0).optional(),
-  selfEmploymentSectors: z.array(selfEmploymentSectorRowSchema.partial()).optional(),
-  selfEmployedPersons: z.array(selfEmployedPersonRowPartialSchema).optional(),
+  jobSeekersByEducation: z.array(jobSeekerRowSchema).optional(),
+  vocationalTrainingOpportunityGapCount: requiredCount("This count is required").optional(),
+  selfEmploymentSectors: z.array(selfEmploymentSectorRowSchema).optional(),
+  selfEmployedPersons: z.array(selfEmployedPersonRowSchema).optional(),
 });
 
 export { SELF_EMPLOYMENT_SECTORS, MARKETPLACES, JOB_SEEKER_EDUCATION_LEVELS };

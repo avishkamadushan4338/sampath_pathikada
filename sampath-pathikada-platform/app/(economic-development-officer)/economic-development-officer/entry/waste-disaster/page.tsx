@@ -113,6 +113,7 @@ export default function WasteDisasterPage() {
       key: "present",
       label: { en: "Present", si: "ඇත/නැත" },
       type: "select",
+      required: true,
       options: [
         { value: "yes", label: { en: "Yes", si: "ඔව්" } },
         { value: "no", label: { en: "No", si: "නැත" } },

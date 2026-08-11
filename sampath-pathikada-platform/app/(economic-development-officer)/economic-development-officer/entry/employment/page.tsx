@@ -70,21 +70,25 @@ function sumCounts(rows: { count?: unknown }[] | undefined): number {
   return total;
 }
 
+// Counts start blank (not 0) so the officer must explicitly type a value — even "0" — for each
+// one; a pre-filled 0 would never trigger the "required" validation, since 0 is already a
+// legitimate answer. `as never` mirrors the same cast used in demographics/page.tsx — the
+// runtime shape is a string here, not the post-parse `number` the Zod-inferred type declares.
 function buildEmptyValues(lang: "en" | "si"): EmploymentDraft {
   return {
     jobSeekersByEducation: JOB_SEEKER_EDUCATION_LEVELS.map((level) => ({
       level,
       levelLabel: JOB_SEEKER_EDUCATION_LABELS[level][lang],
-      count: 0,
+      count: "",
     })),
-    vocationalTrainingOpportunityGapCount: 0,
+    vocationalTrainingOpportunityGapCount: "",
     selfEmploymentSectors: SELF_EMPLOYMENT_SECTORS.map((sector) => ({
       sector,
       sectorLabel: SELF_EMPLOYMENT_SECTOR_LABELS[sector][lang],
-      count: 0,
+      count: "",
     })),
     selfEmployedPersons: [],
-  };
+  } as never as EmploymentDraft;
 }
 
 function mergeWithSaved(empty: EmploymentDraft, saved: EmploymentDraft): EmploymentDraft {
@@ -97,13 +101,14 @@ function mergeWithSaved(empty: EmploymentDraft, saved: EmploymentDraft): Employm
 }
 
 const selfEmployedPersonColumns: RepeatableColumn[] = [
-  { key: "sector", label: { en: "Self-Employment Field", si: "ස්වයං රැකියා ක්ෂේත්‍රය" }, type: "text" },
-  { key: "name", label: { en: "Person's Name", si: "පුද්ගල නම" }, type: "text" },
-  { key: "phone", label: { en: "Telephone Number", si: "දුරකථන අංකය" }, type: "text" },
+  { key: "sector", label: { en: "Self-Employment Field", si: "ස්වයං රැකියා ක්ෂේත්‍රය" }, type: "text", required: true },
+  { key: "name", label: { en: "Person's Name", si: "පුද්ගල නම" }, type: "text", required: true },
+  { key: "phone", label: { en: "Telephone Number", si: "දුරකථන අංකය" }, type: "text", required: true },
   {
     key: "marketplace",
-    label: { en: "* Market", si: "*වෙළදපොළ" },
+    label: { en: "Market", si: "වෙළදපොළ" },
     type: "select",
+    required: true,
     options: MARKETPLACES.map((m) => ({ value: m, label: MARKETPLACE_LABELS[m] })),
   },
 ];
@@ -143,12 +148,12 @@ export default function EmploymentPage() {
 
   const jobSeekerColumns: RepeatableColumn[] = [
     { key: "levelLabel", label: { en: "Education Level", si: "අධ්‍යාපන මට්ටම" }, type: "readonly" },
-    { key: "count", label: { en: "Number of Persons", si: "පුද්ගල ගණන" }, type: "number" },
+    { key: "count", label: { en: "Number of Persons", si: "පුද්ගල ගණන" }, type: "number", required: true },
   ];
 
   const selfEmploymentSectorColumns: RepeatableColumn[] = [
     { key: "sectorLabel", label: { en: "Field", si: "ක්ෂේත්‍රය" }, type: "readonly" },
-    { key: "count", label: { en: "Number of Persons", si: "පුද්ගලයින් ගණන" }, type: "number" },
+    { key: "count", label: { en: "Number of Persons", si: "පුද්ගලයින් ගණන" }, type: "number", required: true },
   ];
 
   const totalJobSeekers = sumCounts(form.watch("jobSeekersByEducation"));
@@ -187,6 +192,7 @@ export default function EmploymentPage() {
         <FieldWrapper
           name="vocationalTrainingOpportunityGapCount"
           label={employmentDict.fields.vocationalTrainingOpportunityGapCount}
+          required
         >
           {({ id, describedBy, invalid }) => (
             <Input

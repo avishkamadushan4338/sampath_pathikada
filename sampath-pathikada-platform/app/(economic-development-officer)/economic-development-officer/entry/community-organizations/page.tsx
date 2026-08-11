@@ -105,23 +105,23 @@ export default function CommunityOrganizationsPage() {
   }
 
   const organizationCountColumns: RepeatableColumn[] = [
-    { key: "typeLabel", label: { en: "Society Type", si: "සමිති වර්ගය" }, type: "readonly" },
+    { key: "typeLabel", label: { en: "Type", si: "වර්ගය" }, type: "readonly" },
     { key: "count", label: { en: "Society Count", si: "සමිති සංඛ්‍යාව" }, type: "number" },
   ];
 
   const nameColumns = (nameLabel: { en: string; si: string }): RepeatableColumn[] => [
-    { key: "name", label: nameLabel, type: "text" },
-    { key: "address", label: { en: "Address", si: "ලිපිනය" }, type: "text" },
+    { key: "name", label: nameLabel, type: "text", required: true },
+    { key: "address", label: { en: "Address", si: "ලිපිනය" }, type: "text", required: true },
   ];
 
   const sportsClubColumns: RepeatableColumn[] = [
-    { key: "nameAndAddress", label: { en: "Sports Society Name & Address", si: "ක්‍රීඩා සමාජවල නම හා ලිපිනය" }, type: "text" },
+    { key: "nameAndAddress", label: { en: "Sports Society Name & Address", si: "ක්‍රීඩා සමාජවල නම හා ලිපිනය" }, type: "text", required: true },
     { key: "memberCount", label: { en: "Member Count", si: "සාමාජික ගණන" }, type: "number" },
     { key: "identifiedNeeds", label: { en: "Identified Needs", si: "හඳුනාගත් අවශ්‍යතා" }, type: "text" },
   ];
 
   const cooperativeSocietyColumns: RepeatableColumn[] = [
-    { key: "name", label: { en: "Multi-Purpose Cooperative Society Name", si: "වි.සේවා.සමූපකාර සමිතියේ නම" }, type: "text" },
+    { key: "name", label: { en: "Multi-Purpose Cooperative Society Name", si: "වි.සේවා.සමූපකාර සමිතියේ නම" }, type: "text", required: true },
   ];
 
   return (

@@ -15,7 +15,9 @@ interface FieldWrapperProps {
   className?: string;
 }
 
-function getErrorAtPath(errors: Record<string, unknown>, path: string): FieldError | undefined {
+/** Exported for RepeatableTable, which needs the same nested-path lookup (e.g.
+ *  "disabilities.0.under18.female") to show errors on table/card cells. */
+export function getErrorAtPath(errors: Record<string, unknown>, path: string): FieldError | undefined {
   const parts = path.split(".");
   let cursor: unknown = errors;
   for (const part of parts) {

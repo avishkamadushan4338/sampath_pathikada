@@ -4,7 +4,7 @@ import { getSession } from "@/lib/auth";
 
 export async function GET(req: NextRequest) {
   const session = await getSession();
-  if (!session || session.role !== "SUPER_ADMIN") {
+  if (!session || (session.role !== "SUPER_ADMIN" && session.role !== "DIVISIONAL_SECRETARIAT")) {
     return NextResponse.json({ ok: false, message: "Unauthorized" }, { status: 401 });
   }
 
@@ -25,6 +25,20 @@ export async function GET(req: NextRequest) {
       { userName:    { contains: search } },
       { userIp:      { contains: search } },
     ];
+  }
+
+  // Divisional Secretariat users get a narrower, fixed view — flagged data-quality issues from
+  // officers in their own division only, never other divisions' activity and never routine
+  // non-data system/admin events, which aren't their concern. This overrides whatever
+  // severity/category the query string requested; DS isn't a general log browser, just an
+  // alerts feed. Super Admin keeps the unrestricted view above.
+  if (session.role === "DIVISIONAL_SECRETARIAT") {
+    if (!session.dsDivision) {
+      return NextResponse.json({ ok: true, data: [], total: 0, page, pageSize });
+    }
+    where.category = "DATA";
+    where.severity = { in: ["WARNING", "ERROR"] };
+    where.user = { dsDivision: session.dsDivision };
   }
 
   const [total, items] = await prisma.$transaction([
