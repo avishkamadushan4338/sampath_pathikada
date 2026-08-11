@@ -97,12 +97,13 @@ export default function SocialWelfarePage() {
   }
 
   const eldersHomeColumns: RepeatableColumn[] = [
-    { key: "name", label: { en: "Elders' Home Name", si: "වැඩිහිටි නිවාසය නම" }, type: "text" },
+    { key: "name", label: { en: "Elders' Home Name", si: "වැඩිහිටි නිවාසය නම" }, type: "text", required: true },
     {
       key: "authority",
-      label: { en: "* Maintaining Authority", si: "*පාලනය කරනු ලබන ආයතනය" },
+      label: { en: "Maintaining Authority", si: "පාලනය කරනු ලබන ආයතනය" },
       type: "select",
       options: ELDERS_HOME_AUTHORITY_TYPES.map((v) => ({ value: v, label: ELDERS_HOME_AUTHORITY_LABELS[v] })),
+      required: true,
     },
     { key: "phone", label: { en: "Phone Number", si: "දුරකථන අංකය" }, type: "text" },
     { key: "infrastructureNeeds", label: { en: "Infrastructure Facility Needs", si: "යටිතල පහසුකම්වල අවශ්‍යතාව" }, type: "text" },
@@ -112,18 +113,20 @@ export default function SocialWelfarePage() {
   ];
 
   const childrensHomeColumns: RepeatableColumn[] = [
-    { key: "name", label: { en: "Children's Home Name", si: "ළමා නිවාසය නම" }, type: "text" },
+    { key: "name", label: { en: "Children's Home Name", si: "ළමා නිවාසය නම" }, type: "text", required: true },
     {
       key: "authority",
-      label: { en: "* Maintaining Authority", si: "*පාලනය කරනු ලබන ආයතනය" },
+      label: { en: "Maintaining Authority", si: "පාලනය කරනු ලබන ආයතනය" },
       type: "select",
       options: CHILDRENS_HOME_AUTHORITY_TYPES.map((v) => ({ value: v, label: CHILDRENS_HOME_AUTHORITY_LABELS[v] })),
+      required: true,
     },
     {
       key: "type",
-      label: { en: "** Type", si: "**වර්ගය" },
+      label: { en: "Type", si: "වර්ගය" },
       type: "select",
       options: CHILDRENS_HOME_TYPES.map((v) => ({ value: v, label: CHILDRENS_HOME_TYPE_LABELS[v] })),
+      required: true,
     },
     { key: "capacity", label: { en: "Children's Home Capacity", si: "ළමා නිවාසයේ ධාරිතාව" }, type: "number" },
     { key: "residentCount.female", label: { en: "Current Children - Female", si: "දැනට සිටින ළමයින් - ගැහැණු" }, type: "number" },

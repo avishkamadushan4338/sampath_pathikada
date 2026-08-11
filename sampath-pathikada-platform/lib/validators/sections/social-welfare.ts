@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { sexCountSchema, sexCountPartialSchema } from "@/lib/validators/common";
+import { sexCountSchema } from "@/lib/validators/common";
 
 /* ── §11 සමාජ සුබසාධන — Social Welfare ───────────────────────────────────── */
 
@@ -49,27 +49,11 @@ export const socialWelfareSchemaStrict = z.object({
 
 export type SocialWelfareData = z.infer<typeof socialWelfareSchemaStrict>;
 
-/* Draft-mode row schemas built from scratch rather than `.partial()` on the strict schemas
- * above: `.partial()` only allows a field to be *missing*, it doesn't relax `min(1)`, so a row
- * added via the "Add" button (whose fields start as "") would still fail validation and
- * silently block saving. */
-const eldersHomeRowPartialSchema = z.object({
-  name: z.string().optional(),
-  authority: z.enum(ELDERS_HOME_AUTHORITY_TYPES).optional(),
-  phone: z.string().optional(),
-  infrastructureNeeds: z.string().optional(),
-  capacity: z.coerce.number().int().min(0).optional(),
-  residentCount: sexCountPartialSchema.optional(),
-});
-
-const childrensHomeRowPartialSchema = z.object({
-  name: z.string().optional(),
-  authority: z.enum(CHILDRENS_HOME_AUTHORITY_TYPES).optional(),
-  type: z.enum(CHILDRENS_HOME_TYPES).optional(),
-  capacity: z.coerce.number().int().min(0).optional(),
-  residentCount: sexCountPartialSchema.optional(),
-});
-
+/* Draft-mode reuses the strict row schemas directly — a row's required fields (e.g. `name`)
+ * still fail validation if blank, surfacing a "required" error in the UI, but that no longer
+ * blocks saving: SectionForm always saves the draft regardless of validation outcome, it just
+ * shows the errors alongside. Only the *array itself* is optional here, so an empty/untouched
+ * directory (no rows added yet) is still a valid draft. */
 export const socialWelfareSchemaPartial = z.object({
   welfarePaymentHouseholdCounts: z
     .object({
@@ -93,8 +77,8 @@ export const socialWelfareSchemaPartial = z.object({
       other: z.coerce.number().int().min(0).optional(),
     })
     .optional(),
-  eldersHomes: z.array(eldersHomeRowPartialSchema).optional(),
-  childrensHomes: z.array(childrensHomeRowPartialSchema).optional(),
+  eldersHomes: z.array(eldersHomeRowSchema).optional(),
+  childrensHomes: z.array(childrensHomeRowSchema).optional(),
 });
 
 export { ELDERS_HOME_AUTHORITY_TYPES, CHILDRENS_HOME_TYPES, CHILDRENS_HOME_AUTHORITY_TYPES };
