@@ -345,6 +345,42 @@ describe("economicAgricultureSchemaPartial", () => {
     expect(result.success).toBe(true);
   });
 
+  it("rejects fishLandingSitePresent = yes with an empty fishLandingSites directory", () => {
+    const result = economicAgricultureSchemaPartial.safeParse({
+      ...BASE_PARTIAL,
+      fishLandingSitePresent: "yes",
+      fishLandingSites: [],
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts fishLandingSitePresent = yes once at least one fish landing site is listed", () => {
+    const result = economicAgricultureSchemaPartial.safeParse({
+      ...BASE_PARTIAL,
+      fishLandingSitePresent: "yes",
+      fishLandingSites: [{ name: "Main Harbor", address: "Port Road", siteType: "harbor", waterType: "marine" }],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects iceProductionPresent = yes with an empty iceProductionDirectory", () => {
+    const result = economicAgricultureSchemaPartial.safeParse({
+      ...BASE_PARTIAL,
+      iceProductionPresent: "yes",
+      iceProductionDirectory: [],
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts iceProductionPresent = yes once at least one ice production facility is listed", () => {
+    const result = economicAgricultureSchemaPartial.safeParse({
+      ...BASE_PARTIAL,
+      iceProductionPresent: "yes",
+      iceProductionDirectory: [{ name: "Ice Factory", address: "Cold Street" }],
+    });
+    expect(result.success).toBe(true);
+  });
+
   it("rejects a tea estate row left blank", () => {
     const result = economicAgricultureSchemaPartial.safeParse({
       ...BASE_PARTIAL,

@@ -147,6 +147,36 @@ export const teaEstateRowSchema = z.object({
   employeesMale: z.coerce.number().int().min(0).default(0),
 });
 
+/** Once the officer confirms a fish landing site / ice production facility exists, the directory
+ *  below it must actually list at least one — otherwise "yes" is a claim with no backing data.
+ *  Mirrors the same rule for safe locations in the physical-environment section. Attached to both
+ *  strict and partial schemas so it's enforced identically in either mode; each issue's path
+ *  targets the array field so the error surfaces near the table. */
+function requireDirectoryWhenPresent(
+  data: {
+    fishLandingSitePresent?: string;
+    fishLandingSites?: unknown[];
+    iceProductionPresent?: string;
+    iceProductionDirectory?: unknown[];
+  },
+  ctx: z.RefinementCtx
+) {
+  if (data.fishLandingSitePresent === "yes" && (data.fishLandingSites ?? []).length === 0) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["fishLandingSites"],
+      message: "At least one fish landing site is required once you've indicated one is present",
+    });
+  }
+  if (data.iceProductionPresent === "yes" && (data.iceProductionDirectory ?? []).length === 0) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["iceProductionDirectory"],
+      message: "At least one ice production facility is required once you've indicated one is present",
+    });
+  }
+}
+
 export const economicAgricultureSchemaStrict = z.object({
   landUse: z.array(landUseRowSchema).length(LAND_USE_TYPES.length),
   animalHusbandryCounts: z.array(z.object({ type: z.enum(FLORAL_CULTIVATION_TYPES), count: z.coerce.number().int().min(0).default(0) })).length(
@@ -191,15 +221,16 @@ export const economicAgricultureSchemaStrict = z.object({
   iceProductionPresent: yesNo,
   iceProductionDirectory: z.array(iceProductionRowSchema).default([]),
   teaEstates: z.array(teaEstateRowSchema).default([]),
-});
+}).superRefine(requireDirectoryWhenPresent);
 
 export type EconomicAgricultureData = z.infer<typeof economicAgricultureSchemaStrict>;
 
 /* Draft-mode reuses the strict row schemas directly — a row's required fields (e.g. `name`)
- * still fail validation if blank, surfacing a "required" error in the UI, but that no longer
- * blocks saving: SectionForm always saves the draft regardless of validation outcome, it just
- * shows the errors alongside. Only the *array itself* (or the outer object, for nested objects)
- * is optional here, so an empty/untouched directory (no rows added yet) is still a valid draft. */
+ * still fail validation if blank, surfacing a "required" error in the UI. Required fields (and
+ * the fishLandingSites/iceProductionDirectory conditional rule above) DO block saving —
+ * SectionForm only calls onSaveDraft once validation passes. Only the *array itself* (or the
+ * outer object, for nested objects) is optional here, so an empty/untouched directory (no rows
+ * added yet) is still a valid draft. */
 export const economicAgricultureSchemaPartial = z.object({
   landUse: z.array(landUseRowSchema).optional(),
   animalHusbandryCounts: z.array(z.object({ type: z.enum(FLORAL_CULTIVATION_TYPES), count: z.coerce.number().int().min(0).optional() })).optional(),
@@ -250,7 +281,7 @@ export const economicAgricultureSchemaPartial = z.object({
   iceProductionPresent: yesNo,
   iceProductionDirectory: z.array(iceProductionRowSchema).optional(),
   teaEstates: z.array(teaEstateRowSchema).optional(),
-});
+}).superRefine(requireDirectoryWhenPresent);
 
 export {
   LAND_USE_TYPES,
