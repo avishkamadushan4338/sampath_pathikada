@@ -1,17 +1,34 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useFieldArray, useFormContext, type FieldArrayWithId } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2 } from "lucide-react";
+import { Loader2, Plus, Trash2 } from "lucide-react";
 import { SectionForm } from "@/components/forms/SectionForm";
-import { FieldWrapper } from "@/components/forms/FormField";
+import { FieldWrapper, getErrorAtPath } from "@/components/forms/FormField";
 import { RepeatableTable, type RepeatableColumn } from "@/components/forms/RepeatableTable";
 import { CollapsibleFieldGroup, hasAnyNonZero, entryCountLabel } from "@/components/forms/CollapsibleFieldGroup";
 import { Accordion } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Bilingual } from "@/components/Bilingual";
+import { dictionary } from "@/lib/i18n/dictionary";
 import { useSubmission, useSaveSection } from "@/hooks/use-submission";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { educationDict } from "@/lib/i18n/sections/education";
@@ -138,25 +155,19 @@ export default function EducationPage() {
   useEffect(() => {
     if (submission?.data.education) {
       const saved = submission.data.education;
-      // `tertiaryInstitutions` used to be a free-form, variable-length list of {name, type} —
-      // now it's a fixed 4-row checklist. A flat spread would replace the freshly-seeded
-      // template with whatever shape the old data happened to have. Match old rows to the
-      // template by `type` instead, inferring `exists` from whether a name was recorded.
-      const savedTertiaryByType = new Map(
-        (saved.tertiaryInstitutions ?? []).filter((r) => r?.type).map((r) => [r!.type, r])
-      );
-      form.reset({
-        ...emptyValues,
-        ...saved,
-        tertiaryInstitutions: emptyValues.tertiaryInstitutions?.map((row) => {
-          const savedRow = savedTertiaryByType.get(row.type);
-          return {
-            ...row,
-            name: savedRow?.name ?? row.name,
-            exists: savedRow?.exists ?? (savedRow?.name ? "yes" : row.exists),
-          };
-        }),
-      });
+      // `tertiaryInstitutions` is a fixed 4-category checklist, but a GN division can have more
+      // than one institution of the same type (e.g. two university branches), added as extra
+      // rows sharing that `type` — so a saved draft's array may be longer than the freshly-seeded
+      // template and can't be zipped by index. Trust the saved array's own rows wholesale
+      // (falling back to the template only when nothing's been saved yet), just refreshing
+      // `typeLabel` for the active language since that's display-only, not persisted.
+      const tertiaryInstitutions = (
+        saved.tertiaryInstitutions?.length ? saved.tertiaryInstitutions : emptyValues.tertiaryInstitutions
+      )?.map((row) => ({
+        ...row,
+        typeLabel: TERTIARY_TYPE_LABELS[row.type as (typeof TERTIARY_TYPES)[number]]?.[lang] ?? (row as Record<string, unknown>).typeLabel,
+      }));
+      form.reset({ ...emptyValues, ...saved, tertiaryInstitutions });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [submission, emptyValues]);
@@ -322,18 +333,6 @@ export default function EducationPage() {
     { key: "studentCount", label: { en: "Number of Students", si: "සිසුන් ගණන" }, type: "number" },
   ];
 
-  const tertiaryInstitutionColumns: RepeatableColumn[] = [
-    { key: "typeLabel", label: { en: "Institution Type", si: "ආයතන වර්ගය" }, type: "readonly" },
-    {
-      key: "exists",
-      label: { en: "Exists? (Yes/No)", si: "ඇත/නැත" },
-      type: "select",
-      options: YES_NO_OPTIONS,
-      required: true,
-    },
-    { key: "name", label: { en: "Institution Name (Indicate Branches Too)", si: "ආයතනයේ නම (ශාඛා ද සඳහන් කරන්න)" }, type: "text" },
-  ];
-
   const tuitionCenterColumns: RepeatableColumn[] = [
     { key: "registrationNumber", label: { en: "Registration Number", si: "ලියාපදිංචි අංකය" }, type: "text", required: true },
     {
@@ -352,7 +351,9 @@ export default function EducationPage() {
   const vocationalInstitutesMeta = listMeta(watched.vocationalInstitutes);
   const preschoolsMeta = listMeta(watched.preschools);
   const dhammaEducationInstitutionsMeta = listMeta(watched.dhammaEducationInstitutions);
-  const tertiaryInstitutionsPresentCount = watched.tertiaryInstitutions?.filter((r) => r?.exists === "yes").length ?? 0;
+  // Counts named institutions/branches, not checklist rows — a category with two branches
+  // entered should read as 2 entries, same as any other repeatable list in this section.
+  const tertiaryInstitutionsPresentCount = watched.tertiaryInstitutions?.filter((r) => r?.name?.trim()).length ?? 0;
   const tertiaryInstitutionsMeta = {
     status: (tertiaryInstitutionsPresentCount > 0 ? "filled" : "empty") as "filled" | "empty",
     countLabel: entryCountLabel(tertiaryInstitutionsPresentCount),
@@ -630,17 +631,7 @@ export default function EducationPage() {
         </CollapsibleFieldGroup>
 
         <CollapsibleFieldGroup value="tertiaryInstitutions" title={educationDict.fields.tertiaryInstitutions} status={tertiaryInstitutionsMeta.status} countLabel={tertiaryInstitutionsMeta.countLabel}>
-          <RepeatableTable
-            name="tertiaryInstitutions"
-            columns={tertiaryInstitutionColumns}
-            fixedRows
-            emptyRowFactory={() => ({
-              type: TERTIARY_TYPES[0],
-              typeLabel: TERTIARY_TYPE_LABELS[TERTIARY_TYPES[0]][lang],
-              exists: "no",
-              name: "",
-            })}
-          />
+          <TertiaryInstitutionsTable lang={lang} />
         </CollapsibleFieldGroup>
 
         <CollapsibleFieldGroup value="tuitionCenters" title={educationDict.fields.tuitionCenters} status={tuitionCentersMeta.status} countLabel={tuitionCentersMeta.countLabel}>
@@ -704,5 +695,147 @@ export default function EducationPage() {
         </CollapsibleFieldGroup>
       </Accordion>
     </SectionForm>
+  );
+}
+
+type TertiaryInstitutionRow = {
+  type: (typeof TERTIARY_TYPES)[number];
+  typeLabel: string;
+  exists: "yes" | "no";
+  name?: string;
+};
+
+/** Tertiary institutions are a fixed 4-category checklist (university, tech institute, ...), but
+ *  a GN division can have more than one institution of a given category (e.g. two university
+ *  branches) — same per-category insert/anchor pattern as WaterSourcesTable in the
+ *  physical-environment section: the first row of each type is the checklist anchor and can't be
+ *  removed, "+" inserts an extra row for that same category right after it, and extras can be
+ *  deleted again. Unlike water sources, a name is only collectible once the category is marked as
+ *  existing — the "Exists?" select lives only on the anchor row (extras are only ever created
+ *  once that's already "yes", so they don't need their own copy of the question), and the name
+ *  input plus "+" only appear while exists is "yes". */
+function TertiaryInstitutionsTable({ lang }: { lang: "en" | "si" }) {
+  const { control, register, watch, setValue, formState } = useFormContext<EducationDraft>();
+  const { fields, insert, remove } = useFieldArray({ control, name: "tertiaryInstitutions" });
+  const [pendingDeleteIndex, setPendingDeleteIndex] = useState<number | null>(null);
+
+  const seenTypes = new Set<string>();
+  const isAnchor = fields.map((field) => {
+    const row = field as FieldArrayWithId<EducationDraft, "tertiaryInstitutions"> & TertiaryInstitutionRow;
+    const first = !seenTypes.has(row.type);
+    seenTypes.add(row.type);
+    return first;
+  });
+
+  function addAnother(index: number) {
+    const row = fields[index] as FieldArrayWithId<EducationDraft, "tertiaryInstitutions"> & TertiaryInstitutionRow;
+    insert(index + 1, { type: row.type, typeLabel: row.typeLabel, exists: "yes", name: "" } as never);
+  }
+
+  function requestRemove(index: number) {
+    const row = fields[index] as FieldArrayWithId<EducationDraft, "tertiaryInstitutions"> & TertiaryInstitutionRow;
+    if (row.name) setPendingDeleteIndex(index);
+    else remove(index);
+  }
+
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-3 rounded-lg border border-border p-3">
+        {fields.map((field, index) => {
+          const row = field as FieldArrayWithId<EducationDraft, "tertiaryInstitutions"> & TertiaryInstitutionRow;
+          const exists = watch(`tertiaryInstitutions.${index}.exists`) ?? "no";
+          const showNameInput = isAnchor[index] ? exists === "yes" : true;
+          const nameError = isAnchor[index]
+            ? getErrorAtPath(formState.errors as Record<string, unknown>, `tertiaryInstitutions.${index}.name`)
+            : undefined;
+          return (
+            <div key={field.id} className="flex flex-wrap items-start gap-3">
+              <div className="flex w-full items-center gap-3 sm:w-auto">
+                <span lang={lang} className={cn("w-44 shrink-0 text-fluid-sm font-medium text-foreground", lang === "si" && "font-si")}>
+                  {isAnchor[index] ? row.typeLabel : ""}
+                </span>
+                {isAnchor[index] && (
+                  <Select
+                    value={exists}
+                    onValueChange={(v) => setValue(`tertiaryInstitutions.${index}.exists`, v as "yes" | "no", { shouldDirty: true })}
+                  >
+                    <SelectTrigger className="w-32 shrink-0" aria-label={`${row.typeLabel} — ${lang === "si" ? "ඇත/නැත" : "Exists?"}`}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {YES_NO_OPTIONS.map((o) => (
+                        <SelectItem key={o.value} value={o.value}>
+                          {lang === "si" ? o.label.si : o.label.en}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              </div>
+              {showNameInput && (
+                <div className="flex min-w-48 flex-1 flex-col gap-1">
+                  <div className="flex items-center gap-2">
+                    <Input
+                      className="flex-1"
+                      placeholder={lang === "si" ? "ආයතනයේ නම (ශාඛා ද සඳහන් කරන්න)" : "Institution Name (Indicate Branches Too)"}
+                      aria-invalid={!!nameError}
+                      {...register(`tertiaryInstitutions.${index}.name`)}
+                    />
+                    {isAnchor[index] ? (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="touch-target shrink-0"
+                        onClick={() => addAnother(index)}
+                        aria-label={dictionary.add[lang]}
+                      >
+                        <Plus className="size-4" />
+                      </Button>
+                    ) : (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="touch-target shrink-0 text-destructive hover:text-destructive"
+                        onClick={() => requestRemove(index)}
+                        aria-label={dictionary.delete[lang]}
+                      >
+                        <Trash2 className="size-4" />
+                      </Button>
+                    )}
+                  </div>
+                  {nameError?.message && <p className="text-fluid-xs text-destructive">{String(nameError.message)}</p>}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      <AlertDialog open={pendingDeleteIndex !== null} onOpenChange={(open) => !open && setPendingDeleteIndex(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              <Bilingual {...dictionary.deleteConfirm} />
+            </AlertDialogTitle>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>
+              <Bilingual {...dictionary.cancel} />
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (pendingDeleteIndex !== null) remove(pendingDeleteIndex);
+                setPendingDeleteIndex(null);
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              <Bilingual {...dictionary.delete} />
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
   );
 }
