@@ -110,7 +110,10 @@ export const physicalEnvironmentSchemaStrict = z
     waterSources: z.array(waterSourceRowSchema).min(WATER_SOURCE_TYPES.length, "All water source categories must be listed"),
     sensitiveZones: z.array(sensitiveZoneRowSchema).default([]),
     naturalResources: z.array(naturalResourceRowSchema).default([]),
-    hazards: z.array(hazardRowSchema).length(HAZARD_TYPES.length),
+    // At least one row per environmental problem category, but the officer can add extra rows
+    // for the same category (e.g. two separate flood incidents with different time periods) via
+    // "+" in the UI, so this is a floor, not an exact count.
+    hazards: z.array(hazardRowSchema).min(HAZARD_TYPES.length, "All environmental problem categories must be listed"),
     safeLocationsIdentified: yesNo,
     safeLocations: z.array(safeLocationRowSchema).default([]),
     touristSites: z.array(touristSiteRowSchema).default([]),

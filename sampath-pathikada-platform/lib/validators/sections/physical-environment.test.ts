@@ -58,6 +58,17 @@ describe("physicalEnvironmentSchemaStrict", () => {
     expect(result.success).toBe(false);
   });
 
+  it("accepts more than one row for the same hazard category (e.g. two separate flood incidents)", () => {
+    const result = physicalEnvironmentSchemaStrict.safeParse({
+      ...validPayload,
+      hazards: [
+        ...validPayload.hazards,
+        { type: "flood", occurred: "yes" as const, frequency: "Monsoon season", mitigationProposal: "Build a drainage channel" },
+      ],
+    });
+    expect(result.success).toBe(true);
+  });
+
   it("accepts the correct full-length waterSources and hazards arrays", () => {
     const result = physicalEnvironmentSchemaStrict.safeParse({
       ...validPayload,
