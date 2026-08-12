@@ -1,70 +1,104 @@
 import type { Metadata, Viewport } from "next";
-import {
-  Inter,
-  DM_Sans,
-  Playfair_Display,
-  Cormorant_Garamond,
-  Noto_Sans_Sinhala,
-  Noto_Serif_Sinhala,
-} from "next/font/google";
 import localFont from "next/font/local";
 import Providers from "./components/Providers";
 import "./globals.css";
 
-/** Self-hosted via next/font instead of a Google Fonts <link> — removes the extra DNS/connection
- *  round-trip to fonts.googleapis.com/fonts.gstatic.com, serves font files from this app's own
- *  origin, and automatically generates a size-adjusted fallback font (matching x-height/advance
- *  widths) to minimize layout shift before each webfont loads. Weight lists mirror what the
- *  previous <link> tag requested, unchanged, to avoid dropping a weight some page still uses. */
-const inter = Inter({
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700", "800"],
+/** Every font here is vendored locally (files originally fetched from fonts.gstatic.com) instead
+ *  of next/font/google — the Docker build has repeatedly failed to reach Google's font CDN for
+ *  one font or another (first Yaldevi, then Inter), failing the whole build each time.
+ *  next/font/local reads the files straight from disk, so the build no longer depends on that
+ *  network call succeeding for any of them. Weight/style lists mirror what next/font/google was
+ *  previously configured to fetch, unchanged, to avoid dropping a weight some page still uses. */
+const inter = localFont({
+  src: [
+    { path: "./fonts/inter/Inter-Light.woff2", weight: "300", style: "normal" },
+    { path: "./fonts/inter/Inter-Regular.woff2", weight: "400", style: "normal" },
+    { path: "./fonts/inter/Inter-Medium.woff2", weight: "500", style: "normal" },
+    { path: "./fonts/inter/Inter-SemiBold.woff2", weight: "600", style: "normal" },
+    { path: "./fonts/inter/Inter-Bold.woff2", weight: "700", style: "normal" },
+    { path: "./fonts/inter/Inter-ExtraBold.woff2", weight: "800", style: "normal" },
+  ],
   variable: "--font-inter",
   display: "swap",
 });
 
-const dmSans = DM_Sans({
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
-  style: ["normal", "italic"],
+const dmSans = localFont({
+  src: [
+    { path: "./fonts/dm-sans/DMSans-Light.woff2", weight: "300", style: "normal" },
+    { path: "./fonts/dm-sans/DMSans-LightItalic.woff2", weight: "300", style: "italic" },
+    { path: "./fonts/dm-sans/DMSans-Regular.woff2", weight: "400", style: "normal" },
+    { path: "./fonts/dm-sans/DMSans-RegularItalic.woff2", weight: "400", style: "italic" },
+    { path: "./fonts/dm-sans/DMSans-Medium.woff2", weight: "500", style: "normal" },
+    { path: "./fonts/dm-sans/DMSans-MediumItalic.woff2", weight: "500", style: "italic" },
+    { path: "./fonts/dm-sans/DMSans-SemiBold.woff2", weight: "600", style: "normal" },
+    { path: "./fonts/dm-sans/DMSans-SemiBoldItalic.woff2", weight: "600", style: "italic" },
+    { path: "./fonts/dm-sans/DMSans-Bold.woff2", weight: "700", style: "normal" },
+    { path: "./fonts/dm-sans/DMSans-BoldItalic.woff2", weight: "700", style: "italic" },
+  ],
   variable: "--font-dm-sans",
   display: "swap",
 });
 
-const playfairDisplay = Playfair_Display({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800", "900"],
-  style: ["normal", "italic"],
+const playfairDisplay = localFont({
+  src: [
+    { path: "./fonts/playfair-display/PlayfairDisplay-Regular.woff2", weight: "400", style: "normal" },
+    { path: "./fonts/playfair-display/PlayfairDisplay-RegularItalic.woff2", weight: "400", style: "italic" },
+    { path: "./fonts/playfair-display/PlayfairDisplay-Medium.woff2", weight: "500", style: "normal" },
+    { path: "./fonts/playfair-display/PlayfairDisplay-MediumItalic.woff2", weight: "500", style: "italic" },
+    { path: "./fonts/playfair-display/PlayfairDisplay-SemiBold.woff2", weight: "600", style: "normal" },
+    { path: "./fonts/playfair-display/PlayfairDisplay-SemiBoldItalic.woff2", weight: "600", style: "italic" },
+    { path: "./fonts/playfair-display/PlayfairDisplay-Bold.woff2", weight: "700", style: "normal" },
+    { path: "./fonts/playfair-display/PlayfairDisplay-BoldItalic.woff2", weight: "700", style: "italic" },
+    { path: "./fonts/playfair-display/PlayfairDisplay-ExtraBold.woff2", weight: "800", style: "normal" },
+    { path: "./fonts/playfair-display/PlayfairDisplay-ExtraBoldItalic.woff2", weight: "800", style: "italic" },
+    { path: "./fonts/playfair-display/PlayfairDisplay-Black.woff2", weight: "900", style: "normal" },
+    { path: "./fonts/playfair-display/PlayfairDisplay-BlackItalic.woff2", weight: "900", style: "italic" },
+  ],
   variable: "--font-playfair",
   display: "swap",
 });
 
-const cormorantGaramond = Cormorant_Garamond({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  style: ["normal", "italic"],
+const cormorantGaramond = localFont({
+  src: [
+    { path: "./fonts/cormorant-garamond/CormorantGaramond-Regular.woff2", weight: "400", style: "normal" },
+    { path: "./fonts/cormorant-garamond/CormorantGaramond-RegularItalic.woff2", weight: "400", style: "italic" },
+    { path: "./fonts/cormorant-garamond/CormorantGaramond-Medium.woff2", weight: "500", style: "normal" },
+    { path: "./fonts/cormorant-garamond/CormorantGaramond-MediumItalic.woff2", weight: "500", style: "italic" },
+    { path: "./fonts/cormorant-garamond/CormorantGaramond-SemiBold.woff2", weight: "600", style: "normal" },
+    { path: "./fonts/cormorant-garamond/CormorantGaramond-SemiBoldItalic.woff2", weight: "600", style: "italic" },
+    { path: "./fonts/cormorant-garamond/CormorantGaramond-Bold.woff2", weight: "700", style: "normal" },
+    { path: "./fonts/cormorant-garamond/CormorantGaramond-BoldItalic.woff2", weight: "700", style: "italic" },
+  ],
   variable: "--font-cormorant",
   display: "swap",
 });
 
-const notoSansSinhala = Noto_Sans_Sinhala({
-  subsets: ["sinhala"],
-  weight: ["300", "400", "500", "600", "700", "800", "900"],
+const notoSansSinhala = localFont({
+  src: [
+    { path: "./fonts/noto-sans-sinhala/NotoSansSinhala-Light.woff2", weight: "300", style: "normal" },
+    { path: "./fonts/noto-sans-sinhala/NotoSansSinhala-Regular.woff2", weight: "400", style: "normal" },
+    { path: "./fonts/noto-sans-sinhala/NotoSansSinhala-Medium.woff2", weight: "500", style: "normal" },
+    { path: "./fonts/noto-sans-sinhala/NotoSansSinhala-SemiBold.woff2", weight: "600", style: "normal" },
+    { path: "./fonts/noto-sans-sinhala/NotoSansSinhala-Bold.woff2", weight: "700", style: "normal" },
+    { path: "./fonts/noto-sans-sinhala/NotoSansSinhala-ExtraBold.woff2", weight: "800", style: "normal" },
+    { path: "./fonts/noto-sans-sinhala/NotoSansSinhala-Black.woff2", weight: "900", style: "normal" },
+  ],
   variable: "--font-noto-sans-sinhala",
   display: "swap",
 });
 
-const notoSerifSinhala = Noto_Serif_Sinhala({
-  subsets: ["sinhala"],
-  weight: ["400", "500", "600", "700", "800"],
+const notoSerifSinhala = localFont({
+  src: [
+    { path: "./fonts/noto-serif-sinhala/NotoSerifSinhala-Regular.woff2", weight: "400", style: "normal" },
+    { path: "./fonts/noto-serif-sinhala/NotoSerifSinhala-Medium.woff2", weight: "500", style: "normal" },
+    { path: "./fonts/noto-serif-sinhala/NotoSerifSinhala-SemiBold.woff2", weight: "600", style: "normal" },
+    { path: "./fonts/noto-serif-sinhala/NotoSerifSinhala-Bold.woff2", weight: "700", style: "normal" },
+    { path: "./fonts/noto-serif-sinhala/NotoSerifSinhala-ExtraBold.woff2", weight: "800", style: "normal" },
+  ],
   variable: "--font-noto-serif-sinhala",
   display: "swap",
 });
 
-/** Vendored locally (files fetched from fonts.gstatic.com, sinhala subset) instead of
- *  next/font/google — the Docker build has intermittently failed to reach Google's font CDN
- *  for this specific font, which fails the whole build. next/font/local reads the files straight
- *  from disk, so the build no longer depends on that network call succeeding. */
 const yaldevi = localFont({
   src: [
     { path: "./fonts/yaldevi/Yaldevi-Light.woff2", weight: "300", style: "normal" },
