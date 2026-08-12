@@ -717,12 +717,20 @@ export default function EconomicAgriculturePage() {
       </div>
 
       <div className="border-t border-border pt-6">
-        <RepeatableTable
-          name="fishLandingSites"
-          title={economicAgricultureDict.fields.fishLandingSites}
-          columns={fishLandingSiteColumns}
-          emptyRowFactory={() => ({ name: "", address: "", siteType: "landing-site", waterType: "marine" })}
-        />
+        {form.watch("fishLandingSitePresent") === "yes" ? (
+          <RepeatableTable
+            name="fishLandingSites"
+            title={economicAgricultureDict.fields.fishLandingSites}
+            columns={fishLandingSiteColumns}
+            emptyRowFactory={() => ({ name: "", address: "", siteType: "landing-site", waterType: "marine" })}
+          />
+        ) : (
+          <p lang={lang} className={cn("text-fluid-sm text-muted-foreground", lang === "si" && "font-si")}>
+            {lang === "si"
+              ? "ධීවර වරායන්/තොටුපොළ ඇතුළත් කිරීමට “වසම තුළ ධීවර වරායන් ,ධීවර තොටුපොළ පිහිටා තිබේද?” යන්න ඔව් ලෙස සකසන්න."
+              : "Set “Are There Fish Harbors / Fish Landing Sites in the Division?” to Yes to add fish landing sites."}
+          </p>
+        )}
       </div>
 
       <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4 border-t border-border pt-6">
@@ -748,12 +756,20 @@ export default function EconomicAgriculturePage() {
       </div>
 
       <div className="border-t border-border pt-6">
-        <RepeatableTable
-          name="iceProductionDirectory"
-          title={economicAgricultureDict.fields.iceProductionDirectory}
-          columns={nameAddressColumns}
-          emptyRowFactory={() => ({ name: "", address: "" })}
-        />
+        {form.watch("iceProductionPresent") === "yes" ? (
+          <RepeatableTable
+            name="iceProductionDirectory"
+            title={economicAgricultureDict.fields.iceProductionDirectory}
+            columns={nameAddressColumns}
+            emptyRowFactory={() => ({ name: "", address: "" })}
+          />
+        ) : (
+          <p lang={lang} className={cn("text-fluid-sm text-muted-foreground", lang === "si" && "font-si")}>
+            {lang === "si"
+              ? "අයිස් නිෂ්පාදනාගාර ඇතුළත් කිරීමට “වසම තුළ අයිස් නිෂ්පාදනාගාර පිහිටා තිබේද?” යන්න ඔව් ලෙස සකසන්න."
+              : "Set “Are There Ice Production Factories in the Division?” to Yes to add ice production factories."}
+          </p>
+        )}
       </div>
 
       <div className="border-t border-border pt-6">
