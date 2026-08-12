@@ -308,9 +308,36 @@ describe("educationSchemaPartial", () => {
     expect(result.success).toBe(true);
   });
 
-  it("accepts a tertiary institution row with name left blank — name is genuinely optional", () => {
+  it("rejects a tertiary institution row marked as existing with no name", () => {
     const result = educationSchemaPartial.safeParse({
       tertiaryInstitutions: [{ type: "university", exists: "yes", name: undefined }],
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts a tertiary institution row with name left blank when exists is no — name is only required once marked as existing", () => {
+    const result = educationSchemaPartial.safeParse({
+      tertiaryInstitutions: [{ type: "university", exists: "no", name: undefined }],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts a tertiary institution row marked as existing once a name is filled in", () => {
+    const result = educationSchemaPartial.safeParse({
+      tertiaryInstitutions: [{ type: "university", exists: "yes", name: "University of Ruhuna" }],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts a second branch row for the same type even when the first (anchor) row's name is blank", () => {
+    // Mirrors the UI: clicking "+" on the anchor row inserts an extra row right after it for the
+    // same institution type — the officer may fill the branch name into that extra row instead
+    // of the anchor, so the rule only needs *some* row of the type to carry a name.
+    const result = educationSchemaPartial.safeParse({
+      tertiaryInstitutions: [
+        { type: "university", exists: "yes", name: "" },
+        { type: "university", exists: "yes", name: "University of Ruhuna — Matara Branch" },
+      ],
     });
     expect(result.success).toBe(true);
   });

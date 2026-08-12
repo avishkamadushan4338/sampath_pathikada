@@ -79,50 +79,85 @@ export const tertiaryInstitutionRowSchema = z.object({
   name: z.string().optional(),
 });
 
+/** Institution name is only required once a category has been marked as existing — and since a
+ *  GN division can have more than one institution of the same type (e.g. two branches, entered
+ *  as extra rows sharing that `type`), the requirement is "at least one row of this type has a
+ *  name", not "this exact row does". Runs at the whole-schema level (not inside the row schema
+ *  itself) so it can see every row sharing a type. Extra rows are only ever added once the
+ *  category's own row is already "yes", so only that first (anchor) row's `exists` is checked
+ *  here — and the error is attached to that row's `name` field since it's the one row of each
+ *  type that's always on screen. */
+function requireTertiaryInstitutionNames(
+  data: { tertiaryInstitutions?: { type?: string; exists?: string; name?: string }[] },
+  ctx: z.RefinementCtx
+) {
+  const rows = data.tertiaryInstitutions ?? [];
+  const anchorIndexByType = new Map<string, number>();
+  rows.forEach((row, index) => {
+    if (row?.type && !anchorIndexByType.has(row.type)) anchorIndexByType.set(row.type, index);
+  });
+  for (const [type, anchorIndex] of anchorIndexByType) {
+    if (rows[anchorIndex]?.exists !== "yes") continue;
+    const hasName = rows.some((row) => row.type === type && row.name?.trim());
+    if (!hasName) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["tertiaryInstitutions", anchorIndex, "name"],
+        message: "Institution name is required once you've indicated it exists",
+      });
+    }
+  }
+}
+
 export const tuitionCenterRowSchema = z.object({
   registrationNumber: z.string().min(1, "Registration number is required"),
   nameAndAddress: z.string().min(1, "Name and address is required"),
 });
 
-export const educationSchemaStrict = z.object({
-  institutionCounts: z.object({
-    govtSchools: z.coerce.number().int().min(0).default(0),
-    privateOrInternationalSchools: z.coerce.number().int().min(0).default(0),
-    pirivenas: z.coerce.number().int().min(0).default(0),
-    vocationalTrainingInstitutes: z.coerce.number().int().min(0).default(0),
-    registeredPreschoolsGovt: z.coerce.number().int().min(0).default(0),
-    registeredPreschoolsPrivate: z.coerce.number().int().min(0).default(0),
-    dhammaEducationInstitutions: z.coerce.number().int().min(0).default(0),
-    higherEducationInstitutions: z.coerce.number().int().min(0).default(0),
-    tuitionCenterInstitutions: z.coerce.number().int().min(0).default(0),
-  }),
-  schoolCountsByType: z.object({
-    nationalSchools: z.coerce.number().int().min(0).default(0),
-    type1AB: z.coerce.number().int().min(0).default(0),
-    type1C: z.coerce.number().int().min(0).default(0),
-    type2: z.coerce.number().int().min(0).default(0),
-    type3: z.coerce.number().int().min(0).default(0),
-  }),
-  schoolFacilities: z.array(schoolFacilityRowSchema).default([]),
-  specialAttentionSchools: z.array(specialAttentionSchoolRowSchema).default([]),
-  closedSchools: z.array(closedSchoolRowSchema).default([]),
-  privateInternationalSchools: z.array(privateInternationalSchoolRowSchema).default([]),
-  pirivenas: z.array(pirivenaRowSchema).default([]),
-  vocationalInstitutes: z.array(vocationalInstituteRowSchema).default([]),
-  preschools: z.array(preschoolRowSchema).default([]),
-  dhammaEducationInstitutions: z.array(dhammaEducationInstitutionRowSchema).default([]),
-  tertiaryInstitutions: z.array(tertiaryInstitutionRowSchema).length(TERTIARY_TYPES.length),
-  tuitionCenters: z.array(tuitionCenterRowSchema).default([]),
-  outOfSchoolChildren: sexCountSchema,
-  childrenInProbationOrDetention: sexCountSchema,
-});
+export const educationSchemaStrict = z
+  .object({
+    institutionCounts: z.object({
+      govtSchools: z.coerce.number().int().min(0).default(0),
+      privateOrInternationalSchools: z.coerce.number().int().min(0).default(0),
+      pirivenas: z.coerce.number().int().min(0).default(0),
+      vocationalTrainingInstitutes: z.coerce.number().int().min(0).default(0),
+      registeredPreschoolsGovt: z.coerce.number().int().min(0).default(0),
+      registeredPreschoolsPrivate: z.coerce.number().int().min(0).default(0),
+      dhammaEducationInstitutions: z.coerce.number().int().min(0).default(0),
+      higherEducationInstitutions: z.coerce.number().int().min(0).default(0),
+      tuitionCenterInstitutions: z.coerce.number().int().min(0).default(0),
+    }),
+    schoolCountsByType: z.object({
+      nationalSchools: z.coerce.number().int().min(0).default(0),
+      type1AB: z.coerce.number().int().min(0).default(0),
+      type1C: z.coerce.number().int().min(0).default(0),
+      type2: z.coerce.number().int().min(0).default(0),
+      type3: z.coerce.number().int().min(0).default(0),
+    }),
+    schoolFacilities: z.array(schoolFacilityRowSchema).default([]),
+    specialAttentionSchools: z.array(specialAttentionSchoolRowSchema).default([]),
+    closedSchools: z.array(closedSchoolRowSchema).default([]),
+    privateInternationalSchools: z.array(privateInternationalSchoolRowSchema).default([]),
+    pirivenas: z.array(pirivenaRowSchema).default([]),
+    vocationalInstitutes: z.array(vocationalInstituteRowSchema).default([]),
+    preschools: z.array(preschoolRowSchema).default([]),
+    dhammaEducationInstitutions: z.array(dhammaEducationInstitutionRowSchema).default([]),
+    // At least one row per institution type, but the officer can add extra rows for the same
+    // type (e.g. a second university branch) via "+" in the UI, so this is a floor, not an
+    // exact count.
+    tertiaryInstitutions: z.array(tertiaryInstitutionRowSchema).min(TERTIARY_TYPES.length, "All institution type categories must be listed"),
+    tuitionCenters: z.array(tuitionCenterRowSchema).default([]),
+    outOfSchoolChildren: sexCountSchema,
+    childrenInProbationOrDetention: sexCountSchema,
+  })
+  .superRefine(requireTertiaryInstitutionNames);
 
 export type EducationData = z.infer<typeof educationSchemaStrict>;
 
 /* Draft-mode reuses the strict row schemas directly — a row's required fields (e.g. `name`,
- * `schoolName`) still fail validation if blank, surfacing a "required" error in the UI, but that
- * no longer blocks saving: SectionForm always saves the draft regardless of validation outcome,
- * it just shows the errors alongside. Only the *array itself* is optional here, so an
+ * `schoolName`) still fail validation if blank, surfacing a "required" error in the UI. Required
+ * fields (and the tertiaryInstitutions name rule above) DO block saving — SectionForm only calls
+ * onSaveDraft once validation passes. Only the *array itself* is optional here, so an
  * empty/untouched directory (no rows added yet) is still a valid draft. */
 export const educationSchemaPartial = z.object({
   institutionCounts: z
@@ -159,6 +194,6 @@ export const educationSchemaPartial = z.object({
   tuitionCenters: z.array(tuitionCenterRowSchema).optional(),
   outOfSchoolChildren: sexCountSchema.partial().optional(),
   childrenInProbationOrDetention: sexCountSchema.partial().optional(),
-});
+}).superRefine(requireTertiaryInstitutionNames);
 
 export { TERTIARY_TYPES, PRESCHOOL_FACILITY_TYPES, DHAMMA_TYPES };
