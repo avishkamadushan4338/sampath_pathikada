@@ -37,28 +37,64 @@ describe("wasteDisasterSchemaStrict", () => {
     expect(result.success).toBe(false);
   });
 
-  it("rejects disposalMethodIfNoProgram with fewer rows than DISPOSAL_METHODS", () => {
+  // disposalMethodIfNoProgram/proposedSolutionIfNoProgram are only required once hasWasteProgram
+  // is "no" — the label says "If There Is No Systematic Arrangement, ..." — so these row-count
+  // checks need that answer to actually trigger the rule.
+  const noProgramPayload = {
+    ...validPayload,
+    hasWasteProgram: "no" as const,
+    publicInformedOfSchedule: undefined,
+  };
+
+  it("rejects disposalMethodIfNoProgram with fewer rows than DISPOSAL_METHODS when hasWasteProgram is no", () => {
     const result = wasteDisasterSchemaStrict.safeParse({
-      ...validPayload,
-      disposalMethodIfNoProgram: validPayload.disposalMethodIfNoProgram.slice(0, DISPOSAL_METHODS.length - 1),
+      ...noProgramPayload,
+      disposalMethodIfNoProgram: noProgramPayload.disposalMethodIfNoProgram.slice(0, DISPOSAL_METHODS.length - 1),
     });
     expect(result.success).toBe(false);
   });
 
-  it("rejects disposalMethodIfNoProgram with more rows than DISPOSAL_METHODS", () => {
+  it("rejects disposalMethodIfNoProgram with more rows than DISPOSAL_METHODS when hasWasteProgram is no", () => {
     const result = wasteDisasterSchemaStrict.safeParse({
-      ...validPayload,
-      disposalMethodIfNoProgram: [...validPayload.disposalMethodIfNoProgram, { method: DISPOSAL_METHODS[0], present: "no" }],
+      ...noProgramPayload,
+      disposalMethodIfNoProgram: [...noProgramPayload.disposalMethodIfNoProgram, { method: DISPOSAL_METHODS[0], present: "no" }],
     });
     expect(result.success).toBe(false);
   });
 
-  it("accepts disposalMethodIfNoProgram with exactly DISPOSAL_METHODS.length rows", () => {
+  it("accepts disposalMethodIfNoProgram with exactly DISPOSAL_METHODS.length rows when hasWasteProgram is no", () => {
     const result = wasteDisasterSchemaStrict.safeParse({
-      ...validPayload,
+      ...noProgramPayload,
       disposalMethodIfNoProgram: DISPOSAL_METHODS.map((method) => ({ method, present: "yes" as const })),
     });
     expect(result.success).toBe(true);
+  });
+
+  it("ignores disposalMethodIfNoProgram's row count entirely when hasWasteProgram is yes", () => {
+    const result = wasteDisasterSchemaStrict.safeParse({
+      ...validPayload,
+      disposalMethodIfNoProgram: validPayload.disposalMethodIfNoProgram.slice(0, 1),
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects hasWasteProgram = yes with publicInformedOfSchedule left blank", () => {
+    const { publicInformedOfSchedule, ...rest } = validPayload;
+    void publicInformedOfSchedule;
+    const result = wasteDisasterSchemaStrict.safeParse(rest);
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts hasWasteProgram = no with publicInformedOfSchedule left blank — it's only required once the answer is yes", () => {
+    const result = wasteDisasterSchemaStrict.safeParse(noProgramPayload);
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects hasWasteProgram = no with proposedSolutionIfNoProgram left blank", () => {
+    const { proposedSolutionIfNoProgram, ...rest } = noProgramPayload;
+    void proposedSolutionIfNoProgram;
+    const result = wasteDisasterSchemaStrict.safeParse(rest);
+    expect(result.success).toBe(false);
   });
 
   it("rejects an invalid collectionFrequency enum value", () => {
@@ -106,12 +142,12 @@ const topLevelRequiredFields = {
 };
 
 describe("wasteDisasterSchemaPartial", () => {
-  it("rejects a fully empty object {} — the top-level yes/no and enum fields are genuinely required on the paper form, so a blank draft surfaces required errors (this doesn't block saving: SectionForm saves regardless)", () => {
+  it("rejects a fully empty object {} — the top-level yes/no and enum fields are genuinely required on the paper form, so a blank draft surfaces required errors that block saving", () => {
     const result = wasteDisasterSchemaPartial.safeParse({});
     expect(result.success).toBe(false);
   });
 
-  it("accepts an object with every top-level required field filled in and an untouched disposalMethodIfNoProgram array (no rows added yet)", () => {
+  it("accepts an object with every top-level required field filled in and an untouched disposalMethodIfNoProgram array (no rows added yet) — its row count isn't checked while hasWasteProgram is yes", () => {
     const result = wasteDisasterSchemaPartial.safeParse({
       ...topLevelRequiredFields,
       disposalMethodIfNoProgram: [],
@@ -119,7 +155,7 @@ describe("wasteDisasterSchemaPartial", () => {
     expect(result.success).toBe(true);
   });
 
-  it("rejects a disposalMethodIfNoProgram row added via the UI still left blank — surfaces a required error without blocking the draft save (SectionForm saves regardless)", () => {
+  it("rejects a disposalMethodIfNoProgram row added via the UI still left blank — surfaces a required error that blocks the draft save", () => {
     const result = wasteDisasterSchemaPartial.safeParse({
       ...topLevelRequiredFields,
       disposalMethodIfNoProgram: [{ method: DISPOSAL_METHODS[0] }],
@@ -127,12 +163,33 @@ describe("wasteDisasterSchemaPartial", () => {
     expect(result.success).toBe(false);
   });
 
-  it("accepts a disposalMethodIfNoProgram array shorter than DISPOSAL_METHODS.length once each row's required fields are filled in", () => {
+  it("accepts a disposalMethodIfNoProgram array shorter than DISPOSAL_METHODS.length once each row's required fields are filled in, while hasWasteProgram is yes", () => {
     // The partial array drops the `.length()` constraint so a draft can be
     // saved before every fixed row has been filled in.
     const result = wasteDisasterSchemaPartial.safeParse({
       ...topLevelRequiredFields,
       disposalMethodIfNoProgram: [{ method: DISPOSAL_METHODS[0], present: "no" }],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects hasWasteProgram = no with a short disposalMethodIfNoProgram array and no proposedSolutionIfNoProgram", () => {
+    const result = wasteDisasterSchemaPartial.safeParse({
+      ...topLevelRequiredFields,
+      hasWasteProgram: "no",
+      publicInformedOfSchedule: undefined,
+      disposalMethodIfNoProgram: [{ method: DISPOSAL_METHODS[0], present: "no" }],
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts hasWasteProgram = no once disposalMethodIfNoProgram is complete and proposedSolutionIfNoProgram is filled in", () => {
+    const result = wasteDisasterSchemaPartial.safeParse({
+      ...topLevelRequiredFields,
+      hasWasteProgram: "no",
+      publicInformedOfSchedule: undefined,
+      disposalMethodIfNoProgram: DISPOSAL_METHODS.map((method) => ({ method, present: "no" as const })),
+      proposedSolutionIfNoProgram: "Build a compost site",
     });
     expect(result.success).toBe(true);
   });

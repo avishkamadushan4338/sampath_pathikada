@@ -13,31 +13,74 @@ export const disposalMethodRowSchema = z.object({
   present: yesNo,
 });
 
-export const wasteDisasterSchemaStrict = z.object({
-  hasWasteProgram: yesNo,
-  publicInformedOfSchedule: yesNo,
-  collectionFrequency: z.enum(COLLECTION_FREQUENCIES),
-  collectionMethod: z.enum(COLLECTION_METHODS),
-  disposalMethodIfNoProgram: z.array(disposalMethodRowSchema).length(5),
-  hasCompostOrDisposalSite: yesNo,
-  proposedSolutionIfNoProgram: z.string().optional(),
-});
+/** `publicInformedOfSchedule`, `disposalMethodIfNoProgram`, and `proposedSolutionIfNoProgram`
+ *  are each only meaningful for one specific answer to `hasWasteProgram` — the field labels say
+ *  so directly ("If Yes, ...", "If There Is No Systematic Arrangement, ..."). Conditionally
+ *  required via `superRefine` in whichever direction `hasWasteProgram` points, rather than
+ *  always requiring all three regardless of which one actually applies. */
+function requireWasteProgramFollowUps(
+  data: {
+    hasWasteProgram?: string;
+    publicInformedOfSchedule?: string;
+    disposalMethodIfNoProgram?: { present?: string }[];
+    proposedSolutionIfNoProgram?: string;
+  },
+  ctx: z.RefinementCtx
+) {
+  if (data.hasWasteProgram === "yes" && !data.publicInformedOfSchedule) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["publicInformedOfSchedule"],
+      message: "Required once a systematic waste arrangement is confirmed",
+    });
+  }
+  if (data.hasWasteProgram === "no") {
+    if ((data.disposalMethodIfNoProgram ?? []).length !== DISPOSAL_METHODS.length) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["disposalMethodIfNoProgram"],
+        message: "All waste disposal method categories must be listed once there's no systematic arrangement",
+      });
+    }
+    if (!data.proposedSolutionIfNoProgram?.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["proposedSolutionIfNoProgram"],
+        message: "A proposed solution is required once there's no systematic arrangement",
+      });
+    }
+  }
+}
+
+export const wasteDisasterSchemaStrict = z
+  .object({
+    hasWasteProgram: yesNo,
+    publicInformedOfSchedule: yesNo.optional(),
+    collectionFrequency: z.enum(COLLECTION_FREQUENCIES),
+    collectionMethod: z.enum(COLLECTION_METHODS),
+    disposalMethodIfNoProgram: z.array(disposalMethodRowSchema).optional(),
+    hasCompostOrDisposalSite: yesNo,
+    proposedSolutionIfNoProgram: z.string().optional(),
+  })
+  .superRefine(requireWasteProgramFollowUps);
 
 export type WasteDisasterData = z.infer<typeof wasteDisasterSchemaStrict>;
 
 /* Draft-mode reuses the strict row schema directly — a row's required fields (e.g. `method`,
- * `present`) still fail validation if blank, surfacing a "required" error in the UI, but that no
- * longer blocks saving: SectionForm always saves the draft regardless of validation outcome, it
- * just shows the errors alongside. Only the *array itself* is optional here (and its `.length(5)`
- * constraint dropped), so a draft can be saved before every fixed row has been filled in. */
-export const wasteDisasterSchemaPartial = z.object({
-  hasWasteProgram: yesNo,
-  publicInformedOfSchedule: yesNo,
-  collectionFrequency: z.enum(COLLECTION_FREQUENCIES),
-  collectionMethod: z.enum(COLLECTION_METHODS),
-  disposalMethodIfNoProgram: z.array(disposalMethodRowSchema).optional(),
-  hasCompostOrDisposalSite: yesNo,
-  proposedSolutionIfNoProgram: z.string().optional(),
-});
+ * `present`) still fail validation if blank, surfacing a "required" error in the UI. Required
+ * fields (and the hasWasteProgram follow-up rules above) DO block saving — SectionForm only
+ * calls onSaveDraft once validation passes. Only the *array itself* is optional here, so a draft
+ * can be saved before every fixed row has been filled in. */
+export const wasteDisasterSchemaPartial = z
+  .object({
+    hasWasteProgram: yesNo,
+    publicInformedOfSchedule: yesNo.optional(),
+    collectionFrequency: z.enum(COLLECTION_FREQUENCIES),
+    collectionMethod: z.enum(COLLECTION_METHODS),
+    disposalMethodIfNoProgram: z.array(disposalMethodRowSchema).optional(),
+    hasCompostOrDisposalSite: yesNo,
+    proposedSolutionIfNoProgram: z.string().optional(),
+  })
+  .superRefine(requireWasteProgramFollowUps);
 
 export { COLLECTION_FREQUENCIES, COLLECTION_METHODS, DISPOSAL_METHODS };
