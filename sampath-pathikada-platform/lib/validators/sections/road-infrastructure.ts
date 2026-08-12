@@ -47,7 +47,10 @@ const PUBLIC_FACILITY_CATEGORIES = [
   "registered-three-wheeler-park",
 ] as const;
 
-export const publicFacilityPresenceSchema = z.object({
+const TRANSPORT_FACILITY_TYPES = ["busStand", "railwayStation", "port", "airport"] as const;
+
+export const publicFacilityPresenceRowSchema = z.object({
+  type: z.enum(TRANSPORT_FACILITY_TYPES),
   present: yesNo,
   name: z.string().optional(),
 });
@@ -131,25 +134,91 @@ export const waterReservoirRowSchema = z.object({
   name: z.string().min(1, "Name is required"),
 });
 
-export const publicFacilityCategoryRowSchema = z.object({
-  category: z.enum(PUBLIC_FACILITY_CATEGORIES),
-  present: yesNo,
-  count: z.coerce.number().int().min(0).default(0),
-  distanceToNearestIfOutsideDivision: z.string().optional(),
-});
+/** Count and distance-to-nearest are mutually exclusive, not just independently optional: a
+ *  facility present within the division has a count (and no "nearest" to speak of), one that
+ *  isn't has a distance to the nearest one elsewhere (and nothing to count here). Conditionally
+ *  required via `superRefine` in whichever direction `present` points, rather than always
+ *  requiring both. The UI additionally locks (and blanks) whichever field doesn't apply, but the
+ *  schema is the actual enforcement — a locked field can't carry stale data through anyway. */
+export const publicFacilityCategoryRowSchema = z
+  .object({
+    category: z.enum(PUBLIC_FACILITY_CATEGORIES),
+    present: yesNo,
+    count: z.coerce.number().int().min(0).default(0),
+    distanceToNearestIfOutsideDivision: z.string().optional(),
+  })
+  .superRefine((row, ctx) => {
+    if (row.present === "yes" && row.count <= 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["count"],
+        message: "Count is required and must be greater than 0 once marked present",
+      });
+    }
+    if (row.present === "no" && !row.distanceToNearestIfOutsideDivision?.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["distanceToNearestIfOutsideDivision"],
+        message: "Distance to nearest is required once marked not present within the division",
+      });
+    }
+  });
 
 export const licensedLiquorShopRowSchema = z.object({
   name: z.string().min(1, "Name is required"),
   address: z.string().min(1, "Address is required"),
 });
 
+/** Once the officer confirms a bus stand / railway station / port / airport exists, its location
+ *  name must actually be filled in — otherwise "yes" is a claim with no backing data. And since a
+ *  GN division can have more than one of the same facility (e.g. two bus stands), added as extra
+ *  rows sharing that `type`, the requirement is "at least one row of this type has a name", not
+ *  "this exact row does" — same rule as tertiary institutions in the Education section. Extra
+ *  rows are only ever created once the category's own row is already "yes", so only that first
+ *  (anchor) row's `present` is checked here, and the error is attached to that row's `name` field
+ *  since it's the one row of each type that's always on screen.
+ *
+ *  Same idea for licensed liquor shops: once confirmed present, the directory below it must list
+ *  at least one. Attached to both strict and partial schemas so it's enforced identically in
+ *  either mode. */
+function requirePublicFacilityDataWhenPresent(
+  data: {
+    publicFacilities?: { type?: string; present?: string; name?: string }[];
+    licensedLiquorShopsPresent?: string;
+    licensedLiquorShops?: unknown[];
+  },
+  ctx: z.RefinementCtx
+) {
+  const rows = data.publicFacilities ?? [];
+  const anchorIndexByType = new Map<string, number>();
+  rows.forEach((row, index) => {
+    if (row?.type && !anchorIndexByType.has(row.type)) anchorIndexByType.set(row.type, index);
+  });
+  for (const [type, anchorIndex] of anchorIndexByType) {
+    if (rows[anchorIndex]?.present !== "yes") continue;
+    const hasName = rows.some((row) => row.type === type && row.name?.trim());
+    if (!hasName) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["publicFacilities", anchorIndex, "name"],
+        message: "Location name is required once you've indicated it's present",
+      });
+    }
+  }
+  if (data.licensedLiquorShopsPresent === "yes" && (data.licensedLiquorShops ?? []).length === 0) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["licensedLiquorShops"],
+      message: "At least one licensed liquor shop is required once you've indicated one is present",
+    });
+  }
+}
+
 export const roadInfrastructureSchemaStrict = z.object({
-  publicFacilities: z.object({
-    busStand: publicFacilityPresenceSchema,
-    railwayStation: publicFacilityPresenceSchema,
-    port: publicFacilityPresenceSchema,
-    airport: publicFacilityPresenceSchema,
-  }),
+  // At least one row per transport facility category, but the officer can add extra rows for
+  // the same category (e.g. a second bus stand) via "+" in the UI, so this is a floor, not an
+  // exact count.
+  publicFacilities: z.array(publicFacilityPresenceRowSchema).min(TRANSPORT_FACILITY_TYPES.length, "All transport facility categories must be listed"),
   roadDevelopmentNeeds: z.array(roadDevelopmentNeedRowSchema).default([]),
   bridgeRepairs: z.array(bridgeRepairRowSchema).default([]),
   newRoadBridgeNeeds: z.array(newRoadBridgeNeedRowSchema).default([]),
@@ -167,27 +236,19 @@ export const roadInfrastructureSchemaStrict = z.object({
   publicFacilityCategories: z.array(publicFacilityCategoryRowSchema).length(PUBLIC_FACILITY_CATEGORIES.length),
   licensedLiquorShopsPresent: yesNo,
   licensedLiquorShops: z.array(licensedLiquorShopRowSchema).default([]),
-});
+}).superRefine(requirePublicFacilityDataWhenPresent);
 
 export type RoadInfrastructureData = z.infer<typeof roadInfrastructureSchemaStrict>;
 
 /* Draft-mode reuses the strict row schemas directly — a row's required fields (e.g. `name`)
- * still fail validation if blank, surfacing a "required" error in the UI, but that no longer
- * blocks saving: SectionForm always saves the draft regardless of validation outcome, it just
- * shows the errors alongside. Only the *array itself* (or, for `publicFacilities`, the nested
- * object) is optional here, so an empty/untouched table is still a valid draft.
- * solarPowerPlants/windPowerPlants/hydropowerPlants used to be intentionally left on plain
- * `.partial()` per an earlier instruction — that no longer applies, so they now follow the
- * same pattern as every other table below. */
+ * still fail validation if blank, surfacing a "required" error in the UI. Required fields (and
+ * the publicFacilities/licensedLiquorShops conditional rule above) DO block saving — SectionForm
+ * only calls onSaveDraft once validation passes. Only the *array itself* is optional here, so an
+ * empty/untouched table is still a valid draft. solarPowerPlants/windPowerPlants/hydropowerPlants
+ * used to be intentionally left on plain `.partial()` per an earlier instruction — that no longer
+ * applies, so they now follow the same pattern as every other table below. */
 export const roadInfrastructureSchemaPartial = z.object({
-  publicFacilities: z
-    .object({
-      busStand: publicFacilityPresenceSchema.optional(),
-      railwayStation: publicFacilityPresenceSchema.optional(),
-      port: publicFacilityPresenceSchema.optional(),
-      airport: publicFacilityPresenceSchema.optional(),
-    })
-    .optional(),
+  publicFacilities: z.array(publicFacilityPresenceRowSchema).optional(),
   roadDevelopmentNeeds: z.array(roadDevelopmentNeedRowSchema).optional(),
   bridgeRepairs: z.array(bridgeRepairRowSchema).optional(),
   newRoadBridgeNeeds: z.array(newRoadBridgeNeedRowSchema).optional(),
@@ -205,6 +266,14 @@ export const roadInfrastructureSchemaPartial = z.object({
   publicFacilityCategories: z.array(publicFacilityCategoryRowSchema).optional(),
   licensedLiquorShopsPresent: yesNo,
   licensedLiquorShops: z.array(licensedLiquorShopRowSchema).optional(),
-});
+}).superRefine(requirePublicFacilityDataWhenPresent);
 
-export { HYDROPOWER_SCALES, FINANCIAL_INSTITUTION_TYPES, ROAD_SURFACE_TYPES, POST_OFFICE_TYPES, SERVICE_CATEGORIES, PUBLIC_FACILITY_CATEGORIES };
+export {
+  HYDROPOWER_SCALES,
+  FINANCIAL_INSTITUTION_TYPES,
+  ROAD_SURFACE_TYPES,
+  POST_OFFICE_TYPES,
+  SERVICE_CATEGORIES,
+  PUBLIC_FACILITY_CATEGORIES,
+  TRANSPORT_FACILITY_TYPES,
+};

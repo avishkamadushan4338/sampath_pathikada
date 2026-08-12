@@ -278,10 +278,14 @@ export function RoadInfrastructureView() {
 function RoadInfrastructureSectionContent({ section }: { section: RoadInfrastructureData }) {
   const { lang } = useLanguage();
 
-  const publicFacilitiesRows = PUBLIC_FACILITY_OPTIONS.map((o) => {
-    const facility = section.publicFacilities[o.value as keyof RoadInfrastructureData["publicFacilities"]];
-    return { facility: o.value, present: facility.present, name: facility.name };
-  });
+  // publicFacilities is a checklist array now (a division can list more than one row per
+  // category, e.g. two bus stands), so this maps straight over the saved rows instead of
+  // looking up one fixed field per category.
+  const publicFacilitiesRows = section.publicFacilities.map((facility) => ({
+    facility: facility.type,
+    present: facility.present,
+    name: facility.name,
+  }));
 
   const totalRoadLength = section.roadDevelopmentNeeds.reduce((sum, r) => sum + (r.lengthMeters ?? 0), 0);
 

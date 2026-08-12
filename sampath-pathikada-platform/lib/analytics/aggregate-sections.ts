@@ -662,10 +662,15 @@ export function aggregateInfrastructure(rows: SubmissionLike[], gnLabel: (id: st
   for (const row of rows) {
     const r = sectionData(row, "roadInfrastructure");
     if (!r) continue;
-    if (r.publicFacilities?.busStand?.present === "yes") publicFacilities.busStand++;
-    if (r.publicFacilities?.railwayStation?.present === "yes") publicFacilities.railwayStation++;
-    if (r.publicFacilities?.port?.present === "yes") publicFacilities.port++;
-    if (r.publicFacilities?.airport?.present === "yes") publicFacilities.airport++;
+    // publicFacilities is a checklist array now (a division can list more than one row per
+    // category, e.g. two bus stands) rather than one fixed object per category — a division
+    // still only counts once per category here, regardless of how many rows it has.
+    const facilities = Array.isArray(r.publicFacilities) ? r.publicFacilities : [];
+    const isPresent = (type: string) => facilities.some((f) => f?.type === type && f.present === "yes");
+    if (isPresent("busStand")) publicFacilities.busStand++;
+    if (isPresent("railwayStation")) publicFacilities.railwayStation++;
+    if (isPresent("port")) publicFacilities.port++;
+    if (isPresent("airport")) publicFacilities.airport++;
     for (const road of Array.isArray(r.roadDevelopmentNeeds) ? r.roadDevelopmentNeeds : []) totalRoadLength += road.lengthMeters ?? 0;
     for (const [i, item] of (Array.isArray(r.publicFacilityCategories) ? r.publicFacilityCategories : []).entries()) {
       if (!publicFacilityCategories[i]) continue;
