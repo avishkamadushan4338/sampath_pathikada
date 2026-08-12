@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { requiredCount } from "@/lib/validators/common";
 
 /* ── §12 ප්‍රජාමූල, රාජ්‍ය හා රාජ්‍ය නොවන සංවිධාන — Community/Govt/NGO Organizations ── */
 /* Field list/order matches the official "12. ප්‍රජාමූල, රාජ්‍ය හා රාජ්‍ය නොවන සංවිධාන" paper
@@ -25,7 +26,7 @@ const ORGANIZATION_TYPES = [
 
 export const organizationCountRowSchema = z.object({
   type: z.enum(ORGANIZATION_TYPES),
-  count: z.coerce.number().int().min(0).default(0),
+  count: requiredCount("Society count is required"),
 });
 
 export const nameAddressRowSchema = z.object({
@@ -65,11 +66,11 @@ export const communityOrganizationsSchemaStrict = z.object({
 
 export type CommunityOrganizationsData = z.infer<typeof communityOrganizationsSchemaStrict>;
 
-/* Draft-mode reuses the strict row schemas directly — a row's required fields (e.g. `name`)
- * still fail validation if blank, surfacing a "required" error in the UI, but that no longer
- * blocks saving: SectionForm always saves the draft regardless of validation outcome, it just
- * shows the errors alongside. Only the *array itself* is optional here, so an empty/untouched
- * directory (no rows added yet) is still a valid draft. */
+/* Draft-mode reuses the strict row schemas directly — a row's required fields (e.g. `name`,
+ * `count`) still fail validation if blank, surfacing a "required" error in the UI. Required
+ * fields DO block saving — SectionForm only calls onSaveDraft once validation passes. Only the
+ * *array itself* is optional here, so an empty/untouched directory (no rows added yet) is still
+ * a valid draft. */
 export const communityOrganizationsSchemaPartial = z.object({
   organizationCounts: z.array(organizationCountRowSchema).optional(),
   villageDevelopmentSocieties: z.array(nameAddressRowSchema).optional(),
