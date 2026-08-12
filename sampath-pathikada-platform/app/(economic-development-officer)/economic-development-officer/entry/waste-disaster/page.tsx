@@ -25,6 +25,9 @@ import {
   DISPOSAL_METHODS,
 } from "@/lib/validators/sections/waste-disaster";
 import { z } from "zod";
+import { cn } from "@/lib/utils";
+
+const SELECT_PLACEHOLDER = { en: "Select", si: "තෝරන්න" };
 
 const CURRENT_YEAR = 2026;
 
@@ -121,6 +124,8 @@ export default function WasteDisasterPage() {
     },
   ];
 
+  const hasWasteProgram = form.watch("hasWasteProgram");
+
   return (
     <SectionForm
       sectionNumber={15}
@@ -131,38 +136,26 @@ export default function WasteDisasterPage() {
       saveErrorMessage={errorMessage}
       onSaveDraft={handleSave}
     >
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4">
-        <FieldWrapper name="hasWasteProgram" label={wasteDisasterDict.fields.hasWasteProgram} required>
-          {({ id, describedBy, invalid }) => (
-            <Select
-              value={form.watch("hasWasteProgram") ?? ""}
-              onValueChange={(v) => form.setValue("hasWasteProgram", v as "yes" | "no", { shouldDirty: true })}
-            >
-              <SelectTrigger id={id} aria-describedby={describedBy} aria-invalid={invalid}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="yes">{lang === "si" ? "ඔව්" : "Yes"}</SelectItem>
-                <SelectItem value="no">{lang === "si" ? "නැත" : "No"}</SelectItem>
-              </SelectContent>
-            </Select>
-          )}
-        </FieldWrapper>
-
+      {/* Each question here is a full paper-form sentence, not a short field name — left in a
+          plain grid, the wrapped label towers over a dropdown that shrinks to fit its own
+          content (Select's default width is fit-to-content, not fit-to-container), leaving the
+          control looking like an orphaned afterthought below a wall of text. Containing each
+          question in its own card (with the dropdown stretched to the card's width) gives every
+          question a clear boundary and keeps the control visually anchored to its label. */}
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(320px,1fr))] gap-4">
         <FieldWrapper
-          name="publicInformedOfSchedule"
-          label={wasteDisasterDict.fields.publicInformedOfSchedule}
+          name="hasWasteProgram"
+          label={wasteDisasterDict.fields.hasWasteProgram}
           required
+          className="rounded-lg border border-border bg-card p-4"
         >
           {({ id, describedBy, invalid }) => (
             <Select
-              value={form.watch("publicInformedOfSchedule") ?? ""}
-              onValueChange={(v) =>
-                form.setValue("publicInformedOfSchedule", v as "yes" | "no", { shouldDirty: true })
-              }
+              value={hasWasteProgram ?? ""}
+              onValueChange={(v) => form.setValue("hasWasteProgram", v as "yes" | "no", { shouldDirty: true })}
             >
-              <SelectTrigger id={id} aria-describedby={describedBy} aria-invalid={invalid}>
-                <SelectValue />
+              <SelectTrigger id={id} className="w-full" aria-describedby={describedBy} aria-invalid={invalid}>
+                <SelectValue placeholder={lang === "si" ? SELECT_PLACEHOLDER.si : SELECT_PLACEHOLDER.en} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="yes">{lang === "si" ? "ඔව්" : "Yes"}</SelectItem>
@@ -172,14 +165,48 @@ export default function WasteDisasterPage() {
           )}
         </FieldWrapper>
 
-        <FieldWrapper name="collectionFrequency" label={wasteDisasterDict.fields.collectionFrequency} required>
+        {/* Only meaningful once hasWasteProgram is "yes" — the label literally says "If Yes,
+            ..." — so it stays out of the way until that's actually the answer, rather than
+            sitting there asking a question that doesn't apply yet. */}
+        {hasWasteProgram === "yes" && (
+          <FieldWrapper
+            name="publicInformedOfSchedule"
+            label={wasteDisasterDict.fields.publicInformedOfSchedule}
+            required
+            className="rounded-lg border border-border bg-card p-4"
+          >
+            {({ id, describedBy, invalid }) => (
+              <Select
+                value={form.watch("publicInformedOfSchedule") ?? ""}
+                onValueChange={(v) =>
+                  form.setValue("publicInformedOfSchedule", v as "yes" | "no", { shouldDirty: true })
+                }
+              >
+                <SelectTrigger id={id} className="w-full" aria-describedby={describedBy} aria-invalid={invalid}>
+                  <SelectValue placeholder={lang === "si" ? SELECT_PLACEHOLDER.si : SELECT_PLACEHOLDER.en} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="yes">{lang === "si" ? "ඔව්" : "Yes"}</SelectItem>
+                  <SelectItem value="no">{lang === "si" ? "නැත" : "No"}</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
+          </FieldWrapper>
+        )}
+
+        <FieldWrapper
+          name="collectionFrequency"
+          label={wasteDisasterDict.fields.collectionFrequency}
+          required
+          className="rounded-lg border border-border bg-card p-4"
+        >
           {({ id, describedBy, invalid }) => (
             <Select
               value={form.watch("collectionFrequency") ?? ""}
               onValueChange={(v) => form.setValue("collectionFrequency", v as (typeof COLLECTION_FREQUENCIES)[number], { shouldDirty: true })}
             >
-              <SelectTrigger id={id} aria-describedby={describedBy} aria-invalid={invalid}>
-                <SelectValue />
+              <SelectTrigger id={id} className="w-full" aria-describedby={describedBy} aria-invalid={invalid}>
+                <SelectValue placeholder={lang === "si" ? SELECT_PLACEHOLDER.si : SELECT_PLACEHOLDER.en} />
               </SelectTrigger>
               <SelectContent>
                 {COLLECTION_FREQUENCY_OPTIONS.map((opt) => (
@@ -192,14 +219,19 @@ export default function WasteDisasterPage() {
           )}
         </FieldWrapper>
 
-        <FieldWrapper name="collectionMethod" label={wasteDisasterDict.fields.collectionMethod} required>
+        <FieldWrapper
+          name="collectionMethod"
+          label={wasteDisasterDict.fields.collectionMethod}
+          required
+          className="rounded-lg border border-border bg-card p-4"
+        >
           {({ id, describedBy, invalid }) => (
             <Select
               value={form.watch("collectionMethod") ?? ""}
               onValueChange={(v) => form.setValue("collectionMethod", v as (typeof COLLECTION_METHODS)[number], { shouldDirty: true })}
             >
-              <SelectTrigger id={id} aria-describedby={describedBy} aria-invalid={invalid}>
-                <SelectValue />
+              <SelectTrigger id={id} className="w-full" aria-describedby={describedBy} aria-invalid={invalid}>
+                <SelectValue placeholder={lang === "si" ? SELECT_PLACEHOLDER.si : SELECT_PLACEHOLDER.en} />
               </SelectTrigger>
               <SelectContent>
                 {COLLECTION_METHOD_OPTIONS.map((opt) => (
@@ -216,6 +248,7 @@ export default function WasteDisasterPage() {
           name="hasCompostOrDisposalSite"
           label={wasteDisasterDict.fields.hasCompostOrDisposalSite}
           required
+          className="rounded-lg border border-border bg-card p-4"
         >
           {({ id, describedBy, invalid }) => (
             <Select
@@ -224,8 +257,8 @@ export default function WasteDisasterPage() {
                 form.setValue("hasCompostOrDisposalSite", v as "yes" | "no", { shouldDirty: true })
               }
             >
-              <SelectTrigger id={id} aria-describedby={describedBy} aria-invalid={invalid}>
-                <SelectValue />
+              <SelectTrigger id={id} className="w-full" aria-describedby={describedBy} aria-invalid={invalid}>
+                <SelectValue placeholder={lang === "si" ? SELECT_PLACEHOLDER.si : SELECT_PLACEHOLDER.en} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="yes">{lang === "si" ? "ඔව්" : "Yes"}</SelectItem>
@@ -236,36 +269,52 @@ export default function WasteDisasterPage() {
         </FieldWrapper>
       </div>
 
-      <div className="border-t border-border pt-6">
-        <RepeatableTable
-          name="disposalMethodIfNoProgram"
-          title={wasteDisasterDict.fields.disposalMethodIfNoProgram}
-          columns={disposalMethodColumns}
-          fixedRows
-          emptyRowFactory={() => ({
-            method: DISPOSAL_METHODS[0],
-            methodLabel: DISPOSAL_METHOD_LABELS[DISPOSAL_METHODS[0]][lang],
-            present: "no",
-          })}
-        />
-      </div>
-
-      <div className="border-t border-border pt-6">
-        <FieldWrapper
-          name="proposedSolutionIfNoProgram"
-          label={wasteDisasterDict.fields.proposedSolutionIfNoProgram}
-        >
-          {({ id, describedBy, invalid }) => (
-            <Textarea
-              id={id}
-              rows={4}
-              aria-describedby={describedBy}
-              aria-invalid={invalid}
-              {...form.register("proposedSolutionIfNoProgram")}
+      {/* Both of these only apply once hasWasteProgram is "no" — the labels literally say "If
+          There Is No Systematic Arrangement, ..." — so they're grouped into one conditional
+          block instead of two separately-hidden fields. */}
+      {hasWasteProgram === "no" ? (
+        <>
+          <div className="border-t border-border pt-6">
+            <RepeatableTable
+              name="disposalMethodIfNoProgram"
+              title={wasteDisasterDict.fields.disposalMethodIfNoProgram}
+              columns={disposalMethodColumns}
+              fixedRows
+              emptyRowFactory={() => ({
+                method: DISPOSAL_METHODS[0],
+                methodLabel: DISPOSAL_METHOD_LABELS[DISPOSAL_METHODS[0]][lang],
+                present: "no",
+              })}
             />
-          )}
-        </FieldWrapper>
-      </div>
+          </div>
+
+          <div className="border-t border-border pt-6">
+            <FieldWrapper
+              name="proposedSolutionIfNoProgram"
+              label={wasteDisasterDict.fields.proposedSolutionIfNoProgram}
+              required
+            >
+              {({ id, describedBy, invalid }) => (
+                <Textarea
+                  id={id}
+                  rows={4}
+                  aria-describedby={describedBy}
+                  aria-invalid={invalid}
+                  {...form.register("proposedSolutionIfNoProgram")}
+                />
+              )}
+            </FieldWrapper>
+          </div>
+        </>
+      ) : (
+        <div className="border-t border-border pt-6">
+          <p lang={lang} className={cn("text-fluid-sm text-muted-foreground", lang === "si" && "font-si")}>
+            {lang === "si"
+              ? "වර්තමාන කසළ බැහැර කිරීමේ ක්‍රමය හා යෝජිත විසඳුම ඇතුළත් කිරීමට ඉහත පළමු ප්‍රශ්නය නැත ලෙස සකසන්න."
+              : "Set the first question above to No to describe the current disposal method and propose a solution."}
+          </p>
+        </div>
+      )}
     </SectionForm>
   );
 }
