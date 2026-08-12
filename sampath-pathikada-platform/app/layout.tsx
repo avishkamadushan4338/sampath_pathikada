@@ -6,8 +6,8 @@ import {
   Cormorant_Garamond,
   Noto_Sans_Sinhala,
   Noto_Serif_Sinhala,
-  Yaldevi,
 } from "next/font/google";
+import localFont from "next/font/local";
 import Providers from "./components/Providers";
 import "./globals.css";
 
@@ -61,9 +61,18 @@ const notoSerifSinhala = Noto_Serif_Sinhala({
   display: "swap",
 });
 
-const yaldevi = Yaldevi({
-  subsets: ["sinhala"],
-  weight: ["300", "400", "500", "600", "700"],
+/** Vendored locally (files fetched from fonts.gstatic.com, sinhala subset) instead of
+ *  next/font/google — the Docker build has intermittently failed to reach Google's font CDN
+ *  for this specific font, which fails the whole build. next/font/local reads the files straight
+ *  from disk, so the build no longer depends on that network call succeeding. */
+const yaldevi = localFont({
+  src: [
+    { path: "./fonts/yaldevi/Yaldevi-Light.woff2", weight: "300", style: "normal" },
+    { path: "./fonts/yaldevi/Yaldevi-Regular.woff2", weight: "400", style: "normal" },
+    { path: "./fonts/yaldevi/Yaldevi-Medium.woff2", weight: "500", style: "normal" },
+    { path: "./fonts/yaldevi/Yaldevi-SemiBold.woff2", weight: "600", style: "normal" },
+    { path: "./fonts/yaldevi/Yaldevi-Bold.woff2", weight: "700", style: "normal" },
+  ],
   variable: "--font-yaldevi",
   display: "swap",
 });
