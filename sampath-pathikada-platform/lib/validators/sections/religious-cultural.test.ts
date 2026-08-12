@@ -125,6 +125,51 @@ describe("religiousCulturalSchemaPartial", () => {
     expect(result.success).toBe(true);
   });
 
+  it("rejects a heritage site marked used for a Dhamma school or government purpose with no task description", () => {
+    const result = religiousCulturalSchemaPartial.safeParse({
+      heritageSites: [
+        {
+          name: "Galle Fort Temple",
+          type: "temple-vihara",
+          significance: "Ancient heritage site",
+          usedForDhammaOrGovtPurpose: "yes",
+          taskDescription: "",
+        },
+      ],
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts a heritage site not used for a Dhamma school or government purpose with no task description", () => {
+    const result = religiousCulturalSchemaPartial.safeParse({
+      heritageSites: [
+        {
+          name: "Galle Fort Temple",
+          type: "temple-vihara",
+          significance: "Ancient heritage site",
+          usedForDhammaOrGovtPurpose: "no",
+          taskDescription: "",
+        },
+      ],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts a heritage site used for a Dhamma school or government purpose once a task description is given", () => {
+    const result = religiousCulturalSchemaPartial.safeParse({
+      heritageSites: [
+        {
+          name: "Galle Fort Temple",
+          type: "temple-vihara",
+          significance: "Ancient heritage site",
+          usedForDhammaOrGovtPurpose: "yes",
+          taskDescription: "Hosts weekly Dhamma school classes for children",
+        },
+      ],
+    });
+    expect(result.success).toBe(true);
+  });
+
   it("rejects an art academy row added via the UI still left blank", () => {
     const result = religiousCulturalSchemaPartial.safeParse({
       artAcademies: [{ name: "" }],
