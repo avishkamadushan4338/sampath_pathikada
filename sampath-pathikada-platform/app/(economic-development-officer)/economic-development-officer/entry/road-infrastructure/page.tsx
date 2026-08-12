@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useEffect, useState } from "react";
+import { useForm, useFieldArray, useFormContext, type FieldArrayWithId } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2 } from "lucide-react";
+import { Loader2, Plus, Trash2 } from "lucide-react";
 import { SectionForm } from "@/components/forms/SectionForm";
-import { FieldWrapper } from "@/components/forms/FormField";
+import { FieldWrapper, getErrorAtPath } from "@/components/forms/FormField";
 import { RepeatableTable, type RepeatableColumn } from "@/components/forms/RepeatableTable";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -15,6 +16,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Bilingual } from "@/components/Bilingual";
+import { dictionary } from "@/lib/i18n/dictionary";
 import { useSubmission, useSaveSection } from "@/hooks/use-submission";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { roadInfrastructureDict } from "@/lib/i18n/sections/road-infrastructure";
@@ -26,6 +38,7 @@ import {
   POST_OFFICE_TYPES,
   SERVICE_CATEGORIES,
   PUBLIC_FACILITY_CATEGORIES,
+  TRANSPORT_FACILITY_TYPES,
 } from "@/lib/validators/sections/road-infrastructure";
 import { z } from "zod";
 import { cn } from "@/lib/utils";
@@ -38,6 +51,13 @@ const YES_NO_OPTIONS = [
   { value: "yes", label: { en: "Yes", si: "ඔව්" } },
   { value: "no", label: { en: "No", si: "නැත" } },
 ];
+
+const TRANSPORT_FACILITY_LABELS: Record<(typeof TRANSPORT_FACILITY_TYPES)[number], { en: string; si: string }> = {
+  busStand: { en: "Bus Stand", si: "බස් නැවතුම් පොළ" },
+  railwayStation: { en: "Railway Station", si: "දුම්රිය නැවතුම් පොළ" },
+  port: { en: "Port", si: "වරාය" },
+  airport: { en: "Airport", si: "ගුවන්තොටුපළ" },
+};
 
 const HYDROPOWER_SCALE_LABELS: Record<(typeof HYDROPOWER_SCALES)[number], { en: string; si: string }> = {
   mini: { en: "Mini", si: "කුඩා" },
@@ -109,12 +129,12 @@ const PUBLIC_FACILITY_CATEGORY_LABELS: Record<(typeof PUBLIC_FACILITY_CATEGORIES
 
 function getEmptyValues(lang: "en" | "si"): RoadInfrastructureDraft {
   return {
-    publicFacilities: {
-      busStand: { present: "no", name: "" },
-      railwayStation: { present: "no", name: "" },
-      port: { present: "no", name: "" },
-      airport: { present: "no", name: "" },
-    },
+    publicFacilities: TRANSPORT_FACILITY_TYPES.map((type) => ({
+      type,
+      typeLabel: TRANSPORT_FACILITY_LABELS[type][lang],
+      present: "no" as const,
+      name: "",
+    })),
     roadDevelopmentNeeds: [],
     bridgeRepairs: [],
     newRoadBridgeNeeds: [],
@@ -145,7 +165,7 @@ function getEmptyValues(lang: "en" | "si"): RoadInfrastructureDraft {
   };
 }
 
-function mergeWithSaved(empty: RoadInfrastructureDraft, saved: RoadInfrastructureDraft): RoadInfrastructureDraft {
+function mergeWithSaved(empty: RoadInfrastructureDraft, saved: RoadInfrastructureDraft, lang: "en" | "si"): RoadInfrastructureDraft {
   return {
     ...empty,
     ...saved,
@@ -154,6 +174,16 @@ function mergeWithSaved(empty: RoadInfrastructureDraft, saved: RoadInfrastructur
     hydropowerPlants: Array.isArray(saved.hydropowerPlants) ? saved.hydropowerPlants : empty.hydropowerPlants,
     serviceEstablishments: empty.serviceEstablishments?.map((row, i) => ({ ...row, ...saved.serviceEstablishments?.[i] })),
     publicFacilityCategories: empty.publicFacilityCategories?.map((row, i) => ({ ...row, ...saved.publicFacilityCategories?.[i] })),
+    // publicFacilities is no longer a fixed 4-key object — the officer can add extra rows per
+    // category (e.g. a second bus stand), so a saved draft's array may be longer than the seeded
+    // template and can't be zipped by index. Trust the saved array's own rows wholesale (falling
+    // back to the freshly-seeded 4-category template only when nothing's been saved yet), just
+    // refreshing `typeLabel` for the active language since that's display-only, not persisted.
+    publicFacilities: (saved.publicFacilities?.length ? saved.publicFacilities : empty.publicFacilities)?.map((row) => ({
+      ...row,
+      typeLabel:
+        TRANSPORT_FACILITY_LABELS[row.type as (typeof TRANSPORT_FACILITY_TYPES)[number]]?.[lang] ?? (row as Record<string, unknown>).typeLabel,
+    })),
   };
 }
 
@@ -169,7 +199,7 @@ export default function RoadInfrastructurePage() {
 
   useEffect(() => {
     if (submission?.data.roadInfrastructure) {
-      form.reset(mergeWithSaved(getEmptyValues(lang), submission.data.roadInfrastructure));
+      form.reset(mergeWithSaved(getEmptyValues(lang), submission.data.roadInfrastructure, lang));
     } else {
       form.reset(getEmptyValues(lang));
     }
@@ -283,11 +313,20 @@ export default function RoadInfrastructurePage() {
   const publicFacilityCategoryColumns: RepeatableColumn[] = [
     { key: "categoryLabel", label: { en: "Type", si: "වර්ගය" }, type: "readonly" },
     { key: "present", label: { en: "Present", si: "ඇත/නැත" }, type: "select", options: YES_NO_OPTIONS, required: true },
-    { key: "count", label: { en: "Count", si: "සංඛ්‍යාව" }, type: "number" },
+    {
+      key: "count",
+      label: { en: "Count", si: "සංඛ්‍යාව" },
+      type: "number",
+      // Only meaningful once the facility is present within the division — locked (and blanked)
+      // otherwise, matching the mutually-exclusive-with-distance rule in the validator.
+      disabledWhen: (row) => row.present !== "yes",
+    },
     {
       key: "distanceToNearestIfOutsideDivision",
       label: { en: "Distance to Nearest (if not located within the division)", si: "වසම තුල පිහිටා නැත නම් ආසන්නතම ස්ථානයන්ට ඇති දුර" },
       type: "text",
+      // Only meaningful once the facility is confirmed absent — locked (and blanked) otherwise.
+      disabledWhen: (row) => row.present === "yes",
     },
   ];
 
@@ -310,106 +349,8 @@ export default function RoadInfrastructurePage() {
         <h2 lang={lang} className={cn("text-fluid-lg font-semibold text-foreground", lang === "si" && "font-si-heading")}>
           {lang === "si" ? roadInfrastructureDict.fields.publicFacilities.si : roadInfrastructureDict.fields.publicFacilities.en}
         </h2>
-        <div className="mt-4 grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4">
-          <FieldWrapper name="publicFacilities.busStand.present" label={{ en: "Bus Stand - Present?", si: "බස් නැවතුම් පොළ - ඇත/ නැත" }} required>
-            {({ id, describedBy, invalid }) => (
-              <Select
-                value={form.watch("publicFacilities.busStand.present") ?? ""}
-                onValueChange={(v) => form.setValue("publicFacilities.busStand.present", v as "yes" | "no", { shouldDirty: true })}
-              >
-                <SelectTrigger id={id} aria-describedby={describedBy} aria-invalid={invalid}>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {YES_NO_OPTIONS.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>
-                      {lang === "si" ? opt.label.si : opt.label.en}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-          </FieldWrapper>
-          <FieldWrapper name="publicFacilities.busStand.name" label={{ en: "Bus Stand - Location Name", si: "බස් නැවතුම් පොළ - ස්ථානයේ නම" }}>
-            {({ id, describedBy, invalid }) => (
-              <Input id={id} aria-describedby={describedBy} aria-invalid={invalid} {...form.register("publicFacilities.busStand.name")} />
-            )}
-          </FieldWrapper>
-
-          <FieldWrapper name="publicFacilities.railwayStation.present" label={{ en: "Railway Station - Present?", si: "දුම්රිය නැවතුම් පොළ - ඇත/ නැත" }} required>
-            {({ id, describedBy, invalid }) => (
-              <Select
-                value={form.watch("publicFacilities.railwayStation.present") ?? ""}
-                onValueChange={(v) => form.setValue("publicFacilities.railwayStation.present", v as "yes" | "no", { shouldDirty: true })}
-              >
-                <SelectTrigger id={id} aria-describedby={describedBy} aria-invalid={invalid}>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {YES_NO_OPTIONS.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>
-                      {lang === "si" ? opt.label.si : opt.label.en}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-          </FieldWrapper>
-          <FieldWrapper name="publicFacilities.railwayStation.name" label={{ en: "Railway Station - Location Name", si: "දුම්රිය නැවතුම් පොළ - ස්ථානයේ නම" }}>
-            {({ id, describedBy, invalid }) => (
-              <Input id={id} aria-describedby={describedBy} aria-invalid={invalid} {...form.register("publicFacilities.railwayStation.name")} />
-            )}
-          </FieldWrapper>
-
-          <FieldWrapper name="publicFacilities.port.present" label={{ en: "Port - Present?", si: "වරාය - ඇත/ නැත" }} required>
-            {({ id, describedBy, invalid }) => (
-              <Select
-                value={form.watch("publicFacilities.port.present") ?? ""}
-                onValueChange={(v) => form.setValue("publicFacilities.port.present", v as "yes" | "no", { shouldDirty: true })}
-              >
-                <SelectTrigger id={id} aria-describedby={describedBy} aria-invalid={invalid}>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {YES_NO_OPTIONS.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>
-                      {lang === "si" ? opt.label.si : opt.label.en}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-          </FieldWrapper>
-          <FieldWrapper name="publicFacilities.port.name" label={{ en: "Port - Location Name", si: "වරාය - ස්ථානයේ නම" }}>
-            {({ id, describedBy, invalid }) => (
-              <Input id={id} aria-describedby={describedBy} aria-invalid={invalid} {...form.register("publicFacilities.port.name")} />
-            )}
-          </FieldWrapper>
-
-          <FieldWrapper name="publicFacilities.airport.present" label={{ en: "Airport - Present?", si: "ගුවන්තොටුපළ - ඇත/ නැත" }} required>
-            {({ id, describedBy, invalid }) => (
-              <Select
-                value={form.watch("publicFacilities.airport.present") ?? ""}
-                onValueChange={(v) => form.setValue("publicFacilities.airport.present", v as "yes" | "no", { shouldDirty: true })}
-              >
-                <SelectTrigger id={id} aria-describedby={describedBy} aria-invalid={invalid}>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {YES_NO_OPTIONS.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>
-                      {lang === "si" ? opt.label.si : opt.label.en}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-          </FieldWrapper>
-          <FieldWrapper name="publicFacilities.airport.name" label={{ en: "Airport - Location Name", si: "ගුවන්තොටුපළ - ස්ථානයේ නම" }}>
-            {({ id, describedBy, invalid }) => (
-              <Input id={id} aria-describedby={describedBy} aria-invalid={invalid} {...form.register("publicFacilities.airport.name")} />
-            )}
-          </FieldWrapper>
+        <div className="mt-4">
+          <TransportFacilitiesTable lang={lang} />
         </div>
       </div>
 
@@ -583,13 +524,184 @@ export default function RoadInfrastructurePage() {
       </div>
 
       <div className="border-t border-border pt-6">
-        <RepeatableTable
-          name="licensedLiquorShops"
-          title={roadInfrastructureDict.fields.licensedLiquorShops}
-          columns={licensedLiquorShopColumns}
-          emptyRowFactory={() => ({ name: "", address: "" })}
-        />
+        {form.watch("licensedLiquorShopsPresent") === "yes" ? (
+          <RepeatableTable
+            name="licensedLiquorShops"
+            title={roadInfrastructureDict.fields.licensedLiquorShops}
+            columns={licensedLiquorShopColumns}
+            emptyRowFactory={() => ({ name: "", address: "" })}
+          />
+        ) : (
+          <p lang={lang} className={cn("text-fluid-sm text-muted-foreground", lang === "si" && "font-si")}>
+            {lang === "si"
+              ? "බලපත්‍රලාභී තැබෑරුම්/බාර් ඇතුළත් කිරීමට “මෙම ප්‍රදේශයේ තැබෑරුම් තිබේද?” යන්න ඔව් ලෙස සකසන්න."
+              : "Set “Are There Taverns in the Division?” to Yes to add licensed taverns / bars."}
+          </p>
+        )}
       </div>
     </SectionForm>
+  );
+}
+
+type TransportFacilityRow = {
+  type: (typeof TRANSPORT_FACILITY_TYPES)[number];
+  typeLabel: string;
+  present: "yes" | "no";
+  name?: string;
+};
+
+/** Transport facilities are a fixed 4-category checklist (bus stand, railway station, ...), but a
+ *  GN division can have more than one of the same facility (e.g. two bus stands) — same
+ *  per-category insert/anchor idea as the other checklist tables in this app, except grouped into
+ *  one card per category (rather than a flat list) since "Bus Stand" reading as its own visually
+ *  distinct block is what actually made this section legible after the previous layout scattered
+ *  each field across an unrelated grid column. Only the anchor row (the first, always-present row
+ *  for each category) carries the "Present?" select; location-name inputs — one per row, "+" adds
+ *  another sharing that category — only appear once it's "yes". */
+function TransportFacilitiesTable({ lang }: { lang: "en" | "si" }) {
+  const { control, register, watch, setValue, formState } = useFormContext<RoadInfrastructureDraft>();
+  const { fields, insert, remove } = useFieldArray({ control, name: "publicFacilities" });
+  const [pendingDeleteIndex, setPendingDeleteIndex] = useState<number | null>(null);
+
+  const indicesByType = new Map<string, number[]>();
+  fields.forEach((field, index) => {
+    const row = field as FieldArrayWithId<RoadInfrastructureDraft, "publicFacilities"> & TransportFacilityRow;
+    const list = indicesByType.get(row.type) ?? [];
+    list.push(index);
+    indicesByType.set(row.type, list);
+  });
+
+  function addAnother(anchorIndex: number) {
+    const row = fields[anchorIndex] as FieldArrayWithId<RoadInfrastructureDraft, "publicFacilities"> & TransportFacilityRow;
+    const indices = indicesByType.get(row.type) ?? [anchorIndex];
+    insert(indices[indices.length - 1] + 1, { type: row.type, typeLabel: row.typeLabel, present: "yes", name: "" } as never);
+  }
+
+  function requestRemove(index: number) {
+    const row = fields[index] as FieldArrayWithId<RoadInfrastructureDraft, "publicFacilities"> & TransportFacilityRow;
+    if (row.name) setPendingDeleteIndex(index);
+    else remove(index);
+  }
+
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(260px,1fr))] gap-4">
+        {TRANSPORT_FACILITY_TYPES.map((type) => {
+          const indices = indicesByType.get(type) ?? [];
+          const anchorIndex = indices[0];
+          if (anchorIndex === undefined) return null;
+          const anchorRow = fields[anchorIndex] as FieldArrayWithId<RoadInfrastructureDraft, "publicFacilities"> & TransportFacilityRow;
+          const present = watch(`publicFacilities.${anchorIndex}.present`) ?? "no";
+          return (
+            <div key={type} className="flex flex-col gap-3 rounded-lg border border-border bg-card p-3">
+              <h3 lang={lang} className={cn("text-fluid-sm font-semibold text-foreground", lang === "si" && "font-si")}>
+                {anchorRow.typeLabel}
+              </h3>
+              <FieldWrapper name={`publicFacilities.${anchorIndex}.present`} label={{ en: "Present?", si: "ඇත/ නැත" }} required>
+                {({ id, describedBy, invalid }) => (
+                  <Select
+                    value={present}
+                    onValueChange={(v) => setValue(`publicFacilities.${anchorIndex}.present`, v as "yes" | "no", { shouldDirty: true })}
+                  >
+                    <SelectTrigger id={id} aria-describedby={describedBy} aria-invalid={invalid}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {YES_NO_OPTIONS.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          {lang === "si" ? opt.label.si : opt.label.en}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              </FieldWrapper>
+              {present === "yes" ? (
+                <div className="flex flex-col gap-2">
+                  <span lang={lang} className={cn("text-fluid-xs font-medium text-muted-foreground", lang === "si" && "font-si")}>
+                    <Bilingual en="Location Name" si="ස්ථානයේ නම" />
+                    <span className="ml-1 text-destructive" aria-label={dictionary.required[lang]}>
+                      *
+                    </span>
+                  </span>
+                  {indices.map((index) => {
+                    const nameError = getErrorAtPath(formState.errors as Record<string, unknown>, `publicFacilities.${index}.name`);
+                    return (
+                      <div key={fields[index].id} className="flex flex-col gap-1">
+                        <div className="flex items-center gap-2">
+                          {/* This app's warm cream palette keeps --background and --card only a
+                              few points of lightness apart at the same hue, so a same-tone border
+                              (the RepeatableTable card-layout fix used elsewhere) still reads as
+                              barely-there here. A distinctly-colored border (brand primary, not
+                              another shade of cream) is what actually reads as "this is a fillable
+                              box" against this specific card background. */}
+                          <Input
+                            className="min-w-0 flex-1 border-2 border-primary/40 bg-background shadow-sm"
+                            aria-invalid={!!nameError}
+                            {...register(`publicFacilities.${index}.name`)}
+                          />
+                          {index === anchorIndex ? (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="touch-target shrink-0"
+                              onClick={() => addAnother(anchorIndex)}
+                              aria-label={dictionary.add[lang]}
+                            >
+                              <Plus className="size-4" />
+                            </Button>
+                          ) : (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="touch-target shrink-0 text-destructive hover:text-destructive"
+                              onClick={() => requestRemove(index)}
+                              aria-label={dictionary.delete[lang]}
+                            >
+                              <Trash2 className="size-4" />
+                            </Button>
+                          )}
+                        </div>
+                        {nameError?.message && <p className="text-fluid-xs text-destructive">{String(nameError.message)}</p>}
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p lang={lang} className={cn("text-fluid-xs text-muted-foreground", lang === "si" && "font-si")}>
+                  {lang === "si" ? "ස්ථානයේ නම ඇතුළත් කිරීමට ඔව් ලෙස සකසන්න." : "Set to Yes to enter a location name."}
+                </p>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      <AlertDialog open={pendingDeleteIndex !== null} onOpenChange={(open) => !open && setPendingDeleteIndex(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              <Bilingual {...dictionary.deleteConfirm} />
+            </AlertDialogTitle>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>
+              <Bilingual {...dictionary.cancel} />
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (pendingDeleteIndex !== null) remove(pendingDeleteIndex);
+                setPendingDeleteIndex(null);
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              <Bilingual {...dictionary.delete} />
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
   );
 }

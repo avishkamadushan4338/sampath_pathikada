@@ -88,8 +88,13 @@ export default function TourismPage() {
 
   const hotelInventoryColumns: RepeatableColumn[] = [
     { key: "categoryLabel", label: { en: "Hotel Category", si: "හෝටල් වර්ග" }, type: "readonly" },
-    { key: "hotelCount", label: { en: "Number of Hotels", si: "හෝටල් සංඛ්‍යාව" }, type: "number" },
-    { key: "roomCount", label: { en: "Rooms Providing Residential Facilities", si: "නේවාසික පහසුකම් ලබාදෙන කාමර ගණන" }, type: "number" },
+    { key: "hotelCount", label: { en: "Number of Hotels", si: "හෝටල් සංඛ්‍යාව" }, type: "number", required: true },
+    {
+      key: "roomCount",
+      label: { en: "Rooms Providing Residential Facilities", si: "නේවාසික පහසුකම් ලබාදෙන කාමර ගණන" },
+      type: "number",
+      required: true,
+    },
   ];
 
   const guestAccommodationColumns: RepeatableColumn[] = [

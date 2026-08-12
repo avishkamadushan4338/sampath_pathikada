@@ -28,13 +28,28 @@ export const catholicChurchCountSchema = z.object({
   nunsCount: z.coerce.number().int().min(0).default(0),
 });
 
-export const heritageSiteRowSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  type: z.enum(HERITAGE_SITE_TYPES),
-  significance: z.string().min(1, "Significance is required"),
-  usedForDhammaOrGovtPurpose: yesNo.optional(),
-  taskDescription: z.string().optional(),
-});
+/** `taskDescription` is only meaningful once the officer has confirmed the site is actually used
+ *  for a Dhamma school or government purpose — conditionally required via `superRefine` (rather
+ *  than always-required) so a site with that question answered "no", or not yet answered at all,
+ *  doesn't force a description of a use that doesn't exist. */
+export const heritageSiteRowSchema = z
+  .object({
+    name: z.string().min(1, "Name is required"),
+    type: z.enum(HERITAGE_SITE_TYPES),
+    significance: z.string().min(1, "Significance is required"),
+    usedForDhammaOrGovtPurpose: yesNo.optional(),
+    taskDescription: z.string().optional(),
+  })
+  .superRefine((row, ctx) => {
+    if (row.usedForDhammaOrGovtPurpose !== "yes") return;
+    if (!row.taskDescription?.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["taskDescription"],
+        message: "Task description is required once you've indicated it's used for a Dhamma school or government purpose",
+      });
+    }
+  });
 
 export const artAcademyRowSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -65,11 +80,11 @@ export type ReligiousCulturalData = z.infer<typeof religiousCulturalSchemaStrict
 
 export { HERITAGE_SITE_TYPES };
 
-/* Draft-mode reuses the strict row schemas directly — a row's required fields (e.g. `name`)
- * still fail validation if blank, surfacing a "required" error in the UI, but that no longer
- * blocks saving: SectionForm always saves the draft regardless of validation outcome, it just
- * shows the errors alongside. Only the *array itself* (or, for `religiousSiteCounts`, the
- * nested objects) is optional here, so an empty/untouched table is still a valid draft. */
+/* Draft-mode reuses the strict row schemas directly — a row's required fields (e.g. `name`, and
+ * the taskDescription rule above) still fail validation if blank, surfacing a "required" error in
+ * the UI. Required fields DO block saving — SectionForm only calls onSaveDraft once validation
+ * passes. Only the *array itself* (or, for `religiousSiteCounts`, the nested objects) is optional
+ * here, so an empty/untouched table is still a valid draft. */
 export const religiousCulturalSchemaPartial = z.object({
   religiousSiteCounts: z
     .object({

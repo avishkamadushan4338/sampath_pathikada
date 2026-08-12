@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useFieldArray, useFormContext, type FieldValues, type ArrayPath } from "react-hook-form";
 import { Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -49,6 +49,11 @@ export interface RepeatableColumn {
    *  wide `<table>` layout (only reachable via `preferTableLayout`), the same grouping becomes
    *  a spanning group header above the individual field headers instead. */
   group?: Translated;
+  /** When this returns true for the row's current values, the column can't be edited and its
+   *  value is cleared — e.g. "Count" only makes sense once "Present" is Yes, so it's locked (and
+   *  blanked out) while Present is No, rather than sitting there editable but meaningless. Text
+   *  and number columns only. */
+  disabledWhen?: (row: Record<string, unknown>) => boolean;
 }
 
 interface RepeatableTableProps<T extends FieldValues> {
@@ -152,6 +157,9 @@ export function RepeatableTable<T extends FieldValues>({
     }
 
     const error = getErrorAtPath(formState.errors as Record<string, unknown>, fieldName);
+    const disabled = column.disabledWhen
+      ? column.disabledWhen((watch(`${name}.${rowIndex}` as never) as unknown as Record<string, unknown>) ?? {})
+      : false;
 
     if (column.type === "select") {
       return (
@@ -169,10 +177,13 @@ export function RepeatableTable<T extends FieldValues>({
           type={column.type === "number" ? "number" : "text"}
           placeholder={column.placeholder ? (lang === "si" ? column.placeholder.si : column.placeholder.en) : undefined}
           // The card layout's bg-card surface is the same tone as the default input border
-          // (--input is defined as "card tone"), so an empty field is otherwise invisible —
-          // give it a background+border that actually contrast against the card.
-          className={cn("min-w-32 text-fluid-sm", onCard && "border-border bg-background shadow-sm")}
+          // (--input is defined as "card tone"), so an empty field is otherwise invisible. A
+          // same-tone border fix isn't enough in this app's warm cream palette either — background
+          // and card are only a few points of lightness apart at the same hue — so the border
+          // needs an actual color (brand primary), not another shade of cream, to read clearly.
+          className={cn("min-w-32 text-fluid-sm", onCard && "border-2 border-primary/40 bg-background shadow-sm")}
           invalid={!!error}
+          disabled={disabled}
         />
         {onCard && error?.message && <p className="text-fluid-xs text-destructive">{String(error.message)}</p>}
       </>
@@ -441,15 +452,37 @@ function TextField({
   placeholder,
   className,
   invalid = false,
+  disabled = false,
 }: {
   fieldName: string;
   type: "text" | "number";
   placeholder?: string;
   className?: string;
   invalid?: boolean;
+  disabled?: boolean;
 }) {
   const { setValue, watch } = useFormContext();
   const value = watch(fieldName as never) as unknown as string | number | undefined;
+
+  // A disabled field shouldn't keep showing (or silently submitting) a value the officer can no
+  // longer see or edit — e.g. flipping "Present" from Yes back to No should blank out the Count
+  // that no longer applies, not leave it stuck at whatever was last typed while it was enabled.
+  useEffect(() => {
+    if (disabled && value !== "" && value !== undefined && value !== null) {
+      setValue(fieldName as never, "" as never, { shouldDirty: true });
+    }
+  }, [disabled, value, fieldName, setValue]);
+
+  // A grayed-out-but-still-there input reads as "broken" rather than "not applicable" — an
+  // officer sees a box, tries to click into it, and nothing happens. Replacing it outright with
+  // a plain dash removes the box (and the confusion) instead of just dimming it.
+  if (disabled) {
+    return (
+      <span className="text-fluid-sm text-muted-foreground" aria-label="Not applicable">
+        —
+      </span>
+    );
+  }
 
   return (
     <Input
@@ -482,7 +515,7 @@ function SelectField({
 
   return (
     <Select value={value ?? ""} onValueChange={(v) => setValue(fieldName as never, v as never, { shouldDirty: true })}>
-      <SelectTrigger aria-invalid={invalid} className={cn("min-w-32 text-fluid-sm", onCard && "border-border bg-background shadow-sm")}>
+      <SelectTrigger aria-invalid={invalid} className={cn("min-w-32 text-fluid-sm", onCard && "border-2 border-primary/40 bg-background shadow-sm")}>
         <SelectValue />
       </SelectTrigger>
       <SelectContent>

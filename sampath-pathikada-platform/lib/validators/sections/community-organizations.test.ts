@@ -162,4 +162,18 @@ describe("communityOrganizationsSchemaPartial", () => {
     });
     expect(result.success).toBe(false);
   });
+
+  it("rejects an organizationCounts row with count left blank", () => {
+    const result = communityOrganizationsSchemaPartial.safeParse({
+      organizationCounts: [{ type: ORGANIZATION_TYPES[0], count: "" }],
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts an organizationCounts row with count explicitly set to 0 — 0 is a real answer, not a blank", () => {
+    const result = communityOrganizationsSchemaPartial.safeParse({
+      organizationCounts: [{ type: ORGANIZATION_TYPES[0], count: 0 }],
+    });
+    expect(result.success).toBe(true);
+  });
 });

@@ -6,15 +6,16 @@ import {
   PUBLIC_FACILITY_CATEGORIES,
   POST_OFFICE_TYPES,
   FINANCIAL_INSTITUTION_TYPES,
+  TRANSPORT_FACILITY_TYPES,
 } from "@/lib/validators/sections/road-infrastructure";
 
 const validPayload = {
-  publicFacilities: {
-    busStand: { present: "yes" as const, name: "Galle Main Bus Stand" },
-    railwayStation: { present: "no" as const },
-    port: { present: "no" as const },
-    airport: { present: "no" as const },
-  },
+  publicFacilities: [
+    { type: "busStand" as const, present: "yes" as const, name: "Galle Main Bus Stand" },
+    { type: "railwayStation" as const, present: "no" as const },
+    { type: "port" as const, present: "no" as const },
+    { type: "airport" as const, present: "no" as const },
+  ],
   roadDevelopmentNeeds: [{ roadName: "Temple Road", lengthMeters: 500 }],
   bridgeRepairs: [{ name: "Old Bridge", location: "Near town center" }],
   newRoadBridgeNeeds: [{ location: "River crossing", justification: "No safe crossing point" }],
@@ -33,6 +34,7 @@ const validPayload = {
     category,
     present: "no" as const,
     count: 0,
+    distanceToNearestIfOutsideDivision: "2 km",
   })),
   licensedLiquorShopsPresent: "no" as const,
   licensedLiquorShops: [],
@@ -49,6 +51,22 @@ describe("roadInfrastructureSchemaStrict", () => {
     void publicFacilities;
     const result = roadInfrastructureSchemaStrict.safeParse(rest);
     expect(result.success).toBe(false);
+  });
+
+  it("rejects publicFacilities with fewer rows than TRANSPORT_FACILITY_TYPES", () => {
+    const result = roadInfrastructureSchemaStrict.safeParse({
+      ...validPayload,
+      publicFacilities: validPayload.publicFacilities.slice(0, TRANSPORT_FACILITY_TYPES.length - 1),
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts more than one row for the same transport facility type (e.g. two bus stands)", () => {
+    const result = roadInfrastructureSchemaStrict.safeParse({
+      ...validPayload,
+      publicFacilities: [...validPayload.publicFacilities, { type: "busStand" as const, present: "yes" as const, name: "Second Bus Stand" }],
+    });
+    expect(result.success).toBe(true);
   });
 
   it("rejects a payload missing licensedLiquorShopsPresent", () => {
@@ -70,6 +88,39 @@ describe("roadInfrastructureSchemaStrict", () => {
     const result = roadInfrastructureSchemaStrict.safeParse({
       ...validPayload,
       serviceEstablishments: SERVICE_CATEGORIES.map((category) => ({ category, count: 3 })),
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects a publicFacilityCategories row marked present with no count", () => {
+    const result = roadInfrastructureSchemaStrict.safeParse({
+      ...validPayload,
+      publicFacilityCategories: [
+        { category: PUBLIC_FACILITY_CATEGORIES[0], present: "yes" as const, count: 0 },
+        ...validPayload.publicFacilityCategories.slice(1),
+      ],
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects a publicFacilityCategories row marked not present with no distance to nearest", () => {
+    const result = roadInfrastructureSchemaStrict.safeParse({
+      ...validPayload,
+      publicFacilityCategories: [
+        { category: PUBLIC_FACILITY_CATEGORIES[0], present: "no" as const, count: 0, distanceToNearestIfOutsideDivision: "" },
+        ...validPayload.publicFacilityCategories.slice(1),
+      ],
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts a publicFacilityCategories row marked present with a count greater than 0", () => {
+    const result = roadInfrastructureSchemaStrict.safeParse({
+      ...validPayload,
+      publicFacilityCategories: [
+        { category: PUBLIC_FACILITY_CATEGORIES[0], present: "yes" as const, count: 2 },
+        ...validPayload.publicFacilityCategories.slice(1),
+      ],
     });
     expect(result.success).toBe(true);
   });
@@ -280,18 +331,56 @@ describe("roadInfrastructureSchemaPartial", () => {
     expect(result.success).toBe(true);
   });
 
-  it("rejects publicFacilities.busStand when present is left unset but the object is touched", () => {
+  it("rejects a publicFacilities row when present is left unset but the row is touched", () => {
     const result = roadInfrastructureSchemaPartial.safeParse({
       licensedLiquorShopsPresent: "no",
-      publicFacilities: { busStand: { name: "Galle Main Bus Stand" } },
+      publicFacilities: [{ type: "busStand", name: "Galle Main Bus Stand" }],
     });
     expect(result.success).toBe(false);
   });
 
-  it("accepts publicFacilities.busStand once present is filled in, leaving other facilities untouched", () => {
+  it("accepts a publicFacilities row once present is filled in, leaving other facility types untouched", () => {
     const result = roadInfrastructureSchemaPartial.safeParse({
       licensedLiquorShopsPresent: "no",
-      publicFacilities: { busStand: { present: "yes", name: "Galle Main Bus Stand" } },
+      publicFacilities: [{ type: "busStand", present: "yes", name: "Galle Main Bus Stand" }],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects a publicFacilities busStand row with present = yes and no location name", () => {
+    const result = roadInfrastructureSchemaPartial.safeParse({
+      licensedLiquorShopsPresent: "no",
+      publicFacilities: [{ type: "busStand", present: "yes", name: "" }],
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts a publicFacilities busStand row with present = no and no location name — name is only required once present", () => {
+    const result = roadInfrastructureSchemaPartial.safeParse({
+      licensedLiquorShopsPresent: "no",
+      publicFacilities: [{ type: "busStand", present: "no", name: "" }],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it.each(["railwayStation", "port", "airport"] as const)("rejects a publicFacilities %s row with present = yes and no location name", (type) => {
+    const result = roadInfrastructureSchemaPartial.safeParse({
+      licensedLiquorShopsPresent: "no",
+      publicFacilities: [{ type, present: "yes", name: "" }],
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts a second bus stand row even when the first (anchor) row's name is blank", () => {
+    // Mirrors the UI: clicking "+" on the anchor row inserts an extra row right after it for the
+    // same facility type — the officer may fill the branch name into that extra row instead of
+    // the anchor, so the rule only needs *some* row of the type to carry a name.
+    const result = roadInfrastructureSchemaPartial.safeParse({
+      licensedLiquorShopsPresent: "no",
+      publicFacilities: [
+        { type: "busStand", present: "yes", name: "" },
+        { type: "busStand", present: "yes", name: "Second Bus Stand" },
+      ],
     });
     expect(result.success).toBe(true);
   });
@@ -310,5 +399,13 @@ describe("roadInfrastructureSchemaPartial", () => {
       licensedLiquorShops: [{ name: "The Old Tavern", address: "Main Street" }],
     });
     expect(result.success).toBe(true);
+  });
+
+  it("rejects licensedLiquorShopsPresent = yes with an empty licensedLiquorShops directory", () => {
+    const result = roadInfrastructureSchemaPartial.safeParse({
+      licensedLiquorShopsPresent: "yes",
+      licensedLiquorShops: [],
+    });
+    expect(result.success).toBe(false);
   });
 });

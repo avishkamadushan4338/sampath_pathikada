@@ -117,12 +117,33 @@ describe("tourismSchemaPartial", () => {
     expect(result.success).toBe(true);
   });
 
-  it("accepts a hotelInventory array shorter than HOTEL_CATEGORIES.length", () => {
+  it("accepts a hotelInventory array shorter than HOTEL_CATEGORIES.length once its rows are filled in", () => {
     // The partial schema drops the `.length()` constraint so a draft can be saved before
     // every fixed row has been filled in. category is always pre-set by the fixed-row
     // factory in page.tsx (never blank), so requiring it here doesn't affect this.
     const result = tourismSchemaPartial.safeParse({
-      hotelInventory: [{ category: HOTEL_CATEGORIES[0] }],
+      hotelInventory: [{ category: HOTEL_CATEGORIES[0], hotelCount: 0, roomCount: 0 }],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects a hotelInventory row with hotelCount left blank", () => {
+    const result = tourismSchemaPartial.safeParse({
+      hotelInventory: [{ category: HOTEL_CATEGORIES[0], hotelCount: "", roomCount: 0 }],
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects a hotelInventory row with roomCount left blank", () => {
+    const result = tourismSchemaPartial.safeParse({
+      hotelInventory: [{ category: HOTEL_CATEGORIES[0], hotelCount: 0, roomCount: "" }],
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts a hotelInventory row with hotelCount/roomCount explicitly set to 0 — 0 is a real answer, not a blank", () => {
+    const result = tourismSchemaPartial.safeParse({
+      hotelInventory: [{ category: HOTEL_CATEGORIES[0], hotelCount: 0, roomCount: 0 }],
     });
     expect(result.success).toBe(true);
   });

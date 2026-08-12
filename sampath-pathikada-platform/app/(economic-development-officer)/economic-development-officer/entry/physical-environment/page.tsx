@@ -5,7 +5,7 @@ import { useForm, useFieldArray, useFormContext, type FieldArrayWithId } from "r
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, Plus, Trash2 } from "lucide-react";
 import { SectionForm } from "@/components/forms/SectionForm";
-import { FieldWrapper } from "@/components/forms/FormField";
+import { FieldWrapper, getErrorAtPath } from "@/components/forms/FormField";
 import { RepeatableTable, type RepeatableColumn } from "@/components/forms/RepeatableTable";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -104,11 +104,13 @@ function mergeWithSaved(empty: PhysicalEnvironmentDraft, saved: PhysicalEnvironm
       typeLabel:
         WATER_SOURCE_TYPE_LABELS[row.type as (typeof WATER_SOURCE_TYPES)[number]]?.[lang] ?? (row as Record<string, unknown>).typeLabel,
     })),
-    hazards: empty.hazards?.map((row, i) => ({
+    // Environmental problems are no longer a fixed 10-row checklist either — the officer can add
+    // extra rows per category (e.g. a second flood incident with a different time period), so a
+    // saved draft's array may be longer than the seeded template and can't be zipped by index.
+    // Same trust-wholesale approach as waterSources above.
+    hazards: (saved.hazards?.length ? saved.hazards : empty.hazards)?.map((row) => ({
       ...row,
-      occurred: saved.hazards?.[i]?.occurred ?? row.occurred,
-      frequency: saved.hazards?.[i]?.frequency ?? row.frequency,
-      mitigationProposal: saved.hazards?.[i]?.mitigationProposal ?? row.mitigationProposal,
+      typeLabel: HAZARD_TYPE_LABELS[row.type as (typeof HAZARD_TYPES)[number]]?.[lang] ?? (row as Record<string, unknown>).typeLabel,
     })),
   };
 }
@@ -129,19 +131,6 @@ const naturalResourceColumns: RepeatableColumn[] = [
     required: true,
   },
   { key: "notes", label: { en: "Notes", si: "සටහන්" }, type: "text" },
-];
-
-const hazardColumns: RepeatableColumn[] = [
-  { key: "typeLabel", label: { en: "Environmental Problem", si: "පාරිසරික ගැටළු" }, type: "readonly" },
-  {
-    key: "occurred",
-    label: { en: "Occurred?", si: "ඇත/නැත" },
-    type: "select",
-    options: YES_NO_OPTIONS,
-    required: true,
-  },
-  { key: "frequency", label: { en: "If Yes, the Common Time Period", si: "ඇත්නම් බහුලව සිදුවන කාල සීමාව" }, type: "text" },
-  { key: "mitigationProposal", label: { en: "Proposed Remedial Measures for the Problem", si: "ගැටළුව සඳහා ගතයුතු පිළියම් යෝජනා" }, type: "text" },
 ];
 
 const safeLocationColumns: RepeatableColumn[] = [
@@ -246,19 +235,7 @@ export default function PhysicalEnvironmentPage() {
       </div>
 
       <div className="border-t border-border pt-6">
-        <RepeatableTable
-          name="hazards"
-          title={physicalEnvironmentDict.fields.hazards}
-          columns={hazardColumns}
-          fixedRows
-          emptyRowFactory={() => ({
-            type: HAZARD_TYPES[0],
-            typeLabel: HAZARD_TYPE_LABELS[HAZARD_TYPES[0]][lang],
-            occurred: "no",
-            frequency: "",
-            mitigationProposal: "",
-          })}
-        />
+        <HazardsTable lang={lang} title={physicalEnvironmentDict.fields.hazards} />
       </div>
 
       <div className="border-t border-border pt-6">
@@ -287,12 +264,21 @@ export default function PhysicalEnvironmentPage() {
             )}
           </FieldWrapper>
         </div>
-        <RepeatableTable
-          name="safeLocations"
-          title={physicalEnvironmentDict.fields.safeLocations}
-          columns={safeLocationColumns}
-          emptyRowFactory={() => ({ name: "", address: "" })}
-        />
+        {form.watch("safeLocationsIdentified") === "yes" ? (
+          <RepeatableTable
+            name="safeLocations"
+            title={physicalEnvironmentDict.fields.safeLocations}
+            columns={safeLocationColumns}
+            emptyRowFactory={() => ({ name: "", address: "" })}
+          />
+        ) : (
+          <p lang={lang} className={cn("text-fluid-sm text-muted-foreground", lang === "si" && "font-si")}>
+            <Bilingual
+              en="Set “Identified Safe Location Exists?” to Yes to add safe locations / evacuation centers."
+              si="ආරක්ෂිත ස්ථාන / සුරක්ෂිත මධ්‍යස්ථාන ඇතුළත් කිරීමට “හඳුනාගත් ආරක්ෂිත ස්ථාන ඇත/නැත” යන්න ඔව් ලෙස සකසන්න."
+            />
+          </p>
+        )}
       </div>
 
       <div className="border-t border-border pt-6">
@@ -390,6 +376,155 @@ function WaterSourcesTable({ lang, title }: { lang: "en" | "si"; title: Paramete
                 >
                   <Trash2 className="size-4" />
                 </Button>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      <AlertDialog open={pendingDeleteIndex !== null} onOpenChange={(open) => !open && setPendingDeleteIndex(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              <Bilingual {...dictionary.deleteConfirm} />
+            </AlertDialogTitle>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>
+              <Bilingual {...dictionary.cancel} />
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (pendingDeleteIndex !== null) remove(pendingDeleteIndex);
+                setPendingDeleteIndex(null);
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              <Bilingual {...dictionary.delete} />
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+}
+
+type HazardRow = {
+  type: (typeof HAZARD_TYPES)[number];
+  typeLabel: string;
+  occurred: "yes" | "no";
+  frequency?: string;
+  mitigationProposal?: string;
+};
+
+/** Environmental problems are a fixed 10-category checklist, but the same problem can occur more
+ *  than once with a different time period and remedy (e.g. a monsoon flood and a separate flash
+ *  flood) — same per-category insert/anchor pattern as WaterSourcesTable above. The "Occurred?"
+ *  select lives only on each category's anchor row (extras are only ever created once that's
+ *  already "yes", so they don't need their own copy of the question), and the time-period /
+ *  remedial-measure inputs plus "+" only appear while occurred is "yes". */
+function HazardsTable({ lang, title }: { lang: "en" | "si"; title: Parameters<typeof RepeatableTable>[0]["title"] }) {
+  const { control, register, watch, setValue, formState } = useFormContext<PhysicalEnvironmentDraft>();
+  const { fields, insert, remove } = useFieldArray({ control, name: "hazards" });
+  const [pendingDeleteIndex, setPendingDeleteIndex] = useState<number | null>(null);
+
+  const seenTypes = new Set<string>();
+  const isAnchor = fields.map((field) => {
+    const row = field as FieldArrayWithId<PhysicalEnvironmentDraft, "hazards"> & HazardRow;
+    const first = !seenTypes.has(row.type);
+    seenTypes.add(row.type);
+    return first;
+  });
+
+  function addAnother(index: number) {
+    const row = fields[index] as FieldArrayWithId<PhysicalEnvironmentDraft, "hazards"> & HazardRow;
+    insert(index + 1, { type: row.type, typeLabel: row.typeLabel, occurred: "yes", frequency: "", mitigationProposal: "" } as never);
+  }
+
+  function requestRemove(index: number) {
+    const row = fields[index] as FieldArrayWithId<PhysicalEnvironmentDraft, "hazards"> & HazardRow;
+    if (row.frequency || row.mitigationProposal) setPendingDeleteIndex(index);
+    else remove(index);
+  }
+
+  return (
+    <div className="flex flex-col gap-3">
+      {title && (
+        <h2 lang={lang} className={cn("text-fluid-lg font-semibold text-foreground", lang === "si" && "font-si-heading")}>
+          {lang === "si" ? title.si : title.en}
+        </h2>
+      )}
+      <div className="flex flex-col gap-3 rounded-lg border border-border p-3">
+        {fields.map((field, index) => {
+          const row = field as FieldArrayWithId<PhysicalEnvironmentDraft, "hazards"> & HazardRow;
+          const occurred = watch(`hazards.${index}.occurred`) ?? "no";
+          const showDetails = isAnchor[index] ? occurred === "yes" : true;
+          const frequencyError = getErrorAtPath(formState.errors as Record<string, unknown>, `hazards.${index}.frequency`);
+          const mitigationError = getErrorAtPath(formState.errors as Record<string, unknown>, `hazards.${index}.mitigationProposal`);
+          return (
+            <div key={field.id} className="flex flex-col gap-2 border-b border-border/50 pb-3 last:border-b-0 last:pb-0">
+              <div className="flex flex-wrap items-center gap-3">
+                <span lang={lang} className={cn("w-56 shrink-0 text-fluid-sm font-medium text-foreground", lang === "si" && "font-si")}>
+                  {isAnchor[index] ? row.typeLabel : ""}
+                </span>
+                {isAnchor[index] ? (
+                  <Select
+                    value={occurred}
+                    onValueChange={(v) => setValue(`hazards.${index}.occurred`, v as "yes" | "no", { shouldDirty: true })}
+                  >
+                    <SelectTrigger className="w-32 shrink-0" aria-label={`${row.typeLabel} — ${lang === "si" ? "ඇත/නැත" : "Occurred?"}`}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {YES_NO_OPTIONS.map((o) => (
+                        <SelectItem key={o.value} value={o.value}>
+                          {lang === "si" ? o.label.si : o.label.en}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="touch-target shrink-0 text-destructive hover:text-destructive"
+                    onClick={() => requestRemove(index)}
+                    aria-label={dictionary.delete[lang]}
+                  >
+                    <Trash2 className="size-4" />
+                  </Button>
+                )}
+              </div>
+              {showDetails && (
+                <div className="flex flex-wrap items-start gap-3 pl-0 sm:pl-62">
+                  <div className="flex min-w-48 flex-1 flex-col gap-1">
+                    <span lang={lang} className={cn("text-fluid-xs text-muted-foreground", lang === "si" && "font-si")}>
+                      <Bilingual en="If Yes, the Common Time Period" si="ඇත්නම් බහුලව සිදුවන කාල සීමාව" />
+                    </span>
+                    <Input aria-invalid={!!frequencyError} {...register(`hazards.${index}.frequency`)} />
+                    {frequencyError?.message && <p className="text-fluid-xs text-destructive">{String(frequencyError.message)}</p>}
+                  </div>
+                  <div className="flex min-w-48 flex-1 flex-col gap-1">
+                    <span lang={lang} className={cn("text-fluid-xs text-muted-foreground", lang === "si" && "font-si")}>
+                      <Bilingual en="Proposed Remedial Measures for the Problem" si="ගැටළුව සඳහා ගතයුතු පිළියම් යෝජනා" />
+                    </span>
+                    <Input aria-invalid={!!mitigationError} {...register(`hazards.${index}.mitigationProposal`)} />
+                    {mitigationError?.message && <p className="text-fluid-xs text-destructive">{String(mitigationError.message)}</p>}
+                  </div>
+                  {isAnchor[index] && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="touch-target mt-5 shrink-0"
+                      onClick={() => addAnother(index)}
+                      aria-label={dictionary.add[lang]}
+                    >
+                      <Plus className="size-4" />
+                    </Button>
+                  )}
+                </div>
               )}
             </div>
           );

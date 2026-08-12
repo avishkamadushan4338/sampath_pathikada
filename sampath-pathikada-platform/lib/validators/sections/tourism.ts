@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { requiredCount } from "@/lib/validators/common";
 
 /* ── §13 සංචාරක — Tourism (commercial accommodation) ─────────────────────── */
 /* Distinct from §2's attraction sites; this section covers hotels/guest houses only. */
@@ -9,8 +10,8 @@ const HOTEL_CATEGORIES = ["star-graded", "non-star-graded", "guest-houses", "vil
 
 export const hotelInventoryRowSchema = z.object({
   category: z.enum(HOTEL_CATEGORIES),
-  hotelCount: z.coerce.number().int().min(0).default(0),
-  roomCount: z.coerce.number().int().min(0).default(0),
+  hotelCount: requiredCount("Number of hotels is required"),
+  roomCount: requiredCount("Number of rooms is required"),
 });
 
 export const guestAccommodationRowSchema = z.object({
@@ -34,11 +35,11 @@ export const tourismSchemaStrict = z.object({
 
 export type TourismData = z.infer<typeof tourismSchemaStrict>;
 
-/* Draft-mode reuses the strict row schemas directly — a row's required fields (e.g. `name`)
- * still fail validation if blank, surfacing a "required" error in the UI, but that no longer
- * blocks saving: SectionForm always saves the draft regardless of validation outcome, it just
- * shows the errors alongside. Only the *array itself* is optional here, so an empty/untouched
- * table (no rows added yet) is still a valid draft. */
+/* Draft-mode reuses the strict row schemas directly — a row's required fields (e.g. `name`,
+ * `hotelCount`, `roomCount`) still fail validation if blank, surfacing a "required" error in the
+ * UI. Required fields DO block saving — SectionForm only calls onSaveDraft once validation
+ * passes. Only the *array itself* is optional here, so an empty/untouched table (no rows added
+ * yet) is still a valid draft. */
 export const tourismSchemaPartial = z.object({
   hotelInventory: z.array(hotelInventoryRowSchema).optional(),
   guestAccommodations: z.array(guestAccommodationRowSchema).optional(),

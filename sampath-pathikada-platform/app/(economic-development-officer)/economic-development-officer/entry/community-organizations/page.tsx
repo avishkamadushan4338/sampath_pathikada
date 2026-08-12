@@ -106,7 +106,7 @@ export default function CommunityOrganizationsPage() {
 
   const organizationCountColumns: RepeatableColumn[] = [
     { key: "typeLabel", label: { en: "Type", si: "වර්ගය" }, type: "readonly" },
-    { key: "count", label: { en: "Society Count", si: "සමිති සංඛ්‍යාව" }, type: "number" },
+    { key: "count", label: { en: "Society Count", si: "සමිති සංඛ්‍යාව" }, type: "number", required: true },
   ];
 
   const nameColumns = (nameLabel: { en: string; si: string }): RepeatableColumn[] => [
