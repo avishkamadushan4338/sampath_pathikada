@@ -241,7 +241,7 @@ export function DivisionGraphs({ data }: DivisionGraphsProps) {
       </SectionGroup>
 
       {/* ── Employment ── */}
-      <SectionGroup icon={Briefcase} titleEn="Employment Aspiration" titleSi="රැකියා අපේක්ෂාව" empty={!hasEmployment}>
+      <SectionGroup icon={Briefcase} titleEn="Employment Aspiration" titleSi="සේවා නියුක්තිය" empty={!hasEmployment}>
         <Card className="lg:col-span-2">
           <CardContent className="pt-6">
             <StatGrid
