@@ -32,7 +32,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: `${BASE}/dashboard`, label: { en: "Dashboard", si: "පාලක පුවරුව" }, icon: LayoutDashboard },
   { href: `${BASE}/review`, label: { en: "Review Queue", si: "සමාලෝචන පෝලිම" }, icon: ClipboardList, showPendingBadge: true },
   { href: `${BASE}/summary`, label: { en: "Summary", si: "සාරාංශය" }, icon: BarChart3 },
-  { href: `${BASE}/graphs`, label: { en: "My Division Information", si: "මාගේ වසම් තොරතුරු" }, icon: LineChart },
+  { href: `${BASE}/graphs`, label: { en: "My Division Information", si: "මගේ කොට්ඨාශයේ තොරතුරු" }, icon: LineChart },
 ];
 
 export function DsSidebar() {

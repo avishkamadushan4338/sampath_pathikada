@@ -611,7 +611,7 @@ export default function Page({ params }: { params: Promise<{ section: string }> 
     : isDemographics
     ? { en: "Division Demographics Overview", si: "ජනගහන සාරාංශය" }
     : isEmployment
-    ? { en: "Employment Aspiration", si: "රැකියා අපේක්ෂාව" }
+    ? { en: "Employment Aspiration", si: "සේවා නියුක්තිය" }
     : isStateInstitutionsLand
     ? { en: "State Institutions & Land", si: "රාජ්‍ය ආයතන හා ඉඩම්" }
     : isPhysicalEnvironment

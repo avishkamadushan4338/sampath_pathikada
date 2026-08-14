@@ -2,7 +2,7 @@ import type { SectionDictionary } from "@/lib/i18n/types";
 import type { EmploymentData } from "@/lib/validators/sections/employment";
 
 export const employmentDict: SectionDictionary<keyof EmploymentData & string> = {
-  title: { en: "Employment Aspiration", si: "රැකියා අපේක්ෂාව" },
+  title: { en: "Employment Aspiration", si: "සේවා නියුක්තිය" },
   description: {
     en: "Job seekers by education level, self-employment sectors, and self-employed persons in the GN division.",
     si: "අධ්‍යාපන මට්ටම අනුව රැකියා අපේක්ෂකයන්, ස්වයං රැකියා ක්ෂේත්‍ර සහ ස්වයං රැකියාවල නියුතු පුද්ගලයන්.",
