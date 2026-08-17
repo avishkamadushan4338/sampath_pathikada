@@ -86,7 +86,7 @@ const UNDERSERVED_AREA_COLUMNS: ReadOnlyColumn[] = [
 
 const COMMUNITY_WATER_PROJECT_COLUMNS: ReadOnlyColumn[] = [
   { key: "name", label: { en: "Name of the Water Project", si: "ජල ව්‍යාපෘතියේ නම" } },
-  { key: "functional", label: { en: "Is It Operational?", si: "ක්‍රියාත්මක තත්ත්වයේ ඇත්/නැත" } },
+  { key: "functional", label: { en: "Is It Operational?", si: "ක්‍රියාත්මක තත්ත්වයේ ඇත/නැත" } },
   { key: "householdsServed", label: { en: "Number of Families Benefiting", si: "පහසුකම් ලබාගන්නා පවුල් සංඛ්‍යාව" } },
   { key: "authority", label: { en: "* Ownership", si: "*අයිතිය" } },
 ];

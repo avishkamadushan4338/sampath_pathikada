@@ -24,9 +24,9 @@ export const stateInstitutionsLandDict: SectionDictionary<keyof StateInstitution
     },
     developmentProjects: {
       en: "Stalled Development Projects in the GN Division (Government-Owned Constructions)",
-      si: "ග්‍රාම නිලධාරී වසම තුළ පිහිටි අතරමං නවතා දමා ඇති ව්‍යාපෘති (රජයට අයත් ඉදිකිරීම්)",
+      si: "ග්‍රාම නිලධාරී වසම තුළ පිහිටි අතරමඟ නවතා දමා ඇති ව්‍යාපෘති (රජයට අයත් ඉදිකිරීම්)",
       helpEn: "* Projects for which work was started under various development programmes but has since been halted midway.",
-      helpSi: "*විවිධ සංවර්ධන වැඩසටහන් යටතේ වැඩ ආරම්භ කර අතරමං නවතාදමා ඇති ව්‍යාපෘති.",
+      helpSi: "*විවිධ සංවර්ධන වැඩසටහන් යටතේ වැඩ ආරම්භ කර අතරමඟ නවතාදමා ඇති ව්‍යාපෘති.",
     },
   },
   rows: {
@@ -35,7 +35,7 @@ export const stateInstitutionsLandDict: SectionDictionary<keyof StateInstitution
     buildingName: { en: "Name of the Abandoned Building", si: "අත්හැර දමන ලද ගොඩනැගිල්ලේ නම" },
     purposeUsed: { en: "Purpose Used For", si: "යොදා ගත් කාර්යය" },
     usable: { en: "Usable Condition", si: "භාවිතයට ගත හැකි මට්ටමක පවතිනවාද" },
-    projectName: { en: "Name of the Stalled Project(s)", si: "අතරමං නවතාදමා ඇති ව්‍යාපෘතියේ/වල නම" },
+    projectName: { en: "Name of the Stalled Project(s)", si: "අතරමඟ නවතාදමා ඇති ව්‍යාපෘතියේ/වල නම" },
     reasonForHalt: { en: "Reason for Halting", si: "නවතාදැමීමට හේතුව" },
     currentStatus: { en: "Current Status", si: "වර්තමාන තත්වය" },
     // Compound overrides — same generic key means something different in each array.

@@ -18,7 +18,7 @@ export const religiousCulturalDict: SectionDictionary<keyof ReligiousCulturalDat
       helpEn:
         "The sacred sites in the area include ancient viharas, royal viharas, archaeological sites, historical sites, churches, and kovils. Note the reason if any of these hold special significance. * When noting the type: (1. Temple / Vihara) (2. Forest Hermitage) (3. Asapuwa) (4. Meditation Center) (5. Nun's Hermitage) (6. Mosque — Islamic Mosque) (7. Catholic Church) (8. Kovil) (9. Devalaya)",
       helpSi:
-        "ප්‍රදේශයේ ඇති පූජනීය ස්ථාන වන පුරාණ විහාර, රජමහා විහාර, පුරාවිද්‍යාත්මක ස්ථාන, ඓතිහාසික ස්ථාන, පල්ලි, කෝවිල් නම් සහ සුවිශේෂී වැදගත්කමක් පවතිනම් එවා සුවිශේෂී වීමට හේතුව සටහන් කරන්න. *වර්ගය සටහන් කිරීමේදී දැනුවත් වන්න-( 1-පන්සල්/විහාරස්ථාන) ( 2- ආරණ්‍ය සේනාසන) (3 අසපුව) (4-භාවනා මධ්‍යස්ථාන) (5- මෙහෙනි ආරාම ) (6පල්ලි- ඉස්ලාම් පල්ලි) (7-කතෝලික පල්ලි) (8-කෝවිල්) (9- දේවාල)",
+        "ප්‍රදේශයේ ඇති පූජනීය ස්ථාන වන පුරාණ විහාර, රජමහා විහාර, පුරාවිද්‍යාත්මක ස්ථාන, ඓතිහාසික ස්ථාන, පල්ලි, කෝවිල් නම් සහ සුවිශේෂී වැදගත්කමක් පවතීනම් එවා සුවිශේෂී වීමට හේතුවද සටහන් කරන්න. *වර්ගය සටහන් කිරීමේදී දැනුවත් වන්න-( 1-පන්සල්/විහාරස්ථාන) ( 2- ආරණ්‍ය සේනාසන) (3 අසපුව) (4-භාවනා මධ්‍යස්ථාන) (5- මෙහෙනි ආරාම ) (6පල්ලි- ඉස්ලාම් පල්ලි) (7-කතෝලික පල්ලි) (8-කෝවිල්) (9- දේවාල)",
     },
     artAcademies: {
       en: "Details of Art Institutions",
@@ -28,7 +28,7 @@ export const religiousCulturalDict: SectionDictionary<keyof ReligiousCulturalDat
       en: "Main Cultural Aspects Present in the Area — Artists Produced / Art Lineages",
       si: "ප්‍රදේශයෙන් පවතින ප්‍රධාන සංස්කෘතිකාංග - බිහිවූ කලාකරුවන්/කලා පරම්පරාවල්",
       helpEn: "* e.g. writers, poets, lyricists, bali thovil, puppet dance, painting artists, drumming artists, and other various cultural aspects.",
-      helpSi: "* ලේඛකයන්, කවියන්, ගීතඥයන්, බලි තොවිල්, රුකඩ නැටුම්, විත්‍ර ශිල්පීන්, බෙර වාදන ශිල්පීන් ආදී විවිධ සංස්කෘතිකාංග",
+      helpSi: "* ලේඛකයන්, කවියන්, වියතුන්, බලි තොවිල්, රුකඩ නැටුම්, විත්‍ර ශිල්පීන්, බෙර වාදන ශිල්පීන් ආදී විවිධ සංස්කෘතිකාංග",
     },
   },
   rows: {

@@ -170,7 +170,7 @@ export default function HealthPage() {
           </FieldWrapper>
           <FieldWrapper
             name="institutionCounts.specialistServiceCenters"
-            label={{ en: "Number of Institutions Providing Specialist Medical Services (Wellness Center)", si: "විශේෂඥ වෛද්‍ය සේවා ලබාගතහැකි ආයතන සංඛ්‍යාව (වැනලින් සෙන්ටර්)" }}
+            label={{ en: "Number of Institutions Providing Specialist Medical Services (Wellness Center)", si: "විශේෂඥ වෛද්‍ය සේවා ලබාගතහැකි ආයතන සංඛ්‍යාව (චැනලින් සෙන්ටර්)" }}
           >
             {({ id, describedBy, invalid }) => (
               <Input id={id} type="number" aria-describedby={describedBy} aria-invalid={invalid} {...form.register("institutionCounts.specialistServiceCenters")} />

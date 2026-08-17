@@ -330,7 +330,7 @@ export function ReligiousCulturalSectionView({
           <p className="text-fluid-xs text-muted-foreground">
             <Bilingual
               en="* e.g. writers, poets, lyricists, bali thovil, puppet dance, painting artists, drumming artists, and other various cultural aspects."
-              si="* ලේඛකයන්, කවියන්, ගීතඥයන්, බලි තොවිල්, රුකඩ නැටුම්, විත්‍ර ශිල්පීන්, බෙර වාදන ශිල්පීන් ආදී විවිධ සංස්කෘතිකාංග"
+              si="* ලේඛකයන්, කවියන්, වියතුන්, බලි තොවිල්, රුකඩ නැටුම්, විත්‍ර ශිල්පීන්, බෙර වාදන ශිල්පීන් ආදී විවිධ සංස්කෘතිකාංග"
             />
           </p>
         </>

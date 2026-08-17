@@ -71,7 +71,7 @@ export default function StateInstitutionsLandPage() {
   ];
 
   const developmentProjectColumns: RepeatableColumn[] = [
-    { key: "projectName", label: { en: "Name of the Stalled Project(s)", si: "අතරමං නවතාදමා ඇති ව්‍යාපෘතියේ/වල නම" }, type: "text", required: true },
+    { key: "projectName", label: { en: "Name of the Stalled Project(s)", si: "අතරමඟ නවතාදමා ඇති ව්‍යාපෘතියේ/වල නම" }, type: "text", required: true },
     { key: "owningInstitution", label: { en: "Owning Institution", si: "ව්‍යාපෘතිය අයත් ආයතනය" }, type: "text", required: true },
     { key: "reasonForHalt", label: { en: "Reason for Halting", si: "නවතාදැමීමට හේතුව" }, type: "text", required: true },
     { key: "currentStatus", label: { en: "Current Status", si: "වර්තමාන තත්වය" }, type: "text", required: true },

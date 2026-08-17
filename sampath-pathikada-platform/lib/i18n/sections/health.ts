@@ -32,7 +32,7 @@ export const healthDict: SectionDictionary<keyof HealthData & string> = {
     },
     specialistServiceCentersDirectory: {
       en: "Institutions Providing Specialist Medical Services (Wellness Centers)",
-      si: "විශේෂඥ වෛද්‍ය සේවා ලබාගතහැකි ආයතන සංඛ්‍යාව (වැනලින් සෙන්ටර්)",
+      si: "විශේෂඥ වෛද්‍ය සේවා ලබාගතහැකි ආයතන සංඛ්‍යාව (චැනලින් සෙන්ටර්)",
     },
     mohOfficesDirectory: {
       en: "MOH Offices / Village Health Centers",
@@ -74,7 +74,7 @@ export const healthDict: SectionDictionary<keyof HealthData & string> = {
     },
     specialistServiceCenters: {
       en: "Number of Institutions Providing Specialist Medical Services (Wellness Center)",
-      si: "විශේෂඥ වෛද්‍ය සේවා ලබාගතහැකි ආයතන සංඛ්‍යාව (වැනලින් සෙන්ටර්)",
+      si: "විශේෂඥ වෛද්‍ය සේවා ලබාගතහැකි ආයතන සංඛ්‍යාව (චැනලින් සෙන්ටර්)",
     },
     mohOfficesOrCommunityHealthCenters: {
       en: "MOH Offices / Village Health Centers",

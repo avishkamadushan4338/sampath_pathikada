@@ -68,7 +68,7 @@ const communityWaterProjectColumns: RepeatableColumn[] = [
   { key: "name", label: { en: "Name of the Water Project", si: "ජල ව්‍යාපෘතියේ නම" }, type: "text", required: true },
   {
     key: "functional",
-    label: { en: "Is It Operational? (Yes/No)", si: "ක්‍රියාත්මක තත්ත්වයේ ඇත්/නැත" },
+    label: { en: "Is It Operational? (Yes/No)", si: "ක්‍රියාත්මක තත්ත්වයේ ඇත/නැත" },
     type: "select",
     options: YES_NO_OPTIONS,
     required: true,

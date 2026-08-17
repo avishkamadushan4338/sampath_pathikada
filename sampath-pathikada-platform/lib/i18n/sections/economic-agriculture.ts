@@ -25,7 +25,7 @@ export const economicAgricultureDict: SectionDictionary<keyof EconomicAgricultur
       helpEn:
         "* e.g. clay industry, cane industry, dairy production, jewelry production, mask production, brass industry, beeralu (lace) industry, lac industry, granite industry....",
       helpSi:
-        "*(උදා:- මැටි කර්මාන්තය, වේවැල් කර්මාන්තය, කිරි නිෂ්පාදනය, රන්හාණ්ඩ නිෂ්පාදනය, වෙස්මුහුණු නිෂ්පාදනය, පිත්තල කර්මාන්තය, බීරල කර්මාන්තය, ලාක්ෂා කර්මාන්තය ,කලුගල් කර්මාන්තය....)",
+        "*(උදා:- මැටි කර්මාන්තය, වේවැල් කර්මාන්තය, කිරි නිෂ්පාදනය, රන්හාණ්ඩ නිෂ්පාදනය, වෙස්මුහුණු නිෂ්පාදනය, පිත්තල කර්මාන්තය, බීරලු කර්මාන්තය, ලාක්ෂා කර්මාන්තය ,කලුගල් කර්මාන්තය....)",
     },
     abandonedPaddyLand: {
       en: "Abandoned Paddy Land Extent (Paddy Not Cultivated in the Last 5 Years) and Possible Action for This",
@@ -53,7 +53,7 @@ export const economicAgricultureDict: SectionDictionary<keyof EconomicAgricultur
       si: "වසම තුළ පිහිටි මිරිදිය ධීවර කර්මාන්තය සිදු කරන වැව්/ජලාශ",
       helpEn:
         "* If water is present throughout the year mark it as Perennial, and if water is present for only a few months of the year mark it as Seasonal.",
-      helpSi: "*වසර පුරාම ජලය තිබේ නම් නිතය වගයෙන් ද වසරෙන් මාස කිහිපයක් පමණක් ජලය තිබේ නම් කාලීන වගයෙන් ද සඳහන් කරන්න.",
+      helpSi: "*වසර පුරාම ජලය තිබේ නම් නිත්‍ය වශයෙන් ද වසරෙන් මාස කිහිපයක් පමණක් ජලය තිබේ නම් කාලීන වශයෙන් ද සඳහන් කරන්න.",
     },
     aquacultureDirectory: { en: "Aquaculture", si: "ජල ජීවී වගාව" },
     ornamentalFishDirectory: { en: "Ornamental Fish Farming", si: "විසිතුරු මත්ස්‍ය වගාව" },
@@ -90,7 +90,7 @@ export const economicAgricultureDict: SectionDictionary<keyof EconomicAgricultur
     reason: { en: "Reason for Being Abandoned", si: "පුරන් වීමට හේතු" },
     actionPlan: {
       en: "Alternative Action to Take for Recultivation, or If Not Recultivating",
-      si: "නැවත වගාව සඳහා හෝ නැතිනම් එසේ නොමැතිනම් ගතයුතු විකල්ප ක්‍රියා මාර්ග",
+      si: "නැවත වගාව සඳහා හෝ නැතිනම් එසේ නොමැතිනම් ගතයුතු විකල්ප ක්‍රියාමාර්ග",
     },
     name: { en: "Name", si: "නම" },
     address: { en: "Address", si: "ලිපිනය" },
@@ -141,7 +141,7 @@ export const economicAgricultureDict: SectionDictionary<keyof EconomicAgricultur
     "inlandFisheriesSocieties.address": { en: "Fisheries Society Address", si: "ධීවර සමිතියේ ලිපිනය" },
     "inlandWaterBodies.name": {
       en: "Name of Tank / Reservoir (Perennial / Seasonal)",
-      si: "වැව්/ජලාශ නම (නිතය/කාලීන)",
+      si: "වැව්/ජලාශ නම (නිත්‍ය/කාලීන)",
     },
     "inlandWaterBodies.type": { en: "Type", si: "වර්ගය" },
     "fishLandingSites.name": { en: "Fish Harbor / Fish Landing Site Name", si: "ධීවර වරාය/ධීවර තොටුපොළ නම" },

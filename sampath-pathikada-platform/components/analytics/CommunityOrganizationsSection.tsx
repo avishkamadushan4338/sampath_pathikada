@@ -365,9 +365,9 @@ export function CommunityOrganizationsSection({
         <CommunityOrganizationDirectoryTable titleEn="Sports Societies" titleSi="ක්‍රීඩා සමාජ" nameHeaderEn="Sports Society Name & Address" nameHeaderSi="ක්‍රීඩා සමාජවල නම හා ලිපිනය" rows={sportsClubRows} tableRef={sportsClubsTableRef} isLoading={!analytics} error={analyticsError} showAddress={false} showMembersAndNeeds />
       )}
 
-      <TopicCard titleEn="Funeral & Welfare Societies" titleSi="අවමංගලාය හා සුභසාධක සමිති" onClick={() => setShowFuneralAidSocieties((v) => !v)} buttonLabel={{ en: showFuneralAidSocieties ? "Hide" : "View", si: showFuneralAidSocieties ? "සඟවන්න" : "බලන්න" }} />
+      <TopicCard titleEn="Funeral & Welfare Societies" titleSi="අවමංගල්‍යය හා සුභසාධක සමිති" onClick={() => setShowFuneralAidSocieties((v) => !v)} buttonLabel={{ en: showFuneralAidSocieties ? "Hide" : "View", si: showFuneralAidSocieties ? "සඟවන්න" : "බලන්න" }} />
       {showFuneralAidSocieties && (
-        <CommunityOrganizationDirectoryTable titleEn="Funeral & Welfare Societies" titleSi="අවමංගලාය හා සුභසාධක සමිති" nameHeaderEn="Funeral & Welfare Society Names" nameHeaderSi="අවමංගලාය හා සුභසාධක සමිතිවල නම" rows={funeralAidSocietyRows} tableRef={funeralAidSocietiesTableRef} isLoading={!analytics} error={analyticsError} />
+        <CommunityOrganizationDirectoryTable titleEn="Funeral & Welfare Societies" titleSi="අවමංගල්‍යය හා සුභසාධක සමිති" nameHeaderEn="Funeral & Welfare Society Names" nameHeaderSi="අවමංගල්‍යය හා සුභසාධක සමිතිවල නම" rows={funeralAidSocietyRows} tableRef={funeralAidSocietiesTableRef} isLoading={!analytics} error={analyticsError} />
       )}
 
       <TopicCard titleEn="Women's Societies" titleSi="කාන්තා සමිති" onClick={() => setShowWomensSocieties((v) => !v)} buttonLabel={{ en: showWomensSocieties ? "Hide" : "View", si: showWomensSocieties ? "සඟවන්න" : "බලන්න" }} />

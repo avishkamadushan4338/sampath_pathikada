@@ -69,7 +69,7 @@ const LAND_USE_LABELS: Record<(typeof LAND_USE_TYPES)[number], { en: string; si:
   },
   "ornamental-nurseries": {
     en: "Commercial Flower Nurseries / Ornamental Plant Nurseries / Other Plant Nurseries",
-    si: "වාණිජ මල් තවාන් / විසිතුරු පැල තවාන් / වෙනත් පැල තවාන්",
+    si: "ව්‍යාපාරික මල් තවාන් / විසිතුරු පැල තවාන් / වෙනත් පැල තවාන්",
   },
   "plantation-crop-nurseries": {
     en: "Plantation Crop Nurseries (Cinnamon / Tea / Pepper)",
@@ -105,9 +105,9 @@ const AGRI_MACHINERY_LABELS: Record<(typeof AGRI_MACHINERY_TYPES)[number], { en:
   "power-sprayer": { en: "Power Sprayer", si: "බලවේග දියර ඉසින යන්ත්‍ර" },
   "hand-sprayer": { en: "Hand Sprayer", si: "අත් ඉසින යන්ත්‍ර" },
   weeder: { en: "Weeder", si: "වල් නෙළුම් කර" },
-  "food-drying-machine": { en: "Food Drying Machine", si: "ආහාර විජ්ජලන යන්ත්‍ර" },
+  "food-drying-machine": { en: "Food Drying Machine", si: "ආහාර විජලන යන්ත්‍ර" },
   "floor-flower-media-filling-machine": { en: "Floor Flower Media Filling Machine", si: "බිම් මල් මාධ්‍ය පිරවුම් යන්ත්‍ර" },
-  "floor-flower-media-boiling-machine": { en: "Floor Flower Media Boiling Machine", si: "බිම් මල් මාධ්‍ය මල් තම්බන යන්ත්‍ර" },
+  "floor-flower-media-boiling-machine": { en: "Floor Flower Media Boiling Machine", si: "බිම් මල් මාධ්‍ය මලු තම්බන යන්ත්‍ර" },
   "seedling-planting-machine": { en: "Seedling Planting Machine", si: "පැළ සිටුවන යන්ත්‍ර" },
   "paddy-reaping-machine": { en: "Paddy Reaping Machine", si: "වී වෙළන යන්ත්‍ර" },
   "oil-mill": { en: "Oil Mill", si: "තෙල් මෝල්" },
@@ -143,7 +143,7 @@ const WATER_TYPE_LABELS: Record<(typeof WATER_TYPES)[number], { en: string; si: 
 };
 
 const INLAND_WATER_BODY_TYPE_LABELS: Record<(typeof INLAND_WATER_BODY_TYPES)[number], { en: string; si: string }> = {
-  perennial: { en: "Perennial", si: "නිතය" },
+  perennial: { en: "Perennial", si: "නිත්‍ය" },
   seasonal: { en: "Seasonal", si: "කාලීන" },
 };
 
@@ -319,7 +319,7 @@ export default function EconomicAgriculturePage() {
   const inlandWaterBodyColumns: RepeatableColumn[] = [
     {
       key: "name",
-      label: { en: "Name of Tank / Reservoir (Perennial / Seasonal)", si: "වැව්/ජලාශ නම (නිතය/කාලීන)" },
+      label: { en: "Name of Tank / Reservoir (Perennial / Seasonal)", si: "වැව්/ජලාශ නම (නිත්‍ය/කාලීන)" },
       type: "text",
       required: true,
     },
@@ -469,7 +469,7 @@ export default function EconomicAgriculturePage() {
             name="abandonedPaddyLand.actionPlan"
             label={{
               en: "Alternative Action to Take for Recultivation, or If Not Recultivating",
-              si: "නැවත වගාව සඳහා හෝ නැතිනම් එසේ නොමැතිනම් ගතයුතු විකල්ප ක්‍රියා මාර්ග",
+              si: "නැවත වගාව සඳහා හෝ නැතිනම් එසේ නොමැතිනම් ගතයුතු විකල්ප ක්‍රියාමාර්ග",
             }}
             className="sm:col-span-2"
           >
