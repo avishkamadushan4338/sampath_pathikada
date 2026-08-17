@@ -1,10 +1,11 @@
 "use client";
 
 import * as React from "react";
-import { ArrowUp, Eye, Globe2, Home, MapPin, UserCheck, Users } from "lucide-react";
+import { ArrowUp, Eye, Globe2, Home, MapPin, Table2, BarChart3, UserCheck, Users } from "lucide-react";
 import { Bilingual } from "@/components/Bilingual";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ColumnCard, DonutCard, GOLD, MAROON, NAVY } from "@/components/charts/chart-primitives";
 
 type DemographicsSectionAnalytics = {
   demographics: {
@@ -158,6 +159,37 @@ function LoadOrError({ error, errorText }: { error: unknown; errorText: { en: st
   );
 }
 
+type ViewMode = "table" | "graph";
+
+/** Compact table/graph switch scoped to a single card's content — same visual language as the
+ *  Housing section's toggle, sized down to fit inside a card body instead of sitting above it. */
+function ViewModeToggle({ value, onChange }: { value: ViewMode; onChange: (mode: ViewMode) => void }) {
+  return (
+    <div className="inline-flex w-fit items-center gap-1 rounded-lg border border-border bg-muted/40 p-1">
+      <Button
+        type="button"
+        variant={value === "table" ? "default" : "ghost"}
+        size="sm"
+        className="h-8 gap-1.5 px-3"
+        onClick={() => onChange("table")}
+      >
+        <Table2 className="size-3.5" />
+        <Bilingual en="Table" si="වගුව" />
+      </Button>
+      <Button
+        type="button"
+        variant={value === "graph" ? "default" : "ghost"}
+        size="sm"
+        className="h-8 gap-1.5 px-3"
+        onClick={() => onChange("graph")}
+      >
+        <BarChart3 className="size-3.5" />
+        <Bilingual en="Graph" si="ප්‍රස්ථාරය" />
+      </Button>
+    </div>
+  );
+}
+
 function TopicCard({
   icon: Icon,
   titleEn,
@@ -213,6 +245,13 @@ export function DivisionDemographicsSection({
   const [showRegisteredVoters, setShowRegisteredVoters] = React.useState(false);
   const [expandedReligionRows, setExpandedReligionRows] = React.useState<Record<string, boolean>>({});
 
+  const [totalPopulationView, setTotalPopulationView] = React.useState<ViewMode>("table");
+  const [religionView, setReligionView] = React.useState<ViewMode>("table");
+  const [ethnicityView, setEthnicityView] = React.useState<ViewMode>("table");
+  const [foreignView, setForeignView] = React.useState<ViewMode>("table");
+  const [householdsView, setHouseholdsView] = React.useState<ViewMode>("table");
+  const [votersView, setVotersView] = React.useState<ViewMode>("table");
+
   const gnBreakdownRef = React.useRef<HTMLDivElement | null>(null);
   const religionTableRef = React.useRef<HTMLDivElement | null>(null);
   const ethnicityTableRef = React.useRef<HTMLDivElement | null>(null);
@@ -251,32 +290,53 @@ export function DivisionDemographicsSection({
               <LoadOrError error={null} errorText={ERRORS.demographics} />
             ) : (
               <div className="grid gap-3">
-                <div className="grid grid-cols-2 gap-3 rounded-md border border-border bg-muted/50 p-4 text-sm md:grid-cols-4">
-                  <div>
-                    <p className="text-muted-foreground"><Bilingual {...T.totalPopulation} /></p>
-                    <p className="mt-1 text-fluid-lg font-semibold nums-tabular text-foreground">
-                      {analytics.demographics.totalPopulation.toLocaleString()}
-                    </p>
+                <ViewModeToggle value={totalPopulationView} onChange={setTotalPopulationView} />
+                {totalPopulationView === "table" ? (
+                  <div className="grid grid-cols-2 gap-3 rounded-md border border-border bg-muted/50 p-4 text-sm md:grid-cols-4">
+                    <div>
+                      <p className="text-muted-foreground"><Bilingual {...T.totalPopulation} /></p>
+                      <p className="mt-1 text-fluid-lg font-semibold nums-tabular text-foreground">
+                        {analytics.demographics.totalPopulation.toLocaleString()}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground"><Bilingual en="Female" si="ස්ත්‍රී" /></p>
+                      <p className="mt-1 text-fluid-lg font-semibold nums-tabular text-foreground">
+                        {analytics.demographics.female.toLocaleString()}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground"><Bilingual en="Male" si="පුරුෂ" /></p>
+                      <p className="mt-1 text-fluid-lg font-semibold nums-tabular text-foreground">
+                        {analytics.demographics.male.toLocaleString()}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground"><Bilingual en="Number of Families" si="පවුල් සංඛ්‍යාව" /></p>
+                      <p className="mt-1 text-fluid-lg font-semibold nums-tabular text-foreground">
+                        {analytics.demographics.households.total.toLocaleString()}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-muted-foreground"><Bilingual en="Female" si="ස්ත්‍රී" /></p>
-                    <p className="mt-1 text-fluid-lg font-semibold nums-tabular text-foreground">
-                      {analytics.demographics.female.toLocaleString()}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground"><Bilingual en="Male" si="පුරුෂ" /></p>
-                    <p className="mt-1 text-fluid-lg font-semibold nums-tabular text-foreground">
-                      {analytics.demographics.male.toLocaleString()}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground"><Bilingual en="Number of Families" si="පවුල් සංඛ්‍යාව" /></p>
-                    <p className="mt-1 text-fluid-lg font-semibold nums-tabular text-foreground">
-                      {analytics.demographics.households.total.toLocaleString()}
-                    </p>
-                  </div>
-                </div>
+                ) : (
+                  <DonutCard
+                    titleEn="Total Population"
+                    titleSi="මහජන සංඛ්‍යාව"
+                    totalLabel={T.totalPopulation}
+                    slices={[
+                      { label: lang === "si" ? "ස්ත්‍රී" : "Female", value: analytics.demographics.female, color: MAROON },
+                      { label: lang === "si" ? "පුරුෂ" : "Male", value: analytics.demographics.male, color: NAVY },
+                    ]}
+                    footer={
+                      <p className="mt-4 border-t border-border pt-3 text-fluid-sm text-muted-foreground">
+                        <Bilingual en="Number of families: " si="පවුල් සංඛ්‍යාව: " />
+                        <span className="font-semibold nums-tabular text-foreground">
+                          {analytics.demographics.households.total.toLocaleString()}
+                        </span>
+                      </p>
+                    }
+                  />
+                )}
               </div>
             )}
           </CardContent>
@@ -413,71 +473,94 @@ export function DivisionDemographicsSection({
             ) : !analytics ? (
               <LoadOrError error={null} errorText={ERRORS.religion} />
             ) : (
-              <div className="overflow-hidden rounded-md border border-border">
-                <div ref={religionTableRef} className="overflow-x-auto">
-                  <table className="w-full text-left text-sm">
-                    <thead className="bg-muted/40 text-muted-foreground">
-                      <tr>
-                        <th className="px-3 py-3"><Bilingual {...T.gnDivision} /></th>
-                        <th className="px-3 py-3"><Bilingual {...RELIGION_LABELS.buddhist} /></th>
-                        <th className="px-3 py-3"><Bilingual {...RELIGION_LABELS.hindu} /></th>
-                        <th className="px-3 py-3"><Bilingual {...RELIGION_LABELS.islam} /></th>
-                        <th className="px-3 py-3"><Bilingual {...RELIGION_LABELS.catholic} /></th>
-                        <th className="px-3 py-3"><Bilingual {...RELIGION_LABELS.otherChristians} /></th>
-                        <th className="px-3 py-3"><Bilingual {...RELIGION_LABELS.other} /></th>
-                        <th className="px-3 py-3"><Bilingual {...T.collection} /></th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {analytics.gnBreakdown.map((gn) => {
-                        const demo = gn.demographics;
-                        const buddhist = demo?.populationByReligion.find((row) => row.key === "buddhist")?.total ?? 0;
-                        const hindu = demo?.populationByReligion.find((row) => row.key === "hindu")?.total ?? 0;
-                        const islam = demo?.populationByReligion.find((row) => row.key === "islam")?.total ?? 0;
-                        const catholic = demo?.populationByReligion.find((row) => row.key === "catholic")?.total ?? 0;
-                        const otherChristians = demo?.populationByReligion.find((row) => row.key === "other")?.total ?? 0;
-                        const collection = buddhist + hindu + islam + catholic + otherChristians;
-                        const other = demo ? Math.max(0, demo.totalPopulation - collection) : 0;
-
-                        return (
-                          <tr key={gn.gnId} className="border-t last:border-b">
-                            <td className="px-3 py-3 font-medium">{lang === "si" ? gn.gnNameSi : gn.gnName}</td>
-                            <td className="px-3 py-3">{demo ? buddhist.toLocaleString() : "—"}</td>
-                            <td className="px-3 py-3">{demo ? hindu.toLocaleString() : "—"}</td>
-                            <td className="px-3 py-3">{demo ? islam.toLocaleString() : "—"}</td>
-                            <td className="px-3 py-3">{demo ? catholic.toLocaleString() : "—"}</td>
-                            <td className="px-3 py-3">{demo ? otherChristians.toLocaleString() : "—"}</td>
-                            <td className="px-3 py-3">{demo ? other.toLocaleString() : "—"}</td>
-                            <td className="px-3 py-3">{demo ? collection.toLocaleString() : "—"}</td>
+              <div className="grid gap-3">
+                <ViewModeToggle value={religionView} onChange={setReligionView} />
+                {religionView === "graph" ? (
+                  <ColumnCard
+                    titleEn="Population Distribution by Religion"
+                    titleSi="ආගම අනුව ජනගහනය"
+                    color={GOLD}
+                    rows={[
+                      { label: lang === "si" ? RELIGION_LABELS.buddhist.si : RELIGION_LABELS.buddhist.en, value: gnReligionTotals.buddhist },
+                      { label: lang === "si" ? RELIGION_LABELS.hindu.si : RELIGION_LABELS.hindu.en, value: gnReligionTotals.hindu },
+                      { label: lang === "si" ? RELIGION_LABELS.islam.si : RELIGION_LABELS.islam.en, value: gnReligionTotals.islam },
+                      { label: lang === "si" ? RELIGION_LABELS.catholic.si : RELIGION_LABELS.catholic.en, value: gnReligionTotals.catholic },
+                      {
+                        label: lang === "si" ? RELIGION_LABELS.otherChristians.si : RELIGION_LABELS.otherChristians.en,
+                        value: gnReligionTotals.otherChristians,
+                      },
+                      { label: lang === "si" ? RELIGION_LABELS.other.si : RELIGION_LABELS.other.en, value: gnReligionTotals.other },
+                    ]}
+                    hideZero
+                  />
+                ) : (
+                  <div className="overflow-hidden rounded-md border border-border">
+                    <div ref={religionTableRef} className="overflow-x-auto">
+                      <table className="w-full text-left text-sm">
+                        <thead className="bg-muted/40 text-muted-foreground">
+                          <tr>
+                            <th className="px-3 py-3"><Bilingual {...T.gnDivision} /></th>
+                            <th className="px-3 py-3"><Bilingual {...RELIGION_LABELS.buddhist} /></th>
+                            <th className="px-3 py-3"><Bilingual {...RELIGION_LABELS.hindu} /></th>
+                            <th className="px-3 py-3"><Bilingual {...RELIGION_LABELS.islam} /></th>
+                            <th className="px-3 py-3"><Bilingual {...RELIGION_LABELS.catholic} /></th>
+                            <th className="px-3 py-3"><Bilingual {...RELIGION_LABELS.otherChristians} /></th>
+                            <th className="px-3 py-3"><Bilingual {...RELIGION_LABELS.other} /></th>
+                            <th className="px-3 py-3"><Bilingual {...T.collection} /></th>
                           </tr>
-                        );
-                      })}
-                    </tbody>
-                    <tfoot className="bg-muted/40 text-muted-foreground">
-                      <tr className="border-t">
-                        <td className="px-3 py-3 font-semibold"><Bilingual {...T.totals} /></td>
-                        <td className="px-3 py-3 font-semibold">{gnReligionTotals.buddhist.toLocaleString()}</td>
-                        <td className="px-3 py-3 font-semibold">{gnReligionTotals.hindu.toLocaleString()}</td>
-                        <td className="px-3 py-3 font-semibold">{gnReligionTotals.islam.toLocaleString()}</td>
-                        <td className="px-3 py-3 font-semibold">{gnReligionTotals.catholic.toLocaleString()}</td>
-                        <td className="px-3 py-3 font-semibold">{gnReligionTotals.otherChristians.toLocaleString()}</td>
-                        <td className="px-3 py-3 font-semibold">{gnReligionTotals.other.toLocaleString()}</td>
-                        <td className="px-3 py-3 font-semibold">{gnReligionTotals.collection.toLocaleString()}</td>
-                      </tr>
-                    </tfoot>
-                  </table>
-                </div>
-                <div className="border-t border-border/80 bg-muted/50 px-4 py-3 text-right">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="gap-2"
-                    onClick={() => religionTableRef.current?.scrollIntoView({ behavior: "smooth" })}
-                  >
-                    <ArrowUp className="size-4" />
-                    <Bilingual en="Back to top" si="ඉහළට" />
-                  </Button>
-                </div>
+                        </thead>
+                        <tbody>
+                          {analytics.gnBreakdown.map((gn) => {
+                            const demo = gn.demographics;
+                            const buddhist = demo?.populationByReligion.find((row) => row.key === "buddhist")?.total ?? 0;
+                            const hindu = demo?.populationByReligion.find((row) => row.key === "hindu")?.total ?? 0;
+                            const islam = demo?.populationByReligion.find((row) => row.key === "islam")?.total ?? 0;
+                            const catholic = demo?.populationByReligion.find((row) => row.key === "catholic")?.total ?? 0;
+                            const otherChristians = demo?.populationByReligion.find((row) => row.key === "other")?.total ?? 0;
+                            const collection = buddhist + hindu + islam + catholic + otherChristians;
+                            const other = demo ? Math.max(0, demo.totalPopulation - collection) : 0;
+
+                            return (
+                              <tr key={gn.gnId} className="border-t last:border-b">
+                                <td className="px-3 py-3 font-medium">{lang === "si" ? gn.gnNameSi : gn.gnName}</td>
+                                <td className="px-3 py-3">{demo ? buddhist.toLocaleString() : "—"}</td>
+                                <td className="px-3 py-3">{demo ? hindu.toLocaleString() : "—"}</td>
+                                <td className="px-3 py-3">{demo ? islam.toLocaleString() : "—"}</td>
+                                <td className="px-3 py-3">{demo ? catholic.toLocaleString() : "—"}</td>
+                                <td className="px-3 py-3">{demo ? otherChristians.toLocaleString() : "—"}</td>
+                                <td className="px-3 py-3">{demo ? other.toLocaleString() : "—"}</td>
+                                <td className="px-3 py-3">{demo ? collection.toLocaleString() : "—"}</td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                        <tfoot className="bg-muted/40 text-muted-foreground">
+                          <tr className="border-t">
+                            <td className="px-3 py-3 font-semibold"><Bilingual {...T.totals} /></td>
+                            <td className="px-3 py-3 font-semibold">{gnReligionTotals.buddhist.toLocaleString()}</td>
+                            <td className="px-3 py-3 font-semibold">{gnReligionTotals.hindu.toLocaleString()}</td>
+                            <td className="px-3 py-3 font-semibold">{gnReligionTotals.islam.toLocaleString()}</td>
+                            <td className="px-3 py-3 font-semibold">{gnReligionTotals.catholic.toLocaleString()}</td>
+                            <td className="px-3 py-3 font-semibold">{gnReligionTotals.otherChristians.toLocaleString()}</td>
+                            <td className="px-3 py-3 font-semibold">{gnReligionTotals.other.toLocaleString()}</td>
+                            <td className="px-3 py-3 font-semibold">{gnReligionTotals.collection.toLocaleString()}</td>
+                          </tr>
+                        </tfoot>
+                      </table>
+                    </div>
+                    <div className="border-t border-border/80 bg-muted/50 px-4 py-3 text-right">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-2"
+                        onClick={() => religionTableRef.current?.scrollIntoView({ behavior: "smooth" })}
+                      >
+                        <ArrowUp className="size-4" />
+                        <Bilingual en="Back to top" si="ඉහළට" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </CardContent>
@@ -504,75 +587,105 @@ export function DivisionDemographicsSection({
             ) : !analytics ? (
               <LoadOrError error={null} errorText={ERRORS.ethnicity} />
             ) : (
-              <div className="overflow-hidden rounded-md border border-border">
-                <div ref={ethnicityTableRef} className="overflow-x-auto">
-                  <table className="w-full text-left text-sm">
-                    <thead className="bg-muted/40 text-muted-foreground">
-                      <tr>
-                        <th className="px-3 py-3"><Bilingual {...T.gnDivision} /></th>
-                        <th className="px-3 py-3"><Bilingual {...ETHNICITY_LABELS.sinhala} /></th>
-                        <th className="px-3 py-3"><Bilingual {...ETHNICITY_LABELS.sriLankanTamil} /></th>
-                        <th className="px-3 py-3"><Bilingual {...ETHNICITY_LABELS.indianTamil} /></th>
-                        <th className="px-3 py-3"><Bilingual {...ETHNICITY_LABELS.sriLankanYonaka} /></th>
-                        <th className="px-3 py-3"><Bilingual {...ETHNICITY_LABELS.burgher} /></th>
-                        <th className="px-3 py-3"><Bilingual {...ETHNICITY_LABELS.malay} /></th>
-                        <th className="px-3 py-3"><Bilingual {...RELIGION_LABELS.other} /></th>
-                        <th className="px-3 py-3"><Bilingual {...T.collection} /></th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {analytics.gnBreakdown.map((gn) => {
-                        const demo = gn.demographics;
-                        const sinhala = demo?.populationByEthnicity.find((row) => row.key === "sinhala")?.total ?? 0;
-                        const sriLankanTamil = demo?.populationByEthnicity.find((row) => row.key === "tamil")?.total ?? 0;
-                        const indianTamil = 0;
-                        const sriLankanYonaka = demo?.populationByEthnicity.find((row) => row.key === "muslim")?.total ?? 0;
-                        const burgher = demo?.populationByEthnicity.find((row) => row.key === "burgher")?.total ?? 0;
-                        const malay = demo?.populationByEthnicity.find((row) => row.key === "malay")?.total ?? 0;
-                        const other = demo?.populationByEthnicity.find((row) => row.key === "other")?.total ?? 0;
-                        const collection = sinhala + sriLankanTamil + indianTamil + sriLankanYonaka + burgher + malay + other;
-
-                        return (
-                          <tr key={gn.gnId} className="border-t last:border-b">
-                            <td className="px-3 py-3 font-medium">{lang === "si" ? gn.gnNameSi : gn.gnName}</td>
-                            <td className="px-3 py-3">{demo ? sinhala.toLocaleString() : "—"}</td>
-                            <td className="px-3 py-3">{demo ? sriLankanTamil.toLocaleString() : "—"}</td>
-                            <td className="px-3 py-3">{demo ? indianTamil.toLocaleString() : "—"}</td>
-                            <td className="px-3 py-3">{demo ? sriLankanYonaka.toLocaleString() : "—"}</td>
-                            <td className="px-3 py-3">{demo ? burgher.toLocaleString() : "—"}</td>
-                            <td className="px-3 py-3">{demo ? malay.toLocaleString() : "—"}</td>
-                            <td className="px-3 py-3">{demo ? other.toLocaleString() : "—"}</td>
-                            <td className="px-3 py-3">{demo ? collection.toLocaleString() : "—"}</td>
+              <div className="grid gap-3">
+                <ViewModeToggle value={ethnicityView} onChange={setEthnicityView} />
+                {ethnicityView === "graph" ? (
+                  <ColumnCard
+                    titleEn="Population Distribution by Ethnicity"
+                    titleSi="ජාතිය අනුව ජනගහනය"
+                    color={NAVY}
+                    rows={[
+                      { label: lang === "si" ? ETHNICITY_LABELS.sinhala.si : ETHNICITY_LABELS.sinhala.en, value: gnEthnicityTotals.sinhala },
+                      {
+                        label: lang === "si" ? ETHNICITY_LABELS.sriLankanTamil.si : ETHNICITY_LABELS.sriLankanTamil.en,
+                        value: gnEthnicityTotals.sriLankanTamil,
+                      },
+                      {
+                        label: lang === "si" ? ETHNICITY_LABELS.indianTamil.si : ETHNICITY_LABELS.indianTamil.en,
+                        value: gnEthnicityTotals.indianTamil,
+                      },
+                      {
+                        label: lang === "si" ? ETHNICITY_LABELS.sriLankanYonaka.si : ETHNICITY_LABELS.sriLankanYonaka.en,
+                        value: gnEthnicityTotals.sriLankanYonaka,
+                      },
+                      { label: lang === "si" ? ETHNICITY_LABELS.burgher.si : ETHNICITY_LABELS.burgher.en, value: gnEthnicityTotals.burgher },
+                      { label: lang === "si" ? ETHNICITY_LABELS.malay.si : ETHNICITY_LABELS.malay.en, value: gnEthnicityTotals.malay },
+                      { label: lang === "si" ? RELIGION_LABELS.other.si : RELIGION_LABELS.other.en, value: gnEthnicityTotals.other },
+                    ]}
+                    hideZero
+                  />
+                ) : (
+                  <div className="overflow-hidden rounded-md border border-border">
+                    <div ref={ethnicityTableRef} className="overflow-x-auto">
+                      <table className="w-full text-left text-sm">
+                        <thead className="bg-muted/40 text-muted-foreground">
+                          <tr>
+                            <th className="px-3 py-3"><Bilingual {...T.gnDivision} /></th>
+                            <th className="px-3 py-3"><Bilingual {...ETHNICITY_LABELS.sinhala} /></th>
+                            <th className="px-3 py-3"><Bilingual {...ETHNICITY_LABELS.sriLankanTamil} /></th>
+                            <th className="px-3 py-3"><Bilingual {...ETHNICITY_LABELS.indianTamil} /></th>
+                            <th className="px-3 py-3"><Bilingual {...ETHNICITY_LABELS.sriLankanYonaka} /></th>
+                            <th className="px-3 py-3"><Bilingual {...ETHNICITY_LABELS.burgher} /></th>
+                            <th className="px-3 py-3"><Bilingual {...ETHNICITY_LABELS.malay} /></th>
+                            <th className="px-3 py-3"><Bilingual {...RELIGION_LABELS.other} /></th>
+                            <th className="px-3 py-3"><Bilingual {...T.collection} /></th>
                           </tr>
-                        );
-                      })}
-                    </tbody>
-                    <tfoot className="bg-muted/40 text-muted-foreground">
-                      <tr className="border-t">
-                        <td className="px-3 py-3 font-semibold"><Bilingual {...T.totals} /></td>
-                        <td className="px-3 py-3 font-semibold">{gnEthnicityTotals.sinhala.toLocaleString()}</td>
-                        <td className="px-3 py-3 font-semibold">{gnEthnicityTotals.sriLankanTamil.toLocaleString()}</td>
-                        <td className="px-3 py-3 font-semibold">{gnEthnicityTotals.indianTamil.toLocaleString()}</td>
-                        <td className="px-3 py-3 font-semibold">{gnEthnicityTotals.sriLankanYonaka.toLocaleString()}</td>
-                        <td className="px-3 py-3 font-semibold">{gnEthnicityTotals.burgher.toLocaleString()}</td>
-                        <td className="px-3 py-3 font-semibold">{gnEthnicityTotals.malay.toLocaleString()}</td>
-                        <td className="px-3 py-3 font-semibold">{gnEthnicityTotals.other.toLocaleString()}</td>
-                        <td className="px-3 py-3 font-semibold">{gnEthnicityTotals.collection.toLocaleString()}</td>
-                      </tr>
-                    </tfoot>
-                  </table>
-                </div>
-                <div className="border-t border-border/80 bg-muted/50 px-4 py-3 text-right">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="gap-2"
-                    onClick={() => ethnicityTableRef.current?.scrollIntoView({ behavior: "smooth" })}
-                  >
-                    <ArrowUp className="size-4" />
-                    <Bilingual en="Back to top" si="ඉහළට" />
-                  </Button>
-                </div>
+                        </thead>
+                        <tbody>
+                          {analytics.gnBreakdown.map((gn) => {
+                            const demo = gn.demographics;
+                            const sinhala = demo?.populationByEthnicity.find((row) => row.key === "sinhala")?.total ?? 0;
+                            const sriLankanTamil = demo?.populationByEthnicity.find((row) => row.key === "tamil")?.total ?? 0;
+                            const indianTamil = 0;
+                            const sriLankanYonaka = demo?.populationByEthnicity.find((row) => row.key === "muslim")?.total ?? 0;
+                            const burgher = demo?.populationByEthnicity.find((row) => row.key === "burgher")?.total ?? 0;
+                            const malay = demo?.populationByEthnicity.find((row) => row.key === "malay")?.total ?? 0;
+                            const other = demo?.populationByEthnicity.find((row) => row.key === "other")?.total ?? 0;
+                            const collection = sinhala + sriLankanTamil + indianTamil + sriLankanYonaka + burgher + malay + other;
+
+                            return (
+                              <tr key={gn.gnId} className="border-t last:border-b">
+                                <td className="px-3 py-3 font-medium">{lang === "si" ? gn.gnNameSi : gn.gnName}</td>
+                                <td className="px-3 py-3">{demo ? sinhala.toLocaleString() : "—"}</td>
+                                <td className="px-3 py-3">{demo ? sriLankanTamil.toLocaleString() : "—"}</td>
+                                <td className="px-3 py-3">{demo ? indianTamil.toLocaleString() : "—"}</td>
+                                <td className="px-3 py-3">{demo ? sriLankanYonaka.toLocaleString() : "—"}</td>
+                                <td className="px-3 py-3">{demo ? burgher.toLocaleString() : "—"}</td>
+                                <td className="px-3 py-3">{demo ? malay.toLocaleString() : "—"}</td>
+                                <td className="px-3 py-3">{demo ? other.toLocaleString() : "—"}</td>
+                                <td className="px-3 py-3">{demo ? collection.toLocaleString() : "—"}</td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                        <tfoot className="bg-muted/40 text-muted-foreground">
+                          <tr className="border-t">
+                            <td className="px-3 py-3 font-semibold"><Bilingual {...T.totals} /></td>
+                            <td className="px-3 py-3 font-semibold">{gnEthnicityTotals.sinhala.toLocaleString()}</td>
+                            <td className="px-3 py-3 font-semibold">{gnEthnicityTotals.sriLankanTamil.toLocaleString()}</td>
+                            <td className="px-3 py-3 font-semibold">{gnEthnicityTotals.indianTamil.toLocaleString()}</td>
+                            <td className="px-3 py-3 font-semibold">{gnEthnicityTotals.sriLankanYonaka.toLocaleString()}</td>
+                            <td className="px-3 py-3 font-semibold">{gnEthnicityTotals.burgher.toLocaleString()}</td>
+                            <td className="px-3 py-3 font-semibold">{gnEthnicityTotals.malay.toLocaleString()}</td>
+                            <td className="px-3 py-3 font-semibold">{gnEthnicityTotals.other.toLocaleString()}</td>
+                            <td className="px-3 py-3 font-semibold">{gnEthnicityTotals.collection.toLocaleString()}</td>
+                          </tr>
+                        </tfoot>
+                      </table>
+                    </div>
+                    <div className="border-t border-border/80 bg-muted/50 px-4 py-3 text-right">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-2"
+                        onClick={() => ethnicityTableRef.current?.scrollIntoView({ behavior: "smooth" })}
+                      >
+                        <ArrowUp className="size-4" />
+                        <Bilingual en="Back to top" si="ඉහළට" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </CardContent>
@@ -599,51 +712,66 @@ export function DivisionDemographicsSection({
             ) : !analytics ? (
               <LoadOrError error={null} errorText={ERRORS.foreign} />
             ) : (
-              <div className="overflow-hidden rounded-md border border-border">
-                <div ref={foreignTableRef} className="overflow-x-auto">
-                  <table className="w-full text-left text-sm">
-                    <thead className="bg-muted/40 text-muted-foreground">
-                      <tr>
-                        <th className="px-3 py-3"><Bilingual {...T.gnDivision} /></th>
-                        <th className="px-3 py-3"><Bilingual en="Female Count" si="ගැහැණු සංඛ්‍යාව" /></th>
-                        <th className="px-3 py-3"><Bilingual en="Male Count" si="පිරිමි සංඛ්‍යාව" /></th>
-                        <th className="px-3 py-3"><Bilingual en="Total Count" si="මුළු සංඛ්‍යාව" /></th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {analytics.gnBreakdown.map((gn) => {
-                        const foreign = gn.demographics?.foreignNationals;
-                        return (
-                          <tr key={gn.gnId} className="border-t last:border-b">
-                            <td className="px-3 py-3 font-medium">{lang === "si" ? gn.gnNameSi : gn.gnName}</td>
-                            <td className="px-3 py-3">{foreign ? foreign.female.toLocaleString() : "—"}</td>
-                            <td className="px-3 py-3">{foreign ? foreign.male.toLocaleString() : "—"}</td>
-                            <td className="px-3 py-3">{foreign ? foreign.total.toLocaleString() : "—"}</td>
+              <div className="grid gap-3">
+                <ViewModeToggle value={foreignView} onChange={setForeignView} />
+                {foreignView === "graph" ? (
+                  <DonutCard
+                    titleEn="Expatriate Population"
+                    titleSi="විදේශගත ජනගහනය"
+                    totalLabel={{ en: "Total Count", si: "මුළු සංඛ්‍යාව" }}
+                    slices={[
+                      { label: lang === "si" ? "ස්ත්‍රී" : "Female", value: gnForeignNationalsTotals.female, color: MAROON },
+                      { label: lang === "si" ? "පුරුෂ" : "Male", value: gnForeignNationalsTotals.male, color: NAVY },
+                    ]}
+                  />
+                ) : (
+                  <div className="overflow-hidden rounded-md border border-border">
+                    <div ref={foreignTableRef} className="overflow-x-auto">
+                      <table className="w-full text-left text-sm">
+                        <thead className="bg-muted/40 text-muted-foreground">
+                          <tr>
+                            <th className="px-3 py-3"><Bilingual {...T.gnDivision} /></th>
+                            <th className="px-3 py-3"><Bilingual en="Female Count" si="ගැහැණු සංඛ්‍යාව" /></th>
+                            <th className="px-3 py-3"><Bilingual en="Male Count" si="පිරිමි සංඛ්‍යාව" /></th>
+                            <th className="px-3 py-3"><Bilingual en="Total Count" si="මුළු සංඛ්‍යාව" /></th>
                           </tr>
-                        );
-                      })}
-                    </tbody>
-                    <tfoot className="bg-muted/40 text-muted-foreground">
-                      <tr className="border-t">
-                        <td className="px-3 py-3 font-semibold"><Bilingual {...T.totals} /></td>
-                        <td className="px-3 py-3 font-semibold">{gnForeignNationalsTotals.female.toLocaleString()}</td>
-                        <td className="px-3 py-3 font-semibold">{gnForeignNationalsTotals.male.toLocaleString()}</td>
-                        <td className="px-3 py-3 font-semibold">{gnForeignNationalsTotals.collection.toLocaleString()}</td>
-                      </tr>
-                    </tfoot>
-                  </table>
-                </div>
-                <div className="border-t border-border/80 bg-muted/50 px-4 py-3 text-right">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="gap-2"
-                    onClick={() => foreignTableRef.current?.scrollIntoView({ behavior: "smooth" })}
-                  >
-                    <ArrowUp className="size-4" />
-                    <Bilingual en="Back to top" si="ඉහළට" />
-                  </Button>
-                </div>
+                        </thead>
+                        <tbody>
+                          {analytics.gnBreakdown.map((gn) => {
+                            const foreign = gn.demographics?.foreignNationals;
+                            return (
+                              <tr key={gn.gnId} className="border-t last:border-b">
+                                <td className="px-3 py-3 font-medium">{lang === "si" ? gn.gnNameSi : gn.gnName}</td>
+                                <td className="px-3 py-3">{foreign ? foreign.female.toLocaleString() : "—"}</td>
+                                <td className="px-3 py-3">{foreign ? foreign.male.toLocaleString() : "—"}</td>
+                                <td className="px-3 py-3">{foreign ? foreign.total.toLocaleString() : "—"}</td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                        <tfoot className="bg-muted/40 text-muted-foreground">
+                          <tr className="border-t">
+                            <td className="px-3 py-3 font-semibold"><Bilingual {...T.totals} /></td>
+                            <td className="px-3 py-3 font-semibold">{gnForeignNationalsTotals.female.toLocaleString()}</td>
+                            <td className="px-3 py-3 font-semibold">{gnForeignNationalsTotals.male.toLocaleString()}</td>
+                            <td className="px-3 py-3 font-semibold">{gnForeignNationalsTotals.collection.toLocaleString()}</td>
+                          </tr>
+                        </tfoot>
+                      </table>
+                    </div>
+                    <div className="border-t border-border/80 bg-muted/50 px-4 py-3 text-right">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-2"
+                        onClick={() => foreignTableRef.current?.scrollIntoView({ behavior: "smooth" })}
+                      >
+                        <ArrowUp className="size-4" />
+                        <Bilingual en="Back to top" si="ඉහළට" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </CardContent>
@@ -670,51 +798,82 @@ export function DivisionDemographicsSection({
             ) : !analytics ? (
               <LoadOrError error={null} errorText={ERRORS.households} />
             ) : (
-              <div className="overflow-hidden rounded-md border border-border">
-                <div ref={householdsTableRef} className="overflow-x-auto">
-                  <table className="w-full text-left text-sm">
-                    <thead className="bg-muted/40 text-muted-foreground">
-                      <tr>
-                        <th className="px-3 py-3"><Bilingual {...T.gnDivision} /></th>
-                        <th className="px-3 py-3"><Bilingual en="Total Number of Families" si="මුළු පවුල් සංඛ්‍යාව" /></th>
-                        <th className="px-3 py-3"><Bilingual en="Female-Headed Families" si="කාන්තා ගෘහමූලික පවුල් සංඛ්‍යාව" /></th>
-                        <th className="px-3 py-3"><Bilingual en="Families with Children in Probation Care" si="පරිවාසගත ළමුන් සිටින පවුල් සංඛ්‍යාව" /></th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {analytics.gnBreakdown.map((gn) => {
-                        const households = gn.demographics?.households;
-                        return (
-                          <tr key={gn.gnId} className="border-t last:border-b">
-                            <td className="px-3 py-3 font-medium">{lang === "si" ? gn.gnNameSi : gn.gnName}</td>
-                            <td className="px-3 py-3">{households ? households.total.toLocaleString() : "—"}</td>
-                            <td className="px-3 py-3">{households ? households.femaleHeaded.toLocaleString() : "—"}</td>
-                            <td className="px-3 py-3">{households ? households.displaced.toLocaleString() : "—"}</td>
+              <div className="grid gap-3">
+                <ViewModeToggle value={householdsView} onChange={setHouseholdsView} />
+                {householdsView === "graph" ? (
+                  <DonutCard
+                    titleEn="Number of Families"
+                    titleSi="මුළු පවුල් සංඛ්‍යාව"
+                    totalLabel={{ en: "Total Number of Families", si: "මුළු පවුල් සංඛ්‍යාව" }}
+                    slices={[
+                      {
+                        label: lang === "si" ? "කාන්තා ගෘහමූලික නොවන පවුල්" : "Not Female-Headed",
+                        value: Math.max(0, gnHouseholdsTotals.totalHouseholds - gnHouseholdsTotals.femaleHeadedHouseholds),
+                        color: GOLD,
+                      },
+                      {
+                        label: lang === "si" ? "කාන්තා ගෘහමූලික පවුල්" : "Female-Headed Families",
+                        value: gnHouseholdsTotals.femaleHeadedHouseholds,
+                        color: MAROON,
+                      },
+                    ]}
+                    footer={
+                      <p className="mt-4 border-t border-border pt-3 text-fluid-sm text-muted-foreground">
+                        <Bilingual en="Families with children in probation care: " si="පරිවාසගත ළමුන් සිටින පවුල්: " />
+                        <span className="font-semibold nums-tabular text-foreground">
+                          {gnHouseholdsTotals.displacedHouseholds.toLocaleString()}
+                        </span>
+                      </p>
+                    }
+                  />
+                ) : (
+                  <div className="overflow-hidden rounded-md border border-border">
+                    <div ref={householdsTableRef} className="overflow-x-auto">
+                      <table className="w-full text-left text-sm">
+                        <thead className="bg-muted/40 text-muted-foreground">
+                          <tr>
+                            <th className="px-3 py-3"><Bilingual {...T.gnDivision} /></th>
+                            <th className="px-3 py-3"><Bilingual en="Total Number of Families" si="මුළු පවුල් සංඛ්‍යාව" /></th>
+                            <th className="px-3 py-3"><Bilingual en="Female-Headed Families" si="කාන්තා ගෘහමූලික පවුල් සංඛ්‍යාව" /></th>
+                            <th className="px-3 py-3"><Bilingual en="Families with Children in Probation Care" si="පරිවාසගත ළමුන් සිටින පවුල් සංඛ්‍යාව" /></th>
                           </tr>
-                        );
-                      })}
-                    </tbody>
-                    <tfoot className="bg-muted/40 text-muted-foreground">
-                      <tr className="border-t">
-                        <td className="px-3 py-3 font-semibold"><Bilingual {...T.totals} /></td>
-                        <td className="px-3 py-3 font-semibold">{gnHouseholdsTotals.totalHouseholds.toLocaleString()}</td>
-                        <td className="px-3 py-3 font-semibold">{gnHouseholdsTotals.femaleHeadedHouseholds.toLocaleString()}</td>
-                        <td className="px-3 py-3 font-semibold">{gnHouseholdsTotals.displacedHouseholds.toLocaleString()}</td>
-                      </tr>
-                    </tfoot>
-                  </table>
-                </div>
-                <div className="border-t border-border/80 bg-muted/50 px-4 py-3 text-right">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="gap-2"
-                    onClick={() => householdsTableRef.current?.scrollIntoView({ behavior: "smooth" })}
-                  >
-                    <ArrowUp className="size-4" />
-                    <Bilingual en="Back to top" si="ඉහළට" />
-                  </Button>
-                </div>
+                        </thead>
+                        <tbody>
+                          {analytics.gnBreakdown.map((gn) => {
+                            const households = gn.demographics?.households;
+                            return (
+                              <tr key={gn.gnId} className="border-t last:border-b">
+                                <td className="px-3 py-3 font-medium">{lang === "si" ? gn.gnNameSi : gn.gnName}</td>
+                                <td className="px-3 py-3">{households ? households.total.toLocaleString() : "—"}</td>
+                                <td className="px-3 py-3">{households ? households.femaleHeaded.toLocaleString() : "—"}</td>
+                                <td className="px-3 py-3">{households ? households.displaced.toLocaleString() : "—"}</td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                        <tfoot className="bg-muted/40 text-muted-foreground">
+                          <tr className="border-t">
+                            <td className="px-3 py-3 font-semibold"><Bilingual {...T.totals} /></td>
+                            <td className="px-3 py-3 font-semibold">{gnHouseholdsTotals.totalHouseholds.toLocaleString()}</td>
+                            <td className="px-3 py-3 font-semibold">{gnHouseholdsTotals.femaleHeadedHouseholds.toLocaleString()}</td>
+                            <td className="px-3 py-3 font-semibold">{gnHouseholdsTotals.displacedHouseholds.toLocaleString()}</td>
+                          </tr>
+                        </tfoot>
+                      </table>
+                    </div>
+                    <div className="border-t border-border/80 bg-muted/50 px-4 py-3 text-right">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-2"
+                        onClick={() => householdsTableRef.current?.scrollIntoView({ behavior: "smooth" })}
+                      >
+                        <ArrowUp className="size-4" />
+                        <Bilingual en="Back to top" si="ඉහළට" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </CardContent>
@@ -741,51 +900,66 @@ export function DivisionDemographicsSection({
             ) : !analytics ? (
               <LoadOrError error={null} errorText={ERRORS.voters} />
             ) : (
-              <div className="overflow-hidden rounded-md border border-border">
-                <div ref={votersTableRef} className="overflow-x-auto">
-                  <table className="w-full text-left text-sm">
-                    <thead className="bg-muted/40 text-muted-foreground">
-                      <tr>
-                        <th className="px-3 py-3"><Bilingual {...T.gnDivision} /></th>
-                        <th className="px-3 py-3"><Bilingual en="Female" si="ස්ත්‍රී" /></th>
-                        <th className="px-3 py-3"><Bilingual en="Male" si="පුරුෂ" /></th>
-                        <th className="px-3 py-3"><Bilingual {...T.total} /></th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {analytics.gnBreakdown.map((gn) => {
-                        const voters = gn.demographics?.registeredVoters;
-                        return (
-                          <tr key={gn.gnId} className="border-t last:border-b">
-                            <td className="px-3 py-3 font-medium">{lang === "si" ? gn.gnNameSi : gn.gnName}</td>
-                            <td className="px-3 py-3">{voters ? voters.female.toLocaleString() : "—"}</td>
-                            <td className="px-3 py-3">{voters ? voters.male.toLocaleString() : "—"}</td>
-                            <td className="px-3 py-3">{voters ? voters.total.toLocaleString() : "—"}</td>
+              <div className="grid gap-3">
+                <ViewModeToggle value={votersView} onChange={setVotersView} />
+                {votersView === "graph" ? (
+                  <DonutCard
+                    titleEn="Number of Registered Voters"
+                    titleSi="ලියාපදිංචි ඡන්ද දායකයින් සංඛ්‍යාව"
+                    totalLabel={T.total}
+                    slices={[
+                      { label: lang === "si" ? "ස්ත්‍රී" : "Female", value: gnRegisteredVotersTotals.female, color: MAROON },
+                      { label: lang === "si" ? "පුරුෂ" : "Male", value: gnRegisteredVotersTotals.male, color: NAVY },
+                    ]}
+                  />
+                ) : (
+                  <div className="overflow-hidden rounded-md border border-border">
+                    <div ref={votersTableRef} className="overflow-x-auto">
+                      <table className="w-full text-left text-sm">
+                        <thead className="bg-muted/40 text-muted-foreground">
+                          <tr>
+                            <th className="px-3 py-3"><Bilingual {...T.gnDivision} /></th>
+                            <th className="px-3 py-3"><Bilingual en="Female" si="ස්ත්‍රී" /></th>
+                            <th className="px-3 py-3"><Bilingual en="Male" si="පුරුෂ" /></th>
+                            <th className="px-3 py-3"><Bilingual {...T.total} /></th>
                           </tr>
-                        );
-                      })}
-                    </tbody>
-                    <tfoot className="bg-muted/40 text-muted-foreground">
-                      <tr className="border-t">
-                        <td className="px-3 py-3 font-semibold"><Bilingual {...T.totals} /></td>
-                        <td className="px-3 py-3 font-semibold">{gnRegisteredVotersTotals.female.toLocaleString()}</td>
-                        <td className="px-3 py-3 font-semibold">{gnRegisteredVotersTotals.male.toLocaleString()}</td>
-                        <td className="px-3 py-3 font-semibold">{gnRegisteredVotersTotals.total.toLocaleString()}</td>
-                      </tr>
-                    </tfoot>
-                  </table>
-                </div>
-                <div className="border-t border-border/80 bg-muted/50 px-4 py-3 text-right">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="gap-2"
-                    onClick={() => votersTableRef.current?.scrollIntoView({ behavior: "smooth" })}
-                  >
-                    <ArrowUp className="size-4" />
-                    <Bilingual en="Back to top" si="ඉහළට" />
-                  </Button>
-                </div>
+                        </thead>
+                        <tbody>
+                          {analytics.gnBreakdown.map((gn) => {
+                            const voters = gn.demographics?.registeredVoters;
+                            return (
+                              <tr key={gn.gnId} className="border-t last:border-b">
+                                <td className="px-3 py-3 font-medium">{lang === "si" ? gn.gnNameSi : gn.gnName}</td>
+                                <td className="px-3 py-3">{voters ? voters.female.toLocaleString() : "—"}</td>
+                                <td className="px-3 py-3">{voters ? voters.male.toLocaleString() : "—"}</td>
+                                <td className="px-3 py-3">{voters ? voters.total.toLocaleString() : "—"}</td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                        <tfoot className="bg-muted/40 text-muted-foreground">
+                          <tr className="border-t">
+                            <td className="px-3 py-3 font-semibold"><Bilingual {...T.totals} /></td>
+                            <td className="px-3 py-3 font-semibold">{gnRegisteredVotersTotals.female.toLocaleString()}</td>
+                            <td className="px-3 py-3 font-semibold">{gnRegisteredVotersTotals.male.toLocaleString()}</td>
+                            <td className="px-3 py-3 font-semibold">{gnRegisteredVotersTotals.total.toLocaleString()}</td>
+                          </tr>
+                        </tfoot>
+                      </table>
+                    </div>
+                    <div className="border-t border-border/80 bg-muted/50 px-4 py-3 text-right">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-2"
+                        onClick={() => votersTableRef.current?.scrollIntoView({ behavior: "smooth" })}
+                      >
+                        <ArrowUp className="size-4" />
+                        <Bilingual en="Back to top" si="ඉහළට" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </CardContent>
