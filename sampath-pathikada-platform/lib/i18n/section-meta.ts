@@ -64,7 +64,7 @@ export const SECTION_META: Record<SectionKey, SectionMeta> = {
   },
   religiousCultural: {
     number: 8,
-    title: { en: "Religious & Cultural", si: "ආගමික හා සංස්කෘතික" },
+    title: { en: "Religious & Cultural Affairs", si: "ආගමික හා සංස්කෘතික කටයුතු" },
     icon: Landmark,
   },
   health: {
@@ -79,7 +79,7 @@ export const SECTION_META: Record<SectionKey, SectionMeta> = {
   },
   roadInfrastructure: {
     number: 11,
-    title: { en: "Transport & Infrastructure", si: "ප්‍රවාහන හා යටිතල පහසුකම්" },
+    title: { en: "Transport & Infrastructure Facilities", si: "ප්‍රවාහන හා යටිතල පහසුකම්" },
     icon: RouteOff,
   },
   socialWelfare: {

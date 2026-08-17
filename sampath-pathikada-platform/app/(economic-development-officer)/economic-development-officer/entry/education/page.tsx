@@ -612,7 +612,7 @@ export default function EducationPage() {
           <RepeatableTable
             name="preschools"
             columns={preschoolColumns}
-            emptyRowFactory={() => ({ name: "", address: "", facilityType: "govt", teacherCount: 0, studentCount: 0 })}
+            emptyRowFactory={() => ({ name: "", address: "", facilityType: "govt", studentCount: 0, teacherCount: 0 })}
           />
         </CollapsibleFieldGroup>
 

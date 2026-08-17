@@ -31,4 +31,11 @@ export const wasteDisasterDict: SectionDictionary<keyof WasteDisasterData & stri
       si: "ග්‍රාම නිලධාරී වසම තුළ කසළ හා ඝන අපද්‍රව්‍ය ක්‍රමවත්ව ඉවත් කිරීම /බැහැර කිරීම සඳහා වැඩපිළිවෙළක් නොමැතිනම් ඒ සඳහා යෝජනා කරනු ලබන ක්‍රම වේදය දක්වන්න",
     },
   },
+  rows: {
+    methodLabel: {
+      en: "Waste Disposal Method",
+      si: "කසළ හා ඝන අපද්‍රව්‍ය ක්‍රමවත්ව ඉවත් කිරීම",
+    },
+    present: { en: "Present", si: "ඇත/නැත" },
+  },
 };

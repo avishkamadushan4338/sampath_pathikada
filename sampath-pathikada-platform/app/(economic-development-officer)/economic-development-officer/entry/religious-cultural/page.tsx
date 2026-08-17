@@ -254,7 +254,7 @@ export default function ReligiousCulturalPage() {
           name="traditionalArtists"
           title={religiousCulturalDict.fields.traditionalArtists}
           columns={traditionalArtistColumns}
-          emptyRowFactory={() => ({ name: "", artForm: "", description: "" })}
+          emptyRowFactory={() => ({ artForm: "", name: "", description: "" })}
         />
       </div>
     </SectionForm>

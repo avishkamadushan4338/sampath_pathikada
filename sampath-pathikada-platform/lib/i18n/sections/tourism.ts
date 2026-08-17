@@ -18,4 +18,17 @@ export const tourismDict: SectionDictionary<keyof TourismData & string> = {
       si: "අනෙකුත් නවාතැන් ආයතන",
     },
   },
+  rows: {
+    categoryLabel: { en: "Hotel Category", si: "හෝටල් වර්ග" },
+    hotelCount: { en: "Number of Hotels", si: "හෝටල් සංඛ්‍යාව" },
+    name: { en: "Name", si: "නම" },
+    type: { en: "Type", si: "වර්ගය" },
+    address: { en: "Address", si: "ලිපිනය" },
+    // Compound overrides — "roomCount" is worded differently per table.
+    "hotelInventory.roomCount": {
+      en: "Rooms Providing Residential Facilities",
+      si: "නේවාසික පහසුකම් ලබාදෙන කාමර ගණන",
+    },
+    "guestAccommodations.roomCount": { en: "Number of Rooms", si: "කාමර සංඛ්‍යාව" },
+  },
 };

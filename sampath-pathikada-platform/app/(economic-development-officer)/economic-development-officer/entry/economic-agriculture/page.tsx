@@ -426,7 +426,7 @@ export default function EconomicAgriculturePage() {
           name="animalHusbandryDirectory"
           title={economicAgricultureDict.fields.animalHusbandryDirectory}
           columns={animalHusbandryDirectoryColumns}
-          emptyRowFactory={() => ({ name: "", address: "", phone: "", type: FLORAL_CULTIVATION_TYPES[0], marketplace: "local" })}
+          emptyRowFactory={() => ({ type: FLORAL_CULTIVATION_TYPES[0], name: "", address: "", phone: "", marketplace: "local" })}
         />
       </div>
 

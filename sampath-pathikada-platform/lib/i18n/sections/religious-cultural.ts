@@ -31,4 +31,37 @@ export const religiousCulturalDict: SectionDictionary<keyof ReligiousCulturalDat
       helpSi: "* ලේඛකයන්, කවියන්, ගීතඥයන්, බලි තොවිල්, රුකඩ නැටුම්, විත්‍ර ශිල්පීන්, බෙර වාදන ශිල්පීන් ආදී විවිධ සංස්කෘතිකාංග",
     },
   },
+  rows: {
+    // religiousSiteCounts sub-sections (temple, nun hermitage, kovil, mosque, church).
+    temples: { en: "Temple / Forest Hermitage / Asapuwa", si: "පන්සල්/ආරණ්‍ය විහාරස්ථාන/අසපුව" },
+    meheniArama: { en: "Nun Hermitages", si: "මෙහෙනි ආරාම" },
+    kovils: { en: "Kovils", si: "කෝවිල්" },
+    mosques: { en: "Mosques", si: "ඉස්ලාම් පල්ලි" },
+    churches: { en: "Catholic Church", si: "කතෝලික පල්ලි" },
+    count: { en: "Count", si: "ගණන" },
+    priestsCount: { en: "Priests", si: "පියතුමන්ලා" },
+    nunsCount: { en: "Nuns / Sisters", si: "කන්‍යා සොයුරියන්" },
+    // heritageSites row.
+    type: { en: "Type", si: "වර්ගය" },
+    significance: { en: "Reason for Being Special", si: "සුවිශේෂී වීමට හේතු" },
+    usedForDhammaOrGovtPurpose: {
+      en: "Used for Dhamma School / Pirivena / Govt Purpose?",
+      si: "දහම් පාසල්/පිරිවෙන් හෝ රජයේ කාර්යන් සඳහා භාවිතා කරනවාද",
+    },
+    taskDescription: { en: "Describe the Task", si: "එම කටයුත්ත විස්තර කරන්න" },
+    // artAcademies row.
+    registrationNumber: { en: "Registration No.", si: "ලියාපදිංචි අංකය" },
+    studentCount: { en: "Student Count", si: "සිසුන් ගණන" },
+    // traditionalArtists row.
+    artForm: { en: "Famous Art Field", si: "ප්‍රසිද්ධ කලා ක්ෂේත්‍රය" },
+    description: { en: "Description", si: "විස්තරය" },
+    // Compound overrides — same generic key means something different in each array/object.
+    "heritageSites.name": { en: "Name of Religious Site / Sacred Site", si: "ආගමික ස්ථානයන්හි /පූජනීය ස්ථානයේ නම" },
+    "artAcademies.name": { en: "Name of Art Institution", si: "කලායතනයේ නම" },
+    "traditionalArtists.name": { en: "Artists Produced", si: "බිහිවූ කලාකරුවන්" },
+    "temples.clergyCount": { en: "Monks", si: "භික්ෂූන් වහන්සේලා" },
+    "meheniArama.clergyCount": { en: "Nuns", si: "මෙහෙනීන් වහන්සේලා" },
+    "kovils.clergyCount": { en: "Poojaris", si: "පූජකතුමන්ලා /පූසාරි" },
+    "mosques.clergyCount": { en: "Moulavis", si: "මවුලවිතුමන්ලා" },
+  },
 };
