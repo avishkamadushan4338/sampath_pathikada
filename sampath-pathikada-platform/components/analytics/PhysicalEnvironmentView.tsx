@@ -48,7 +48,7 @@ const GN_DIVISION_COLUMN: ReadOnlyColumn = { key: "gnName", label: { en: "GN Div
 
 /** Whole-division rollup: every approved GN division's Physical & Environment rows pooled
  *  together, each tagged with its source GN division so the DS can still tell them apart. */
-function PhysicalEnvironmentAreaWideView({ aggregate }: { aggregate: AreaProfileAggregate }) {
+function PhysicalEnvironmentAreaWideView({ aggregate, lang }: { aggregate: AreaProfileAggregate; lang: "en" | "si" }) {
   return (
     <div className="flex flex-col gap-8">
       <p className="text-fluid-sm text-muted-foreground">
@@ -58,6 +58,7 @@ function PhysicalEnvironmentAreaWideView({ aggregate }: { aggregate: AreaProfile
         />
       </p>
       <ReadOnlyTable
+        lang={lang}
         title={physicalEnvironmentDict.fields.waterSources}
         columns={[
           GN_DIVISION_COLUMN,
@@ -71,6 +72,7 @@ function PhysicalEnvironmentAreaWideView({ aggregate }: { aggregate: AreaProfile
         rows={aggregate.waterSources.rows}
       />
       <ReadOnlyTable
+        lang={lang}
         title={physicalEnvironmentDict.fields.sensitiveZones}
         columns={[
           GN_DIVISION_COLUMN,
@@ -81,6 +83,7 @@ function PhysicalEnvironmentAreaWideView({ aggregate }: { aggregate: AreaProfile
         rows={aggregate.sensitiveZones.rows}
       />
       <ReadOnlyTable
+        lang={lang}
         title={physicalEnvironmentDict.fields.naturalResources}
         columns={[
           GN_DIVISION_COLUMN,
@@ -91,6 +94,7 @@ function PhysicalEnvironmentAreaWideView({ aggregate }: { aggregate: AreaProfile
         rows={aggregate.naturalResources.rows}
       />
       <ReadOnlyTable
+        lang={lang}
         title={physicalEnvironmentDict.fields.hazards}
         columns={[
           GN_DIVISION_COLUMN,
@@ -106,6 +110,7 @@ function PhysicalEnvironmentAreaWideView({ aggregate }: { aggregate: AreaProfile
         rows={aggregate.hazards.rows}
       />
       <ReadOnlyTable
+        lang={lang}
         title={physicalEnvironmentDict.fields.safeLocations}
         columns={[
           GN_DIVISION_COLUMN,
@@ -115,6 +120,7 @@ function PhysicalEnvironmentAreaWideView({ aggregate }: { aggregate: AreaProfile
         rows={aggregate.safeLocations.rows}
       />
       <ReadOnlyTable
+        lang={lang}
         title={physicalEnvironmentDict.fields.touristSites}
         columns={[
           GN_DIVISION_COLUMN,
@@ -126,6 +132,7 @@ function PhysicalEnvironmentAreaWideView({ aggregate }: { aggregate: AreaProfile
         rows={aggregate.existingTouristSitesFromPhysicalEnv.rows}
       />
       <ReadOnlyTable
+        lang={lang}
         title={physicalEnvironmentDict.fields.proposedTouristSites}
         columns={[
           GN_DIVISION_COLUMN,
@@ -171,7 +178,7 @@ export function PhysicalEnvironmentView() {
             </CardContent>
           </Card>
         ) : (
-          <PhysicalEnvironmentAreaWideView aggregate={area.sections.areaProfile} />
+          <PhysicalEnvironmentAreaWideView aggregate={area.sections.areaProfile} lang={lang} />
         )
       }
     >

@@ -7,6 +7,7 @@ import { Bilingual } from "@/components/Bilingual";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAreaAnalytics } from "@/hooks/use-area-analytics";
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { religiousCulturalDict } from "@/lib/i18n/sections/religious-cultural";
 import type { AreaProfileAggregate } from "@/lib/analytics/aggregate-sections";
 import type { ReligiousCulturalData } from "@/lib/validators/sections/religious-cultural";
@@ -125,6 +126,7 @@ function religiousSiteCountGroups(counts: Partial<ReligiousCulturalData["religio
  *  division the DS searches or selects — or, before any division is picked, the whole-division
  *  aggregate across every approved GN division. */
 export function ReligiousCulturalView() {
+  const { lang } = useLanguage();
   const { data: area, isLoading: areaLoading, isError: areaError } = useAreaAnalytics();
 
   return (
@@ -149,7 +151,7 @@ export function ReligiousCulturalView() {
             </CardContent>
           </Card>
         ) : (
-          <ReligiousCulturalAreaWideView aggregate={area.sections.areaProfile} />
+          <ReligiousCulturalAreaWideView aggregate={area.sections.areaProfile} lang={lang} />
         )
       }
     >
@@ -189,7 +191,7 @@ function ReligiousCulturalSectionContent({ section }: { section: ReligiousCultur
 /** Whole-division rollup of every approved GN division's Religious & Cultural data: site/clergy
  *  counts summed across divisions, and every directory pooled with a GN Division column added —
  *  same shape `aggregateAreaProfile` already produces. */
-function ReligiousCulturalAreaWideView({ aggregate }: { aggregate: AreaProfileAggregate }) {
+function ReligiousCulturalAreaWideView({ aggregate, lang }: { aggregate: AreaProfileAggregate; lang: "en" | "si" }) {
   return (
     <div className="flex flex-col gap-8">
       <p className="text-fluid-sm text-muted-foreground">
@@ -200,9 +202,9 @@ function ReligiousCulturalAreaWideView({ aggregate }: { aggregate: AreaProfileAg
       </p>
 
       <ReadOnlyStats title={religiousCulturalDict.fields.religiousSiteCounts} groups={religiousSiteCountGroups(aggregate.religiousSiteCounts)} />
-      <ReadOnlyTable title={religiousCulturalDict.fields.heritageSites} columns={[GN_DIVISION_COLUMN, ...HERITAGE_SITE_COLUMNS]} rows={toRows(aggregate.heritageSites.rows)} />
-      <ReadOnlyTable title={religiousCulturalDict.fields.artAcademies} columns={[GN_DIVISION_COLUMN, ...ART_ACADEMY_COLUMNS]} rows={toRows(aggregate.artAcademies.rows)} />
-      <ReadOnlyTable title={religiousCulturalDict.fields.traditionalArtists} columns={[GN_DIVISION_COLUMN, ...TRADITIONAL_ARTIST_COLUMNS]} rows={toRows(aggregate.traditionalArtists.rows)} />
+      <ReadOnlyTable lang={lang} title={religiousCulturalDict.fields.heritageSites} columns={[GN_DIVISION_COLUMN, ...HERITAGE_SITE_COLUMNS]} rows={toRows(aggregate.heritageSites.rows)} />
+      <ReadOnlyTable lang={lang} title={religiousCulturalDict.fields.artAcademies} columns={[GN_DIVISION_COLUMN, ...ART_ACADEMY_COLUMNS]} rows={toRows(aggregate.artAcademies.rows)} />
+      <ReadOnlyTable lang={lang} title={religiousCulturalDict.fields.traditionalArtists} columns={[GN_DIVISION_COLUMN, ...TRADITIONAL_ARTIST_COLUMNS]} rows={toRows(aggregate.traditionalArtists.rows)} />
     </div>
   );
 }

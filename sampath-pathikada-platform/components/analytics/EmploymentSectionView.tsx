@@ -85,9 +85,13 @@ export function EmploymentSectionView({
         options={employmentGnOptions}
       />
       {analyticsError ? (
-        <div className="text-sm text-destructive">Unable to load employment data.</div>
+        <div className="text-sm text-destructive">
+          <Bilingual en="Unable to load employment data." si="රැකියා දත්ත පූරණය කළ නොහැක." />
+        </div>
       ) : !hasAnalytics ? (
-        <div className="text-sm text-muted-foreground">Loading…</div>
+        <div className="text-sm text-muted-foreground">
+          <Bilingual en="Loading…" si="පූරණය වෙමින්..." />
+        </div>
       ) : (
         <>
           <AnalyticsTableWrapper>

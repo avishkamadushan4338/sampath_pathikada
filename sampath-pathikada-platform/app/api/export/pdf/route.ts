@@ -62,6 +62,7 @@ export async function GET(req: NextRequest) {
       ? DISTRICTS.find((d) => d.id === division.districtId)
       : null;
   const gnLabel = (id: string) => GN_DIVISIONS.find((g) => g.id === id)?.en ?? id;
+  const gnLabelBoth = (id: string) => ({ en: gnLabel(id), si: gnLabel(id) });
 
   // Single-GN scope gets its own explicit label in the report header, matching the CSV/Excel scoping.
   const singleGn = gnDivisionFilter && gnDivisionFilter.length === 1 ? GN_DIVISIONS.find((g) => g.id === gnDivisionFilter[0]) : null;
@@ -147,16 +148,16 @@ export async function GET(req: NextRequest) {
   const totalScoped = rows.length;
   const coverageRows: [string, string][] = [
     ["Demographics", `${rows.filter((r) => Object.keys((r.data as any)?.demographics ?? {}).length > 0).length}/${totalScoped}`],
-    ["Housing", `${aggregateHousing(rows, gnLabel).coverage.withData}/${totalScoped}`],
-    ["Employment", `${aggregateEmployment(rows, gnLabel).coverage.withData}/${totalScoped}`],
-    ["Education", `${aggregateEducation(rows, gnLabel).coverage.withData}/${totalScoped}`],
-    ["Health", `${aggregateHealth(rows, gnLabel).coverage.withData}/${totalScoped}`],
-    ["Agriculture & Economy", `${aggregateEconomicAgriculture(rows, gnLabel).coverage.withData}/${totalScoped}`],
-    ["Community Organizations", `${aggregateCommunityWelfare(rows, gnLabel).coverage.communityOrganizations.withData}/${totalScoped}`],
-    ["Social Welfare", `${aggregateCommunityWelfare(rows, gnLabel).coverage.socialWelfare.withData}/${totalScoped}`],
-    ["Infrastructure", `${aggregateInfrastructure(rows, gnLabel).coverage.withData}/${totalScoped}`],
+    ["Housing", `${aggregateHousing(rows, gnLabelBoth).coverage.withData}/${totalScoped}`],
+    ["Employment", `${aggregateEmployment(rows, gnLabelBoth).coverage.withData}/${totalScoped}`],
+    ["Education", `${aggregateEducation(rows, gnLabelBoth).coverage.withData}/${totalScoped}`],
+    ["Health", `${aggregateHealth(rows, gnLabelBoth).coverage.withData}/${totalScoped}`],
+    ["Agriculture & Economy", `${aggregateEconomicAgriculture(rows, gnLabelBoth).coverage.withData}/${totalScoped}`],
+    ["Community Organizations", `${aggregateCommunityWelfare(rows, gnLabelBoth).coverage.communityOrganizations.withData}/${totalScoped}`],
+    ["Social Welfare", `${aggregateCommunityWelfare(rows, gnLabelBoth).coverage.socialWelfare.withData}/${totalScoped}`],
+    ["Infrastructure", `${aggregateInfrastructure(rows, gnLabelBoth).coverage.withData}/${totalScoped}`],
   ];
-  const areaProfileCoverage = aggregateAreaProfile(rows, gnLabel).coverage;
+  const areaProfileCoverage = aggregateAreaProfile(rows, gnLabelBoth).coverage;
   coverageRows.push(
     ["Physical Environment", `${areaProfileCoverage.physicalEnvironment.withData}/${totalScoped}`],
     ["Religious & Cultural", `${areaProfileCoverage.religiousCultural.withData}/${totalScoped}`],

@@ -119,9 +119,13 @@ export function TourismSectionView({
       />
 
       {analyticsError ? (
-        <div className="text-sm text-destructive">Unable to load tourism data.</div>
+        <div className="text-sm text-destructive">
+          <Bilingual en="Unable to load tourism data." si="සංචාරක දත්ත පූරණය කළ නොහැක." />
+        </div>
       ) : !areaProfile ? (
-        <div className="text-sm text-muted-foreground">Loading…</div>
+        <div className="text-sm text-muted-foreground">
+          <Bilingual en="Loading…" si="පූරණය වෙමින්..." />
+        </div>
       ) : (
         <AnalyticsTableWrapper>
           <Table>
