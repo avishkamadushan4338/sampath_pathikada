@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession, type SessionUser } from "@/hooks/use-session";
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { Loader2 } from "lucide-react";
 
 interface RoleGuardProps {
@@ -18,6 +19,7 @@ interface RoleGuardProps {
 export function RoleGuard({ allow, children }: RoleGuardProps) {
   const { user, isLoading, isError } = useSession();
   const router = useRouter();
+  const { lang } = useLanguage();
 
   useEffect(() => {
     if (!isLoading && (isError || !user)) {
@@ -31,7 +33,7 @@ export function RoleGuard({ allow, children }: RoleGuardProps) {
     return (
       <div className="flex min-h-dvh items-center justify-center bg-background">
         <Loader2 className="size-8 animate-spin text-primary" aria-hidden="true" />
-        <span className="sr-only">Loading…</span>
+        <span className="sr-only">{lang === "si" ? "පූරණය වෙමින්..." : "Loading…"}</span>
       </div>
     );
   }

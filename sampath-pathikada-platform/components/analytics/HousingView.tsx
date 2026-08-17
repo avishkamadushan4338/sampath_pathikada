@@ -201,15 +201,18 @@ function HousingGraphSection({ data }: { data: HousingNumericData }) {
         slices={[
           {
             label: t("Adequately Served", "ප්‍රමාණවත් සේවා ලබන"),
-            value: Math.max(0, data.sanitation.total - data.sanitation.withoutSafeSanitation - data.sanitation.needingAssistance),
+            value: Math.max(0, data.sanitation.total - data.sanitation.withoutSafeSanitation),
             color: GREEN,
           },
           {
             label: t("Without Hygienic Toilet Facilities", "සෞඛ්‍යාරක්ෂිත වැසිකිලි පහසුකම් නොමැති"),
             value: data.sanitation.withoutSafeSanitation,
             color: MAROON,
+            subBreakdown: {
+              label: t("Needing Toilet Assistance", "වැසිකිලි ආධාර ලබාදිය යුතු"),
+              value: data.sanitation.needingAssistance,
+            },
           },
-          { label: t("Needing Toilet Assistance", "වැසිකිලි ආධාර ලබාදිය යුතු"), value: data.sanitation.needingAssistance, color: AMBER },
         ]}
       />
 
@@ -252,6 +255,7 @@ function HousingGraphSection({ data }: { data: HousingNumericData }) {
  *  toggle at the top switches the four numeric groups between stat tiles and charts; the two
  *  entry lists (Underserved Areas, Community Water Projects) stay tables in both modes. */
 export function HousingView() {
+  const { lang } = useLanguage();
   const [viewMode, setViewMode] = useState<ViewMode>("stats");
   const { data: area, isLoading: areaLoading, isError: areaError } = useAreaAnalytics();
 
@@ -280,7 +284,7 @@ export function HousingView() {
               </CardContent>
             </Card>
           ) : (
-            <HousingAreaWideView aggregate={area.sections.housing} viewMode={viewMode} />
+            <HousingAreaWideView aggregate={area.sections.housing} viewMode={viewMode} lang={lang} />
           )
         }
       >
@@ -363,7 +367,7 @@ export function HousingView() {
 /** Whole-division rollup of every approved GN division's Housing data: scalar groups are
  *  summed, and the two per-division lists are pooled with a GN Division column added so
  *  each row's source division is still visible. */
-function HousingAreaWideView({ aggregate, viewMode }: { aggregate: HousingAggregate; viewMode: ViewMode }) {
+function HousingAreaWideView({ aggregate, viewMode, lang }: { aggregate: HousingAggregate; viewMode: ViewMode; lang: "en" | "si" }) {
   const numericData: HousingNumericData = {
     housingCounts: aggregate.housingCounts,
     householdsWithoutHousing: aggregate.householdsWithoutHousing,
@@ -399,10 +403,12 @@ function HousingAreaWideView({ aggregate, viewMode }: { aggregate: HousingAggreg
       )}
 
       <ReadOnlyTable
+        lang={lang}
         title={housingDict.fields.underservedAreas}
         columns={[GN_DIVISION_COLUMN, ...UNDERSERVED_AREA_COLUMNS]}
         rows={aggregate.underservedAreas.rows.map((row) => ({
           gnName: row.gnName,
+          gnNameSi: row.gnNameSi,
           area: row.area,
           difficultyDescription: row.difficultyDescription,
           households: row.households?.toString(),
@@ -415,10 +421,12 @@ function HousingAreaWideView({ aggregate, viewMode }: { aggregate: HousingAggreg
       )}
 
       <ReadOnlyTable
+        lang={lang}
         title={housingDict.fields.communityWaterProjects}
         columns={[GN_DIVISION_COLUMN, ...COMMUNITY_WATER_PROJECT_COLUMNS]}
         rows={aggregate.communityWaterProjects.rows.map((row) => ({
           gnName: row.gnName,
+          gnNameSi: row.gnNameSi,
           name: row.name,
           functional: row.functional,
           householdsServed: row.householdsServed?.toString(),

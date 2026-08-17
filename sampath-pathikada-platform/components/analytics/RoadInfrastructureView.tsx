@@ -225,6 +225,7 @@ function yesNoLabel(value: "yes" | "no" | undefined, lang: "en" | "si"): string 
  *  whole-division aggregate across every approved GN division. Field list/order/categories match
  *  the official "10. යටිතල පහසුකම්" paper form exactly. */
 export function RoadInfrastructureView() {
+  const { lang } = useLanguage();
   const { data: area, isLoading: areaLoading, isError: areaError } = useAreaAnalytics();
 
   return (
@@ -249,7 +250,7 @@ export function RoadInfrastructureView() {
             </CardContent>
           </Card>
         ) : (
-          <RoadInfrastructureAreaWideView aggregate={area.sections.infrastructure} />
+          <RoadInfrastructureAreaWideView aggregate={area.sections.infrastructure} lang={lang} />
         )
       }
     >
@@ -294,33 +295,33 @@ function RoadInfrastructureSectionContent({ section }: { section: RoadInfrastruc
 
   return (
     <div className="flex flex-col gap-8">
-      <ReadOnlyTable title={roadInfrastructureDict.fields.publicFacilities} columns={PUBLIC_FACILITIES_COLUMNS} rows={toRows(publicFacilitiesRows)} />
+      <ReadOnlyTable lang={lang} title={roadInfrastructureDict.fields.publicFacilities} columns={PUBLIC_FACILITIES_COLUMNS} rows={toRows(publicFacilitiesRows)} />
 
       <ReadOnlyStats
         title={{ en: "Total Road Development Length", si: "මුළු පාර සංවර්ධන දිග" }}
         stats={[{ key: "totalRoadLength", label: { en: "Length (Meters)", si: "දිග (මීටර්)" }, value: totalRoadLength.toString() }]}
       />
-      <ReadOnlyTable title={roadInfrastructureDict.fields.roadDevelopmentNeeds} columns={ROAD_DEVELOPMENT_NEED_COLUMNS} rows={toRows(section.roadDevelopmentNeeds ?? [])} />
-      <ReadOnlyTable title={roadInfrastructureDict.fields.bridgeRepairs} columns={BRIDGE_REPAIR_COLUMNS} rows={toRows(section.bridgeRepairs ?? [])} />
-      <ReadOnlyTable title={roadInfrastructureDict.fields.newRoadBridgeNeeds} columns={NEW_ROAD_BRIDGE_NEED_COLUMNS} rows={toRows(section.newRoadBridgeNeeds ?? [])} />
-      <ReadOnlyTable title={roadInfrastructureDict.fields.noPublicTransportAreas} columns={NO_PUBLIC_TRANSPORT_AREA_COLUMNS} rows={toRows(section.noPublicTransportAreas ?? [])} />
-      <ReadOnlyTable title={roadInfrastructureDict.fields.railwayCrossingGaps} columns={RAILWAY_CROSSING_GAP_COLUMNS} rows={toRows(section.railwayCrossingGaps ?? [])} />
-      <ReadOnlyTable title={roadInfrastructureDict.fields.postOffices} columns={POST_OFFICE_COLUMNS} rows={toRows(section.postOffices ?? [])} />
-      <ReadOnlyTable title={roadInfrastructureDict.fields.fuelDistributionStations} columns={FUEL_STATION_COLUMNS} rows={toRows(section.fuelDistributionStations ?? [])} />
-      <ReadOnlyTable title={roadInfrastructureDict.fields.solarPowerPlants} columns={HYDROPOWER_PLANT_COLUMNS} rows={toRows(section.solarPowerPlants ?? [])} />
-      <ReadOnlyTable title={roadInfrastructureDict.fields.windPowerPlants} columns={HYDROPOWER_PLANT_COLUMNS} rows={toRows(section.windPowerPlants ?? [])} />
-      <ReadOnlyTable title={roadInfrastructureDict.fields.hydropowerPlants} columns={HYDROPOWER_PLANT_COLUMNS} rows={toRows(section.hydropowerPlants ?? [])} />
-      <ReadOnlyTable title={roadInfrastructureDict.fields.financialInstitutions} columns={FINANCIAL_INSTITUTION_COLUMNS} rows={toRows(section.financialInstitutions ?? [])} />
-      <ReadOnlyTable title={roadInfrastructureDict.fields.serviceEstablishments} columns={SERVICE_ESTABLISHMENT_COLUMNS} rows={toRows(section.serviceEstablishments ?? [])} />
-      <ReadOnlyTable title={roadInfrastructureDict.fields.industrialEstates} columns={INDUSTRIAL_ESTATE_COLUMNS} rows={toRows(section.industrialEstates ?? [])} />
-      <ReadOnlyTable title={roadInfrastructureDict.fields.waterReservoirs} columns={NAMED_FACILITY_COLUMNS} rows={toRows(section.waterReservoirs ?? [])} />
-      <ReadOnlyTable title={roadInfrastructureDict.fields.publicFacilityCategories} columns={PUBLIC_FACILITY_CATEGORY_COLUMNS_GN} rows={toRows(section.publicFacilityCategories ?? [])} />
+      <ReadOnlyTable lang={lang} title={roadInfrastructureDict.fields.roadDevelopmentNeeds} columns={ROAD_DEVELOPMENT_NEED_COLUMNS} rows={toRows(section.roadDevelopmentNeeds ?? [])} />
+      <ReadOnlyTable lang={lang} title={roadInfrastructureDict.fields.bridgeRepairs} columns={BRIDGE_REPAIR_COLUMNS} rows={toRows(section.bridgeRepairs ?? [])} />
+      <ReadOnlyTable lang={lang} title={roadInfrastructureDict.fields.newRoadBridgeNeeds} columns={NEW_ROAD_BRIDGE_NEED_COLUMNS} rows={toRows(section.newRoadBridgeNeeds ?? [])} />
+      <ReadOnlyTable lang={lang} title={roadInfrastructureDict.fields.noPublicTransportAreas} columns={NO_PUBLIC_TRANSPORT_AREA_COLUMNS} rows={toRows(section.noPublicTransportAreas ?? [])} />
+      <ReadOnlyTable lang={lang} title={roadInfrastructureDict.fields.railwayCrossingGaps} columns={RAILWAY_CROSSING_GAP_COLUMNS} rows={toRows(section.railwayCrossingGaps ?? [])} />
+      <ReadOnlyTable lang={lang} title={roadInfrastructureDict.fields.postOffices} columns={POST_OFFICE_COLUMNS} rows={toRows(section.postOffices ?? [])} />
+      <ReadOnlyTable lang={lang} title={roadInfrastructureDict.fields.fuelDistributionStations} columns={FUEL_STATION_COLUMNS} rows={toRows(section.fuelDistributionStations ?? [])} />
+      <ReadOnlyTable lang={lang} title={roadInfrastructureDict.fields.solarPowerPlants} columns={HYDROPOWER_PLANT_COLUMNS} rows={toRows(section.solarPowerPlants ?? [])} />
+      <ReadOnlyTable lang={lang} title={roadInfrastructureDict.fields.windPowerPlants} columns={HYDROPOWER_PLANT_COLUMNS} rows={toRows(section.windPowerPlants ?? [])} />
+      <ReadOnlyTable lang={lang} title={roadInfrastructureDict.fields.hydropowerPlants} columns={HYDROPOWER_PLANT_COLUMNS} rows={toRows(section.hydropowerPlants ?? [])} />
+      <ReadOnlyTable lang={lang} title={roadInfrastructureDict.fields.financialInstitutions} columns={FINANCIAL_INSTITUTION_COLUMNS} rows={toRows(section.financialInstitutions ?? [])} />
+      <ReadOnlyTable lang={lang} title={roadInfrastructureDict.fields.serviceEstablishments} columns={SERVICE_ESTABLISHMENT_COLUMNS} rows={toRows(section.serviceEstablishments ?? [])} />
+      <ReadOnlyTable lang={lang} title={roadInfrastructureDict.fields.industrialEstates} columns={INDUSTRIAL_ESTATE_COLUMNS} rows={toRows(section.industrialEstates ?? [])} />
+      <ReadOnlyTable lang={lang} title={roadInfrastructureDict.fields.waterReservoirs} columns={NAMED_FACILITY_COLUMNS} rows={toRows(section.waterReservoirs ?? [])} />
+      <ReadOnlyTable lang={lang} title={roadInfrastructureDict.fields.publicFacilityCategories} columns={PUBLIC_FACILITY_CATEGORY_COLUMNS_GN} rows={toRows(section.publicFacilityCategories ?? [])} />
 
       <ReadOnlyStats
         title={roadInfrastructureDict.fields.licensedLiquorShopsPresent}
         stats={[{ key: "licensedLiquorShopsPresent", label: { en: "Status", si: "තත්ත්වය" }, value: yesNoLabel(section.licensedLiquorShopsPresent, lang) }]}
       />
-      <ReadOnlyTable title={roadInfrastructureDict.fields.licensedLiquorShops} columns={LICENSED_LIQUOR_SHOP_COLUMNS} rows={toRows(section.licensedLiquorShops ?? [])} />
+      <ReadOnlyTable lang={lang} title={roadInfrastructureDict.fields.licensedLiquorShops} columns={LICENSED_LIQUOR_SHOP_COLUMNS} rows={toRows(section.licensedLiquorShops ?? [])} />
     </div>
   );
 }
@@ -330,7 +331,7 @@ function RoadInfrastructureSectionContent({ section }: { section: RoadInfrastruc
  *  stay sorted most-common-first, exactly as `aggregateInfrastructure` already orders them), and
  *  every directory is pooled with a GN Division column added — same shape `aggregateInfrastructure`
  *  already produces. */
-function RoadInfrastructureAreaWideView({ aggregate }: { aggregate: InfrastructureAggregate }) {
+function RoadInfrastructureAreaWideView({ aggregate, lang }: { aggregate: InfrastructureAggregate; lang: "en" | "si" }) {
   const serviceCategoryByEnLabel = new Map(SERVICE_CATEGORIES.map((c) => [SERVICE_CATEGORY_LABELS[c].en, c]));
   const serviceEstablishmentRows = aggregate.serviceEstablishments.map((r) => ({
     category: serviceCategoryByEnLabel.get(r.en) ?? SERVICE_CATEGORIES[0],
@@ -357,22 +358,22 @@ function RoadInfrastructureAreaWideView({ aggregate }: { aggregate: Infrastructu
         title={{ en: "Total Road Development Length", si: "මුළු පාර සංවර්ධන දිග" }}
         stats={[{ key: "totalRoadLength", label: { en: "Length (Meters)", si: "දිග (මීටර්)" }, value: aggregate.totalRoadDevelopmentLengthMeters.toString() }]}
       />
-      <ReadOnlyTable title={roadInfrastructureDict.fields.roadDevelopmentNeeds} columns={[GN_DIVISION_COLUMN, ...ROAD_DEVELOPMENT_NEED_COLUMNS]} rows={toRows(aggregate.roadDevelopmentNeeds.rows)} />
-      <ReadOnlyTable title={roadInfrastructureDict.fields.bridgeRepairs} columns={[GN_DIVISION_COLUMN, ...BRIDGE_REPAIR_COLUMNS]} rows={toRows(aggregate.bridgeRepairs.rows)} />
-      <ReadOnlyTable title={roadInfrastructureDict.fields.newRoadBridgeNeeds} columns={[GN_DIVISION_COLUMN, ...NEW_ROAD_BRIDGE_NEED_COLUMNS]} rows={toRows(aggregate.newRoadBridgeNeeds.rows)} />
-      <ReadOnlyTable title={roadInfrastructureDict.fields.noPublicTransportAreas} columns={[GN_DIVISION_COLUMN, ...NO_PUBLIC_TRANSPORT_AREA_COLUMNS]} rows={toRows(aggregate.noPublicTransportAreas.rows)} />
-      <ReadOnlyTable title={roadInfrastructureDict.fields.railwayCrossingGaps} columns={[GN_DIVISION_COLUMN, ...RAILWAY_CROSSING_GAP_COLUMNS]} rows={toRows(aggregate.railwayCrossingGaps.rows)} />
-      <ReadOnlyTable title={roadInfrastructureDict.fields.postOffices} columns={[GN_DIVISION_COLUMN, ...POST_OFFICE_COLUMNS]} rows={toRows(aggregate.postOffices.rows)} />
-      <ReadOnlyTable title={roadInfrastructureDict.fields.fuelDistributionStations} columns={[GN_DIVISION_COLUMN, ...FUEL_STATION_COLUMNS]} rows={toRows(aggregate.fuelDistributionStations.rows)} />
-      <ReadOnlyTable title={roadInfrastructureDict.fields.solarPowerPlants} columns={[GN_DIVISION_COLUMN, ...HYDROPOWER_PLANT_COLUMNS]} rows={toRows(aggregate.solarPowerPlants.rows)} />
-      <ReadOnlyTable title={roadInfrastructureDict.fields.windPowerPlants} columns={[GN_DIVISION_COLUMN, ...HYDROPOWER_PLANT_COLUMNS]} rows={toRows(aggregate.windPowerPlants.rows)} />
-      <ReadOnlyTable title={roadInfrastructureDict.fields.hydropowerPlants} columns={[GN_DIVISION_COLUMN, ...HYDROPOWER_PLANT_COLUMNS]} rows={toRows(aggregate.hydropowerPlants.rows)} />
-      <ReadOnlyTable title={roadInfrastructureDict.fields.financialInstitutions} columns={[GN_DIVISION_COLUMN, ...FINANCIAL_INSTITUTION_COLUMNS]} rows={toRows(aggregate.financialInstitutions.rows)} />
-      <ReadOnlyTable title={roadInfrastructureDict.fields.serviceEstablishments} columns={SERVICE_ESTABLISHMENT_COLUMNS} rows={toRows(serviceEstablishmentRows)} />
-      <ReadOnlyTable title={roadInfrastructureDict.fields.industrialEstates} columns={[GN_DIVISION_COLUMN, ...INDUSTRIAL_ESTATE_COLUMNS]} rows={toRows(aggregate.industrialEstates.rows)} />
-      <ReadOnlyTable title={roadInfrastructureDict.fields.waterReservoirs} columns={[GN_DIVISION_COLUMN, ...NAMED_FACILITY_COLUMNS]} rows={toRows(aggregate.waterReservoirs.rows)} />
-      <ReadOnlyTable title={roadInfrastructureDict.fields.publicFacilityCategories} columns={PUBLIC_FACILITY_CATEGORY_COLUMNS_AREA} rows={toRows(publicFacilityCategoryRows)} />
-      <ReadOnlyTable title={roadInfrastructureDict.fields.licensedLiquorShops} columns={[GN_DIVISION_COLUMN, ...LICENSED_LIQUOR_SHOP_COLUMNS]} rows={toRows(aggregate.licensedLiquorShops.rows)} />
+      <ReadOnlyTable lang={lang} title={roadInfrastructureDict.fields.roadDevelopmentNeeds} columns={[GN_DIVISION_COLUMN, ...ROAD_DEVELOPMENT_NEED_COLUMNS]} rows={toRows(aggregate.roadDevelopmentNeeds.rows)} />
+      <ReadOnlyTable lang={lang} title={roadInfrastructureDict.fields.bridgeRepairs} columns={[GN_DIVISION_COLUMN, ...BRIDGE_REPAIR_COLUMNS]} rows={toRows(aggregate.bridgeRepairs.rows)} />
+      <ReadOnlyTable lang={lang} title={roadInfrastructureDict.fields.newRoadBridgeNeeds} columns={[GN_DIVISION_COLUMN, ...NEW_ROAD_BRIDGE_NEED_COLUMNS]} rows={toRows(aggregate.newRoadBridgeNeeds.rows)} />
+      <ReadOnlyTable lang={lang} title={roadInfrastructureDict.fields.noPublicTransportAreas} columns={[GN_DIVISION_COLUMN, ...NO_PUBLIC_TRANSPORT_AREA_COLUMNS]} rows={toRows(aggregate.noPublicTransportAreas.rows)} />
+      <ReadOnlyTable lang={lang} title={roadInfrastructureDict.fields.railwayCrossingGaps} columns={[GN_DIVISION_COLUMN, ...RAILWAY_CROSSING_GAP_COLUMNS]} rows={toRows(aggregate.railwayCrossingGaps.rows)} />
+      <ReadOnlyTable lang={lang} title={roadInfrastructureDict.fields.postOffices} columns={[GN_DIVISION_COLUMN, ...POST_OFFICE_COLUMNS]} rows={toRows(aggregate.postOffices.rows)} />
+      <ReadOnlyTable lang={lang} title={roadInfrastructureDict.fields.fuelDistributionStations} columns={[GN_DIVISION_COLUMN, ...FUEL_STATION_COLUMNS]} rows={toRows(aggregate.fuelDistributionStations.rows)} />
+      <ReadOnlyTable lang={lang} title={roadInfrastructureDict.fields.solarPowerPlants} columns={[GN_DIVISION_COLUMN, ...HYDROPOWER_PLANT_COLUMNS]} rows={toRows(aggregate.solarPowerPlants.rows)} />
+      <ReadOnlyTable lang={lang} title={roadInfrastructureDict.fields.windPowerPlants} columns={[GN_DIVISION_COLUMN, ...HYDROPOWER_PLANT_COLUMNS]} rows={toRows(aggregate.windPowerPlants.rows)} />
+      <ReadOnlyTable lang={lang} title={roadInfrastructureDict.fields.hydropowerPlants} columns={[GN_DIVISION_COLUMN, ...HYDROPOWER_PLANT_COLUMNS]} rows={toRows(aggregate.hydropowerPlants.rows)} />
+      <ReadOnlyTable lang={lang} title={roadInfrastructureDict.fields.financialInstitutions} columns={[GN_DIVISION_COLUMN, ...FINANCIAL_INSTITUTION_COLUMNS]} rows={toRows(aggregate.financialInstitutions.rows)} />
+      <ReadOnlyTable lang={lang} title={roadInfrastructureDict.fields.serviceEstablishments} columns={SERVICE_ESTABLISHMENT_COLUMNS} rows={toRows(serviceEstablishmentRows)} />
+      <ReadOnlyTable lang={lang} title={roadInfrastructureDict.fields.industrialEstates} columns={[GN_DIVISION_COLUMN, ...INDUSTRIAL_ESTATE_COLUMNS]} rows={toRows(aggregate.industrialEstates.rows)} />
+      <ReadOnlyTable lang={lang} title={roadInfrastructureDict.fields.waterReservoirs} columns={[GN_DIVISION_COLUMN, ...NAMED_FACILITY_COLUMNS]} rows={toRows(aggregate.waterReservoirs.rows)} />
+      <ReadOnlyTable lang={lang} title={roadInfrastructureDict.fields.publicFacilityCategories} columns={PUBLIC_FACILITY_CATEGORY_COLUMNS_AREA} rows={toRows(publicFacilityCategoryRows)} />
+      <ReadOnlyTable lang={lang} title={roadInfrastructureDict.fields.licensedLiquorShops} columns={[GN_DIVISION_COLUMN, ...LICENSED_LIQUOR_SHOP_COLUMNS]} rows={toRows(aggregate.licensedLiquorShops.rows)} />
     </div>
   );
 }

@@ -49,7 +49,7 @@ export function DivisionGraphs({ data }: DivisionGraphsProps) {
   const { lang } = useLanguage();
 
   const rows = useMemo(() => [{ data: data ?? {}, gnDivision: "" }], [data]);
-  const gnLabel = () => "";
+  const gnLabel = () => ({ en: "", si: "" });
 
   const demo = useMemo(() => aggregateDemographics(rows), [rows]);
   const housing = useMemo(() => aggregateHousing(rows, gnLabel), [rows]);

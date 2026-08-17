@@ -7,6 +7,7 @@ import { Bilingual } from "@/components/Bilingual";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAreaAnalytics } from "@/hooks/use-area-analytics";
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { educationDict } from "@/lib/i18n/sections/education";
 import type { Translated } from "@/lib/i18n/types";
 import type { EducationAggregate } from "@/lib/analytics/aggregate-sections";
@@ -206,6 +207,7 @@ function toRows(rows: Record<string, unknown>[]): Record<string, string | undefi
  *  child counts for whichever GN division the DS searches or selects — or, before any division
  *  is picked, the whole-division aggregate across every approved GN division. */
 export function EducationView() {
+  const { lang } = useLanguage();
   const { data: area, isLoading: areaLoading, isError: areaError } = useAreaAnalytics();
 
   return (
@@ -230,7 +232,7 @@ export function EducationView() {
             </CardContent>
           </Card>
         ) : (
-          <EducationAreaWideView aggregate={area.sections.education} />
+          <EducationAreaWideView aggregate={area.sections.education} lang={lang} />
         )
       }
     >
@@ -288,7 +290,7 @@ function EducationSectionContent({ section }: { section: EducationData }) {
 /** Whole-division rollup of every approved GN division's Education data: scalar groups are
  *  summed, and every repeatable list is pooled with a GN Division column added so each row's
  *  source division is still visible — same shape `aggregateEducation` already produces. */
-function EducationAreaWideView({ aggregate }: { aggregate: EducationAggregate }) {
+function EducationAreaWideView({ aggregate, lang }: { aggregate: EducationAggregate; lang: "en" | "si" }) {
   return (
     <div className="flex flex-col gap-8">
       <p className="text-fluid-sm text-muted-foreground">
@@ -304,16 +306,16 @@ function EducationAreaWideView({ aggregate }: { aggregate: EducationAggregate })
         stats={withSchoolCountTotal(toStats(SCHOOL_COUNT_BY_TYPE_FIELDS, aggregate.schoolCountsByType), aggregate.schoolCountsByType)}
       />
 
-      <ReadOnlyTable title={educationDict.fields.schoolFacilities} columns={[GN_DIVISION_COLUMN, ...SCHOOL_FACILITY_COLUMNS]} rows={toRows(aggregate.schoolFacilities.rows)} />
-      <ReadOnlyTable title={educationDict.fields.specialAttentionSchools} columns={[GN_DIVISION_COLUMN, ...SPECIAL_ATTENTION_SCHOOL_COLUMNS]} rows={toRows(aggregate.specialAttentionSchools.rows)} />
-      <ReadOnlyTable title={educationDict.fields.closedSchools} columns={[GN_DIVISION_COLUMN, ...CLOSED_SCHOOL_COLUMNS]} rows={toRows(aggregate.closedSchools.rows)} />
-      <ReadOnlyTable title={educationDict.fields.privateInternationalSchools} columns={[GN_DIVISION_COLUMN, ...PRIVATE_INTERNATIONAL_SCHOOL_COLUMNS]} rows={toRows(aggregate.privateInternationalSchools.rows)} />
-      <ReadOnlyTable title={educationDict.fields.pirivenas} columns={[GN_DIVISION_COLUMN, ...PIRIVENA_COLUMNS]} rows={toRows(aggregate.pirivenas.rows)} />
-      <ReadOnlyTable title={educationDict.fields.vocationalInstitutes} columns={[GN_DIVISION_COLUMN, ...VOCATIONAL_INSTITUTE_COLUMNS]} rows={toRows(aggregate.vocationalInstitutes.rows)} />
-      <ReadOnlyTable title={educationDict.fields.preschools} columns={[GN_DIVISION_COLUMN, ...PRESCHOOL_COLUMNS]} rows={toRows(aggregate.preschools.rows)} />
-      <ReadOnlyTable title={educationDict.fields.dhammaEducationInstitutions} columns={[GN_DIVISION_COLUMN, ...DHAMMA_EDUCATION_INSTITUTION_COLUMNS]} rows={toRows(aggregate.dhammaEducationInstitutions.rows)} />
-      <ReadOnlyTable title={educationDict.fields.tertiaryInstitutions} columns={[GN_DIVISION_COLUMN, ...TERTIARY_INSTITUTION_COLUMNS]} rows={toRows(aggregate.tertiaryInstitutions.rows)} />
-      <ReadOnlyTable title={educationDict.fields.tuitionCenters} columns={[GN_DIVISION_COLUMN, ...TUITION_CENTER_COLUMNS]} rows={toRows(aggregate.tuitionCenters.rows)} />
+      <ReadOnlyTable lang={lang} title={educationDict.fields.schoolFacilities} columns={[GN_DIVISION_COLUMN, ...SCHOOL_FACILITY_COLUMNS]} rows={toRows(aggregate.schoolFacilities.rows)} />
+      <ReadOnlyTable lang={lang} title={educationDict.fields.specialAttentionSchools} columns={[GN_DIVISION_COLUMN, ...SPECIAL_ATTENTION_SCHOOL_COLUMNS]} rows={toRows(aggregate.specialAttentionSchools.rows)} />
+      <ReadOnlyTable lang={lang} title={educationDict.fields.closedSchools} columns={[GN_DIVISION_COLUMN, ...CLOSED_SCHOOL_COLUMNS]} rows={toRows(aggregate.closedSchools.rows)} />
+      <ReadOnlyTable lang={lang} title={educationDict.fields.privateInternationalSchools} columns={[GN_DIVISION_COLUMN, ...PRIVATE_INTERNATIONAL_SCHOOL_COLUMNS]} rows={toRows(aggregate.privateInternationalSchools.rows)} />
+      <ReadOnlyTable lang={lang} title={educationDict.fields.pirivenas} columns={[GN_DIVISION_COLUMN, ...PIRIVENA_COLUMNS]} rows={toRows(aggregate.pirivenas.rows)} />
+      <ReadOnlyTable lang={lang} title={educationDict.fields.vocationalInstitutes} columns={[GN_DIVISION_COLUMN, ...VOCATIONAL_INSTITUTE_COLUMNS]} rows={toRows(aggregate.vocationalInstitutes.rows)} />
+      <ReadOnlyTable lang={lang} title={educationDict.fields.preschools} columns={[GN_DIVISION_COLUMN, ...PRESCHOOL_COLUMNS]} rows={toRows(aggregate.preschools.rows)} />
+      <ReadOnlyTable lang={lang} title={educationDict.fields.dhammaEducationInstitutions} columns={[GN_DIVISION_COLUMN, ...DHAMMA_EDUCATION_INSTITUTION_COLUMNS]} rows={toRows(aggregate.dhammaEducationInstitutions.rows)} />
+      <ReadOnlyTable lang={lang} title={educationDict.fields.tertiaryInstitutions} columns={[GN_DIVISION_COLUMN, ...TERTIARY_INSTITUTION_COLUMNS]} rows={toRows(aggregate.tertiaryInstitutions.rows)} />
+      <ReadOnlyTable lang={lang} title={educationDict.fields.tuitionCenters} columns={[GN_DIVISION_COLUMN, ...TUITION_CENTER_COLUMNS]} rows={toRows(aggregate.tuitionCenters.rows)} />
 
       <ReadOnlyStats title={educationDict.fields.outOfSchoolChildren} stats={withSexTotal(toStats(SEX_COUNT_FIELDS, aggregate.outOfSchoolChildren), aggregate.outOfSchoolChildren)} />
       <ReadOnlyStats

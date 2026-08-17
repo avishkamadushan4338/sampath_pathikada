@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { stateInstitutionsLandDict } from "@/lib/i18n/sections/state-institutions-land";
 import { useAreaAnalytics } from "@/hooks/use-area-analytics";
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import type { AreaProfileAggregate } from "@/lib/analytics/aggregate-sections";
 
 const USABLE_OPTIONS = [
@@ -18,7 +19,7 @@ const GN_DIVISION_COLUMN: ReadOnlyColumn = { key: "gnName", label: { en: "GN Div
 
 /** Whole-division rollup: every approved GN division's State Institutions & Land rows pooled
  *  together, each tagged with its source GN division so the DS can still tell them apart. */
-function StateInstitutionsLandAreaWideView({ aggregate }: { aggregate: AreaProfileAggregate }) {
+function StateInstitutionsLandAreaWideView({ aggregate, lang }: { aggregate: AreaProfileAggregate; lang: "en" | "si" }) {
   return (
     <div className="flex flex-col gap-8">
       <p className="text-fluid-sm text-muted-foreground">
@@ -28,6 +29,7 @@ function StateInstitutionsLandAreaWideView({ aggregate }: { aggregate: AreaProfi
         />
       </p>
       <ReadOnlyTable
+        lang={lang}
         title={stateInstitutionsLandDict.fields.stateInstitutions}
         columns={[
           GN_DIVISION_COLUMN,
@@ -37,6 +39,7 @@ function StateInstitutionsLandAreaWideView({ aggregate }: { aggregate: AreaProfi
         rows={aggregate.stateInstitutions.rows}
       />
       <ReadOnlyTable
+        lang={lang}
         title={stateInstitutionsLandDict.fields.illegalStructures}
         columns={[
           GN_DIVISION_COLUMN,
@@ -48,6 +51,7 @@ function StateInstitutionsLandAreaWideView({ aggregate }: { aggregate: AreaProfi
         rows={aggregate.illegalStructures.rows}
       />
       <ReadOnlyTable
+        lang={lang}
         title={stateInstitutionsLandDict.fields.developmentProjects}
         columns={[
           GN_DIVISION_COLUMN,
@@ -67,6 +71,7 @@ function StateInstitutionsLandAreaWideView({ aggregate }: { aggregate: AreaProfi
  *  the same raw rows an EDO entered. Before a division is picked, falls back to the whole-division
  *  aggregate (every approved GN division's rows pooled together) rather than an empty prompt. */
 export function StateInstitutionsLandView() {
+  const { lang } = useLanguage();
   const { data: area, isLoading: areaLoading, isError: areaError } = useAreaAnalytics();
 
   return (
@@ -91,7 +96,7 @@ export function StateInstitutionsLandView() {
             </CardContent>
           </Card>
         ) : (
-          <StateInstitutionsLandAreaWideView aggregate={area.sections.areaProfile} />
+          <StateInstitutionsLandAreaWideView aggregate={area.sections.areaProfile} lang={lang} />
         )
       }
     >

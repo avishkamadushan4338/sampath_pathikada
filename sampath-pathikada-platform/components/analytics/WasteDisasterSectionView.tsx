@@ -60,9 +60,13 @@ export function WasteDisasterSectionView({
       />
 
       {analyticsError ? (
-        <div className="text-sm text-destructive">Unable to load waste management data.</div>
+        <div className="text-sm text-destructive">
+          <Bilingual en="Unable to load waste management data." si="කසළ කළමනාකරණ දත්ත පූරණය කළ නොහැක." />
+        </div>
       ) : !areaProfile || !wasteManagement ? (
-        <div className="text-sm text-muted-foreground">Loading…</div>
+        <div className="text-sm text-muted-foreground">
+          <Bilingual en="Loading…" si="පූරණය වෙමින්..." />
+        </div>
       ) : (
         <>
           <h3 className="pt-2 font-display text-fluid-lg font-semibold text-foreground">

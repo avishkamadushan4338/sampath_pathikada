@@ -2,13 +2,6 @@ import { chromium } from "playwright";
 import { signToken } from "../lib/auth";
 
 const APP_URL = "http://localhost:3004";
-const ADMIN_USER = {
-  userId: "cmreg5x2700027k809x9a5l7p",
-  email: "avishka@gmail.com",
-  name: "Avishka Madushan",
-  role: "ADMIN",
-  dsDivision: "galle-fg",
-};
 const DS_USER = {
   userId: "cmrerncz900027kcg6ndxj4gd",
   email: "avishkamadushan@gmail.com",
@@ -17,8 +10,9 @@ const DS_USER = {
   dsDivision: "galle-fg",
 };
 
-async function shot(browser: import("playwright").Browser, user: typeof ADMIN_USER, url: string, outPath: string) {
-  const token = await signToken(user);
+async function main() {
+  const browser = await chromium.launch();
+  const token = await signToken(DS_USER);
   const context = await browser.newContext();
   await context.addCookies([
     { name: "sp_session", value: token, domain: "localhost", path: "/", httpOnly: true, sameSite: "Lax" },
@@ -30,20 +24,25 @@ async function shot(browser: import("playwright").Browser, user: typeof ADMIN_US
   });
   page.on("pageerror", (err) => consoleErrors.push(`pageerror: ${err.message}`));
 
-  await page.goto(url, { waitUntil: "networkidle" });
-  await page.waitForTimeout(1500);
-  await page.screenshot({ path: outPath, fullPage: true });
-  console.log(`${outPath}: console errors = ${consoleErrors.length ? consoleErrors.join(" | ") : "none"}`);
+  await page.goto(`${APP_URL}/divisional-secretariat/graphs/demographics`, { waitUntil: "networkidle" });
+  await page.waitForTimeout(1000);
+
+  async function openCardGraph(headingText: string) {
+    const heading = page.getByText(headingText, { exact: false }).last();
+    const row = heading.locator("xpath=ancestor::*[.//button][1]");
+    await row.getByRole("button", { name: "බලන්න" }).click({ timeout: 8000 }).catch(() => {});
+    await page.waitForTimeout(700);
+    const toggle = heading.locator("xpath=following::button[contains(., 'ප්‍රස්ථාරය')][1]");
+    await toggle.click({ timeout: 8000 }).catch(() => {});
+    await page.waitForTimeout(600);
+  }
+
+  await openCardGraph("මහජන සංඛ්‍යාව");
+  await openCardGraph("ආගම අනුව ජනගහනය");
+
+  await page.screenshot({ path: "scripts/screenshot-demographics-graph.png", fullPage: true });
+  console.log(`console errors = ${consoleErrors.length ? consoleErrors.join(" | ") : "none"}`);
   await context.close();
-}
-
-async function main() {
-  const browser = await chromium.launch();
-
-  await shot(browser, ADMIN_USER, `${APP_URL}/admin/division-information/identification`, "scripts/screenshot-admin-identification.png");
-  await shot(browser, DS_USER, `${APP_URL}/divisional-secretariat/graphs/identification`, "scripts/screenshot-ds-identification.png");
-  await shot(browser, DS_USER, `${APP_URL}/divisional-secretariat/graphs/social-welfare`, "scripts/screenshot-ds-social-welfare.png");
-
   await browser.close();
 }
 

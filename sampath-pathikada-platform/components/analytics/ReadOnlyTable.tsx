@@ -24,11 +24,15 @@ interface ReadOnlyTableProps {
   title: Translated;
   columns: ReadOnlyColumn[];
   rows: Record<string, string | undefined>[];
+  /** Current UI language — only consulted for the "gnName" column, which every area-wide table
+   *  tags with both `gnName` (English) and `gnNameSi` (Sinhala) via lib/analytics/aggregate-sections.
+   *  Defaults to "en" so single-GN tables (which never pass a GN Division column) don't need it. */
+  lang?: "en" | "si";
 }
 
 /** Read-only rendering of one EDO-entered repeatable table (the DS-side counterpart to
  *  RepeatableTable) — same column/row shape, no add/remove/edit affordances. */
-export function ReadOnlyTable({ title, columns, rows }: ReadOnlyTableProps) {
+export function ReadOnlyTable({ title, columns, rows, lang = "en" }: ReadOnlyTableProps) {
   return (
     <div>
       <h3 className="mb-3 text-fluid-base font-semibold text-foreground">
@@ -54,7 +58,7 @@ export function ReadOnlyTable({ title, columns, rows }: ReadOnlyTableProps) {
               {rows.map((row, i) => (
                 <TableRow key={i} className="divide-x divide-border">
                   {columns.map((c) => {
-                    const value = row[c.key];
+                    const value = c.key === "gnName" && lang === "si" ? (row.gnNameSi ?? row.gnName) : row[c.key];
                     if (!c.options) {
                       return (
                         <TableCell key={c.key} className="px-4 text-fluid-base nums-tabular">
