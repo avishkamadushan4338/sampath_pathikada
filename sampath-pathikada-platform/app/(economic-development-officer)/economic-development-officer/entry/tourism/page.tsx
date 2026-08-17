@@ -125,6 +125,8 @@ export default function TourismPage() {
       saveStatus={status}
       saveErrorMessage={errorMessage}
       onSaveDraft={handleSave}
+      submission={submission}
+      sectionKey="tourism"
     >
       <div className="border-t border-border pt-6 first:border-0 first:pt-0">
         <RepeatableTable

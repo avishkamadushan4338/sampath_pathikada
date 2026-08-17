@@ -236,6 +236,8 @@ export default function DemographicsPage() {
       saveErrorMessage={errorMessage}
       onSaveDraft={handleSave}
       onInvalidSubmit={handleInvalidSubmit}
+      submission={submission}
+      sectionKey="demographics"
     >
       <PopulationMismatchDialog lang={lang} open={showMismatchDialog} onOpenChange={setShowMismatchDialog} />
       <div>

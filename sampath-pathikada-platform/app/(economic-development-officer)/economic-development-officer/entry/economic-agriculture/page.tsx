@@ -394,6 +394,8 @@ export default function EconomicAgriculturePage() {
       saveStatus={status}
       saveErrorMessage={errorMessage}
       onSaveDraft={handleSave}
+      submission={submission}
+      sectionKey="economicAgriculture"
     >
       <div className="border-t-0 pt-0">
         <RepeatableTable

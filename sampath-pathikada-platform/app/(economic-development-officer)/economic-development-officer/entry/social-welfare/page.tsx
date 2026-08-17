@@ -151,6 +151,8 @@ export default function SocialWelfarePage() {
       saveStatus={status}
       saveErrorMessage={errorMessage}
       onSaveDraft={handleSave}
+      submission={submission}
+      sectionKey="socialWelfare"
     >
       <div>
         <h2 lang={lang} className={cn("text-fluid-lg font-semibold text-foreground", lang === "si" && "font-si-heading")}>
