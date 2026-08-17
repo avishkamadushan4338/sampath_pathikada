@@ -26,17 +26,20 @@ export function buildCsvRows(
   gnLabel: (id: string) => string,
   dsLabel: (id: string) => string
 ): CsvRow[] {
+  // CSV is an English-only document; both languages resolve to the same label so the shared
+  // aggregate functions (which now tag rows bilingually for the UI) still work here unchanged.
+  const gnLabelBoth = (id: string) => ({ en: gnLabel(id), si: gnLabel(id) });
   return rows.map((r) => {
     const single = [r];
     const demo = aggregateDemographics(single);
-    const housing = aggregateHousing(single, gnLabel);
-    const employment = aggregateEmployment(single, gnLabel);
-    const education = aggregateEducation(single, gnLabel);
-    const health = aggregateHealth(single, gnLabel);
-    const agri = aggregateEconomicAgriculture(single, gnLabel);
-    const communityWelfare = aggregateCommunityWelfare(single, gnLabel);
-    const infra = aggregateInfrastructure(single, gnLabel);
-    const areaProfile = aggregateAreaProfile(single, gnLabel);
+    const housing = aggregateHousing(single, gnLabelBoth);
+    const employment = aggregateEmployment(single, gnLabelBoth);
+    const education = aggregateEducation(single, gnLabelBoth);
+    const health = aggregateHealth(single, gnLabelBoth);
+    const agri = aggregateEconomicAgriculture(single, gnLabelBoth);
+    const communityWelfare = aggregateCommunityWelfare(single, gnLabelBoth);
+    const infra = aggregateInfrastructure(single, gnLabelBoth);
+    const areaProfile = aggregateAreaProfile(single, gnLabelBoth);
 
     const row: CsvRow = {
       "GN Division": gnLabel(r.gnDivision),

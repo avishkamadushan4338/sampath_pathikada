@@ -132,7 +132,10 @@ export async function GET(req: NextRequest) {
   }
 
   const submissionByGn = new Map(rows.map((r) => [r.gnDivision, r]));
-  const gnLabel = (id: string) => GN_DIVISIONS.find((gn) => gn.id === id)?.en ?? id;
+  const gnLabel = (id: string) => {
+    const gn = GN_DIVISIONS.find((g) => g.id === id);
+    return { en: gn?.en ?? id, si: gn?.si ?? id };
+  };
 
   const funnel = {
     notStarted: Math.max(0, gnRoster.length - rows.length),

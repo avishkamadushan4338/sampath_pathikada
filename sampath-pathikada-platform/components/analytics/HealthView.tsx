@@ -7,6 +7,7 @@ import { Bilingual } from "@/components/Bilingual";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAreaAnalytics } from "@/hooks/use-area-analytics";
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { healthDict } from "@/lib/i18n/sections/health";
 import type { Translated } from "@/lib/i18n/types";
 import type { HealthAggregate } from "@/lib/analytics/aggregate-sections";
@@ -115,6 +116,7 @@ function toRows(rows: Record<string, unknown>[]): Record<string, string | undefi
  *  GN division the DS searches or selects — or, before any division is picked, the whole-division
  *  aggregate across every approved GN division. */
 export function HealthView() {
+  const { lang } = useLanguage();
   const { data: area, isLoading: areaLoading, isError: areaError } = useAreaAnalytics();
 
   return (
@@ -139,7 +141,7 @@ export function HealthView() {
             </CardContent>
           </Card>
         ) : (
-          <HealthAreaWideView aggregate={area.sections.health} />
+          <HealthAreaWideView aggregate={area.sections.health} lang={lang} />
         )
       }
     >
@@ -187,7 +189,7 @@ function HealthSectionContent({ section }: { section: HealthData }) {
 /** Whole-division rollup of every approved GN division's Health data: institution counts are
  *  summed, and every directory is pooled with a GN Division column added so each row's source
  *  division is still visible — same shape `aggregateHealth` already produces. */
-function HealthAreaWideView({ aggregate }: { aggregate: HealthAggregate }) {
+function HealthAreaWideView({ aggregate, lang }: { aggregate: HealthAggregate; lang: "en" | "si" }) {
   return (
     <div className="flex flex-col gap-8">
       <p className="text-fluid-sm text-muted-foreground">
@@ -199,16 +201,16 @@ function HealthAreaWideView({ aggregate }: { aggregate: HealthAggregate }) {
 
       <ReadOnlyStats title={healthDict.fields.institutionCounts} stats={toStats(INSTITUTION_COUNT_FIELDS, aggregate.institutionCounts)} />
 
-      <ReadOnlyTable title={healthDict.fields.govtHospitalsDirectory} columns={[GN_DIVISION_COLUMN, ...GOVT_HOSPITAL_COLUMNS]} rows={toRows(aggregate.govtHospitalsDirectory.rows)} />
-      <ReadOnlyTable title={healthDict.fields.primaryHealthcareUnitsDirectory} columns={[GN_DIVISION_COLUMN, ...PRIMARY_HEALTHCARE_UNIT_COLUMNS]} rows={toRows(aggregate.primaryHealthcareUnitsDirectory.rows)} />
-      <ReadOnlyTable title={healthDict.fields.privateHospitalsDirectory} columns={[GN_DIVISION_COLUMN, ...PRIVATE_HOSPITAL_COLUMNS]} rows={toRows(aggregate.privateHospitalsDirectory.rows)} />
-      <ReadOnlyTable title={healthDict.fields.ayurvedicInstitutions} columns={[GN_DIVISION_COLUMN, ...NAME_ADDRESS_COLUMNS]} rows={toRows(aggregate.ayurvedicInstitutions.rows)} />
-      <ReadOnlyTable title={healthDict.fields.specialistServiceCentersDirectory} columns={[GN_DIVISION_COLUMN, ...NAME_ADDRESS_COLUMNS]} rows={toRows(aggregate.specialistServiceCentersDirectory.rows)} />
-      <ReadOnlyTable title={healthDict.fields.mohOfficesDirectory} columns={[GN_DIVISION_COLUMN, ...NAME_ADDRESS_COLUMNS]} rows={toRows(aggregate.mohOfficesDirectory.rows)} />
-      <ReadOnlyTable title={healthDict.fields.traditionalMedicineInstitutionsDirectory} columns={[GN_DIVISION_COLUMN, ...NAME_ADDRESS_COLUMNS]} rows={toRows(aggregate.traditionalMedicineInstitutionsDirectory.rows)} />
-      <ReadOnlyTable title={healthDict.fields.privateMedicalLabsDirectory} columns={[GN_DIVISION_COLUMN, ...NAME_ADDRESS_COLUMNS]} rows={toRows(aggregate.privateMedicalLabsDirectory.rows)} />
-      <ReadOnlyTable title={healthDict.fields.animalClinicsDirectory} columns={[GN_DIVISION_COLUMN, ...NAME_ADDRESS_COLUMNS]} rows={toRows(aggregate.animalClinicsDirectory.rows)} />
-      <ReadOnlyTable title={healthDict.fields.traditionalPractitioners} columns={[GN_DIVISION_COLUMN, ...TRADITIONAL_PRACTITIONER_COLUMNS]} rows={toRows(aggregate.traditionalPractitioners.rows)} />
+      <ReadOnlyTable lang={lang} title={healthDict.fields.govtHospitalsDirectory} columns={[GN_DIVISION_COLUMN, ...GOVT_HOSPITAL_COLUMNS]} rows={toRows(aggregate.govtHospitalsDirectory.rows)} />
+      <ReadOnlyTable lang={lang} title={healthDict.fields.primaryHealthcareUnitsDirectory} columns={[GN_DIVISION_COLUMN, ...PRIMARY_HEALTHCARE_UNIT_COLUMNS]} rows={toRows(aggregate.primaryHealthcareUnitsDirectory.rows)} />
+      <ReadOnlyTable lang={lang} title={healthDict.fields.privateHospitalsDirectory} columns={[GN_DIVISION_COLUMN, ...PRIVATE_HOSPITAL_COLUMNS]} rows={toRows(aggregate.privateHospitalsDirectory.rows)} />
+      <ReadOnlyTable lang={lang} title={healthDict.fields.ayurvedicInstitutions} columns={[GN_DIVISION_COLUMN, ...NAME_ADDRESS_COLUMNS]} rows={toRows(aggregate.ayurvedicInstitutions.rows)} />
+      <ReadOnlyTable lang={lang} title={healthDict.fields.specialistServiceCentersDirectory} columns={[GN_DIVISION_COLUMN, ...NAME_ADDRESS_COLUMNS]} rows={toRows(aggregate.specialistServiceCentersDirectory.rows)} />
+      <ReadOnlyTable lang={lang} title={healthDict.fields.mohOfficesDirectory} columns={[GN_DIVISION_COLUMN, ...NAME_ADDRESS_COLUMNS]} rows={toRows(aggregate.mohOfficesDirectory.rows)} />
+      <ReadOnlyTable lang={lang} title={healthDict.fields.traditionalMedicineInstitutionsDirectory} columns={[GN_DIVISION_COLUMN, ...NAME_ADDRESS_COLUMNS]} rows={toRows(aggregate.traditionalMedicineInstitutionsDirectory.rows)} />
+      <ReadOnlyTable lang={lang} title={healthDict.fields.privateMedicalLabsDirectory} columns={[GN_DIVISION_COLUMN, ...NAME_ADDRESS_COLUMNS]} rows={toRows(aggregate.privateMedicalLabsDirectory.rows)} />
+      <ReadOnlyTable lang={lang} title={healthDict.fields.animalClinicsDirectory} columns={[GN_DIVISION_COLUMN, ...NAME_ADDRESS_COLUMNS]} rows={toRows(aggregate.animalClinicsDirectory.rows)} />
+      <ReadOnlyTable lang={lang} title={healthDict.fields.traditionalPractitioners} columns={[GN_DIVISION_COLUMN, ...TRADITIONAL_PRACTITIONER_COLUMNS]} rows={toRows(aggregate.traditionalPractitioners.rows)} />
     </div>
   );
 }

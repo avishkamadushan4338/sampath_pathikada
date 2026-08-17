@@ -11,12 +11,16 @@ export interface IndexedPresence extends Bilingual { presentCount: number; name?
 export interface LabelCount { label: string; count: number; }
 
 /** GN-division-tagged row for directory/list tables — every row carries where it came from. */
-export type TaggedRow<T> = T & { gnId: string; gnName: string };
+export type TaggedRow<T> = T & { gnId: string; gnName: string; gnNameSi: string };
+
+/** Resolves a GN division id to its display name in both languages. Export routes (CSV/Excel/PDF,
+ *  English-only documents) pass an `si` identical to `en`; the UI route passes the real Sinhala name. */
+export type GnLabelFn = (id: string) => { en: string; si: string };
 
 const ROW_CAP = 500;
 
-function tag<T>(rows: T[] | undefined, gnId: string, gnName: string): TaggedRow<T>[] {
-  return (Array.isArray(rows) ? rows : []).map((r) => ({ ...r, gnId, gnName }) as TaggedRow<T>);
+function tag<T>(rows: T[] | undefined, gnId: string, gnName: string, gnNameSi: string): TaggedRow<T>[] {
+  return (Array.isArray(rows) ? rows : []).map((r) => ({ ...r, gnId, gnName, gnNameSi }) as TaggedRow<T>);
 }
 
 function capRows<T>(rows: T[]): { rows: T[]; truncated: boolean } {
@@ -314,19 +318,20 @@ type SectionArrayElement<K extends keyof SubmissionData, ArrKey extends string> 
   ArrayElement<NonNullable<NonNullable<SubmissionData[K]>[ArrKey & keyof NonNullable<SubmissionData[K]>]>>;
 
 function flattenRows<K extends keyof SubmissionData, ArrKey extends string>(
-  rows: SubmissionLike[], gnLabel: (id: string) => string, key: K, arrayKey: ArrKey
+  rows: SubmissionLike[], gnLabel: GnLabelFn, key: K, arrayKey: ArrKey
 ): TaggedRow<SectionArrayElement<K, ArrKey>>[] {
   const out: TaggedRow<SectionArrayElement<K, ArrKey>>[] = [];
   for (const row of rows) {
     const section = sectionData(row, key) as Record<string, unknown> | undefined;
     const arr = section?.[arrayKey] as SectionArrayElement<K, ArrKey>[] | undefined;
-    out.push(...tag(arr, row.gnDivision, gnLabel(row.gnDivision)));
+    const label = gnLabel(row.gnDivision);
+    out.push(...tag(arr, row.gnDivision, label.en, label.si));
   }
   return out;
 }
 
 /* ── Housing ──────────────────────────────────────────────────────────────── */
-export function aggregateHousing(rows: SubmissionLike[], gnLabel: (id: string) => string) {
+export function aggregateHousing(rows: SubmissionLike[], gnLabel: GnLabelFn) {
   const totals = { total: 0, permanent: 0, semiPermanent: 0, nonPermanent: 0 };
   let householdsWithoutHousing = 0;
   const sanitation = { total: 0, withoutSafeSanitation: 0, needingAssistance: 0 };
@@ -398,7 +403,7 @@ export function aggregateHousing(rows: SubmissionLike[], gnLabel: (id: string) =
 }
 
 /* ── Employment ───────────────────────────────────────────────────────────── */
-export function aggregateEmployment(rows: SubmissionLike[], gnLabel: (id: string) => string) {
+export function aggregateEmployment(rows: SubmissionLike[], gnLabel: GnLabelFn) {
   const jobSeekersByEducation = sumIndexedCounts(rows, "employment", "jobSeekersByEducation", JOB_SEEKER_EDUCATION_LABELS);
   const sectorLabels = SELF_EMPLOYMENT_SECTORS.map((s) => SELF_EMPLOYMENT_SECTOR_LABELS[s]);
   const selfEmploymentSectors = sumIndexedCounts(rows, "employment", "selfEmploymentSectors", sectorLabels);
@@ -420,7 +425,7 @@ export function aggregateEmployment(rows: SubmissionLike[], gnLabel: (id: string
 }
 
 /* ── Education ────────────────────────────────────────────────────────────── */
-export function aggregateEducation(rows: SubmissionLike[], gnLabel: (id: string) => string) {
+export function aggregateEducation(rows: SubmissionLike[], gnLabel: GnLabelFn) {
   const institutionCounts = {
     govtSchools: 0, privateOrInternationalSchools: 0, pirivenas: 0,
     vocationalTrainingInstitutes: 0, registeredPreschoolsGovt: 0, registeredPreschoolsPrivate: 0,
@@ -493,7 +498,7 @@ export function aggregateEducation(rows: SubmissionLike[], gnLabel: (id: string)
 }
 
 /* ── Health ───────────────────────────────────────────────────────────────── */
-export function aggregateHealth(rows: SubmissionLike[], gnLabel: (id: string) => string) {
+export function aggregateHealth(rows: SubmissionLike[], gnLabel: GnLabelFn) {
   const institutionCounts = {
     govtHospitals: 0, primaryHealthcareUnits: 0, privateHospitals: 0, ayurvedicHospitals: 0,
     specialistServiceCenters: 0, mohOfficesOrCommunityHealthCenters: 0, privateMedicalLabs: 0,
@@ -523,7 +528,7 @@ export function aggregateHealth(rows: SubmissionLike[], gnLabel: (id: string) =>
 }
 
 /* ── Agriculture & Economy (economicAgriculture) ─────────────────────────── */
-export function aggregateEconomicAgriculture(rows: SubmissionLike[], gnLabel: (id: string) => string) {
+export function aggregateEconomicAgriculture(rows: SubmissionLike[], gnLabel: GnLabelFn) {
   const landUse = LAND_USE_LABELS_LIST.map((l) => ({ ...l, extentHectares: 0 }));
   const animalHusbandryCounts = sumIndexedCounts(rows, "economicAgriculture", "animalHusbandryCounts", FLORAL_CULTIVATION_LABELS_LIST);
   const agriMachinery = sumIndexedCounts(rows, "economicAgriculture", "agriMachinery", AGRI_MACHINERY_LABELS_LIST);
@@ -595,7 +600,7 @@ export function aggregateEconomicAgriculture(rows: SubmissionLike[], gnLabel: (i
 }
 
 /* ── Community Organizations + Social Welfare ─────────────────────────────── */
-export function aggregateCommunityWelfare(rows: SubmissionLike[], gnLabel: (id: string) => string) {
+export function aggregateCommunityWelfare(rows: SubmissionLike[], gnLabel: GnLabelFn) {
   const orgLabels = ORGANIZATION_TYPES.map((t) => ORGANIZATION_TYPE_LABELS[t]);
   const organizationCounts = sumIndexedCounts(rows, "communityOrganizations", "organizationCounts", orgLabels);
 
@@ -650,7 +655,7 @@ export function aggregateCommunityWelfare(rows: SubmissionLike[], gnLabel: (id: 
 }
 
 /* ── Infrastructure (roadInfrastructure) ─────────────────────────────────── */
-export function aggregateInfrastructure(rows: SubmissionLike[], gnLabel: (id: string) => string) {
+export function aggregateInfrastructure(rows: SubmissionLike[], gnLabel: GnLabelFn) {
   const serviceEstablishments = sumIndexedCounts(rows, "roadInfrastructure", "serviceEstablishments", SERVICE_CATEGORY_LABELS);
   const publicFacilityCategories = PUBLIC_FACILITY_CATEGORY_LABELS.map((l) => ({ ...l, presentCount: 0, totalCount: 0 }));
 
@@ -703,7 +708,7 @@ export function aggregateInfrastructure(rows: SubmissionLike[], gnLabel: (id: st
 }
 
 /* ── Area Profile: physicalEnvironment + religiousCultural + tourism + wasteDisaster + stateInstitutionsLand ── */
-export function aggregateAreaProfile(rows: SubmissionLike[], gnLabel: (id: string) => string) {
+export function aggregateAreaProfile(rows: SubmissionLike[], gnLabel: GnLabelFn) {
   const religiousSiteCounts = {
     temples: { count: 0, clergyCount: 0 }, meheniArama: { count: 0, clergyCount: 0 }, kovils: { count: 0, clergyCount: 0 },
     mosques: { count: 0, clergyCount: 0 }, churches: { count: 0, priestsCount: 0, nunsCount: 0 },

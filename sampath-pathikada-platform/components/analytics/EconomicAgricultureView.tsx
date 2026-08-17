@@ -293,6 +293,7 @@ const EMPTY_ABANDONED_PADDY_LAND: EconomicAgricultureData["abandonedPaddyLand"] 
  *  division the DS searches or selects — or, before any division is picked, the whole-division
  *  aggregate across every approved GN division. */
 export function EconomicAgricultureView() {
+  const { lang } = useLanguage();
   const { data: area, isLoading: areaLoading, isError: areaError } = useAreaAnalytics();
 
   return (
@@ -317,7 +318,7 @@ export function EconomicAgricultureView() {
             </CardContent>
           </Card>
         ) : (
-          <EconomicAgricultureAreaWideView aggregate={area.sections.economicAgriculture} />
+          <EconomicAgricultureAreaWideView aggregate={area.sections.economicAgriculture} lang={lang} />
         )
       }
     >
@@ -349,10 +350,10 @@ function EconomicAgricultureSectionContent({ section }: { section: EconomicAgric
 
   return (
     <div className="flex flex-col gap-8">
-      <ReadOnlyTable title={economicAgricultureDict.fields.landUse} columns={LAND_USE_COLUMNS} rows={toRows(section.landUse ?? [])} />
-      <ReadOnlyTable title={economicAgricultureDict.fields.animalHusbandryCounts} columns={ANIMAL_HUSBANDRY_COUNT_COLUMNS} rows={toRows(section.animalHusbandryCounts ?? [])} />
-      <ReadOnlyTable title={economicAgricultureDict.fields.animalHusbandryDirectory} columns={ANIMAL_HUSBANDRY_DIRECTORY_COLUMNS} rows={toRows(section.animalHusbandryDirectory ?? [])} />
-      <ReadOnlyTable title={economicAgricultureDict.fields.specialEconomicActivities} columns={SPECIAL_ECONOMIC_ACTIVITY_COLUMNS} rows={toRows(section.specialEconomicActivities ?? [])} />
+      <ReadOnlyTable lang={lang} title={economicAgricultureDict.fields.landUse} columns={LAND_USE_COLUMNS} rows={toRows(section.landUse ?? [])} />
+      <ReadOnlyTable lang={lang} title={economicAgricultureDict.fields.animalHusbandryCounts} columns={ANIMAL_HUSBANDRY_COUNT_COLUMNS} rows={toRows(section.animalHusbandryCounts ?? [])} />
+      <ReadOnlyTable lang={lang} title={economicAgricultureDict.fields.animalHusbandryDirectory} columns={ANIMAL_HUSBANDRY_DIRECTORY_COLUMNS} rows={toRows(section.animalHusbandryDirectory ?? [])} />
+      <ReadOnlyTable lang={lang} title={economicAgricultureDict.fields.specialEconomicActivities} columns={SPECIAL_ECONOMIC_ACTIVITY_COLUMNS} rows={toRows(section.specialEconomicActivities ?? [])} />
 
       <div className="flex flex-col gap-3">
         <ReadOnlyStats
@@ -387,39 +388,39 @@ function EconomicAgricultureSectionContent({ section }: { section: EconomicAgric
         )}
       </div>
 
-      <ReadOnlyTable title={economicAgricultureDict.fields.agriMachinery} columns={AGRI_MACHINERY_COLUMNS} rows={toRows(section.agriMachinery ?? [])} />
-      <ReadOnlyTable title={economicAgricultureDict.fields.forestDamage} columns={FOREST_DAMAGE_COLUMNS} rows={toRows(section.forestDamage ?? [])} />
-      <ReadOnlyTable title={economicAgricultureDict.fields.livestockFarms} columns={LIVESTOCK_FARM_COLUMNS} rows={toRows(section.livestockFarms ?? [])} />
+      <ReadOnlyTable lang={lang} title={economicAgricultureDict.fields.agriMachinery} columns={AGRI_MACHINERY_COLUMNS} rows={toRows(section.agriMachinery ?? [])} />
+      <ReadOnlyTable lang={lang} title={economicAgricultureDict.fields.forestDamage} columns={FOREST_DAMAGE_COLUMNS} rows={toRows(section.forestDamage ?? [])} />
+      <ReadOnlyTable lang={lang} title={economicAgricultureDict.fields.livestockFarms} columns={LIVESTOCK_FARM_COLUMNS} rows={toRows(section.livestockFarms ?? [])} />
 
       <ReadOnlyStats
         title={economicAgricultureDict.fields.industryCounts}
         stats={withIndustryTotal(toStats(INDUSTRY_COUNT_FIELDS, section.industryCounts), section.industryCounts)}
       />
-      <ReadOnlyTable title={economicAgricultureDict.fields.industries} columns={INDUSTRY_COLUMNS} rows={toRows(section.industries ?? [])} />
+      <ReadOnlyTable lang={lang} title={economicAgricultureDict.fields.industries} columns={INDUSTRY_COLUMNS} rows={toRows(section.industries ?? [])} />
 
       <ReadOnlyStats title={economicAgricultureDict.fields.marineFisheries} stats={toStats(FISHERIES_STAT_FIELDS, section.marineFisheries)} />
-      <ReadOnlyTable title={economicAgricultureDict.fields.marineFisheriesSocieties} columns={FISHERIES_SOCIETY_COLUMNS} rows={toRows(section.marineFisheriesSocieties ?? [])} />
+      <ReadOnlyTable lang={lang} title={economicAgricultureDict.fields.marineFisheriesSocieties} columns={FISHERIES_SOCIETY_COLUMNS} rows={toRows(section.marineFisheriesSocieties ?? [])} />
 
       <ReadOnlyStats title={economicAgricultureDict.fields.inlandFisheries} stats={toStats(FISHERIES_STAT_FIELDS, section.inlandFisheries)} />
-      <ReadOnlyTable title={economicAgricultureDict.fields.inlandFisheriesSocieties} columns={FISHERIES_SOCIETY_COLUMNS} rows={toRows(section.inlandFisheriesSocieties ?? [])} />
-      <ReadOnlyTable title={economicAgricultureDict.fields.inlandWaterBodies} columns={INLAND_WATER_BODY_COLUMNS} rows={toRows(section.inlandWaterBodies ?? [])} />
+      <ReadOnlyTable lang={lang} title={economicAgricultureDict.fields.inlandFisheriesSocieties} columns={FISHERIES_SOCIETY_COLUMNS} rows={toRows(section.inlandFisheriesSocieties ?? [])} />
+      <ReadOnlyTable lang={lang} title={economicAgricultureDict.fields.inlandWaterBodies} columns={INLAND_WATER_BODY_COLUMNS} rows={toRows(section.inlandWaterBodies ?? [])} />
 
-      <ReadOnlyTable title={economicAgricultureDict.fields.aquacultureDirectory} columns={NAME_ADDRESS_PHONE_COLUMNS} rows={toRows(section.aquacultureDirectory ?? [])} />
-      <ReadOnlyTable title={economicAgricultureDict.fields.ornamentalFishDirectory} columns={NAME_ADDRESS_PHONE_COLUMNS} rows={toRows(section.ornamentalFishDirectory ?? [])} />
+      <ReadOnlyTable lang={lang} title={economicAgricultureDict.fields.aquacultureDirectory} columns={NAME_ADDRESS_PHONE_COLUMNS} rows={toRows(section.aquacultureDirectory ?? [])} />
+      <ReadOnlyTable lang={lang} title={economicAgricultureDict.fields.ornamentalFishDirectory} columns={NAME_ADDRESS_PHONE_COLUMNS} rows={toRows(section.ornamentalFishDirectory ?? [])} />
 
       <ReadOnlyStats
         title={economicAgricultureDict.fields.fishLandingSitePresent}
         stats={[{ key: "fishLandingSitePresent", label: { en: "Status", si: "තත්ත්වය" }, value: yesNoLabel(section.fishLandingSitePresent, lang) }]}
       />
-      <ReadOnlyTable title={economicAgricultureDict.fields.fishLandingSites} columns={FISH_LANDING_SITE_COLUMNS} rows={toRows(section.fishLandingSites ?? [])} />
+      <ReadOnlyTable lang={lang} title={economicAgricultureDict.fields.fishLandingSites} columns={FISH_LANDING_SITE_COLUMNS} rows={toRows(section.fishLandingSites ?? [])} />
 
       <ReadOnlyStats
         title={economicAgricultureDict.fields.iceProductionPresent}
         stats={[{ key: "iceProductionPresent", label: { en: "Status", si: "තත්ත්වය" }, value: yesNoLabel(section.iceProductionPresent, lang) }]}
       />
-      <ReadOnlyTable title={economicAgricultureDict.fields.iceProductionDirectory} columns={NAME_ADDRESS_COLUMNS} rows={toRows(section.iceProductionDirectory ?? [])} />
+      <ReadOnlyTable lang={lang} title={economicAgricultureDict.fields.iceProductionDirectory} columns={NAME_ADDRESS_COLUMNS} rows={toRows(section.iceProductionDirectory ?? [])} />
 
-      <ReadOnlyTable title={economicAgricultureDict.fields.teaEstates} columns={TEA_ESTATE_COLUMNS} rows={toRows(section.teaEstates ?? [])} />
+      <ReadOnlyTable lang={lang} title={economicAgricultureDict.fields.teaEstates} columns={TEA_ESTATE_COLUMNS} rows={toRows(section.teaEstates ?? [])} />
     </div>
   );
 }
@@ -428,7 +429,7 @@ function EconomicAgricultureSectionContent({ section }: { section: EconomicAgric
  *  fixed-category groups (land use, cultivation, machinery, damage) are summed by category, and
  *  every directory is pooled with a GN Division column added — same shape `aggregateEconomicAgriculture`
  *  already produces. */
-function EconomicAgricultureAreaWideView({ aggregate }: { aggregate: EconomicAgricultureAggregate }) {
+function EconomicAgricultureAreaWideView({ aggregate, lang }: { aggregate: EconomicAgricultureAggregate; lang: "en" | "si" }) {
   const landUseRows = LAND_USE_TYPES.map((type, i) => ({ landType: type, extentHectares: aggregate.landUse[i]?.extentHectares ?? 0 }));
   const animalHusbandryCountRows = FLORAL_CULTIVATION_TYPES.map((type, i) => ({ type, count: aggregate.animalHusbandryCounts[i]?.count ?? 0 }));
   const agriMachineryRows = AGRI_MACHINERY_TYPES.map((type, i) => ({ type, count: aggregate.agriMachinery[i]?.count ?? 0 }));
@@ -443,46 +444,46 @@ function EconomicAgricultureAreaWideView({ aggregate }: { aggregate: EconomicAgr
         />
       </p>
 
-      <ReadOnlyTable title={economicAgricultureDict.fields.landUse} columns={LAND_USE_COLUMNS} rows={toRows(landUseRows)} />
-      <ReadOnlyTable title={economicAgricultureDict.fields.animalHusbandryCounts} columns={ANIMAL_HUSBANDRY_COUNT_COLUMNS} rows={toRows(animalHusbandryCountRows)} />
-      <ReadOnlyTable title={economicAgricultureDict.fields.animalHusbandryDirectory} columns={[GN_DIVISION_COLUMN, ...ANIMAL_HUSBANDRY_DIRECTORY_COLUMNS]} rows={toRows(aggregate.animalHusbandryDirectory.rows)} />
-      <ReadOnlyTable title={economicAgricultureDict.fields.specialEconomicActivities} columns={[GN_DIVISION_COLUMN, ...SPECIAL_ECONOMIC_ACTIVITY_COLUMNS]} rows={toRows(aggregate.specialEconomicActivities.rows)} />
+      <ReadOnlyTable lang={lang} title={economicAgricultureDict.fields.landUse} columns={LAND_USE_COLUMNS} rows={toRows(landUseRows)} />
+      <ReadOnlyTable lang={lang} title={economicAgricultureDict.fields.animalHusbandryCounts} columns={ANIMAL_HUSBANDRY_COUNT_COLUMNS} rows={toRows(animalHusbandryCountRows)} />
+      <ReadOnlyTable lang={lang} title={economicAgricultureDict.fields.animalHusbandryDirectory} columns={[GN_DIVISION_COLUMN, ...ANIMAL_HUSBANDRY_DIRECTORY_COLUMNS]} rows={toRows(aggregate.animalHusbandryDirectory.rows)} />
+      <ReadOnlyTable lang={lang} title={economicAgricultureDict.fields.specialEconomicActivities} columns={[GN_DIVISION_COLUMN, ...SPECIAL_ECONOMIC_ACTIVITY_COLUMNS]} rows={toRows(aggregate.specialEconomicActivities.rows)} />
 
       <ReadOnlyStats title={economicAgricultureDict.fields.abandonedPaddyLand} stats={toStats(ABANDONED_PADDY_LAND_FIELDS, aggregate.abandonedPaddyLand)} />
 
-      <ReadOnlyTable title={economicAgricultureDict.fields.agriMachinery} columns={AGRI_MACHINERY_COLUMNS} rows={toRows(agriMachineryRows)} />
-      <ReadOnlyTable title={economicAgricultureDict.fields.forestDamage} columns={FOREST_DAMAGE_AREA_COLUMNS} rows={toRows(forestDamageRows)} />
-      <ReadOnlyTable title={economicAgricultureDict.fields.livestockFarms} columns={[GN_DIVISION_COLUMN, ...LIVESTOCK_FARM_COLUMNS]} rows={toRows(aggregate.livestockFarms.rows)} />
+      <ReadOnlyTable lang={lang} title={economicAgricultureDict.fields.agriMachinery} columns={AGRI_MACHINERY_COLUMNS} rows={toRows(agriMachineryRows)} />
+      <ReadOnlyTable lang={lang} title={economicAgricultureDict.fields.forestDamage} columns={FOREST_DAMAGE_AREA_COLUMNS} rows={toRows(forestDamageRows)} />
+      <ReadOnlyTable lang={lang} title={economicAgricultureDict.fields.livestockFarms} columns={[GN_DIVISION_COLUMN, ...LIVESTOCK_FARM_COLUMNS]} rows={toRows(aggregate.livestockFarms.rows)} />
 
       <ReadOnlyStats
         title={economicAgricultureDict.fields.industryCounts}
         stats={withIndustryTotal(toStats(INDUSTRY_COUNT_FIELDS, aggregate.industryCounts), aggregate.industryCounts)}
       />
-      <ReadOnlyTable title={economicAgricultureDict.fields.industries} columns={[GN_DIVISION_COLUMN, ...INDUSTRY_COLUMNS]} rows={toRows(aggregate.industries.rows)} />
+      <ReadOnlyTable lang={lang} title={economicAgricultureDict.fields.industries} columns={[GN_DIVISION_COLUMN, ...INDUSTRY_COLUMNS]} rows={toRows(aggregate.industries.rows)} />
 
       <ReadOnlyStats title={economicAgricultureDict.fields.marineFisheries} stats={toStats(FISHERIES_STAT_FIELDS, aggregate.marineFisheries)} />
-      <ReadOnlyTable title={economicAgricultureDict.fields.marineFisheriesSocieties} columns={[GN_DIVISION_COLUMN, ...FISHERIES_SOCIETY_COLUMNS]} rows={toRows(aggregate.marineFisheriesSocieties.rows)} />
+      <ReadOnlyTable lang={lang} title={economicAgricultureDict.fields.marineFisheriesSocieties} columns={[GN_DIVISION_COLUMN, ...FISHERIES_SOCIETY_COLUMNS]} rows={toRows(aggregate.marineFisheriesSocieties.rows)} />
 
       <ReadOnlyStats title={economicAgricultureDict.fields.inlandFisheries} stats={toStats(FISHERIES_STAT_FIELDS, aggregate.inlandFisheries)} />
-      <ReadOnlyTable title={economicAgricultureDict.fields.inlandFisheriesSocieties} columns={[GN_DIVISION_COLUMN, ...FISHERIES_SOCIETY_COLUMNS]} rows={toRows(aggregate.inlandFisheriesSocieties.rows)} />
-      <ReadOnlyTable title={economicAgricultureDict.fields.inlandWaterBodies} columns={[GN_DIVISION_COLUMN, ...INLAND_WATER_BODY_COLUMNS]} rows={toRows(aggregate.inlandWaterBodies.rows)} />
+      <ReadOnlyTable lang={lang} title={economicAgricultureDict.fields.inlandFisheriesSocieties} columns={[GN_DIVISION_COLUMN, ...FISHERIES_SOCIETY_COLUMNS]} rows={toRows(aggregate.inlandFisheriesSocieties.rows)} />
+      <ReadOnlyTable lang={lang} title={economicAgricultureDict.fields.inlandWaterBodies} columns={[GN_DIVISION_COLUMN, ...INLAND_WATER_BODY_COLUMNS]} rows={toRows(aggregate.inlandWaterBodies.rows)} />
 
-      <ReadOnlyTable title={economicAgricultureDict.fields.aquacultureDirectory} columns={[GN_DIVISION_COLUMN, ...NAME_ADDRESS_PHONE_COLUMNS]} rows={toRows(aggregate.aquacultureDirectory.rows)} />
-      <ReadOnlyTable title={economicAgricultureDict.fields.ornamentalFishDirectory} columns={[GN_DIVISION_COLUMN, ...NAME_ADDRESS_PHONE_COLUMNS]} rows={toRows(aggregate.ornamentalFishDirectory.rows)} />
+      <ReadOnlyTable lang={lang} title={economicAgricultureDict.fields.aquacultureDirectory} columns={[GN_DIVISION_COLUMN, ...NAME_ADDRESS_PHONE_COLUMNS]} rows={toRows(aggregate.aquacultureDirectory.rows)} />
+      <ReadOnlyTable lang={lang} title={economicAgricultureDict.fields.ornamentalFishDirectory} columns={[GN_DIVISION_COLUMN, ...NAME_ADDRESS_PHONE_COLUMNS]} rows={toRows(aggregate.ornamentalFishDirectory.rows)} />
 
       <ReadOnlyStats
         title={economicAgricultureDict.fields.fishLandingSitePresent}
         stats={[{ key: "fishLandingSiteDivisionsCount", label: { en: "GN Divisions", si: "ග්‍රාම නිලධාරී වසම් ගණන" }, value: aggregate.fishLandingSiteDivisionsCount.toString() }]}
       />
-      <ReadOnlyTable title={economicAgricultureDict.fields.fishLandingSites} columns={[GN_DIVISION_COLUMN, ...FISH_LANDING_SITE_COLUMNS]} rows={toRows(aggregate.fishLandingSites.rows)} />
+      <ReadOnlyTable lang={lang} title={economicAgricultureDict.fields.fishLandingSites} columns={[GN_DIVISION_COLUMN, ...FISH_LANDING_SITE_COLUMNS]} rows={toRows(aggregate.fishLandingSites.rows)} />
 
       <ReadOnlyStats
         title={economicAgricultureDict.fields.iceProductionPresent}
         stats={[{ key: "iceProductionDivisionsCount", label: { en: "GN Divisions", si: "ග්‍රාම නිලධාරී වසම් ගණන" }, value: aggregate.iceProductionDivisionsCount.toString() }]}
       />
-      <ReadOnlyTable title={economicAgricultureDict.fields.iceProductionDirectory} columns={[GN_DIVISION_COLUMN, ...NAME_ADDRESS_COLUMNS]} rows={toRows(aggregate.iceProductionDirectory.rows)} />
+      <ReadOnlyTable lang={lang} title={economicAgricultureDict.fields.iceProductionDirectory} columns={[GN_DIVISION_COLUMN, ...NAME_ADDRESS_COLUMNS]} rows={toRows(aggregate.iceProductionDirectory.rows)} />
 
-      <ReadOnlyTable title={economicAgricultureDict.fields.teaEstates} columns={[GN_DIVISION_COLUMN, ...TEA_ESTATE_COLUMNS]} rows={toRows(aggregate.teaEstates.rows)} />
+      <ReadOnlyTable lang={lang} title={economicAgricultureDict.fields.teaEstates} columns={[GN_DIVISION_COLUMN, ...TEA_ESTATE_COLUMNS]} rows={toRows(aggregate.teaEstates.rows)} />
     </div>
   );
 }
