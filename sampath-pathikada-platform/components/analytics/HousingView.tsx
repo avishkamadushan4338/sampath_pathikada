@@ -208,14 +208,12 @@ function HousingGraphSection({ data }: { data: HousingNumericData }) {
             label: t("Without Hygienic Toilet Facilities", "සෞඛ්‍යාරක්ෂිත වැසිකිලි පහසුකම් නොමැති"),
             value: data.sanitation.withoutSafeSanitation,
             color: MAROON,
+            subBreakdown: {
+              label: t("Needing Toilet Assistance", "වැසිකිලි ආධාර ලබාදිය යුතු"),
+              value: data.sanitation.needingAssistance,
+            },
           },
         ]}
-        footer={
-          <p className="mt-4 border-t border-border pt-3 text-fluid-sm text-muted-foreground">
-            <Bilingual en="Of these, needing toilet assistance: " si="මින්, වැසිකිලි ආධාර ලබාදිය යුතු: " />
-            <span className="font-semibold nums-tabular text-foreground">{data.sanitation.needingAssistance}</span>
-          </p>
-        }
       />
 
       <ColumnCard
