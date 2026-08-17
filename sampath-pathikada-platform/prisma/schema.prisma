@@ -267,6 +267,13 @@ model Submission {
 
   data          Json
 
+  // Per-section DS decisions — Record<SectionKey, { status, note, reviewedById, reviewedAt }>,
+  // parsed/validated in code via lib/submission-review.ts (parseSectionReviews). A section with
+  // no entry is "pending" (undecided); never written as JSON null, always {} — see
+  // lib/submission-review.ts for why. `status` below is derived from this, not set directly,
+  // once any per-section decision has been made.
+  sectionReviews Json?
+
   status        SubmissionStatus @default(DRAFT)
   rejectionNote String?          @db.Text
   reviewedById  String?
