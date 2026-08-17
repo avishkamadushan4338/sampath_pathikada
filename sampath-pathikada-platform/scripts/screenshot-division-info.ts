@@ -24,17 +24,23 @@ async function main() {
   });
   page.on("pageerror", (err) => consoleErrors.push(`pageerror: ${err.message}`));
 
-  await page.goto(`${APP_URL}/divisional-secretariat/graphs/housing`, { waitUntil: "networkidle" });
+  await page.goto(`${APP_URL}/divisional-secretariat/graphs/demographics`, { waitUntil: "networkidle" });
   await page.waitForTimeout(1000);
 
-  await page.getByText("ප්‍රස්ථාරය", { exact: false }).first().click({ timeout: 8000 }).catch(() => {});
-  await page.waitForTimeout(800);
+  async function openCardGraph(headingText: string) {
+    const heading = page.getByText(headingText, { exact: false }).last();
+    const row = heading.locator("xpath=ancestor::*[.//button][1]");
+    await row.getByRole("button", { name: "බලන්න" }).click({ timeout: 8000 }).catch(() => {});
+    await page.waitForTimeout(700);
+    const toggle = heading.locator("xpath=following::button[contains(., 'ප්‍රස්ථාරය')][1]");
+    await toggle.click({ timeout: 8000 }).catch(() => {});
+    await page.waitForTimeout(600);
+  }
 
-  const heading = page.getByText("වැසිකිලි අවශ්‍යතාවය", { exact: false }).first();
-  const card = heading.locator("xpath=ancestor::*[contains(@class,'card-lift')][1]");
-  await card.screenshot({ path: "scripts/screenshot-housing-sanitation.png" }).catch(async () => {
-    await page.screenshot({ path: "scripts/screenshot-housing-sanitation.png", fullPage: true });
-  });
+  await openCardGraph("මහජන සංඛ්‍යාව");
+  await openCardGraph("ආගම අනුව ජනගහනය");
+
+  await page.screenshot({ path: "scripts/screenshot-demographics-graph.png", fullPage: true });
   console.log(`console errors = ${consoleErrors.length ? consoleErrors.join(" | ") : "none"}`);
   await context.close();
   await browser.close();
