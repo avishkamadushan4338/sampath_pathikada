@@ -21,6 +21,8 @@ const mockPrisma = {
   auditLog: {
     create: vi.fn(),
   },
+  $transaction: vi.fn(),
+  $queryRaw: vi.fn(),
 };
 vi.mock("@/lib/db", () => ({ default: mockPrisma, prisma: mockPrisma }));
 
@@ -141,6 +143,11 @@ describe("PATCH /api/my-submission/[year]", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    // Delegates the transaction callback to `mockPrisma` itself as `tx`, so
+    // `tx.submission.findUnique()`/`tx.submission.update()` inside the route resolve to the
+    // same mocks the tests configure directly on `mockPrisma`.
+    mockPrisma.$transaction.mockImplementation(async (fn: (tx: typeof mockPrisma) => Promise<unknown>) => fn(mockPrisma));
+    mockPrisma.$queryRaw.mockResolvedValue(undefined);
   });
 
   it("rejects a request with a mismatched origin (CSRF)", async () => {
@@ -191,6 +198,85 @@ describe("PATCH /api/my-submission/[year]", () => {
     const req = patchRequest(`${APP_URL}/api/my-submission/2026`, { section: "identification", data: {} });
     const res = await PATCH(req, { params: Promise.resolve({ year: "2026" }) });
     expect(res.status).toBe(409);
+  });
+
+  it("blocks editing a section the DS already approved, with a distinct error code from the generic lock", async () => {
+    mockGetSession.mockResolvedValue(EDO_SESSION);
+    mockPrisma.submission.findUnique.mockResolvedValue({
+      id: "sub-1",
+      submittedById: "officer-1",
+      status: "SUBMITTED",
+      data: {},
+      sectionReviews: { identification: { status: "APPROVED", note: null, reviewedById: "ds-1", reviewedAt: "2026-01-01T00:00:00.000Z" } },
+    });
+    const req = patchRequest(`${APP_URL}/api/my-submission/2026`, { section: "identification", data: {} });
+    const res = await PATCH(req, { params: Promise.resolve({ year: "2026" }) });
+    const json = await res.json();
+    expect(res.status).toBe(409);
+    expect(json.code).toBe("SECTION_LOCKED_APPROVED");
+  });
+
+  it("blocks editing a still-pending section even though a DIFFERENT section on the same submission needs revision — the critical guard", async () => {
+    mockGetSession.mockResolvedValue(EDO_SESSION);
+    mockPrisma.submission.findUnique.mockResolvedValue({
+      id: "sub-1",
+      submittedById: "officer-1",
+      status: "REVISION_NEEDED",
+      data: {},
+      sectionReviews: { health: { status: "REVISION_NEEDED", note: "Fix counts", reviewedById: "ds-1", reviewedAt: "2026-01-01T00:00:00.000Z" } },
+    });
+    // Trying to edit "identification", which the DS hasn't looked at — must stay locked even
+    // though the whole-submission status is REVISION_NEEDED because of a different section.
+    const req = patchRequest(`${APP_URL}/api/my-submission/2026`, { section: "identification", data: {} });
+    const res = await PATCH(req, { params: Promise.resolve({ year: "2026" }) });
+    const json = await res.json();
+    expect(res.status).toBe(409);
+    expect(json.code).toBe("SECTION_LOCKED_SUBMITTED");
+    expect(mockPrisma.submission.update).not.toHaveBeenCalled();
+  });
+
+  it("allows editing the specific section the DS flagged, and clears its revision flag on save", async () => {
+    mockGetSession.mockResolvedValue(EDO_SESSION);
+    const row = {
+      id: "sub-1",
+      submittedById: "officer-1",
+      status: "REVISION_NEEDED" as const,
+      data: {},
+      sectionReviews: {
+        identification: { status: "REVISION_NEEDED", note: "Fix name", reviewedById: "ds-1", reviewedAt: "2026-01-01T00:00:00.000Z" },
+        health: { status: "APPROVED", note: null, reviewedById: "ds-1", reviewedAt: "2026-01-01T00:00:00.000Z" },
+      },
+    };
+    mockPrisma.submission.findUnique.mockResolvedValue(row);
+    mockPrisma.submission.update.mockResolvedValue({ ...row, status: "SUBMITTED" });
+
+    const req = patchRequest(`${APP_URL}/api/my-submission/2026`, { section: "identification", data: { officerName: "K. Perera" } });
+    const res = await PATCH(req, { params: Promise.resolve({ year: "2026" }) });
+
+    expect(res.status).toBe(200);
+    const updateArg = mockPrisma.submission.update.mock.calls[0][0];
+    // The flagged section's entry is gone (back to pending, awaiting re-review); the approved
+    // section is untouched; overall status drops back to SUBMITTED since not everything is
+    // approved yet.
+    expect(updateArg.data.sectionReviews.identification).toBeUndefined();
+    expect(updateArg.data.sectionReviews.health).toEqual(row.sectionReviews.health);
+    expect(updateArg.data.status).toBe("SUBMITTED");
+  });
+
+  it("allows editing any section while the submission is REJECTED", async () => {
+    mockGetSession.mockResolvedValue(EDO_SESSION);
+    mockPrisma.submission.findUnique.mockResolvedValue({
+      id: "sub-1",
+      submittedById: "officer-1",
+      status: "REJECTED",
+      data: {},
+      sectionReviews: {},
+    });
+    mockPrisma.submission.update.mockResolvedValue({ id: "sub-1", data: {}, status: "REJECTED" });
+
+    const req = patchRequest(`${APP_URL}/api/my-submission/2026`, { section: "identification", data: { officerName: "K. Perera" } });
+    const res = await PATCH(req, { params: Promise.resolve({ year: "2026" }) });
+    expect(res.status).toBe(200);
   });
 
   it("rejects data that fails the section's partial schema", async () => {

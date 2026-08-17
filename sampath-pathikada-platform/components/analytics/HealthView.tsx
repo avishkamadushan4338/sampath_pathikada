@@ -86,9 +86,16 @@ const TRADITIONAL_PRACTITIONER_COLUMNS: ReadOnlyColumn[] = [
 
 /** Builds the {key, label, value} triples ReadOnlyStats needs from a fixed field list plus
  *  whatever numeric object holds the actual figures — shared by the per-GN and area-wide
- *  renderings so both stay in sync with the same field set. */
-function toStats(fields: { key: string; label: Translated }[], values: Record<string, number | undefined>): ReadOnlyStat[] {
-  return fields.map((f) => ({ key: f.key, label: f.label, value: values[f.key]?.toString() }));
+ *  renderings so both stay in sync with the same field set. `values` can be `undefined` — every
+ *  sub-group in this section's schema is optional at save time (a draft can be submitted, and
+ *  later approved, having only ever had some of its subsections filled in), so an approved
+ *  record's `health.institutionCounts` is not guaranteed to exist even though `HealthData`'s
+ *  strict type claims it always does. */
+function toStats(
+  fields: { key: string; label: Translated }[],
+  values: Record<string, number | undefined> | undefined
+): ReadOnlyStat[] {
+  return fields.map((f) => ({ key: f.key, label: f.label, value: values?.[f.key]?.toString() }));
 }
 
 /** Converts a repeatable-row object into the string-valued record ReadOnlyTable expects,
@@ -163,16 +170,16 @@ function HealthSectionContent({ section }: { section: HealthData }) {
     <div className="flex flex-col gap-8">
       <ReadOnlyStats title={healthDict.fields.institutionCounts} stats={toStats(INSTITUTION_COUNT_FIELDS, section.institutionCounts)} />
 
-      <ReadOnlyTable title={healthDict.fields.govtHospitalsDirectory} columns={GOVT_HOSPITAL_COLUMNS} rows={toRows(section.govtHospitalsDirectory)} />
-      <ReadOnlyTable title={healthDict.fields.primaryHealthcareUnitsDirectory} columns={PRIMARY_HEALTHCARE_UNIT_COLUMNS} rows={toRows(section.primaryHealthcareUnitsDirectory)} />
-      <ReadOnlyTable title={healthDict.fields.privateHospitalsDirectory} columns={PRIVATE_HOSPITAL_COLUMNS} rows={toRows(section.privateHospitalsDirectory)} />
-      <ReadOnlyTable title={healthDict.fields.ayurvedicInstitutions} columns={NAME_ADDRESS_COLUMNS} rows={toRows(section.ayurvedicInstitutions)} />
-      <ReadOnlyTable title={healthDict.fields.specialistServiceCentersDirectory} columns={NAME_ADDRESS_COLUMNS} rows={toRows(section.specialistServiceCentersDirectory)} />
-      <ReadOnlyTable title={healthDict.fields.mohOfficesDirectory} columns={NAME_ADDRESS_COLUMNS} rows={toRows(section.mohOfficesDirectory)} />
-      <ReadOnlyTable title={healthDict.fields.traditionalMedicineInstitutionsDirectory} columns={NAME_ADDRESS_COLUMNS} rows={toRows(section.traditionalMedicineInstitutionsDirectory)} />
-      <ReadOnlyTable title={healthDict.fields.privateMedicalLabsDirectory} columns={NAME_ADDRESS_COLUMNS} rows={toRows(section.privateMedicalLabsDirectory)} />
-      <ReadOnlyTable title={healthDict.fields.animalClinicsDirectory} columns={NAME_ADDRESS_COLUMNS} rows={toRows(section.animalClinicsDirectory)} />
-      <ReadOnlyTable title={healthDict.fields.traditionalPractitioners} columns={TRADITIONAL_PRACTITIONER_COLUMNS} rows={toRows(section.traditionalPractitioners)} />
+      <ReadOnlyTable title={healthDict.fields.govtHospitalsDirectory} columns={GOVT_HOSPITAL_COLUMNS} rows={toRows(section.govtHospitalsDirectory ?? [])} />
+      <ReadOnlyTable title={healthDict.fields.primaryHealthcareUnitsDirectory} columns={PRIMARY_HEALTHCARE_UNIT_COLUMNS} rows={toRows(section.primaryHealthcareUnitsDirectory ?? [])} />
+      <ReadOnlyTable title={healthDict.fields.privateHospitalsDirectory} columns={PRIVATE_HOSPITAL_COLUMNS} rows={toRows(section.privateHospitalsDirectory ?? [])} />
+      <ReadOnlyTable title={healthDict.fields.ayurvedicInstitutions} columns={NAME_ADDRESS_COLUMNS} rows={toRows(section.ayurvedicInstitutions ?? [])} />
+      <ReadOnlyTable title={healthDict.fields.specialistServiceCentersDirectory} columns={NAME_ADDRESS_COLUMNS} rows={toRows(section.specialistServiceCentersDirectory ?? [])} />
+      <ReadOnlyTable title={healthDict.fields.mohOfficesDirectory} columns={NAME_ADDRESS_COLUMNS} rows={toRows(section.mohOfficesDirectory ?? [])} />
+      <ReadOnlyTable title={healthDict.fields.traditionalMedicineInstitutionsDirectory} columns={NAME_ADDRESS_COLUMNS} rows={toRows(section.traditionalMedicineInstitutionsDirectory ?? [])} />
+      <ReadOnlyTable title={healthDict.fields.privateMedicalLabsDirectory} columns={NAME_ADDRESS_COLUMNS} rows={toRows(section.privateMedicalLabsDirectory ?? [])} />
+      <ReadOnlyTable title={healthDict.fields.animalClinicsDirectory} columns={NAME_ADDRESS_COLUMNS} rows={toRows(section.animalClinicsDirectory ?? [])} />
+      <ReadOnlyTable title={healthDict.fields.traditionalPractitioners} columns={TRADITIONAL_PRACTITIONER_COLUMNS} rows={toRows(section.traditionalPractitioners ?? [])} />
     </div>
   );
 }

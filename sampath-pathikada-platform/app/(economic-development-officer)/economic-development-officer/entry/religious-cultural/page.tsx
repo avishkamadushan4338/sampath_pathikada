@@ -121,6 +121,8 @@ export default function ReligiousCulturalPage() {
       saveStatus={status}
       saveErrorMessage={errorMessage}
       onSaveDraft={handleSave}
+      submission={submission}
+      sectionKey="religiousCultural"
     >
       <div className="flex flex-col gap-4">
         <h2 lang={lang} className={headingClass}>
@@ -252,7 +254,7 @@ export default function ReligiousCulturalPage() {
           name="traditionalArtists"
           title={religiousCulturalDict.fields.traditionalArtists}
           columns={traditionalArtistColumns}
-          emptyRowFactory={() => ({ name: "", artForm: "", description: "" })}
+          emptyRowFactory={() => ({ artForm: "", name: "", description: "" })}
         />
       </div>
     </SectionForm>

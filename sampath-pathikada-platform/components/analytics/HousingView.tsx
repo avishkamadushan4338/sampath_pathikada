@@ -95,9 +95,16 @@ const GN_DIVISION_COLUMN: ReadOnlyColumn = { key: "gnName", label: { en: "GN Div
 
 /** Builds the {key, label, value} triples ReadOnlyStats needs from a fixed field list plus
  *  whatever numeric object holds the actual figures — shared by the per-GN and area-wide
- *  renderings so both stay in sync with the same field set. */
-function toStats(fields: { key: string; label: Translated }[], values: Record<string, number | undefined>): ReadOnlyStat[] {
-  return fields.map((f) => ({ key: f.key, label: f.label, value: values[f.key]?.toString() }));
+ *  renderings so both stay in sync with the same field set. `values` can be `undefined` — every
+ *  sub-group in this section's schema is optional at save time (a draft can be submitted, and
+ *  later approved, having only ever had some of its subsections filled in), so an approved
+ *  record's `housing.sanitation` etc. is not guaranteed to exist even though `HousingData`'s
+ *  strict type claims it always does. */
+function toStats(
+  fields: { key: string; label: Translated }[],
+  values: Record<string, number | undefined> | undefined
+): ReadOnlyStat[] {
+  return fields.map((f) => ({ key: f.key, label: f.label, value: values?.[f.key]?.toString() }));
 }
 
 function toDrinkingWaterGroups(values: Record<string, number | undefined>): ReadOnlyStatGroup[] {
@@ -111,6 +118,20 @@ interface HousingNumericData {
   drinkingWaterSource: HousingData["drinkingWaterSource"];
   electricityAccess: HousingData["electricityAccess"];
 }
+
+// Every sub-group here is optional in the underlying schema (housingSchemaPartial) — a submission
+// can be approved having only ever had some of its subsections saved. `HousingData`'s strict type
+// claims these always exist, but at runtime they may not, so every read of an approved GN
+// division's `housing` section falls back to these zeroed shapes rather than assuming completeness.
+const EMPTY_HOUSING_COUNTS: HousingData["housingCounts"] = { total: 0, permanent: 0, semiPermanent: 0, nonPermanent: 0 };
+const EMPTY_SANITATION: HousingData["sanitation"] = { total: 0, withoutSafeSanitation: 0, needingAssistance: 0 };
+const EMPTY_DRINKING_WATER_SOURCE: HousingData["drinkingWaterSource"] = {
+  well: 0, tubeWell: 0, spring: 0, pipedNational: 0, pipedLocalGovt: 0, pipedCommunity: 0,
+  tankRiverCanalOther: 0, bottled: 0, treated: 0, bowser: 0, other: 0,
+};
+const EMPTY_ELECTRICITY_ACCESS: HousingData["electricityAccess"] = {
+  total: 0, withElectricity: 0, withSolar: 0, withoutElectricity: 0, needingAssistance: 0,
+};
 
 /** Table / Graph switch — a small segmented control, not a Tabs widget, since both modes show
  *  the exact same section (not separate content areas) and this reads as one persistent toggle. */
@@ -280,11 +301,11 @@ export function HousingView() {
           }
 
           const numericData: HousingNumericData = {
-            housingCounts: section.housingCounts,
-            householdsWithoutHousing: section.householdsWithoutHousing,
-            sanitation: section.sanitation,
-            drinkingWaterSource: section.drinkingWaterSource,
-            electricityAccess: section.electricityAccess,
+            housingCounts: section.housingCounts ?? EMPTY_HOUSING_COUNTS,
+            householdsWithoutHousing: section.householdsWithoutHousing ?? 0,
+            sanitation: section.sanitation ?? EMPTY_SANITATION,
+            drinkingWaterSource: section.drinkingWaterSource ?? EMPTY_DRINKING_WATER_SOURCE,
+            electricityAccess: section.electricityAccess ?? EMPTY_ELECTRICITY_ACCESS,
           };
 
           return (
@@ -297,7 +318,7 @@ export function HousingView() {
 
                   <ReadOnlyStats
                     title={housingDict.fields.householdsWithoutHousing}
-                    stats={[{ key: "value", label: { en: "Count", si: "ගණන" }, value: section.householdsWithoutHousing.toString() }]}
+                    stats={[{ key: "value", label: { en: "Count", si: "ගණන" }, value: section.householdsWithoutHousing?.toString() }]}
                   />
 
                   <ReadOnlyStats title={housingDict.fields.sanitation} stats={toStats(SANITATION_FIELDS, section.sanitation)} />
@@ -309,7 +330,7 @@ export function HousingView() {
               <ReadOnlyTable
                 title={housingDict.fields.underservedAreas}
                 columns={UNDERSERVED_AREA_COLUMNS}
-                rows={section.underservedAreas.map((row) => ({
+                rows={(section.underservedAreas ?? []).map((row) => ({
                   area: row.area,
                   difficultyDescription: row.difficultyDescription,
                   households: row.households?.toString(),
@@ -324,7 +345,7 @@ export function HousingView() {
               <ReadOnlyTable
                 title={housingDict.fields.communityWaterProjects}
                 columns={COMMUNITY_WATER_PROJECT_COLUMNS}
-                rows={section.communityWaterProjects.map((row) => ({
+                rows={(section.communityWaterProjects ?? []).map((row) => ({
                   name: row.name,
                   functional: row.functional,
                   householdsServed: row.householdsServed?.toString(),

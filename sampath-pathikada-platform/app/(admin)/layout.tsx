@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard, MapPinned, ChevronLeft, Menu, LogOut, Sun, Moon,
-  ChevronDown, ShieldCheck, Users, CalendarClock, ClipboardList,
+  ChevronDown, ShieldCheck, Users, CalendarClock, ClipboardList, Info,
 } from "lucide-react";
 import { RoleGuard } from "@/components/layout/RoleGuard";
 import { useSession } from "@/hooks/use-session";
@@ -29,6 +29,7 @@ const NAV = [
     label: "Division",
     items: [
       { href: "/admin/divisions", icon: MapPinned, label: "Division Summary" },
+      { href: "/admin/division-information", icon: Info, label: "Division Information" },
     ],
   },
   {

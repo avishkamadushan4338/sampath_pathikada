@@ -81,9 +81,16 @@ const HOUSEHOLD_FIELDS: { key: string; label: Translated }[] = [
 
 /** Builds the {key, label, value} triples ReadOnlyStats needs from a fixed field list plus
  *  whatever numeric object holds the actual figures — shared by the per-GN and area-wide
- *  renderings so both stay in sync with the same field set. */
-function toStats(fields: { key: string; label: Translated }[], values: Record<string, number | undefined>): ReadOnlyStat[] {
-  return fields.map((f) => ({ key: f.key, label: f.label, value: values[f.key]?.toString() }));
+ *  renderings so both stay in sync with the same field set. `values` can be `undefined` — every
+ *  sub-group in this section's schema is optional at save time (a draft can be submitted, and
+ *  later approved, having only ever had some of its subsections filled in), so an approved
+ *  record's `demographics.households` etc. is not guaranteed to exist even though
+ *  `DemographicsData`'s strict type claims it always does. */
+function toStats(
+  fields: { key: string; label: Translated }[],
+  values: Record<string, number | undefined> | undefined
+): ReadOnlyStat[] {
+  return fields.map((f) => ({ key: f.key, label: f.label, value: values?.[f.key]?.toString() }));
 }
 
 /** Converts a repeatable-row object into the string-valued record ReadOnlyTable expects,
@@ -161,25 +168,31 @@ export function DemographicsView() {
   );
 }
 
+// Every sub-group/array here is optional in the underlying schema (demographicsSchemaPartial) — a
+// submission can be approved having only ever had some of its subsections saved. `DemographicsData`'s
+// strict type claims these always exist, but at runtime they may not, so every read of an approved
+// GN division's `demographics` section falls back to an empty array/undefined rather than assuming
+// completeness. (Rows within an array that does exist are still guaranteed complete — the row
+// schemas themselves aren't partial, only the containing array/object is optional.)
 function DemographicsSectionContent({ section }: { section: DemographicsData }) {
-  const ageTotals = sumSex(section.populationByAge);
+  const ageTotals = sumSex(section.populationByAge ?? []);
   const foreignTotals = sumSex(section.foreignNationals ? [section.foreignNationals] : []);
   const voterTotals = sumSex(section.registeredVoters ? [section.registeredVoters] : []);
 
-  const ageRows = section.populationByAge.map((r) => ({ band: r.band, female: r.female, male: r.male, total: (r.female ?? 0) + (r.male ?? 0) }));
-  const ethnicityRows = section.populationByEthnicity.map((r) => ({
+  const ageRows = (section.populationByAge ?? []).map((r) => ({ band: r.band, female: r.female, male: r.male, total: (r.female ?? 0) + (r.male ?? 0) }));
+  const ethnicityRows = (section.populationByEthnicity ?? []).map((r) => ({
     ethnicity: r.ethnicity,
     female: r.female,
     male: r.male,
     total: (r.female ?? 0) + (r.male ?? 0),
   }));
-  const religionRows = section.populationByReligion.map((r) => ({
+  const religionRows = (section.populationByReligion ?? []).map((r) => ({
     religion: r.religion,
     female: r.female,
     male: r.male,
     total: (r.female ?? 0) + (r.male ?? 0),
   }));
-  const disabilityRows = section.disabilities.map((r) => ({
+  const disabilityRows = (section.disabilities ?? []).map((r) => ({
     type: r.type,
     under18Female: r.under18.female,
     under18Male: r.under18.male,

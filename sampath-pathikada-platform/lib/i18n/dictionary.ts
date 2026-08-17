@@ -11,6 +11,27 @@ export const dictionary = {
     en: "This submission has already been submitted and can no longer be edited.",
     si: "මෙම ඉදිරිපත් කිරීම දැනටමත් ඉදිරිපත් කර ඇති අතර තවදුරටත් සංස්කරණය කළ නොහැක.",
   } satisfies Translated,
+  saveAndResubmit: { en: "Save & Resubmit Section", si: "සුරකා නැවත ඉදිරිපත් කරන්න" } satisfies Translated,
+  sectionAwaitingReview: {
+    en: "This section has been submitted and is awaiting review. You'll be able to edit it again only if the Divisional Secretariat requests a revision.",
+    si: "මෙම කොටස ඉදිරිපත් කර ඇති අතර සමාලෝචනය බලාපොරොත්තුවෙන් පවතී. ප්‍රාදේශීය ලේකම් කාර්යාලය සංශෝධනයක් ඉල්ලා සිටියහොත් පමණක් ඔබට එය නැවත සංස්කරණය කළ හැක.",
+  } satisfies Translated,
+  sectionApprovedLocked: {
+    en: "This section has been approved by the Divisional Secretariat and can no longer be edited.",
+    si: "මෙම කොටස ප්‍රාදේශීය ලේකම් කාර්යාලය විසින් අනුමත කර ඇති අතර තවදුරටත් සංස්කරණය කළ නොහැක.",
+  } satisfies Translated,
+  sectionRevisionRequested: {
+    en: "The Divisional Secretariat has requested a revision of this section.",
+    si: "ප්‍රාදේශීය ලේකම් කාර්යාලය මෙම කොටසෙහි සංශෝධනයක් ඉල්ලා ඇත.",
+  } satisfies Translated,
+  sectionRevisionSaveHint: {
+    en: "Saving your changes will send this section back for review.",
+    si: "ඔබගේ වෙනස්කම් සුරැකීමෙන් මෙම කොටස නැවත සමාලෝචනය සඳහා යවනු ලැබේ.",
+  } satisfies Translated,
+  approveSection: { en: "Approve Section", si: "කොටස අනුමත කරන්න" } satisfies Translated,
+  requestSectionRevision: { en: "Request Revision", si: "සංශෝධනයක් ඉල්ලන්න" } satisfies Translated,
+  approveAllRemaining: { en: "Approve All Remaining", si: "ඉතිරි සියල්ල අනුමත කරන්න" } satisfies Translated,
+  sectionReviewPending: { en: "Pending Review", si: "සමාලෝචනය බලාපොරොත්තුවෙන්" } satisfies Translated,
   add: { en: "Add Row", si: "පේළියක් එක් කරන්න" } satisfies Translated,
   delete: { en: "Delete", si: "මකන්න" } satisfies Translated,
   deleteConfirm: { en: "This row has data. Delete it anyway?", si: "මෙම පේළියේ දත්ත ඇත. එසේ වුවත් මකන්නද?" } satisfies Translated,

@@ -3,10 +3,11 @@
 import { use, useRef, useState, type WheelEvent } from "react";
 import { useRouter } from "next/navigation";
 import useSWR from "swr";
-import { CheckCircle2, XCircle, MessageSquareWarning, ArrowLeft, Loader2, ChartColumn } from "lucide-react";
+import { CheckCircle2, XCircle, ArrowLeft, Loader2, ChartColumn } from "lucide-react";
 import Link from "next/link";
 import { Bilingual } from "@/components/Bilingual";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
+import { dictionary } from "@/lib/i18n/dictionary";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -20,11 +21,21 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { SectionDetailViewer } from "@/components/review/SectionDetailViewer";
+import { SectionReviewBar } from "@/components/review/SectionReviewBar";
 import { DivisionGraphs } from "@/components/review/DivisionGraphs";
 import { SECTION_KEYS } from "@/lib/types/submission";
 import { SECTION_META } from "@/lib/i18n/section-meta";
 import { DISTRICTS, GN_DIVISIONS } from "@/lib/registration-data";
-import { STATUS_LABEL, STATUS_BADGE_CLASS, STATUS_ICON, type SubmissionStatus } from "@/lib/status-ui";
+import {
+  STATUS_LABEL,
+  STATUS_BADGE_CLASS,
+  STATUS_ICON,
+  SECTION_REVIEW_BADGE_CLASS,
+  SECTION_REVIEW_ICON,
+  SECTION_REVIEW_LABEL,
+  type SubmissionStatus,
+} from "@/lib/status-ui";
+import { parseSectionReviews, getSectionReviewState, countSectionReviews, isUnderReview } from "@/lib/submission-review";
 import { toast } from "sonner";
 
 interface SubmissionDetail {
@@ -35,6 +46,7 @@ interface SubmissionDetail {
   gnDivision: string;
   status: SubmissionStatus;
   data: Record<string, unknown>;
+  sectionReviews: unknown;
   submittedBy: { name: string; email: string; phone: string | null; nic: string | null };
 }
 
@@ -45,7 +57,7 @@ const fetcher = async (url: string) => {
   return json.data as SubmissionDetail;
 };
 
-type DecisionAction = "approve" | "reject" | "request-revision";
+type DecisionAction = "approve" | "reject";
 
 function DetailSkeleton() {
   return (
@@ -94,8 +106,16 @@ export default function ReviewDetailPage({ params }: { params: Promise<{ divisio
       toast.success(lang === "si" ? "තීරණය සටහන් කරන ලදී" : "Decision recorded");
       setPendingAction(null);
       setNote("");
-      mutate();
-      router.push("/divisional-secretariat/review");
+      // The PATCH response doesn't include the `submittedBy` join the GET route adds, so merge
+      // onto the existing cache instead of replacing it wholesale — avoids a second round trip
+      // to refetch fields that didn't change, without dropping the ones the response lacks.
+      mutate((prev) => (prev ? { ...prev, ...json.data } : json.data), { revalidate: false });
+      // Reject is always terminal; "approve" (Approve All Remaining) is only terminal once it
+      // actually completes full approval — otherwise sections still flagged REVISION_NEEDED
+      // remain, and the DS stays on this page to keep working through them.
+      if (json.data.status === "APPROVED" || json.data.status === "REJECTED") {
+        router.push("/divisional-secretariat/review");
+      }
     } finally {
       setSubmitting(false);
     }
@@ -108,6 +128,10 @@ export default function ReviewDetailPage({ params }: { params: Promise<{ divisio
   const gn = GN_DIVISIONS.find((g) => g.id === submission.gnDivision);
   const district = DISTRICTS.find((d) => d.id === submission.district);
   const StatusIcon = STATUS_ICON[submission.status];
+  const reviews = parseSectionReviews(submission.sectionReviews);
+  const counts = countSectionReviews(reviews);
+  const underReview = isUnderReview(submission.status);
+  const decidedCount = counts.approved + counts.revisionNeeded;
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 lg:px-8">
@@ -138,16 +162,17 @@ export default function ReviewDetailPage({ params }: { params: Promise<{ divisio
             </p>
           </div>
 
-          {submission.status === "SUBMITTED" && (
-            <div className="flex shrink-0 flex-wrap gap-2">
-              <Button className="touch-target gap-1.5" onClick={() => setPendingAction("approve")}>
-                <CheckCircle2 className="size-4" />
-                <Bilingual en="Approve" si="අනුමත කරන්න" />
-              </Button>
-              <Button variant="outline" className="touch-target gap-1.5" onClick={() => setPendingAction("request-revision")}>
-                <MessageSquareWarning className="size-4" />
-                <Bilingual en="Request Revision" si="සංශෝධනයක් ඉල්ලන්න" />
-              </Button>
+          {underReview && (
+            <div className="flex shrink-0 flex-wrap items-center gap-2">
+              <span className="text-fluid-xs text-muted-foreground nums-tabular">
+                {decidedCount}/{counts.total} <Bilingual en="sections reviewed" si="කොටස් සමාලෝචනය කර ඇත" />
+              </span>
+              {counts.pending > 0 && (
+                <Button className="touch-target gap-1.5" onClick={() => setPendingAction("approve")}>
+                  <CheckCircle2 className="size-4" />
+                  <Bilingual {...dictionary.approveAllRemaining} />
+                </Button>
+              )}
               <Button variant="destructive" className="touch-target gap-1.5" onClick={() => setPendingAction("reject")}>
                 <XCircle className="size-4" />
                 <Bilingual en="Reject" si="ප්‍රතික්ෂේප කරන්න" />
@@ -170,6 +195,8 @@ export default function ReviewDetailPage({ params }: { params: Promise<{ divisio
             {SECTION_KEYS.map((key) => {
               const meta = SECTION_META[key];
               const Icon = meta.icon;
+              const state = getSectionReviewState(reviews, key);
+              const StateIcon = SECTION_REVIEW_ICON[state];
               return (
                 <TabsTrigger key={key} value={key} className="gap-1.5 whitespace-nowrap">
                   <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-muted text-[10px] font-semibold nums-tabular">
@@ -178,6 +205,12 @@ export default function ReviewDetailPage({ params }: { params: Promise<{ divisio
                   <Icon className="size-3.5 shrink-0" aria-hidden="true" />
                   <span className={lang === "si" ? "font-si" : "font-ui"}>
                     {lang === "si" ? meta.title.si : meta.title.en}
+                  </span>
+                  <span
+                    className={`flex size-4 shrink-0 items-center justify-center rounded-full border ${SECTION_REVIEW_BADGE_CLASS[state]}`}
+                    title={SECTION_REVIEW_LABEL[state][lang]}
+                  >
+                    <StateIcon className="size-2.5" aria-hidden="true" />
                   </span>
                 </TabsTrigger>
               );
@@ -191,6 +224,13 @@ export default function ReviewDetailPage({ params }: { params: Promise<{ divisio
 
         {SECTION_KEYS.map((key) => (
           <TabsContent key={key} value={key} className="rounded-xl border border-border bg-card p-4 sm:p-6">
+            <SectionReviewBar
+              submissionId={divisionId}
+              sectionKey={key}
+              review={reviews[key]}
+              canDecide={underReview}
+              onDecided={(data) => mutate((prev) => (prev ? { ...prev, ...(data as Partial<SubmissionDetail>) } : prev), { revalidate: false })}
+            />
             <SectionDetailViewer sectionKey={key} data={submission.data[key] as Record<string, unknown> | undefined} />
           </TabsContent>
         ))}
@@ -200,14 +240,13 @@ export default function ReviewDetailPage({ params }: { params: Promise<{ divisio
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {pendingAction === "approve" && <Bilingual en="Approve this submission?" si="මෙම ඉදිරිපත් කිරීම අනුමත කරන්නද?" />}
-              {pendingAction === "reject" && <Bilingual en="Reject this submission?" si="මෙම ඉදිරිපත් කිරීම ප්‍රතික්ෂේප කරන්නද?" />}
-              {pendingAction === "request-revision" && (
-                <Bilingual en="Request revision?" si="සංශෝධනයක් ඉල්ලන්නද?" />
+              {pendingAction === "approve" && (
+                <Bilingual en="Approve all remaining sections?" si="ඉතිරි සියලුම කොටස් අනුමත කරන්නද?" />
               )}
+              {pendingAction === "reject" && <Bilingual en="Reject this submission?" si="මෙම ඉදිරිපත් කිරීම ප්‍රතික්ෂේප කරන්නද?" />}
             </DialogTitle>
           </DialogHeader>
-          {pendingAction !== "approve" && (
+          {pendingAction === "reject" && (
             <Textarea
               value={note}
               onChange={(e) => setNote(e.target.value)}
@@ -221,7 +260,7 @@ export default function ReviewDetailPage({ params }: { params: Promise<{ divisio
             </Button>
             <Button
               onClick={handleDecision}
-              disabled={submitting || (pendingAction !== "approve" && !note.trim())}
+              disabled={submitting || (pendingAction === "reject" && !note.trim())}
               className="gap-2"
             >
               {submitting && <Loader2 className="size-4 animate-spin" />}

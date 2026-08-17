@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Prisma } from "@/lib/prisma-client";
 import prisma from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import { SECTION_KEYS, type SubmissionData } from "@/lib/types/submission";
+import { parseSectionReviews, deriveSubmissionStatus } from "@/lib/submission-review";
 import { verifyOrigin } from "@/lib/csrf";
+import { logAudit } from "@/lib/audit-log";
 
 function parseYear(raw: string): number | null {
   const year = Number(raw);
@@ -56,26 +59,50 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ yea
     );
   }
 
-  const updated = await prisma.submission.update({
-    where: { id: submission.id },
-    data: {
-      status: "SUBMITTED",
-      rejectionNote: null,
-      reviewedById: null,
-      reviewedAt: null,
-    },
-  });
+  // Resubmitting from REVISION_NEEDED clears only the sections that were actually flagged (back
+  // to pending, so the DS looks at them again) and keeps any sections the DS already approved —
+  // a fresh DRAFT submission has no reviews yet, so this is a no-op for the first-time-submit
+  // case and `deriveSubmissionStatus` correctly returns "SUBMITTED" either way. reviewedById/At
+  // are left as-is (not nulled) since they now track "who last decided on any section", which a
+  // resubmit shouldn't erase for the sections that remain approved.
+  //
+  // A DS could be deciding a different section at the same moment the officer clicks this
+  // button — same `sectionReviews` race as the review routes, same locking-read fix.
+  const updated = await prisma.$transaction(
+    async (tx) => {
+      await tx.$queryRaw`SELECT id FROM submissions WHERE id = ${submission.id} FOR UPDATE`;
+      const row = await tx.submission.findUnique({ where: { id: submission.id } });
+      if (!row) return null;
 
-  await prisma.auditLog.create({
-    data: {
-      action: "Submission Submitted",
-      description: `${session.name} submitted the ${year} annual report for ${submission.gnDivision}`,
-      category: "DATA",
-      severity: "SUCCESS",
-      userId: session.userId,
-      userName: session.name,
-      metadata: { submissionId: submission.id, year },
+      const nextReviews = { ...parseSectionReviews(row.sectionReviews) };
+      for (const key of SECTION_KEYS) {
+        if (nextReviews[key]?.status === "REVISION_NEEDED") delete nextReviews[key];
+      }
+
+      return tx.submission.update({
+        where: { id: row.id },
+        data: {
+          status: deriveSubmissionStatus(nextReviews),
+          sectionReviews: nextReviews as Prisma.InputJsonValue,
+          rejectionNote: null,
+        },
+      });
     },
+    { isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted, timeout: 10_000 }
+  );
+
+  if (!updated) {
+    return NextResponse.json({ ok: false, message: "Submission not found." }, { status: 404 });
+  }
+
+  logAudit({
+    action: "Submission Submitted",
+    description: `${session.name} submitted the ${year} annual report for ${submission.gnDivision}`,
+    category: "DATA",
+    severity: "SUCCESS",
+    userId: session.userId,
+    userName: session.name,
+    metadata: { submissionId: submission.id, year },
   });
 
   return NextResponse.json({ ok: true, data: updated });

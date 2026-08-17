@@ -65,42 +65,56 @@ function toRows(rows: Record<string, unknown>[]): Record<string, string | undefi
   });
 }
 
-function religiousSiteCountGroups(counts: ReligiousCulturalData["religiousSiteCounts"]): ReadOnlyStatGroup[] {
+// Every sub-group here (temples/meheniArama/kovils/mosques/churches) is optional in the
+// underlying schema (religiousCulturalSchemaPartial) — a submission can be approved having only
+// ever had some of religiousSiteCounts' subsections saved, or `religiousSiteCounts` itself never
+// saved at all. `ReligiousCulturalData`'s strict type claims these always exist, but at runtime
+// they may not, so every read falls back to these zeroed shapes rather than assuming completeness.
+const EMPTY_SITE_COUNT: { count: number; clergyCount: number } = { count: 0, clergyCount: 0 };
+const EMPTY_CHURCH_COUNT: { count: number; priestsCount: number; nunsCount: number } = { count: 0, priestsCount: 0, nunsCount: 0 };
+
+function religiousSiteCountGroups(counts: Partial<ReligiousCulturalData["religiousSiteCounts"]> | undefined): ReadOnlyStatGroup[] {
+  const temples = counts?.temples ?? EMPTY_SITE_COUNT;
+  const meheniArama = counts?.meheniArama ?? EMPTY_SITE_COUNT;
+  const mosques = counts?.mosques ?? EMPTY_SITE_COUNT;
+  const churches = counts?.churches ?? EMPTY_CHURCH_COUNT;
+  const kovils = counts?.kovils ?? EMPTY_SITE_COUNT;
+
   return [
     {
       label: { en: "Buddhist Temples / Hermitages / Monasteries / Asapu", si: "බෞද්ධ පන්සල්/සේනාසන/ආරාම/අසපු" },
       stats: [
-        { key: "temples-count", label: { en: "Number of Places", si: "ස්ථාන ගණන" }, value: counts.temples.count.toString() },
-        { key: "temples-clergy", label: { en: "Buddhist Monks", si: "බුද්ධ ස්වාමීන් වහන්සේලා" }, value: counts.temples.clergyCount.toString() },
+        { key: "temples-count", label: { en: "Number of Places", si: "ස්ථාන ගණන" }, value: temples.count.toString() },
+        { key: "temples-clergy", label: { en: "Buddhist Monks", si: "බුද්ධ ස්වාමීන් වහන්සේලා" }, value: temples.clergyCount.toString() },
       ],
     },
     {
       label: { en: "Nunneries / Meheni Arama", si: "මෙහෙණි ආරාම" },
       stats: [
-        { key: "meheni-count", label: { en: "Number of Places", si: "ස්ථාන ගණන" }, value: counts.meheniArama.count.toString() },
-        { key: "meheni-clergy", label: { en: "Buddhist Nuns", si: "මෙහෙණි වහන්සේලා" }, value: counts.meheniArama.clergyCount.toString() },
+        { key: "meheni-count", label: { en: "Number of Places", si: "ස්ථාන ගණන" }, value: meheniArama.count.toString() },
+        { key: "meheni-clergy", label: { en: "Buddhist Nuns", si: "මෙහෙණි වහන්සේලා" }, value: meheniArama.clergyCount.toString() },
       ],
     },
     {
       label: { en: "Mosques", si: "පල්ලි" },
       stats: [
-        { key: "mosque-count", label: { en: "Number of Places", si: "ස්ථාන ගණන" }, value: counts.mosques.count.toString() },
-        { key: "mosque-clergy", label: { en: "Mawlawis", si: "මෝල්වි" }, value: counts.mosques.clergyCount.toString() },
+        { key: "mosque-count", label: { en: "Number of Places", si: "ස්ථාන ගණන" }, value: mosques.count.toString() },
+        { key: "mosque-clergy", label: { en: "Mawlawis", si: "මෝල්වි" }, value: mosques.clergyCount.toString() },
       ],
     },
     {
       label: { en: "Catholic Churches", si: "කතෝලික පල්ලි" },
       stats: [
-        { key: "church-count", label: { en: "Number of Places", si: "ස්ථාන ගණන" }, value: counts.churches.count.toString() },
-        { key: "church-priests", label: { en: "Priests", si: "පියතුමන්ලා" }, value: counts.churches.priestsCount.toString() },
-        { key: "church-nuns", label: { en: "Nuns / Sisters", si: "කන්‍යා සොයුරියන්" }, value: counts.churches.nunsCount.toString() },
+        { key: "church-count", label: { en: "Number of Places", si: "ස්ථාන ගණන" }, value: churches.count.toString() },
+        { key: "church-priests", label: { en: "Priests", si: "පියතුමන්ලා" }, value: churches.priestsCount.toString() },
+        { key: "church-nuns", label: { en: "Nuns / Sisters", si: "කන්‍යා සොයුරියන්" }, value: churches.nunsCount.toString() },
       ],
     },
     {
       label: { en: "Hindu Kovils / Temples", si: "හින්දු කෝවිල්" },
       stats: [
-        { key: "kovil-count", label: { en: "Number of Places", si: "ස්ථාන ගණන" }, value: counts.kovils.count.toString() },
-        { key: "kovil-clergy", label: { en: "Priests / Poojaris", si: "පූජක වරුන්" }, value: counts.kovils.clergyCount.toString() },
+        { key: "kovil-count", label: { en: "Number of Places", si: "ස්ථාන ගණන" }, value: kovils.count.toString() },
+        { key: "kovil-clergy", label: { en: "Priests / Poojaris", si: "පූජක වරුන්" }, value: kovils.clergyCount.toString() },
       ],
     },
   ];
@@ -165,9 +179,9 @@ function ReligiousCulturalSectionContent({ section }: { section: ReligiousCultur
   return (
     <div className="flex flex-col gap-8">
       <ReadOnlyStats title={religiousCulturalDict.fields.religiousSiteCounts} groups={religiousSiteCountGroups(section.religiousSiteCounts)} />
-      <ReadOnlyTable title={religiousCulturalDict.fields.heritageSites} columns={HERITAGE_SITE_COLUMNS} rows={toRows(section.heritageSites)} />
-      <ReadOnlyTable title={religiousCulturalDict.fields.artAcademies} columns={ART_ACADEMY_COLUMNS} rows={toRows(section.artAcademies)} />
-      <ReadOnlyTable title={religiousCulturalDict.fields.traditionalArtists} columns={TRADITIONAL_ARTIST_COLUMNS} rows={toRows(section.traditionalArtists)} />
+      <ReadOnlyTable title={religiousCulturalDict.fields.heritageSites} columns={HERITAGE_SITE_COLUMNS} rows={toRows(section.heritageSites ?? [])} />
+      <ReadOnlyTable title={religiousCulturalDict.fields.artAcademies} columns={ART_ACADEMY_COLUMNS} rows={toRows(section.artAcademies ?? [])} />
+      <ReadOnlyTable title={religiousCulturalDict.fields.traditionalArtists} columns={TRADITIONAL_ARTIST_COLUMNS} rows={toRows(section.traditionalArtists ?? [])} />
     </div>
   );
 }

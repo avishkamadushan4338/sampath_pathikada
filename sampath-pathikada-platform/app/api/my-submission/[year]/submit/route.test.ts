@@ -15,6 +15,8 @@ const mockPrisma = {
   auditLog: {
     create: vi.fn(),
   },
+  $transaction: vi.fn(),
+  $queryRaw: vi.fn(),
 };
 vi.mock("@/lib/db", () => ({ default: mockPrisma, prisma: mockPrisma }));
 
@@ -51,6 +53,8 @@ describe("POST /api/my-submission/[year]/submit", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockPrisma.$transaction.mockImplementation(async (fn: (tx: typeof mockPrisma) => Promise<unknown>) => fn(mockPrisma));
+    mockPrisma.$queryRaw.mockResolvedValue(undefined);
   });
 
   it("rejects a mismatched origin (CSRF)", async () => {
@@ -113,33 +117,34 @@ describe("POST /api/my-submission/[year]/submit", () => {
     expect(res.status).toBe(409);
   });
 
-  it("allows resubmitting a REVISION_NEEDED submission and clears the prior review", async () => {
+  it("allows resubmitting a REVISION_NEEDED submission, clearing only the flagged sections and keeping approved ones", async () => {
     mockGetSession.mockResolvedValue(EDO_SESSION);
-    mockPrisma.submission.findUnique.mockResolvedValue({
+    const row = {
       id: "sub-1",
       submittedById: "officer-1",
-      status: "REVISION_NEEDED",
+      status: "REVISION_NEEDED" as const,
       data: allSectionsFilled(),
       gnDivision: "galle-fort",
       rejectionNote: "Missing tea estate data",
       reviewedById: "ds-1",
-    });
-    mockPrisma.submission.update.mockResolvedValue({ id: "sub-1", status: "SUBMITTED" });
+      sectionReviews: {
+        [SECTION_KEYS[0]]: { status: "REVISION_NEEDED", note: "Fix this", reviewedById: "ds-1", reviewedAt: "2026-01-01T00:00:00.000Z" },
+        [SECTION_KEYS[1]]: { status: "APPROVED", note: null, reviewedById: "ds-1", reviewedAt: "2026-01-01T00:00:00.000Z" },
+      },
+    };
+    mockPrisma.submission.findUnique.mockResolvedValue(row);
+    mockPrisma.submission.update.mockResolvedValue({ ...row, status: "SUBMITTED" });
 
     const res = await POST(postRequest(`${APP_URL}/api/my-submission/2026/submit`), {
       params: Promise.resolve({ year: "2026" }),
     });
 
     expect(res.status).toBe(200);
-    expect(mockPrisma.submission.update).toHaveBeenCalledWith({
-      where: { id: "sub-1" },
-      data: {
-        status: "SUBMITTED",
-        rejectionNote: null,
-        reviewedById: null,
-        reviewedAt: null,
-      },
-    });
+    const updateArg = mockPrisma.submission.update.mock.calls[0][0];
+    expect(updateArg.data.status).toBe("SUBMITTED");
+    expect(updateArg.data.rejectionNote).toBeNull();
+    expect(updateArg.data.sectionReviews[SECTION_KEYS[0]]).toBeUndefined();
+    expect(updateArg.data.sectionReviews[SECTION_KEYS[1]]).toEqual(row.sectionReviews[SECTION_KEYS[1]]);
   });
 
   it("submits successfully once every section has been saved", async () => {

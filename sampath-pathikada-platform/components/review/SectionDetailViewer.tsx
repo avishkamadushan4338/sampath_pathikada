@@ -18,10 +18,21 @@ function humanizeKey(key: string): string {
     .replace(/^./, (c) => c.toUpperCase());
 }
 
-function resolveLabel(sectionKey: SectionKey, fieldKey: string, lang: "en" | "si"): string {
+/** `parentKey` is the immediate containing field's key (an array field like `pirivenas`, or a
+ *  nested-object field like `institutionCounts`) — the same generic key (`name`, `type`, ...)
+ *  can mean different things in different rows/objects within one section, so a `"<parent>.<key>"`
+ *  entry in `dict.rows` is tried first; a flat `dict.rows[key]` entry covers keys that mean the
+ *  same thing everywhere in the section. */
+function resolveLabel(sectionKey: SectionKey, fieldKey: string, lang: "en" | "si", parentKey?: string): string {
   const dict = SECTION_DICTS[sectionKey];
-  const entry = dict?.fields?.[fieldKey];
-  if (entry) return lang === "si" ? entry.si : entry.en;
+  if (parentKey) {
+    const compound = dict?.rows?.[`${parentKey}.${fieldKey}`];
+    if (compound) return lang === "si" ? compound.si : compound.en;
+  }
+  const topLevel = dict?.fields?.[fieldKey];
+  if (topLevel) return lang === "si" ? topLevel.si : topLevel.en;
+  const row = dict?.rows?.[fieldKey];
+  if (row) return lang === "si" ? row.si : row.en;
   return humanizeKey(fieldKey);
 }
 
@@ -36,16 +47,16 @@ function ScalarValue({ value }: { value: unknown }) {
 }
 
 /** Renders a nested plain object (not an array) as an indented label/value block. */
-function NestedObjectBlock({ sectionKey, data }: { sectionKey: SectionKey; data: Record<string, unknown> }) {
+function NestedObjectBlock({ sectionKey, data, parentKey }: { sectionKey: SectionKey; data: Record<string, unknown>; parentKey?: string }) {
   const { lang } = useLanguage();
   return (
     <dl className="grid grid-cols-[repeat(auto-fit,minmax(160px,1fr))] gap-x-4 gap-y-2 rounded-md border border-border bg-muted/20 p-3">
       {Object.entries(data).map(([key, value]) => (
         <div key={key} className="flex flex-col gap-0.5">
-          <dt className="text-fluid-xs font-medium text-muted-foreground">{resolveLabel(sectionKey, key, lang)}</dt>
+          <dt className="text-fluid-xs font-medium text-muted-foreground">{resolveLabel(sectionKey, key, lang, parentKey)}</dt>
           <dd className="text-fluid-sm text-foreground">
             {value !== null && typeof value === "object" && !Array.isArray(value) ? (
-              <NestedObjectBlock sectionKey={sectionKey} data={value as Record<string, unknown>} />
+              <NestedObjectBlock sectionKey={sectionKey} data={value as Record<string, unknown>} parentKey={key} />
             ) : (
               <ScalarValue value={value} />
             )}
@@ -56,18 +67,31 @@ function NestedObjectBlock({ sectionKey, data }: { sectionKey: SectionKey; data:
   );
 }
 
+/** A single row/table cell — a plain scalar most of the time, but some rows carry a nested object
+ *  (e.g. an age-bracket row split into `under18: {male, female}` / `over18: {male, female}`),
+ *  which needs the same label/value block treatment as a top-level nested object, not `String()`. */
+function RowCellValue({ sectionKey, parentKey, value }: { sectionKey: SectionKey; parentKey: string; value: unknown }) {
+  if (value !== null && typeof value === "object" && !Array.isArray(value)) {
+    return <NestedObjectBlock sectionKey={sectionKey} data={value as Record<string, unknown>} parentKey={parentKey} />;
+  }
+  return <ScalarValue value={value} />;
+}
+
 /** Renders an array of row objects as a real table — the repeatable-row pattern used across every section. */
-function RowsTable({ sectionKey, rows }: { sectionKey: SectionKey; rows: Record<string, unknown>[] }) {
+function RowsTable({ sectionKey, parentKey, rows }: { sectionKey: SectionKey; parentKey: string; rows: Record<string, unknown>[] }) {
   const { lang } = useLanguage();
   if (rows.length === 0) {
     return <p className="text-fluid-sm text-muted-foreground">—</p>;
   }
-  const columns = Array.from(
+  const allColumns = Array.from(
     rows.reduce((set, row) => {
       Object.keys(row).forEach((k) => set.add(k));
       return set;
     }, new Set<string>())
   );
+  // A `${col}Label` sibling (e.g. `type` + `typeLabel`) is the raw enum kept only for internal
+  // matching, with its human-readable counterpart stored right alongside it — show only the label.
+  const columns = allColumns.filter((col) => !allColumns.includes(`${col}Label`));
 
   return (
     <div className="overflow-hidden rounded-md border border-border">
@@ -76,7 +100,7 @@ function RowsTable({ sectionKey, rows }: { sectionKey: SectionKey; rows: Record<
           <TableRow className="bg-muted/40 hover:bg-muted/40">
             {columns.map((col) => (
               <TableHead key={col} className="text-fluid-xs">
-                {resolveLabel(sectionKey, col, lang)}
+                {resolveLabel(sectionKey, col, lang, parentKey)}
               </TableHead>
             ))}
           </TableRow>
@@ -86,7 +110,7 @@ function RowsTable({ sectionKey, rows }: { sectionKey: SectionKey; rows: Record<
             <TableRow key={i}>
               {columns.map((col) => (
                 <TableCell key={col} className="text-fluid-sm whitespace-normal">
-                  <ScalarValue value={row[col]} />
+                  <RowCellValue sectionKey={sectionKey} parentKey={parentKey} value={row[col]} />
                 </TableCell>
               ))}
             </TableRow>
@@ -123,7 +147,7 @@ export function SectionDetailViewer({ sectionKey, data }: SectionDetailViewerPro
           return (
             <div key={key} className="flex flex-col gap-2">
               <h3 className="text-fluid-sm font-semibold text-foreground">{label}</h3>
-              <RowsTable sectionKey={sectionKey} rows={value as Record<string, unknown>[]} />
+              <RowsTable sectionKey={sectionKey} parentKey={key} rows={value as Record<string, unknown>[]} />
             </div>
           );
         }
@@ -132,7 +156,7 @@ export function SectionDetailViewer({ sectionKey, data }: SectionDetailViewerPro
           return (
             <div key={key} className="flex flex-col gap-2">
               <h3 className="text-fluid-sm font-semibold text-foreground">{label}</h3>
-              <NestedObjectBlock sectionKey={sectionKey} data={value as Record<string, unknown>} />
+              <NestedObjectBlock sectionKey={sectionKey} data={value as Record<string, unknown>} parentKey={key} />
             </div>
           );
         }

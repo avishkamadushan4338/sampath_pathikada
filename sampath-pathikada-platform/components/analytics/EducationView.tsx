@@ -71,16 +71,20 @@ const SEX_COUNT_FIELDS: { key: string; label: Translated }[] = [
 ];
 
 /** Appends a live-computed "Total" stat to a female/male stat pair — mirrors the entry form's
- *  computed total field for the same two counts. */
-function withSexTotal(stats: ReadOnlyStat[], values: Record<string, number | undefined>): ReadOnlyStat[] {
-  const total = (values.male ?? 0) + (values.female ?? 0);
+ *  computed total field for the same two counts. `values` can be `undefined` — every sub-group in
+ *  this section's schema is optional at save time (a draft can be submitted, and later approved,
+ *  having only ever had some of its subsections filled in), so an approved record's
+ *  `education.outOfSchoolChildren` etc. is not guaranteed to exist even though `EducationData`'s
+ *  strict type claims it always does. */
+function withSexTotal(stats: ReadOnlyStat[], values: Record<string, number | undefined> | undefined): ReadOnlyStat[] {
+  const total = (values?.male ?? 0) + (values?.female ?? 0);
   return [...stats, { key: "total", label: { en: "Total", si: "එකතුව" }, value: total.toString() }];
 }
 
 /** Appends a live-computed "Total School Count" stat — mirrors the entry form's computed total
  *  across the 5 school-count-by-type fields. */
-function withSchoolCountTotal(stats: ReadOnlyStat[], values: Record<string, number | undefined>): ReadOnlyStat[] {
-  const total = SCHOOL_COUNT_BY_TYPE_FIELDS.reduce((sum, f) => sum + (values[f.key] ?? 0), 0);
+function withSchoolCountTotal(stats: ReadOnlyStat[], values: Record<string, number | undefined> | undefined): ReadOnlyStat[] {
+  const total = SCHOOL_COUNT_BY_TYPE_FIELDS.reduce((sum, f) => sum + (values?.[f.key] ?? 0), 0);
   return [...stats, { key: "total", label: { en: "Total School Count", si: "මුළු පාසල් සංඛ්‍යාව" }, value: total.toString() }];
 }
 
@@ -172,9 +176,16 @@ const TUITION_CENTER_COLUMNS: ReadOnlyColumn[] = [
 
 /** Builds the {key, label, value} triples ReadOnlyStats needs from a fixed field list plus
  *  whatever numeric object holds the actual figures — shared by the per-GN and area-wide
- *  renderings so both stay in sync with the same field set. */
-function toStats(fields: { key: string; label: Translated }[], values: Record<string, number | undefined>): ReadOnlyStat[] {
-  return fields.map((f) => ({ key: f.key, label: f.label, value: values[f.key]?.toString() }));
+ *  renderings so both stay in sync with the same field set. `values` can be `undefined` — every
+ *  sub-group in this section's schema is optional at save time (a draft can be submitted, and
+ *  later approved, having only ever had some of its subsections filled in), so an approved
+ *  record's `education.institutionCounts` etc. is not guaranteed to exist even though
+ *  `EducationData`'s strict type claims it always does. */
+function toStats(
+  fields: { key: string; label: Translated }[],
+  values: Record<string, number | undefined> | undefined
+): ReadOnlyStat[] {
+  return fields.map((f) => ({ key: f.key, label: f.label, value: values?.[f.key]?.toString() }));
 }
 
 /** Converts a repeatable-row object into the string-valued record ReadOnlyTable expects,
@@ -254,16 +265,16 @@ function EducationSectionContent({ section }: { section: EducationData }) {
         stats={withSchoolCountTotal(toStats(SCHOOL_COUNT_BY_TYPE_FIELDS, section.schoolCountsByType), section.schoolCountsByType)}
       />
 
-      <ReadOnlyTable title={educationDict.fields.schoolFacilities} columns={SCHOOL_FACILITY_COLUMNS} rows={toRows(section.schoolFacilities)} />
-      <ReadOnlyTable title={educationDict.fields.specialAttentionSchools} columns={SPECIAL_ATTENTION_SCHOOL_COLUMNS} rows={toRows(section.specialAttentionSchools)} />
-      <ReadOnlyTable title={educationDict.fields.closedSchools} columns={CLOSED_SCHOOL_COLUMNS} rows={toRows(section.closedSchools)} />
-      <ReadOnlyTable title={educationDict.fields.privateInternationalSchools} columns={PRIVATE_INTERNATIONAL_SCHOOL_COLUMNS} rows={toRows(section.privateInternationalSchools)} />
-      <ReadOnlyTable title={educationDict.fields.pirivenas} columns={PIRIVENA_COLUMNS} rows={toRows(section.pirivenas)} />
-      <ReadOnlyTable title={educationDict.fields.vocationalInstitutes} columns={VOCATIONAL_INSTITUTE_COLUMNS} rows={toRows(section.vocationalInstitutes)} />
-      <ReadOnlyTable title={educationDict.fields.preschools} columns={PRESCHOOL_COLUMNS} rows={toRows(section.preschools)} />
-      <ReadOnlyTable title={educationDict.fields.dhammaEducationInstitutions} columns={DHAMMA_EDUCATION_INSTITUTION_COLUMNS} rows={toRows(section.dhammaEducationInstitutions)} />
-      <ReadOnlyTable title={educationDict.fields.tertiaryInstitutions} columns={TERTIARY_INSTITUTION_COLUMNS} rows={toRows(section.tertiaryInstitutions)} />
-      <ReadOnlyTable title={educationDict.fields.tuitionCenters} columns={TUITION_CENTER_COLUMNS} rows={toRows(section.tuitionCenters)} />
+      <ReadOnlyTable title={educationDict.fields.schoolFacilities} columns={SCHOOL_FACILITY_COLUMNS} rows={toRows(section.schoolFacilities ?? [])} />
+      <ReadOnlyTable title={educationDict.fields.specialAttentionSchools} columns={SPECIAL_ATTENTION_SCHOOL_COLUMNS} rows={toRows(section.specialAttentionSchools ?? [])} />
+      <ReadOnlyTable title={educationDict.fields.closedSchools} columns={CLOSED_SCHOOL_COLUMNS} rows={toRows(section.closedSchools ?? [])} />
+      <ReadOnlyTable title={educationDict.fields.privateInternationalSchools} columns={PRIVATE_INTERNATIONAL_SCHOOL_COLUMNS} rows={toRows(section.privateInternationalSchools ?? [])} />
+      <ReadOnlyTable title={educationDict.fields.pirivenas} columns={PIRIVENA_COLUMNS} rows={toRows(section.pirivenas ?? [])} />
+      <ReadOnlyTable title={educationDict.fields.vocationalInstitutes} columns={VOCATIONAL_INSTITUTE_COLUMNS} rows={toRows(section.vocationalInstitutes ?? [])} />
+      <ReadOnlyTable title={educationDict.fields.preschools} columns={PRESCHOOL_COLUMNS} rows={toRows(section.preschools ?? [])} />
+      <ReadOnlyTable title={educationDict.fields.dhammaEducationInstitutions} columns={DHAMMA_EDUCATION_INSTITUTION_COLUMNS} rows={toRows(section.dhammaEducationInstitutions ?? [])} />
+      <ReadOnlyTable title={educationDict.fields.tertiaryInstitutions} columns={TERTIARY_INSTITUTION_COLUMNS} rows={toRows(section.tertiaryInstitutions ?? [])} />
+      <ReadOnlyTable title={educationDict.fields.tuitionCenters} columns={TUITION_CENTER_COLUMNS} rows={toRows(section.tuitionCenters ?? [])} />
 
       <ReadOnlyStats title={educationDict.fields.outOfSchoolChildren} stats={withSexTotal(toStats(SEX_COUNT_FIELDS, section.outOfSchoolChildren), section.outOfSchoolChildren)} />
       <ReadOnlyStats

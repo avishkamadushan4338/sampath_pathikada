@@ -133,6 +133,8 @@ export default function CommunityOrganizationsPage() {
       saveStatus={status}
       saveErrorMessage={errorMessage}
       onSaveDraft={handleSave}
+      submission={submission}
+      sectionKey="communityOrganizations"
     >
       <div>
         <RepeatableTable

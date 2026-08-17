@@ -242,13 +242,20 @@ const FISHERIES_STAT_FIELDS: { key: string; label: Translated }[] = [
 
 /** Builds the {key, label, value} triples ReadOnlyStats needs from a fixed field list plus
  *  whatever numeric object holds the actual figures — shared by the per-GN and area-wide
- *  renderings so both stay in sync with the same field set. */
-function toStats(fields: { key: string; label: Translated }[], values: Record<string, number | undefined>): ReadOnlyStat[] {
-  return fields.map((f) => ({ key: f.key, label: f.label, value: values[f.key]?.toString() }));
+ *  renderings so both stay in sync with the same field set. `values` can be `undefined` — every
+ *  sub-group in this section's schema is optional at save time (a draft can be submitted, and
+ *  later approved, having only ever had some of its subsections filled in), so an approved
+ *  record's `economicAgriculture.industryCounts` etc. is not guaranteed to exist even though
+ *  `EconomicAgricultureData`'s strict type claims it always does. */
+function toStats(
+  fields: { key: string; label: Translated }[],
+  values: Record<string, number | undefined> | undefined
+): ReadOnlyStat[] {
+  return fields.map((f) => ({ key: f.key, label: f.label, value: values?.[f.key]?.toString() }));
 }
 
-function withIndustryTotal(stats: ReadOnlyStat[], values: Record<string, number | undefined>): ReadOnlyStat[] {
-  const total = (values.householdIndustry ?? 0) + (values.under5Employees ?? 0) + (values.over5Employees ?? 0);
+function withIndustryTotal(stats: ReadOnlyStat[], values: Record<string, number | undefined> | undefined): ReadOnlyStat[] {
+  const total = (values?.householdIndustry ?? 0) + (values?.under5Employees ?? 0) + (values?.over5Employees ?? 0);
   return [...stats, { key: "total", label: { en: "Total Factory Count", si: "මුළු කර්මාන්තශාලා ගණන" }, value: total.toString() }];
 }
 
@@ -269,6 +276,16 @@ function yesNoLabel(value: "yes" | "no" | undefined, lang: "en" | "si"): string 
   if (value === "no") return lang === "si" ? "නැත" : "No";
   return "—";
 }
+
+// `abandonedPaddyLand` is optional in the underlying schema (economicAgricultureSchemaPartial) —
+// a submission can be approved having only ever had some of its subsections saved.
+// `EconomicAgricultureData`'s strict type claims this object always exists, but at runtime it may
+// not, so reads of an approved GN division's `economicAgriculture.abandonedPaddyLand` fall back to
+// this zeroed shape rather than assuming completeness.
+const EMPTY_ABANDONED_PADDY_LAND: EconomicAgricultureData["abandonedPaddyLand"] = {
+  extentAcres: 0,
+  canBeReactivatedExtent: 0,
+};
 
 /** GN-division-scoped view of the "Economic — Agriculture / Industry" section (§10): land use,
  *  commercial cultivation, machinery, forest/crop damage, livestock, industries, marine and
@@ -328,33 +345,34 @@ export function EconomicAgricultureView() {
 
 function EconomicAgricultureSectionContent({ section }: { section: EconomicAgricultureData }) {
   const { lang } = useLanguage();
+  const abandonedPaddyLand = section.abandonedPaddyLand ?? EMPTY_ABANDONED_PADDY_LAND;
 
   return (
     <div className="flex flex-col gap-8">
-      <ReadOnlyTable title={economicAgricultureDict.fields.landUse} columns={LAND_USE_COLUMNS} rows={toRows(section.landUse)} />
-      <ReadOnlyTable title={economicAgricultureDict.fields.animalHusbandryCounts} columns={ANIMAL_HUSBANDRY_COUNT_COLUMNS} rows={toRows(section.animalHusbandryCounts)} />
-      <ReadOnlyTable title={economicAgricultureDict.fields.animalHusbandryDirectory} columns={ANIMAL_HUSBANDRY_DIRECTORY_COLUMNS} rows={toRows(section.animalHusbandryDirectory)} />
-      <ReadOnlyTable title={economicAgricultureDict.fields.specialEconomicActivities} columns={SPECIAL_ECONOMIC_ACTIVITY_COLUMNS} rows={toRows(section.specialEconomicActivities)} />
+      <ReadOnlyTable title={economicAgricultureDict.fields.landUse} columns={LAND_USE_COLUMNS} rows={toRows(section.landUse ?? [])} />
+      <ReadOnlyTable title={economicAgricultureDict.fields.animalHusbandryCounts} columns={ANIMAL_HUSBANDRY_COUNT_COLUMNS} rows={toRows(section.animalHusbandryCounts ?? [])} />
+      <ReadOnlyTable title={economicAgricultureDict.fields.animalHusbandryDirectory} columns={ANIMAL_HUSBANDRY_DIRECTORY_COLUMNS} rows={toRows(section.animalHusbandryDirectory ?? [])} />
+      <ReadOnlyTable title={economicAgricultureDict.fields.specialEconomicActivities} columns={SPECIAL_ECONOMIC_ACTIVITY_COLUMNS} rows={toRows(section.specialEconomicActivities ?? [])} />
 
       <div className="flex flex-col gap-3">
         <ReadOnlyStats
           title={economicAgricultureDict.fields.abandonedPaddyLand}
           stats={toStats(ABANDONED_PADDY_LAND_FIELDS, {
-            extentAcres: section.abandonedPaddyLand.extentAcres,
-            canBeReactivatedExtent: section.abandonedPaddyLand.canBeReactivatedExtent,
+            extentAcres: abandonedPaddyLand.extentAcres,
+            canBeReactivatedExtent: abandonedPaddyLand.canBeReactivatedExtent,
           })}
         />
-        {(section.abandonedPaddyLand.reason || section.abandonedPaddyLand.actionPlan) && (
+        {(abandonedPaddyLand.reason || abandonedPaddyLand.actionPlan) && (
           <div className="grid gap-3 sm:grid-cols-2">
-            {section.abandonedPaddyLand.reason && (
+            {abandonedPaddyLand.reason && (
               <div className="rounded-xl border border-border bg-muted/30 p-4">
                 <p className="text-fluid-sm font-medium text-foreground">
                   <Bilingual en="Reason for Being Abandoned" si="පුරන් වීමට හේතු" />
                 </p>
-                <p className="mt-1 text-fluid-sm text-muted-foreground">{section.abandonedPaddyLand.reason}</p>
+                <p className="mt-1 text-fluid-sm text-muted-foreground">{abandonedPaddyLand.reason}</p>
               </div>
             )}
-            {section.abandonedPaddyLand.actionPlan && (
+            {abandonedPaddyLand.actionPlan && (
               <div className="rounded-xl border border-border bg-muted/30 p-4">
                 <p className="text-fluid-sm font-medium text-foreground">
                   <Bilingual
@@ -362,46 +380,46 @@ function EconomicAgricultureSectionContent({ section }: { section: EconomicAgric
                     si="නැවත වගාව සඳහා හෝ නැතිනම් එසේ නොමැතිනම් ගතයුතු විකල්ප ක්‍රියා මාර්ග"
                   />
                 </p>
-                <p className="mt-1 text-fluid-sm text-muted-foreground">{section.abandonedPaddyLand.actionPlan}</p>
+                <p className="mt-1 text-fluid-sm text-muted-foreground">{abandonedPaddyLand.actionPlan}</p>
               </div>
             )}
           </div>
         )}
       </div>
 
-      <ReadOnlyTable title={economicAgricultureDict.fields.agriMachinery} columns={AGRI_MACHINERY_COLUMNS} rows={toRows(section.agriMachinery)} />
-      <ReadOnlyTable title={economicAgricultureDict.fields.forestDamage} columns={FOREST_DAMAGE_COLUMNS} rows={toRows(section.forestDamage)} />
-      <ReadOnlyTable title={economicAgricultureDict.fields.livestockFarms} columns={LIVESTOCK_FARM_COLUMNS} rows={toRows(section.livestockFarms)} />
+      <ReadOnlyTable title={economicAgricultureDict.fields.agriMachinery} columns={AGRI_MACHINERY_COLUMNS} rows={toRows(section.agriMachinery ?? [])} />
+      <ReadOnlyTable title={economicAgricultureDict.fields.forestDamage} columns={FOREST_DAMAGE_COLUMNS} rows={toRows(section.forestDamage ?? [])} />
+      <ReadOnlyTable title={economicAgricultureDict.fields.livestockFarms} columns={LIVESTOCK_FARM_COLUMNS} rows={toRows(section.livestockFarms ?? [])} />
 
       <ReadOnlyStats
         title={economicAgricultureDict.fields.industryCounts}
         stats={withIndustryTotal(toStats(INDUSTRY_COUNT_FIELDS, section.industryCounts), section.industryCounts)}
       />
-      <ReadOnlyTable title={economicAgricultureDict.fields.industries} columns={INDUSTRY_COLUMNS} rows={toRows(section.industries)} />
+      <ReadOnlyTable title={economicAgricultureDict.fields.industries} columns={INDUSTRY_COLUMNS} rows={toRows(section.industries ?? [])} />
 
       <ReadOnlyStats title={economicAgricultureDict.fields.marineFisheries} stats={toStats(FISHERIES_STAT_FIELDS, section.marineFisheries)} />
-      <ReadOnlyTable title={economicAgricultureDict.fields.marineFisheriesSocieties} columns={FISHERIES_SOCIETY_COLUMNS} rows={toRows(section.marineFisheriesSocieties)} />
+      <ReadOnlyTable title={economicAgricultureDict.fields.marineFisheriesSocieties} columns={FISHERIES_SOCIETY_COLUMNS} rows={toRows(section.marineFisheriesSocieties ?? [])} />
 
       <ReadOnlyStats title={economicAgricultureDict.fields.inlandFisheries} stats={toStats(FISHERIES_STAT_FIELDS, section.inlandFisheries)} />
-      <ReadOnlyTable title={economicAgricultureDict.fields.inlandFisheriesSocieties} columns={FISHERIES_SOCIETY_COLUMNS} rows={toRows(section.inlandFisheriesSocieties)} />
-      <ReadOnlyTable title={economicAgricultureDict.fields.inlandWaterBodies} columns={INLAND_WATER_BODY_COLUMNS} rows={toRows(section.inlandWaterBodies)} />
+      <ReadOnlyTable title={economicAgricultureDict.fields.inlandFisheriesSocieties} columns={FISHERIES_SOCIETY_COLUMNS} rows={toRows(section.inlandFisheriesSocieties ?? [])} />
+      <ReadOnlyTable title={economicAgricultureDict.fields.inlandWaterBodies} columns={INLAND_WATER_BODY_COLUMNS} rows={toRows(section.inlandWaterBodies ?? [])} />
 
-      <ReadOnlyTable title={economicAgricultureDict.fields.aquacultureDirectory} columns={NAME_ADDRESS_PHONE_COLUMNS} rows={toRows(section.aquacultureDirectory)} />
-      <ReadOnlyTable title={economicAgricultureDict.fields.ornamentalFishDirectory} columns={NAME_ADDRESS_PHONE_COLUMNS} rows={toRows(section.ornamentalFishDirectory)} />
+      <ReadOnlyTable title={economicAgricultureDict.fields.aquacultureDirectory} columns={NAME_ADDRESS_PHONE_COLUMNS} rows={toRows(section.aquacultureDirectory ?? [])} />
+      <ReadOnlyTable title={economicAgricultureDict.fields.ornamentalFishDirectory} columns={NAME_ADDRESS_PHONE_COLUMNS} rows={toRows(section.ornamentalFishDirectory ?? [])} />
 
       <ReadOnlyStats
         title={economicAgricultureDict.fields.fishLandingSitePresent}
         stats={[{ key: "fishLandingSitePresent", label: { en: "Status", si: "තත්ත්වය" }, value: yesNoLabel(section.fishLandingSitePresent, lang) }]}
       />
-      <ReadOnlyTable title={economicAgricultureDict.fields.fishLandingSites} columns={FISH_LANDING_SITE_COLUMNS} rows={toRows(section.fishLandingSites)} />
+      <ReadOnlyTable title={economicAgricultureDict.fields.fishLandingSites} columns={FISH_LANDING_SITE_COLUMNS} rows={toRows(section.fishLandingSites ?? [])} />
 
       <ReadOnlyStats
         title={economicAgricultureDict.fields.iceProductionPresent}
         stats={[{ key: "iceProductionPresent", label: { en: "Status", si: "තත්ත්වය" }, value: yesNoLabel(section.iceProductionPresent, lang) }]}
       />
-      <ReadOnlyTable title={economicAgricultureDict.fields.iceProductionDirectory} columns={NAME_ADDRESS_COLUMNS} rows={toRows(section.iceProductionDirectory)} />
+      <ReadOnlyTable title={economicAgricultureDict.fields.iceProductionDirectory} columns={NAME_ADDRESS_COLUMNS} rows={toRows(section.iceProductionDirectory ?? [])} />
 
-      <ReadOnlyTable title={economicAgricultureDict.fields.teaEstates} columns={TEA_ESTATE_COLUMNS} rows={toRows(section.teaEstates)} />
+      <ReadOnlyTable title={economicAgricultureDict.fields.teaEstates} columns={TEA_ESTATE_COLUMNS} rows={toRows(section.teaEstates ?? [])} />
     </div>
   );
 }

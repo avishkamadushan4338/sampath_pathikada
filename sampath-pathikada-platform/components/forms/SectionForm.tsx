@@ -2,13 +2,21 @@
 
 import { useEffect, useRef } from "react";
 import { FormProvider, type FieldErrors, type FieldValues, type UseFormReturn } from "react-hook-form";
-import { AlertTriangle, Loader2, Save } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Inbox, Loader2, MessageSquareWarning, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { Bilingual } from "@/components/Bilingual";
 import { dictionary } from "@/lib/i18n/dictionary";
 import type { Translated } from "@/lib/i18n/types";
-import { SUBMISSION_LOCKED_ERROR, type SaveStatus } from "@/hooks/use-submission";
+import {
+  SUBMISSION_LOCKED_ERROR,
+  SECTION_LOCKED_APPROVED_ERROR,
+  SECTION_LOCKED_SUBMITTED_ERROR,
+  type SaveStatus,
+  type SubmissionRecord,
+} from "@/hooks/use-submission";
+import { getSectionEditability, parseSectionReviews } from "@/lib/submission-review";
+import type { SectionKey } from "@/lib/types/submission";
 import { cn } from "@/lib/utils";
 
 interface SectionFormProps<T extends FieldValues> {
@@ -25,6 +33,12 @@ interface SectionFormProps<T extends FieldValues> {
    *  to know about it. The inline error summary above always shows regardless; this is for
    *  section-specific escalation on top of that default. */
   onInvalidSubmit?: (errors: FieldErrors<T>) => void;
+  /** `null` while the submission is still loading — treated as editable so nothing flashes
+   *  locked-then-unlocked; if it later turns out to genuinely be locked, the server 409s on save
+   *  anyway. `getSectionEditability` here is UX only — the real security boundary is enforced
+   *  server-side in `my-submission/[year]/route.ts`. */
+  submission: SubmissionRecord | null;
+  sectionKey: SectionKey;
   children: React.ReactNode;
 }
 
@@ -37,6 +51,8 @@ export function SectionForm<T extends FieldValues>({
   saveErrorMessage,
   onSaveDraft,
   onInvalidSubmit,
+  submission,
+  sectionKey,
   children,
 }: SectionFormProps<T>) {
   const { lang } = useLanguage();
@@ -48,6 +64,12 @@ export function SectionForm<T extends FieldValues>({
       summaryRef.current?.focus();
     }
   }, [form.formState.submitCount, errorCount]);
+
+  const editability = submission
+    ? getSectionEditability(submission.status, parseSectionReviews(submission.sectionReviews), sectionKey)
+    : "editable";
+  const locked = editability === "locked-approved" || editability === "locked-submitted";
+  const review = submission?.sectionReviews?.[sectionKey];
 
   return (
     <FormProvider {...form}>
@@ -76,6 +98,39 @@ export function SectionForm<T extends FieldValues>({
           )}
         </header>
 
+        {editability === "locked-submitted" && (
+          <div className="flex items-start gap-3 rounded-lg border border-[hsl(var(--status-pending))]/30 bg-[hsl(var(--status-pending))]/10 p-4">
+            <Inbox className="mt-0.5 size-4 shrink-0 text-[hsl(var(--status-pending))]" aria-hidden="true" />
+            <span lang={lang} className={cn("text-fluid-sm text-foreground", lang === "si" && "font-si")}>
+              {dictionary.sectionAwaitingReview[lang]}
+            </span>
+          </div>
+        )}
+
+        {editability === "locked-approved" && (
+          <div className="flex items-start gap-3 rounded-lg border border-[hsl(var(--status-approved))]/30 bg-[hsl(var(--status-approved))]/10 p-4">
+            <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-[hsl(var(--status-approved))]" aria-hidden="true" />
+            <span lang={lang} className={cn("text-fluid-sm text-foreground", lang === "si" && "font-si")}>
+              {dictionary.sectionApprovedLocked[lang]}
+            </span>
+          </div>
+        )}
+
+        {editability === "revision-needed" && (
+          <div className="flex items-start gap-3 rounded-lg border border-[hsl(var(--status-pending))]/30 bg-[hsl(var(--status-pending))]/10 p-4">
+            <MessageSquareWarning className="mt-0.5 size-4 shrink-0 text-[hsl(var(--status-pending))]" aria-hidden="true" />
+            <div className="flex flex-col gap-1">
+              <span lang={lang} className={cn("text-fluid-sm font-medium text-foreground", lang === "si" && "font-si")}>
+                {dictionary.sectionRevisionRequested[lang]}
+              </span>
+              {review?.note && <span className="text-fluid-sm text-muted-foreground">{review.note}</span>}
+              <span lang={lang} className={cn("text-fluid-sm text-muted-foreground", lang === "si" && "font-si")}>
+                {dictionary.sectionRevisionSaveHint[lang]}
+              </span>
+            </div>
+          </div>
+        )}
+
         <div
           ref={summaryRef}
           tabIndex={-1}
@@ -98,34 +153,42 @@ export function SectionForm<T extends FieldValues>({
           )}
         </div>
 
-        {children}
+        <fieldset disabled={locked} className="contents">
+          {children}
+        </fieldset>
 
-        <div className="sticky bottom-0 -mx-4 flex items-center justify-between gap-3 border-t border-border bg-background/95 px-4 py-4 backdrop-blur sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
-          <div aria-live="polite" className="flex items-center gap-1.5 text-fluid-sm text-muted-foreground">
-            {saveStatus === "saving" && (
-              <>
-                <Loader2 className="size-3.5 animate-spin" aria-hidden="true" />
-                <Bilingual {...dictionary.saving} />
-              </>
-            )}
-            {saveStatus === "saved" && <Bilingual {...dictionary.saved} />}
-            {saveStatus === "error" && (
-              <span className="text-destructive">
-                {saveErrorMessage === SUBMISSION_LOCKED_ERROR
-                  ? dictionary.submissionLocked[lang]
-                  : saveErrorMessage ?? dictionary.saveError[lang]}
-              </span>
-            )}
+        {!locked && (
+          <div className="sticky bottom-0 -mx-4 flex items-center justify-between gap-3 border-t border-border bg-background/95 px-4 py-4 backdrop-blur sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
+            <div aria-live="polite" className="flex items-center gap-1.5 text-fluid-sm text-muted-foreground">
+              {saveStatus === "saving" && (
+                <>
+                  <Loader2 className="size-3.5 animate-spin" aria-hidden="true" />
+                  <Bilingual {...dictionary.saving} />
+                </>
+              )}
+              {saveStatus === "saved" && <Bilingual {...dictionary.saved} />}
+              {saveStatus === "error" && (
+                <span className="text-destructive">
+                  {saveErrorMessage === SUBMISSION_LOCKED_ERROR
+                    ? dictionary.submissionLocked[lang]
+                    : saveErrorMessage === SECTION_LOCKED_APPROVED_ERROR
+                      ? dictionary.sectionApprovedLocked[lang]
+                      : saveErrorMessage === SECTION_LOCKED_SUBMITTED_ERROR
+                        ? dictionary.sectionAwaitingReview[lang]
+                        : (saveErrorMessage ?? dictionary.saveError[lang])}
+                </span>
+              )}
+            </div>
+            <Button type="submit" size="lg" className="touch-target gap-2" disabled={saveStatus === "saving"}>
+              {saveStatus === "saving" ? (
+                <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+              ) : (
+                <Save className="size-4" aria-hidden="true" />
+              )}
+              <Bilingual {...(editability === "revision-needed" ? dictionary.saveAndResubmit : dictionary.save)} />
+            </Button>
           </div>
-          <Button type="submit" size="lg" className="touch-target gap-2" disabled={saveStatus === "saving"}>
-            {saveStatus === "saving" ? (
-              <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-            ) : (
-              <Save className="size-4" aria-hidden="true" />
-            )}
-            <Bilingual {...dictionary.save} />
-          </Button>
-        </div>
+        )}
       </form>
     </FormProvider>
   );

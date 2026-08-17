@@ -131,6 +131,8 @@ export default function HealthPage() {
       saveStatus={status}
       saveErrorMessage={errorMessage}
       onSaveDraft={handleSave}
+      submission={submission}
+      sectionKey="health"
     >
       <div className="flex flex-col gap-2">
         <h2 lang={lang} className={headingClass}>

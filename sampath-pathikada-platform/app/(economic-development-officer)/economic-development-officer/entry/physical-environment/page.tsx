@@ -211,6 +211,8 @@ export default function PhysicalEnvironmentPage() {
       saveStatus={status}
       saveErrorMessage={errorMessage}
       onSaveDraft={handleSave}
+      submission={submission}
+      sectionKey="physicalEnvironment"
     >
       <div>
         <WaterSourcesTable lang={lang} title={physicalEnvironmentDict.fields.waterSources} />

@@ -280,14 +280,17 @@ function RoadInfrastructureSectionContent({ section }: { section: RoadInfrastruc
 
   // publicFacilities is a checklist array now (a division can list more than one row per
   // category, e.g. two bus stands), so this maps straight over the saved rows instead of
-  // looking up one fixed field per category.
-  const publicFacilitiesRows = section.publicFacilities.map((facility) => ({
+  // looking up one fixed field per category. Every array field on this section is optional in
+  // the underlying schema (roadInfrastructureSchemaPartial) — a submission can be approved
+  // having only ever had some of these tables saved — so each read below falls back to `[]`
+  // rather than assuming completeness.
+  const publicFacilitiesRows = (section.publicFacilities ?? []).map((facility) => ({
     facility: facility.type,
     present: facility.present,
     name: facility.name,
   }));
 
-  const totalRoadLength = section.roadDevelopmentNeeds.reduce((sum, r) => sum + (r.lengthMeters ?? 0), 0);
+  const totalRoadLength = (section.roadDevelopmentNeeds ?? []).reduce((sum, r) => sum + (r.lengthMeters ?? 0), 0);
 
   return (
     <div className="flex flex-col gap-8">
@@ -297,27 +300,27 @@ function RoadInfrastructureSectionContent({ section }: { section: RoadInfrastruc
         title={{ en: "Total Road Development Length", si: "මුළු පාර සංවර්ධන දිග" }}
         stats={[{ key: "totalRoadLength", label: { en: "Length (Meters)", si: "දිග (මීටර්)" }, value: totalRoadLength.toString() }]}
       />
-      <ReadOnlyTable title={roadInfrastructureDict.fields.roadDevelopmentNeeds} columns={ROAD_DEVELOPMENT_NEED_COLUMNS} rows={toRows(section.roadDevelopmentNeeds)} />
-      <ReadOnlyTable title={roadInfrastructureDict.fields.bridgeRepairs} columns={BRIDGE_REPAIR_COLUMNS} rows={toRows(section.bridgeRepairs)} />
-      <ReadOnlyTable title={roadInfrastructureDict.fields.newRoadBridgeNeeds} columns={NEW_ROAD_BRIDGE_NEED_COLUMNS} rows={toRows(section.newRoadBridgeNeeds)} />
-      <ReadOnlyTable title={roadInfrastructureDict.fields.noPublicTransportAreas} columns={NO_PUBLIC_TRANSPORT_AREA_COLUMNS} rows={toRows(section.noPublicTransportAreas)} />
-      <ReadOnlyTable title={roadInfrastructureDict.fields.railwayCrossingGaps} columns={RAILWAY_CROSSING_GAP_COLUMNS} rows={toRows(section.railwayCrossingGaps)} />
-      <ReadOnlyTable title={roadInfrastructureDict.fields.postOffices} columns={POST_OFFICE_COLUMNS} rows={toRows(section.postOffices)} />
-      <ReadOnlyTable title={roadInfrastructureDict.fields.fuelDistributionStations} columns={FUEL_STATION_COLUMNS} rows={toRows(section.fuelDistributionStations)} />
-      <ReadOnlyTable title={roadInfrastructureDict.fields.solarPowerPlants} columns={HYDROPOWER_PLANT_COLUMNS} rows={toRows(section.solarPowerPlants)} />
-      <ReadOnlyTable title={roadInfrastructureDict.fields.windPowerPlants} columns={HYDROPOWER_PLANT_COLUMNS} rows={toRows(section.windPowerPlants)} />
-      <ReadOnlyTable title={roadInfrastructureDict.fields.hydropowerPlants} columns={HYDROPOWER_PLANT_COLUMNS} rows={toRows(section.hydropowerPlants)} />
-      <ReadOnlyTable title={roadInfrastructureDict.fields.financialInstitutions} columns={FINANCIAL_INSTITUTION_COLUMNS} rows={toRows(section.financialInstitutions)} />
-      <ReadOnlyTable title={roadInfrastructureDict.fields.serviceEstablishments} columns={SERVICE_ESTABLISHMENT_COLUMNS} rows={toRows(section.serviceEstablishments)} />
-      <ReadOnlyTable title={roadInfrastructureDict.fields.industrialEstates} columns={INDUSTRIAL_ESTATE_COLUMNS} rows={toRows(section.industrialEstates)} />
-      <ReadOnlyTable title={roadInfrastructureDict.fields.waterReservoirs} columns={NAMED_FACILITY_COLUMNS} rows={toRows(section.waterReservoirs)} />
-      <ReadOnlyTable title={roadInfrastructureDict.fields.publicFacilityCategories} columns={PUBLIC_FACILITY_CATEGORY_COLUMNS_GN} rows={toRows(section.publicFacilityCategories)} />
+      <ReadOnlyTable title={roadInfrastructureDict.fields.roadDevelopmentNeeds} columns={ROAD_DEVELOPMENT_NEED_COLUMNS} rows={toRows(section.roadDevelopmentNeeds ?? [])} />
+      <ReadOnlyTable title={roadInfrastructureDict.fields.bridgeRepairs} columns={BRIDGE_REPAIR_COLUMNS} rows={toRows(section.bridgeRepairs ?? [])} />
+      <ReadOnlyTable title={roadInfrastructureDict.fields.newRoadBridgeNeeds} columns={NEW_ROAD_BRIDGE_NEED_COLUMNS} rows={toRows(section.newRoadBridgeNeeds ?? [])} />
+      <ReadOnlyTable title={roadInfrastructureDict.fields.noPublicTransportAreas} columns={NO_PUBLIC_TRANSPORT_AREA_COLUMNS} rows={toRows(section.noPublicTransportAreas ?? [])} />
+      <ReadOnlyTable title={roadInfrastructureDict.fields.railwayCrossingGaps} columns={RAILWAY_CROSSING_GAP_COLUMNS} rows={toRows(section.railwayCrossingGaps ?? [])} />
+      <ReadOnlyTable title={roadInfrastructureDict.fields.postOffices} columns={POST_OFFICE_COLUMNS} rows={toRows(section.postOffices ?? [])} />
+      <ReadOnlyTable title={roadInfrastructureDict.fields.fuelDistributionStations} columns={FUEL_STATION_COLUMNS} rows={toRows(section.fuelDistributionStations ?? [])} />
+      <ReadOnlyTable title={roadInfrastructureDict.fields.solarPowerPlants} columns={HYDROPOWER_PLANT_COLUMNS} rows={toRows(section.solarPowerPlants ?? [])} />
+      <ReadOnlyTable title={roadInfrastructureDict.fields.windPowerPlants} columns={HYDROPOWER_PLANT_COLUMNS} rows={toRows(section.windPowerPlants ?? [])} />
+      <ReadOnlyTable title={roadInfrastructureDict.fields.hydropowerPlants} columns={HYDROPOWER_PLANT_COLUMNS} rows={toRows(section.hydropowerPlants ?? [])} />
+      <ReadOnlyTable title={roadInfrastructureDict.fields.financialInstitutions} columns={FINANCIAL_INSTITUTION_COLUMNS} rows={toRows(section.financialInstitutions ?? [])} />
+      <ReadOnlyTable title={roadInfrastructureDict.fields.serviceEstablishments} columns={SERVICE_ESTABLISHMENT_COLUMNS} rows={toRows(section.serviceEstablishments ?? [])} />
+      <ReadOnlyTable title={roadInfrastructureDict.fields.industrialEstates} columns={INDUSTRIAL_ESTATE_COLUMNS} rows={toRows(section.industrialEstates ?? [])} />
+      <ReadOnlyTable title={roadInfrastructureDict.fields.waterReservoirs} columns={NAMED_FACILITY_COLUMNS} rows={toRows(section.waterReservoirs ?? [])} />
+      <ReadOnlyTable title={roadInfrastructureDict.fields.publicFacilityCategories} columns={PUBLIC_FACILITY_CATEGORY_COLUMNS_GN} rows={toRows(section.publicFacilityCategories ?? [])} />
 
       <ReadOnlyStats
         title={roadInfrastructureDict.fields.licensedLiquorShopsPresent}
         stats={[{ key: "licensedLiquorShopsPresent", label: { en: "Status", si: "තත්ත්වය" }, value: yesNoLabel(section.licensedLiquorShopsPresent, lang) }]}
       />
-      <ReadOnlyTable title={roadInfrastructureDict.fields.licensedLiquorShops} columns={LICENSED_LIQUOR_SHOP_COLUMNS} rows={toRows(section.licensedLiquorShops)} />
+      <ReadOnlyTable title={roadInfrastructureDict.fields.licensedLiquorShops} columns={LICENSED_LIQUOR_SHOP_COLUMNS} rows={toRows(section.licensedLiquorShops ?? [])} />
     </div>
   );
 }

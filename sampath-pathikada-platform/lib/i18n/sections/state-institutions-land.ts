@@ -29,4 +29,17 @@ export const stateInstitutionsLandDict: SectionDictionary<keyof StateInstitution
       helpSi: "*විවිධ සංවර්ධන වැඩසටහන් යටතේ වැඩ ආරම්භ කර අතරමං නවතාදමා ඇති ව්‍යාපෘති.",
     },
   },
+  rows: {
+    name: { en: "Institution Name", si: "ආයතනයේ නම" },
+    address: { en: "Address", si: "ලිපිනය" },
+    buildingName: { en: "Name of the Abandoned Building", si: "අත්හැර දමන ලද ගොඩනැගිල්ලේ නම" },
+    purposeUsed: { en: "Purpose Used For", si: "යොදා ගත් කාර්යය" },
+    usable: { en: "Usable Condition", si: "භාවිතයට ගත හැකි මට්ටමක පවතිනවාද" },
+    projectName: { en: "Name of the Stalled Project(s)", si: "අතරමං නවතාදමා ඇති ව්‍යාපෘතියේ/වල නම" },
+    reasonForHalt: { en: "Reason for Halting", si: "නවතාදැමීමට හේතුව" },
+    currentStatus: { en: "Current Status", si: "වර්තමාන තත්වය" },
+    // Compound overrides — same generic key means something different in each array.
+    "illegalStructures.owningInstitution": { en: "Owning Institution", si: "ගොඩනැගිල්ල අයත් ආයතනය" },
+    "developmentProjects.owningInstitution": { en: "Owning Institution", si: "ව්‍යාපෘතිය අයත් ආයතනය" },
+  },
 };

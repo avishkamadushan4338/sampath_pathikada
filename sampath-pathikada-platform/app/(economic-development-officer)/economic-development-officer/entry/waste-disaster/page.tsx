@@ -135,6 +135,8 @@ export default function WasteDisasterPage() {
       saveStatus={status}
       saveErrorMessage={errorMessage}
       onSaveDraft={handleSave}
+      submission={submission}
+      sectionKey="wasteDisaster"
     >
       {/* Each question here is a full paper-form sentence, not a short field name — left in a
           plain grid, the wrapped label towers over a dropdown that shrinks to fit its own

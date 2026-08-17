@@ -4,6 +4,7 @@ import { hashPassword, getSession } from "@/lib/auth";
 import { type TableKey } from "@/lib/registrations";
 import { saveVerificationDoc, deleteVerificationDocs, cleanupPartialUpload, InvalidDocumentError } from "@/lib/verification-docs";
 import { verifyOrigin } from "@/lib/csrf";
+import { logAudit } from "@/lib/audit-log";
 
 /* ─── Role → table mapping ───────────────────────────────────────────────────
    Incoming `role` values (from the public form):
@@ -348,16 +349,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: false, message }, { status: 400 });
     }
 
-    await prisma.auditLog.create({
-      data: {
-        action:      "Registration Submitted",
-        description: `New ${TABLE_LABELS[tableKey]} registration: ${name.trim()} (${emailLower})`,
-        category:    "REGISTRATION",
-        severity:    "INFO",
-        userName:    name.trim(),
-        userIp:      ip ?? null,
-        metadata:    { table: tableKey, id: registrationId },
-      },
+    logAudit({
+      action:      "Registration Submitted",
+      description: `New ${TABLE_LABELS[tableKey]} registration: ${name.trim()} (${emailLower})`,
+      category:    "REGISTRATION",
+      severity:    "INFO",
+      userName:    name.trim(),
+      userIp:      ip ?? null,
+      metadata:    { table: tableKey, id: registrationId },
     });
 
     return NextResponse.json({

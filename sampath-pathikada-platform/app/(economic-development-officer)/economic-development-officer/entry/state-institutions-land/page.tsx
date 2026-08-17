@@ -86,6 +86,8 @@ export default function StateInstitutionsLandPage() {
       saveStatus={status}
       saveErrorMessage={errorMessage}
       onSaveDraft={handleSave}
+      submission={submission}
+      sectionKey="stateInstitutionsLand"
     >
       <div>
         <RepeatableTable

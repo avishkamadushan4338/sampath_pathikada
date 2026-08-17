@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Prisma } from "@/lib/prisma-client";
 import prisma from "@/lib/db";
 import { getSession, hashPassword } from "@/lib/auth";
 import { DIVISIONAL_SECRETARIATS } from "@/lib/registration-data";
 import { verifyOrigin } from "@/lib/csrf";
 import { CURRENT_YEAR } from "@/lib/constants";
-import type { SubmissionData } from "@/lib/types/submission";
+import { logAudit } from "@/lib/audit-log";
 
 /* ── GET /api/users ── list users ─────────────────────────────────────────────
    SUPER_ADMIN sees all users. ADMIN is scoped to their own dsDivision only,
@@ -50,17 +51,18 @@ export async function GET(req: NextRequest) {
   // Designation is entered by the officer per reporting cycle (inside their own
   // submission), not stored on the User profile — pull it from this year's
   // submission, if one exists, for each Economic Development Officer returned.
+  // Uses JSON_EXTRACT to pull just this one string out of MySQL rather than selecting the whole
+  // multi-section `data` blob per officer and discarding everything else — same fix as the
+  // reviewer-facing submissions list (see app/api/submissions/route.ts).
   const edoIds = users.filter((u) => u.role === "ECONOMIC_DEVELOPMENT_OFFICER").map((u) => u.id);
   const designationByUserId = new Map<string, string | null>();
   if (edoIds.length > 0) {
-    const submissions = await prisma.submission.findMany({
-      where: { submittedById: { in: edoIds }, year: CURRENT_YEAR },
-      select: { submittedById: true, data: true },
-    });
-    for (const s of submissions) {
-      const data = s.data as SubmissionData;
-      designationByUserId.set(s.submittedById, data.identification?.officerDesignation ?? null);
-    }
+    const rows = await prisma.$queryRaw<{ submittedById: string; officerDesignation: string | null }[]>`
+      SELECT submittedById, JSON_UNQUOTE(JSON_EXTRACT(data, '$.identification.officerDesignation')) AS officerDesignation
+      FROM submissions
+      WHERE year = ${CURRENT_YEAR} AND submittedById IN (${Prisma.join(edoIds)})
+    `;
+    for (const row of rows) designationByUserId.set(row.submittedById, row.officerDesignation);
   }
 
   const data = users.map((u) => ({
@@ -130,16 +132,14 @@ export async function POST(req: NextRequest) {
       select: { id: true, name: true, email: true, role: true, status: true, district: true, dsDivision: true, createdAt: true },
     });
 
-    await prisma.auditLog.create({
-      data: {
-        action:      "Admin Created",
-        description: `New admin account created for ${name} (${emailLower}), assigned to ${division.en}`,
-        category:    "ADMIN",
-        severity:    "INFO",
-        userId:      session.userId,
-        userName:    session.name,
-        metadata:    { newAdminId: user.id, dsDivision: division.id, district: division.districtId },
-      },
+    logAudit({
+      action:      "Admin Created",
+      description: `New admin account created for ${name} (${emailLower}), assigned to ${division.en}`,
+      category:    "ADMIN",
+      severity:    "INFO",
+      userId:      session.userId,
+      userName:    session.name,
+      metadata:    { newAdminId: user.id, dsDivision: division.id, district: division.districtId },
     });
 
     return NextResponse.json({ ok: true, data: user }, { status: 201 });

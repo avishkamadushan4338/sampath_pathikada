@@ -369,6 +369,8 @@ export default function EducationPage() {
       saveStatus={status}
       saveErrorMessage={errorMessage}
       onSaveDraft={handleSave}
+      submission={submission}
+      sectionKey="education"
     >
       {/* Quick-jump strip: 14 subsections is too many to scroll through blind — this lets an
           officer land directly on (and auto-open) whichever one they came here to fill in. */}
@@ -610,7 +612,7 @@ export default function EducationPage() {
           <RepeatableTable
             name="preschools"
             columns={preschoolColumns}
-            emptyRowFactory={() => ({ name: "", address: "", facilityType: "govt", teacherCount: 0, studentCount: 0 })}
+            emptyRowFactory={() => ({ name: "", address: "", facilityType: "govt", studentCount: 0, teacherCount: 0 })}
           />
         </CollapsibleFieldGroup>
 

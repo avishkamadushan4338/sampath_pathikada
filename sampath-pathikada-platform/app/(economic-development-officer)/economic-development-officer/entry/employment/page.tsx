@@ -167,6 +167,8 @@ export default function EmploymentPage() {
       saveStatus={status}
       saveErrorMessage={errorMessage}
       onSaveDraft={handleSave}
+      submission={submission}
+      sectionKey="employment"
     >
       <div>
         <RepeatableTable

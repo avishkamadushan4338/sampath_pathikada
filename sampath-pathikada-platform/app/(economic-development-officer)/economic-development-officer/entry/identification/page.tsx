@@ -119,6 +119,8 @@ export default function IdentificationPage() {
       saveStatus={status}
       saveErrorMessage={errorMessage}
       onSaveDraft={handleSave}
+      submission={submission}
+      sectionKey="identification"
     >
       <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4">
         <FieldWrapper name="gnDivisionName" label={identificationDict.fields.gnDivisionName} required>

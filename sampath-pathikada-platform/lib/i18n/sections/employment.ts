@@ -28,4 +28,15 @@ export const employmentDict: SectionDictionary<keyof EmploymentData & string> = 
       helpSi: "*වෙළදපොළ 1-දේශිය, 2-ජාත්‍යන්තර",
     },
   },
+  rows: {
+    levelLabel: { en: "Education Level", si: "අධ්‍යාපන මට්ටම" },
+    sectorLabel: { en: "Field", si: "ක්ෂේත්‍රය" },
+    name: { en: "Person's Name", si: "පුද්ගල නම" },
+    phone: { en: "Telephone Number", si: "දුරකථන අංකය" },
+    marketplace: { en: "Market", si: "වෙළදපොළ" },
+    // Compound overrides — "count" and "sector" mean different things in different arrays.
+    "jobSeekersByEducation.count": { en: "Number of Persons", si: "පුද්ගල ගණන" },
+    "selfEmploymentSectors.count": { en: "Number of Persons", si: "පුද්ගලයින් ගණන" },
+    "selfEmployedPersons.sector": { en: "Self-Employment Field", si: "ස්වයං රැකියා ක්ෂේත්‍රය" },
+  },
 };

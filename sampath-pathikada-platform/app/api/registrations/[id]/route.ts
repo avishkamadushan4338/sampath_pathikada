@@ -4,6 +4,7 @@ import { getSession } from "@/lib/auth";
 import { findRecord, ROLE_LABELS, USER_ROLE_MAP, type TableKey } from "@/lib/registrations";
 import { deleteVerificationDocs } from "@/lib/verification-docs";
 import { verifyOrigin } from "@/lib/csrf";
+import { logAudit } from "@/lib/audit-log";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -92,15 +93,13 @@ export async function PATCH(req: NextRequest, { params }: Params) {
       back:  (reg as any).verificationDocBackPath,
     });
 
-    await prisma.auditLog.create({
-      data: {
-        action:      "Registration Rejected",
-        description: `Rejected ${label} registration ${id} for ${reg.name} — ${rejectionNote.trim()}`,
-        category:    "REGISTRATION",
-        severity:    "INFO",
-        userId:      session.userId,
-        userName:    session.name,
-      },
+    logAudit({
+      action:      "Registration Rejected",
+      description: `Rejected ${label} registration ${id} for ${reg.name} — ${rejectionNote.trim()}`,
+      category:    "REGISTRATION",
+      severity:    "INFO",
+      userId:      session.userId,
+      userName:    session.name,
     });
 
     return NextResponse.json({ ok: true, message: `${label} registration rejected.` });

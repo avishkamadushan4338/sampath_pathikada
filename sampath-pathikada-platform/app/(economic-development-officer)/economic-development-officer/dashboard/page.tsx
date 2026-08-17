@@ -10,6 +10,8 @@ import { dictionary } from "@/lib/i18n/dictionary";
 import { SECTION_KEYS, SECTION_ROUTES } from "@/lib/types/submission";
 import { SECTION_META } from "@/lib/i18n/section-meta";
 import { getAllSectionStatuses, getIncompleteSections, type SectionStatus } from "@/lib/submission-progress";
+import { parseSectionReviews, getSectionReviewState } from "@/lib/submission-review";
+import { SECTION_REVIEW_BADGE_CLASS, SECTION_REVIEW_ICON, SECTION_REVIEW_LABEL } from "@/lib/status-ui";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -55,6 +57,14 @@ export default function DashboardPage() {
   const touchedCount = statuses ? Object.values(statuses).filter((s) => s !== "empty").length : 0;
   const missingCount = SECTION_KEYS.length - touchedCount;
 
+  // Fill-completeness (the StatusIcon dot) stops being the interesting signal once the DS has
+  // started reviewing — REJECTED clears sectionReviews back to empty, so it's excluded here too,
+  // leaving fill-completeness as the only meaningful signal for a submission the officer is about
+  // to redo from scratch.
+  const reviews = submission ? parseSectionReviews(submission.sectionReviews) : {};
+  const showReviewBadges =
+    submission?.status === "SUBMITTED" || submission?.status === "REVISION_NEEDED" || submission?.status === "APPROVED";
+
   async function handleSubmit() {
     setSubmitting(true);
     try {
@@ -66,7 +76,10 @@ export default function DashboardPage() {
       }
       toast.success(lang === "si" ? "වාර්ෂික වාර්තාව ඉදිරිපත් කරන ලදී" : "Annual report submitted");
       setDialogOpen(false);
-      mutate();
+      // The submit response already IS the updated submission (same shape the GET route
+      // returns) — updating the cache with it directly avoids a second round trip to refetch
+      // something we already just received.
+      mutate(json.data, { revalidate: false });
     } finally {
       setSubmitting(false);
     }
@@ -152,6 +165,8 @@ export default function DashboardPage() {
           const meta = SECTION_META[key];
           const Icon = meta.icon;
           const status = statuses[key];
+          const reviewState = getSectionReviewState(reviews, key);
+          const ReviewIcon = SECTION_REVIEW_ICON[reviewState];
           return (
             <Link key={key} href={`${ENTRY_BASE}/${SECTION_ROUTES[key]}`} className="group block focus-visible:outline-none">
               <Card className={`h-full transition-shadow card-lift ${STATUS_STYLES[status]}`}>
@@ -162,7 +177,16 @@ export default function DashboardPage() {
                     </span>
                     <Icon className="size-5 shrink-0 text-primary" aria-hidden="true" />
                   </div>
-                  <StatusIcon status={status} />
+                  {showReviewBadges ? (
+                    <span
+                      className={`flex items-center gap-1 rounded-full border px-2 py-0.5 text-fluid-xs font-medium ${SECTION_REVIEW_BADGE_CLASS[reviewState]}`}
+                    >
+                      <ReviewIcon className="size-3.5 shrink-0" aria-hidden="true" />
+                      {SECTION_REVIEW_LABEL[reviewState][lang]}
+                    </span>
+                  ) : (
+                    <StatusIcon status={status} />
+                  )}
                 </CardHeader>
                 <CardContent>
                   <CardTitle lang={lang} className={lang === "si" ? "font-si text-fluid-base" : "font-ui text-fluid-base"}>

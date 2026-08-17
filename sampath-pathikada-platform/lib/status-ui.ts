@@ -45,3 +45,25 @@ export const STATUS_SORT_WEIGHT: Record<SubmissionStatus, number> = {
   APPROVED: 3,
   DRAFT: 4,
 };
+
+/** Per-section review badge — a subset of the same three states, reusing the whole-submission
+ *  color tokens above so a section's badge and the whole-submission badge read consistently. */
+export type SectionReviewState = "PENDING" | "APPROVED" | "REVISION_NEEDED";
+
+export const SECTION_REVIEW_LABEL: Record<SectionReviewState, Translated> = {
+  PENDING: dictionary.sectionReviewPending,
+  APPROVED: dictionary.statusApproved,
+  REVISION_NEEDED: dictionary.statusRevisionNeeded,
+};
+
+export const SECTION_REVIEW_ICON: Record<SectionReviewState, LucideIcon> = {
+  PENDING: Inbox,
+  APPROVED: CheckCircle2,
+  REVISION_NEEDED: MessageSquareWarning,
+};
+
+export const SECTION_REVIEW_BADGE_CLASS: Record<SectionReviewState, string> = {
+  PENDING: "bg-muted text-muted-foreground border-border",
+  APPROVED: STATUS_BADGE_CLASS.APPROVED,
+  REVISION_NEEDED: STATUS_BADGE_CLASS.REVISION_NEEDED,
+};

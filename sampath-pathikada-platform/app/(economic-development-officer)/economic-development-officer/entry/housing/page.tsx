@@ -121,6 +121,8 @@ export default function HousingPage() {
       saveStatus={status}
       saveErrorMessage={errorMessage}
       onSaveDraft={handleSave}
+      submission={submission}
+      sectionKey="housing"
     >
       <div>
         <h2 lang={lang} className={cn("mb-3 text-fluid-lg font-semibold text-foreground", lang === "si" && "font-si-heading")}>

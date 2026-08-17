@@ -1,20 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Prisma } from "@/lib/prisma-client";
 import prisma from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import { verifyOrigin } from "@/lib/csrf";
-
-const REVIEWER_ROLES = ["DIVISIONAL_SECRETARIAT", "ADMIN", "SUPER_ADMIN"];
-
-/** A Divisional Secretariat or division-scoped Admin outside a submission's DS
- *  division must see the same 404 as a genuinely-missing submission — a 403
- *  would leak that a submission exists somewhere outside their authorization
- *  boundary. Matches the scoping already enforced in GET /api/submissions. */
-function isOutOfScope(session: { role: string; dsDivision: string | null }, submissionDsDivision: string): boolean {
-  return (
-    (session.role === "DIVISIONAL_SECRETARIAT" || session.role === "ADMIN") &&
-    submissionDsDivision !== session.dsDivision
-  );
-}
+import { REVIEWER_ROLES, isOutOfScope } from "@/lib/review-scope";
+import { SECTION_KEYS } from "@/lib/types/submission";
+import { parseSectionReviews, deriveSubmissionStatus, isUnderReview, type SectionReviews } from "@/lib/submission-review";
+import { logAudit } from "@/lib/audit-log";
 
 /* ── GET /api/submissions/[id] ── reviewer view of one officer's submission ──── */
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -36,7 +28,12 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   return NextResponse.json({ ok: true, data: submission });
 }
 
-/* ── PATCH /api/submissions/[id] ── approve / reject / request revision ──────── */
+/* ── PATCH /api/submissions/[id] ── whole-submission Reject, or "Approve All Remaining" ──────────
+ * Per-section decisions go through PATCH /api/submissions/[id]/sections/[section] instead — that
+ * endpoint superseded this one's old "approve"/"request-revision" single-decision actions. This
+ * route now only handles the two actions that are still genuinely whole-submission: Reject (the
+ * submission is unusable as a whole) and "approve" as a convenience that approves every section
+ * still pending review in one click, without touching sections already decided either way. */
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   if (!verifyOrigin(req)) {
     return NextResponse.json({ ok: false, message: "Invalid request origin." }, { status: 403 });
@@ -56,93 +53,111 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   }
 
   const { action, note } = (body ?? {}) as { action?: string; note?: string };
-  const ACTION_TO_STATUS: Record<string, "APPROVED" | "REJECTED" | "REVISION_NEEDED"> = {
-    approve: "APPROVED",
-    reject: "REJECTED",
-    "request-revision": "REVISION_NEEDED",
-  };
-  const nextStatus = action ? ACTION_TO_STATUS[action] : undefined;
-  if (!nextStatus) {
-    return NextResponse.json(
-      { ok: false, message: "Action must be one of: approve, reject, request-revision." },
-      { status: 400 }
-    );
+  if (action !== "approve" && action !== "reject") {
+    return NextResponse.json({ ok: false, message: "Action must be one of: approve, reject." }, { status: 400 });
   }
-  if ((nextStatus === "REJECTED" || nextStatus === "REVISION_NEEDED") && !note?.trim()) {
-    return NextResponse.json(
-      { ok: false, message: "A note explaining the decision is required for this action." },
-      { status: 400 }
-    );
+  if (action === "reject" && !note?.trim()) {
+    return NextResponse.json({ ok: false, message: "A note explaining the decision is required for this action." }, { status: 400 });
   }
 
   const submission = await prisma.submission.findUnique({ where: { id } });
   if (!submission || isOutOfScope(session, submission.dsDivision)) {
     return NextResponse.json({ ok: false, message: "Submission not found." }, { status: 404 });
   }
-  if (submission.status !== "SUBMITTED") {
+  if (!isUnderReview(submission.status)) {
     return NextResponse.json(
-      { ok: false, message: "Only submissions with status SUBMITTED can be reviewed." },
+      { ok: false, message: "Only a submission that's under review can be decided." },
       { status: 409 }
     );
   }
 
   const reviewedAt = new Date();
 
-  const [updated] = await prisma.$transaction([
-    prisma.submission.update({
-      where: { id },
-      data: {
-        status: nextStatus,
-        rejectionNote: nextStatus === "APPROVED" ? null : (note?.trim() ?? null),
-        reviewedById: session.userId,
-        reviewedAt,
-      },
-    }),
-    // Approval freezes the submission's data as the division's official record —
-    // this is the only place DivisionProfile is written. It is keyed by gnDivision,
-    // so approving a later year's submission for the same division overwrites (not
-    // duplicates) the previous snapshot: it always reflects the latest approved data.
-    ...(nextStatus === "APPROVED"
-      ? [
-          prisma.divisionProfile.upsert({
-            where: { gnDivision: submission.gnDivision },
-            create: {
-              district: submission.district,
-              dsDivision: submission.dsDivision,
-              gnDivision: submission.gnDivision,
-              data: submission.data as object,
-              sourceSubmissionId: submission.id,
-              year: submission.year,
-              approvedById: session.userId,
-              approvedAt: reviewedAt,
-            },
-            update: {
-              district: submission.district,
-              dsDivision: submission.dsDivision,
-              data: submission.data as object,
-              sourceSubmissionId: submission.id,
-              year: submission.year,
-              approvedById: session.userId,
-              approvedAt: reviewedAt,
-            },
-          }),
-        ]
-      : []),
-  ]);
+  // Same locking-read pattern as the per-section route — this can run concurrently with a
+  // per-section decision or an officer's resubmit-on-save, both of which also touch
+  // `sectionReviews` on this row.
+  const updated = await prisma.$transaction(
+    async (tx) => {
+      await tx.$queryRaw`SELECT id FROM submissions WHERE id = ${id} FOR UPDATE`;
+      const row = await tx.submission.findUnique({ where: { id } });
+      if (!row) return null;
 
-  await prisma.auditLog.create({
-    data: {
-      action: `Submission ${nextStatus}`,
-      description:
-        nextStatus === "APPROVED"
-          ? `${session.name} approved submission ${id} (${submission.gnDivision}, ${submission.year}) — saved as the division's official record`
-          : `${session.name} set submission ${id} (${submission.gnDivision}, ${submission.year}) to ${nextStatus}`,
-      category: "DATA",
-      severity: nextStatus === "APPROVED" ? "SUCCESS" : "WARNING",
-      userId: session.userId,
-      userName: session.name,
-      metadata: { submissionId: id, year: submission.year, note: note ?? null },
+      if (action === "reject") {
+        return tx.submission.update({
+          where: { id },
+          data: { status: "REJECTED", rejectionNote: note!.trim(), sectionReviews: {}, reviewedById: session.userId, reviewedAt },
+        });
+      }
+
+      // "approve" — fill in every still-pending section as approved; leave sections already
+      // decided (approved, or still flagged for revision) exactly as they are.
+      const currentReviews = parseSectionReviews(row.sectionReviews);
+      const nextReviews: SectionReviews = { ...currentReviews };
+      for (const key of SECTION_KEYS) {
+        if (!nextReviews[key]) {
+          nextReviews[key] = { status: "APPROVED", note: null, reviewedById: session.userId, reviewedAt: reviewedAt.toISOString() };
+        }
+      }
+      const nextStatus = deriveSubmissionStatus(nextReviews);
+
+      const result = await tx.submission.update({
+        where: { id },
+        data: {
+          sectionReviews: nextReviews as Prisma.InputJsonValue,
+          status: nextStatus,
+          reviewedById: session.userId,
+          reviewedAt,
+          rejectionNote: null,
+        },
+      });
+
+      if (nextStatus === "APPROVED") {
+        await tx.divisionProfile.upsert({
+          where: { gnDivision: row.gnDivision },
+          create: {
+            district: row.district,
+            dsDivision: row.dsDivision,
+            gnDivision: row.gnDivision,
+            data: row.data as object,
+            sourceSubmissionId: row.id,
+            year: row.year,
+            approvedById: session.userId,
+            approvedAt: reviewedAt,
+          },
+          update: {
+            district: row.district,
+            dsDivision: row.dsDivision,
+            data: row.data as object,
+            sourceSubmissionId: row.id,
+            year: row.year,
+            approvedById: session.userId,
+            approvedAt: reviewedAt,
+          },
+        });
+      }
+
+      return result;
     },
+    { isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted, timeout: 10_000 }
+  );
+
+  if (!updated) {
+    return NextResponse.json({ ok: false, message: "Submission not found." }, { status: 404 });
+  }
+
+  logAudit({
+    action: action === "reject" ? "Submission REJECTED" : `Submission ${updated.status}`,
+    description:
+      action === "reject"
+        ? `${session.name} rejected submission ${id} (${submission.gnDivision}, ${submission.year})`
+        : updated.status === "APPROVED"
+          ? `${session.name} approved all remaining sections of submission ${id} (${submission.gnDivision}, ${submission.year}) — saved as the division's official record`
+          : `${session.name} approved all remaining sections of submission ${id} (${submission.gnDivision}, ${submission.year})`,
+    category: "DATA",
+    severity: action === "reject" ? "WARNING" : updated.status === "APPROVED" ? "SUCCESS" : "INFO",
+    userId: session.userId,
+    userName: session.name,
+    metadata: { submissionId: id, year: submission.year, note: note ?? null },
   });
 
   return NextResponse.json({ ok: true, data: updated });
