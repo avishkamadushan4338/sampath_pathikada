@@ -10,6 +10,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getCompletionSummary } from "@/lib/submission-progress";
+import { parseSectionReviews } from "@/lib/submission-review";
+import { SECTION_META } from "@/lib/i18n/section-meta";
 import { SECTION_KEYS } from "@/lib/types/submission";
 
 const YEARS = [2026];
@@ -45,6 +47,8 @@ function YearCard({ year }: { year: number }) {
   }
 
   const summary = getCompletionSummary(submission.data);
+  const reviews = parseSectionReviews(submission.sectionReviews);
+  const revisionSections = SECTION_KEYS.filter((key) => reviews[key]?.status === "REVISION_NEEDED");
 
   return (
     <Card className="card-lift">
@@ -63,6 +67,28 @@ function YearCard({ year }: { year: number }) {
         </p>
         {submission.rejectionNote && (
           <p className="rounded-md bg-destructive/10 p-2 text-fluid-sm text-destructive">{submission.rejectionNote}</p>
+        )}
+        {revisionSections.length > 0 && (
+          <div className="rounded-md border border-[hsl(var(--status-pending))]/30 bg-[hsl(var(--status-pending))]/5 p-2">
+            <p className="text-fluid-sm font-medium text-foreground">
+              <Bilingual
+                en={`${revisionSections.length} section(s) need revision`}
+                si={`කොටස් ${revisionSections.length} ක් සංශෝධනය කළ යුතුය`}
+              />
+            </p>
+            <ul className="mt-1 flex flex-col gap-1">
+              {revisionSections.map((key) => (
+                <li key={key}>
+                  <details className="text-fluid-sm text-muted-foreground">
+                    <summary className="cursor-pointer text-foreground">
+                      {lang === "si" ? SECTION_META[key].title.si : SECTION_META[key].title.en}
+                    </summary>
+                    {reviews[key]?.note && <p className="mt-1 pl-4">{reviews[key]!.note}</p>}
+                  </details>
+                </li>
+              ))}
+            </ul>
+          </div>
         )}
         <Button asChild variant="outline" size="sm" className="touch-target w-fit gap-1.5">
           <Link href="/economic-development-officer/dashboard">
