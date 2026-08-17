@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Prisma } from "@/lib/prisma-client";
 import prisma from "@/lib/db";
 import { getSession } from "@/lib/auth";
-
-const REVIEWER_ROLES = ["DIVISIONAL_SECRETARIAT", "ADMIN", "SUPER_ADMIN"];
+import { REVIEWER_ROLES } from "@/lib/review-scope";
+import { parseSectionReviews, countSectionReviews } from "@/lib/submission-review";
 
 /* ── GET /api/submissions ── reviewer-facing list, filterable by district/status/year ── */
 export async function GET(req: NextRequest) {
@@ -58,20 +59,37 @@ export async function GET(req: NextRequest) {
         gnDivision: true,
         status: true,
         rejectionNote: true,
+        sectionReviews: true,
         createdAt: true,
         updatedAt: true,
         reviewedAt: true,
         submittedBy: { select: { id: true, name: true, email: true, phone: true } },
-        data: true,
       },
     }),
   ]);
 
-  // Only the Identification section's officer designation is surfaced here — the rest of
-  // `data` is the full yearly survey payload and reviewers browsing this list don't need it.
-  const shaped = submissions.map(({ data, ...rest }) => ({
+  // Only the Identification section's officer designation is surfaced here — pulled straight out
+  // of MySQL's JSON column with JSON_EXTRACT instead of selecting the whole multi-section `data`
+  // blob (which used to be tens/hundreds of KB per row) and discarding everything but this one
+  // string. That used to make this list slower with every submission that accumulated. Scoped by
+  // the same `id`s the (already dsDivision/role-scoped) query above just returned, so it needs no
+  // separate authorization check of its own.
+  const officerDesignationById = new Map<string, string | null>();
+  if (submissions.length > 0) {
+    const rows = await prisma.$queryRaw<{ id: string; officerDesignation: string | null }[]>`
+      SELECT id, JSON_UNQUOTE(JSON_EXTRACT(data, '$.identification.officerDesignation')) AS officerDesignation
+      FROM submissions
+      WHERE id IN (${Prisma.join(submissions.map((s) => s.id))})
+    `;
+    for (const row of rows) officerDesignationById.set(row.id, row.officerDesignation);
+  }
+
+  // `sectionReviews` is similarly reduced to counts — the full per-section notes only matter on
+  // the detail page, and a 15-entry object per row is unnecessary weight for a list.
+  const shaped = submissions.map(({ sectionReviews, ...rest }) => ({
     ...rest,
-    officerDesignation: (data as { identification?: { officerDesignation?: string } } | null)?.identification?.officerDesignation ?? null,
+    officerDesignation: officerDesignationById.get(rest.id) ?? null,
+    sectionReviewCounts: countSectionReviews(parseSectionReviews(sectionReviews)),
   }));
 
   return NextResponse.json({ ok: true, data: shaped, total, page, pageSize });

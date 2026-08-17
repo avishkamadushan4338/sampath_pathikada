@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import useSWR from "swr";
-import { ArrowUpDown, Eye, Search } from "lucide-react";
+import { ArrowUpDown, Eye, MessageSquareWarning, Search } from "lucide-react";
 import { Bilingual } from "@/components/Bilingual";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { Card, CardContent } from "@/components/ui/card";
@@ -27,8 +27,15 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { DISTRICTS, GN_DIVISIONS } from "@/lib/registration-data";
-import { STATUS_LABEL, STATUS_BADGE_CLASS, STATUS_ICON, type SubmissionStatus } from "@/lib/status-ui";
+import { STATUS_LABEL, STATUS_BADGE_CLASS, STATUS_ICON, SECTION_REVIEW_BADGE_CLASS, type SubmissionStatus } from "@/lib/status-ui";
 import { CURRENT_YEAR } from "@/lib/constants";
+
+interface SectionReviewCounts {
+  approved: number;
+  revisionNeeded: number;
+  pending: number;
+  total: number;
+}
 
 interface ReviewListItem {
   id: string;
@@ -38,6 +45,9 @@ interface ReviewListItem {
   gnDivision: string;
   status: SubmissionStatus;
   updatedAt: string;
+  // Counts of the same 15 sections as the EDO's paper Data Entry Form (see SECTION_KEYS) —
+  // lets a DS see review progress on a submission without opening it.
+  sectionReviewCounts: SectionReviewCounts;
   submittedBy: { name: string; email: string; phone: string | null };
 }
 
@@ -57,7 +67,7 @@ function districtLabel(id: string, lang: "en" | "si") {
   return d ? (lang === "si" ? d.si : d.en) : id;
 }
 
-type SortKey = "gnDivision" | "officer" | "district" | "updatedAt" | "status";
+type SortKey = "gnDivision" | "officer" | "district" | "updatedAt" | "status" | "sections";
 type SortDir = "asc" | "desc";
 
 const STATUS_FILTER_OPTIONS: { value: SubmissionStatus | "all"; label: { en: string; si: string } }[] = [
@@ -123,6 +133,12 @@ export default function ReviewQueuePage() {
           break;
         case "status":
           cmp = a.status.localeCompare(b.status);
+          break;
+        case "sections":
+          cmp =
+            a.sectionReviewCounts.approved +
+            a.sectionReviewCounts.revisionNeeded -
+            (b.sectionReviewCounts.approved + b.sectionReviewCounts.revisionNeeded);
           break;
         case "updatedAt":
         default:
@@ -201,6 +217,7 @@ export default function ReviewQueuePage() {
                 <TableHead className="hidden md:table-cell"><SortHeader label={{ en: "District", si: "දිස්ත්‍රික්කය" }} sortKeyValue="district" /></TableHead>
                 <TableHead><SortHeader label={{ en: "Officer", si: "නිලධාරී" }} sortKeyValue="officer" /></TableHead>
                 <TableHead className="hidden sm:table-cell"><SortHeader label={{ en: "Updated", si: "යාවත්කාලීන කළ දිනය" }} sortKeyValue="updatedAt" /></TableHead>
+                <TableHead className="hidden md:table-cell"><SortHeader label={{ en: "Sections", si: "කොටස්" }} sortKeyValue="sections" /></TableHead>
                 <TableHead><SortHeader label={{ en: "Status", si: "තත්ත්වය" }} sortKeyValue="status" /></TableHead>
                 <TableHead className="text-right">
                   <span className="text-fluid-xs font-semibold uppercase tracking-wide text-muted-foreground">
@@ -224,6 +241,19 @@ export default function ReviewQueuePage() {
                     </TableCell>
                     <TableCell className="hidden whitespace-nowrap text-muted-foreground sm:table-cell">
                       {new Date(item.updatedAt).toLocaleDateString(lang === "si" ? "si-LK" : "en-LK", { year: "numeric", month: "short", day: "numeric" })}
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-fluid-xs text-muted-foreground nums-tabular">
+                          {item.sectionReviewCounts.approved + item.sectionReviewCounts.revisionNeeded}/{item.sectionReviewCounts.total}
+                        </span>
+                        {item.sectionReviewCounts.revisionNeeded > 0 && (
+                          <Badge variant="outline" className={`gap-1 ${SECTION_REVIEW_BADGE_CLASS.REVISION_NEEDED}`}>
+                            <MessageSquareWarning className="size-3" aria-hidden="true" />
+                            {item.sectionReviewCounts.revisionNeeded}
+                          </Badge>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell>
                       <Badge variant="outline" className={`gap-1.5 ${STATUS_BADGE_CLASS[item.status]}`}>
