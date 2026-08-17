@@ -202,6 +202,11 @@ export interface DonutSlice {
   label: string;
   value: number;
   color: string;
+  /** A subset already counted inside `value` (e.g. "of these 30 without facilities, 20 need
+   *  assistance") — rendered as an indented sub-row under this slice's legend entry instead of
+   *  a separate donut wedge, since it isn't an additional share of the whole and would double-
+   *  count the total if it were. Its percentage is of this slice's value, not the grand total. */
+  subBreakdown?: { label: string; value: number };
 }
 
 /** Part-to-whole breakdown of a total (e.g. housing types making up Total Houses) — a donut
@@ -267,12 +272,25 @@ export function DonutCard({
             </div>
             <ul className="flex w-full min-w-0 flex-1 flex-col gap-3">
               {slices.map((s, i) => (
-                <li key={i} className="flex items-center gap-2.5 text-fluid-sm">
-                  <span className="size-3 shrink-0 rounded-full" style={{ background: s.color }} aria-hidden="true" />
-                  <span className="whitespace-nowrap text-foreground">{s.label}</span>
-                  <span className="whitespace-nowrap font-semibold nums-tabular text-foreground">
-                    {s.value} <span className="text-muted-foreground">({total > 0 ? Math.round((s.value / total) * 100) : 0}%)</span>
-                  </span>
+                <li key={i} className="flex flex-col gap-1.5">
+                  <div className="flex items-center gap-2.5 text-fluid-sm">
+                    <span className="size-3 shrink-0 rounded-full" style={{ background: s.color }} aria-hidden="true" />
+                    <span className="whitespace-nowrap text-foreground">{s.label}</span>
+                    <span className="whitespace-nowrap font-semibold nums-tabular text-foreground">
+                      {s.value} <span className="text-muted-foreground">({total > 0 ? Math.round((s.value / total) * 100) : 0}%)</span>
+                    </span>
+                  </div>
+                  {s.subBreakdown && (
+                    <div className="ml-4.5 flex items-center gap-2.5 border-l-2 pl-3 text-fluid-xs" style={{ borderColor: s.color }}>
+                      <span className="whitespace-nowrap text-muted-foreground">{s.subBreakdown.label}</span>
+                      <span className="whitespace-nowrap font-semibold nums-tabular text-foreground">
+                        {s.subBreakdown.value}{" "}
+                        <span className="text-muted-foreground">
+                          ({s.value > 0 ? Math.round((s.subBreakdown.value / s.value) * 100) : 0}%)
+                        </span>
+                      </span>
+                    </div>
+                  )}
                 </li>
               ))}
             </ul>
