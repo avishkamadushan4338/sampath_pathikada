@@ -46,7 +46,7 @@ const LAND_USE_TYPE_OPTIONS = [
   { value: "scrub-chena-barren", label: { en: "Fertile Jungle / Chena / Barren Land / Abandoned Land", si: "ලදු කැලෑ / හේන්/ මුඩු බිම් / අත්හැර දමන ලද බිම්" } },
   {
     value: "ornamental-nurseries",
-    label: { en: "Commercial Flower Nurseries / Ornamental Plant Nurseries / Other Plant Nurseries", si: "වාණිජ මල් තවාන් / විසිතුරු පැල තවාන් / වෙනත් පැල තවාන්" },
+    label: { en: "Commercial Flower Nurseries / Ornamental Plant Nurseries / Other Plant Nurseries", si: "ව්‍යාපාරික මල් තවාන් / විසිතුරු පැල තවාන් / වෙනත් පැල තවාන්" },
   },
   { value: "plantation-crop-nurseries", label: { en: "Plantation Crop Nurseries (Cinnamon / Tea / Pepper)", si: "වැවිලි බෝග පැල තවාන් (කුරුඳු/තේ/ගම්මිරිස්)" } },
   { value: "aquaculture-land", label: { en: "Aquaculture", si: "ජල ජීවී වගාව" } },
@@ -79,9 +79,9 @@ const AGRI_MACHINERY_TYPE_OPTIONS = [
   { value: "power-sprayer", label: { en: "Power Sprayer", si: "බලවේග දියර ඉසින යන්ත්‍ර" } },
   { value: "hand-sprayer", label: { en: "Hand Sprayer", si: "අත් ඉසින යන්ත්‍ර" } },
   { value: "weeder", label: { en: "Weeder", si: "වල් නෙළුම් කර" } },
-  { value: "food-drying-machine", label: { en: "Food Drying Machine", si: "ආහාර විජ්ජලන යන්ත්‍ර" } },
+  { value: "food-drying-machine", label: { en: "Food Drying Machine", si: "ආහාර විජලන යන්ත්‍ර" } },
   { value: "floor-flower-media-filling-machine", label: { en: "Floor Flower Media Filling Machine", si: "බිම් මල් මාධ්‍ය පිරවුම් යන්ත්‍ර" } },
-  { value: "floor-flower-media-boiling-machine", label: { en: "Floor Flower Media Boiling Machine", si: "බිම් මල් මාධ්‍ය මල් තම්බන යන්ත්‍ර" } },
+  { value: "floor-flower-media-boiling-machine", label: { en: "Floor Flower Media Boiling Machine", si: "බිම් මල් මාධ්‍ය මලු තම්බන යන්ත්‍ර" } },
   { value: "seedling-planting-machine", label: { en: "Seedling Planting Machine", si: "පැළ සිටුවන යන්ත්‍ර" } },
   { value: "paddy-reaping-machine", label: { en: "Paddy Reaping Machine", si: "වී වෙළන යන්ත්‍ර" } },
   { value: "oil-mill", label: { en: "Oil Mill", si: "තෙල් මෝල්" } },
@@ -117,7 +117,7 @@ const WATER_TYPE_OPTIONS = [
 ];
 
 const INLAND_WATER_BODY_TYPE_OPTIONS = [
-  { value: "perennial", label: { en: "Perennial", si: "නිතය" } },
+  { value: "perennial", label: { en: "Perennial", si: "නිත්‍ය" } },
   { value: "seasonal", label: { en: "Seasonal", si: "කාලීන" } },
 ];
 
@@ -190,7 +190,7 @@ const FISHERIES_SOCIETY_COLUMNS: ReadOnlyColumn[] = [
 ];
 
 const INLAND_WATER_BODY_COLUMNS: ReadOnlyColumn[] = [
-  { key: "name", label: { en: "Name of Tank / Reservoir (Perennial / Seasonal)", si: "වැව්/ජලාශ නම (නිතය/කාලීන)" } },
+  { key: "name", label: { en: "Name of Tank / Reservoir (Perennial / Seasonal)", si: "වැව්/ජලාශ නම (නිත්‍ය/කාලීන)" } },
   { key: "type", label: { en: "* Type", si: "*වර්ගය" }, options: INLAND_WATER_BODY_TYPE_OPTIONS },
 ];
 

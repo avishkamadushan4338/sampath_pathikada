@@ -223,7 +223,7 @@ export default function SocialWelfarePage() {
               />
             )}
           </FieldWrapper>
-          <FieldWrapper name="welfarePaymentHouseholdCounts.totalAswesumaRecipients" label={{ en: "Total Aswesuma Recipients", si: "අස්වැසුම ප්‍රතිලාභී මුළ" }}>
+          <FieldWrapper name="welfarePaymentHouseholdCounts.totalAswesumaRecipients" label={{ en: "Total Aswesuma Recipients", si: "අස්වැසුම ප්‍රතිලාභී මුළු" }}>
             {({ id, describedBy, invalid }) => (
               <Input
                 id={id}

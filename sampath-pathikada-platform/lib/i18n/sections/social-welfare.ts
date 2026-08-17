@@ -35,7 +35,7 @@ export const socialWelfareDict: SectionDictionary<keyof SocialWelfareData & stri
     rs5000: { en: "Rs. 5,000 - At Risk", si: "රු.5000 අවධානමට ලක් වූ" },
     rs8500: { en: "Rs. 8,500 - Poor", si: "රු.8500 දිලිඳු" },
     rs15000: { en: "Rs. 15,000 - Extremely Poor", si: "රු.15000 අන්ත දිලිඳු" },
-    totalAswesumaRecipients: { en: "Total Aswesuma Recipients", si: "අස්වැසුම ප්‍රතිලාභී මුළ" },
+    totalAswesumaRecipients: { en: "Total Aswesuma Recipients", si: "අස්වැසුම ප්‍රතිලාභී මුළු" },
     // allowanceRecipientCounts
     disabilityAllowance: { en: "Disability Allowance", si: "ආබාධිත දීමනා" },
     elderlyAllowance: { en: "Elderly Allowance", si: "වැඩිහිටි දීමනා" },

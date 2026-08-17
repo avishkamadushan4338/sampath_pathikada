@@ -17,13 +17,13 @@ export const roadInfrastructureDict: SectionDictionary<keyof RoadInfrastructureD
       si: "සංවර්ධනය කලයුතු මාර්ග පිළිබඳ අවශ්‍යතාවය (ප්‍රමුඛතාවය අනුව)",
       helpEn:
         "* Road surface (1. Carpet 2. Tar 3. Concrete 4. Interlock 5. Gravel/Soil). ** Municipal / Urban / Pradeshiya Sabha / Rural.",
-      helpSi: "*මාර්ගයේ ස්වභාවය (1-කාපට 2-තාර 3-කොන්ක්‍රීට් 4- interlock 5- බොරළු/ පස්) **මාසඉ/ප්‍රාමාසඉ/ප්‍රාදේශිය සභා/ග්‍රාමීය",
+      helpSi: "*මාර්ගයේ ස්වභාවය (1-කාපට් 2-තාර 3-කොන්ක්‍රීට් 4- interlock 5- බොරළු/ පස්) **මාසඅ/ප්‍රාමාසඅ/ප්‍රාදේශිය සභා/ග්‍රාමීය",
     },
     bridgeRepairs: {
       en: "Details of Bridges / Culverts / Footpaths in Dilapidated Condition (By Priority)",
-      si: "අබලන් තත්ත්වයේ පවතින පාලම්/ බෝක්කු/පැතිබැම් පිළිබඳ විස්තර (ප්‍රමුඛතාවය අනුව)",
+      si: "අබලන් තත්ත්වයේ පවතින පාලම්/ බෝක්කු/පැතිබැමි පිළිබඳ විස්තර (ප්‍රමුඛතාවය අනුව)",
       helpEn: "** Municipal / Urban / Pradeshiya Sabha / Rural.",
-      helpSi: "**මාසඉ/ප්‍රාමාසඉ/ප්‍රාදේශිය සභා/ග්‍රාමීය",
+      helpSi: "**මාසඅ/ප්‍රාමාසඅ/ප්‍රාදේශිය සභා/ග්‍රාමීය",
     },
     newRoadBridgeNeeds: { en: "Need for New Bridges / Culverts (By Priority)", si: "නව පාලම් බෝක්කු අවශ්‍යතාවය (ප්‍රමුඛතාවය අනුව)" },
     noPublicTransportAreas: {
@@ -32,7 +32,7 @@ export const roadInfrastructureDict: SectionDictionary<keyof RoadInfrastructureD
     },
     railwayCrossingGaps: {
       en: "Locations at Railway Crossings Lacking Protective Railway Gates",
-      si: "දුම්රිය හරස් මාර්ගයන්හි ආරක්ෂිත දුම්රිය ෆෙට්ටු නොමැති ස්ථාන",
+      si: "දුම්රිය හරස් මාර්ගයන්හි ආරක්ෂිත දුම්රිය ගේට්ටු නොමැති ස්ථාන",
     },
     postOffices: {
       en: "Details of Post Offices / Sub Post Offices / (Postal Boxes and Counters)",

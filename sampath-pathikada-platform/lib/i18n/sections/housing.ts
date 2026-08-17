@@ -14,7 +14,7 @@ export const housingDict: SectionDictionary<keyof HousingData & string> = {
       helpEn:
         "* Houses with walls of brick, granite, cabook, or clay brick; roofs of tile, asbestos, or aluminium sheet; and floors of tile, granite, cement, terrazzo, wood, or concrete.\n** Houses with mud/clay walls, using any material for the roof and floor.\n*** Houses with walls of planks or sheets; roofs of coconut/palm leaves, thatch, or sheets; and floors of sand or clay.",
       helpSi:
-        "*ගඩොල්, කළුගල්, කැබොක්, මැටි ගඩොල් යොදා බිත්ති බැඳ ඇති, වහලය සඳහා උළු, ඇස්බැස්ටෝස්, ඇලුමිනියම් තහඩු යෙදූ සහ ගෙබිම ටයිල්,ග්‍රැනයිට්,සිමෙන්ති,ටෙරෙසෝ, ලී,කොන්ක්‍රීට් යෙදූ නිවාසයි.\n** මැටි බිත්ති බැඳ ඇති, වහලය සහ ගෙබිම සඳහා ඕනෑම දුවයක් භාවිත කර ඇති නිවාසයි.\n***ලෑලි,තහඩු යොදා බිත්ති සකසා ඇති, වහලය තල්අතු,පොල් අතු,පිදුරු හෝ තහඩු යෙදූ සහ ගෙබිම සඳහා වැලි හෝ මැටි භාවිත කර ඇති නිවාසයි.",
+        "*ගඩොල්, කළුගල්, කැබොක්, මැටි ගඩොල් යොදා බිත්ති බැඳ ඇති, වහලය සඳහා උළු, ඇස්බැස්ටෝස්, ඇලුමිනියම් තහඩු යෙදූ සහ ගෙබිම ටයිල්,ග්‍රැනයිට්,සිමෙන්ති,ටෙරෙසෝ, ලී,කොන්ක්‍රීට් යෙදූ නිවාසයි.\n** මැටි බිත්ති බැඳ ඇති, වහලය සහ ගෙබිම සඳහා ඕනෑම ද්‍රව්‍යක් භාවිත කර ඇති නිවාසයි.\n***ලෑලි,තහඩු යොදා බිත්ති සකසා ඇති, වහලය තල්අතු,පොල් අතු,පිදුරු හෝ තහඩු යෙදූ සහ ගෙබිම සඳහා වැලි හෝ මැටි භාවිත කර ඇති නිවාසයි.",
     },
     householdsWithoutHousing: { en: "Number of Families Without Housing", si: "නිවාස නොමැති පවුල් සංඛ්‍යාව" },
     sanitation: { en: "Toilet Facility Requirement", si: "වැසිකිලි අවශ්‍යතාවය" },
@@ -59,7 +59,7 @@ export const housingDict: SectionDictionary<keyof HousingData & string> = {
     withSolar: { en: "With Solar Power", si: "සූර්ය බල ශක්තිය සහිත" },
     withoutElectricity: { en: "Without Electricity Facility", si: "විදුලිබල පහසුකම් නොමැති" },
     name: { en: "Name of the Water Project", si: "ජල ව්‍යාපෘතියේ නම" },
-    functional: { en: "Is It Operational? (Yes/No)", si: "ක්‍රියාත්මක තත්ත්වයේ ඇත්/නැත" },
+    functional: { en: "Is It Operational? (Yes/No)", si: "ක්‍රියාත්මක තත්ත්වයේ ඇත/නැත" },
     householdsServed: { en: "Number of Families Benefiting", si: "පහසුකම් ලබාගන්නා පවුල් සංඛ්‍යාව" },
     authority: { en: "Ownership", si: "අයිතිය" },
     // Compound overrides — same generic key means something different in each nested object.

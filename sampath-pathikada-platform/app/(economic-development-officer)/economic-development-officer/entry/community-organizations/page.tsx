@@ -23,7 +23,7 @@ const ORGANIZATION_TYPE_LABELS: Record<(typeof ORGANIZATION_TYPES)[number], { en
   "village-development-society": { en: "Village Development Society", si: "ග්‍රාම සංවර්ධන සමිති" },
   "youth-society": { en: "Youth Society", si: "යෞවන සමාජ සමිති" },
   "sports-club": { en: "Sports Society", si: "ක්‍රීඩා සමාජ" },
-  "funeral-aid-society": { en: "Funeral & Welfare Society", si: "අවමංගලාය හා සුභසාධක සමිති" },
+  "funeral-aid-society": { en: "Funeral & Welfare Society", si: "අවමංගල්‍යය හා සුභසාධක සමිති" },
   "womens-society": { en: "Women's Society", si: "කාන්තා සමිති" },
   "elders-society": { en: "Elders' Society", si: "වැඩිහිටි සමිති" },
   "childrens-society": { en: "Children's Society", si: "ළමා සමාජ" },
@@ -115,7 +115,7 @@ export default function CommunityOrganizationsPage() {
   ];
 
   const sportsClubColumns: RepeatableColumn[] = [
-    { key: "nameAndAddress", label: { en: "Sports Society Name & Address", si: "ක්‍රීඩා සමාජවල නම හා ලිපිනය" }, type: "text", required: true },
+    { key: "nameAndAddress", label: { en: "Sports Society Name & Address", si: "ක්‍රීඩා සමාජවල නම් හා ලිපිනය" }, type: "text", required: true },
     { key: "memberCount", label: { en: "Member Count", si: "සාමාජික ගණන" }, type: "number" },
     { key: "identifiedNeeds", label: { en: "Identified Needs", si: "හඳුනාගත් අවශ්‍යතා" }, type: "text" },
   ];
@@ -154,7 +154,7 @@ export default function CommunityOrganizationsPage() {
         <RepeatableTable
           name="villageDevelopmentSocieties"
           title={communityOrganizationsDict.fields.villageDevelopmentSocieties}
-          columns={nameColumns({ en: "Village Development Society Names", si: "ග්‍රාම සංවර්ධන සමිතිවල නම" })}
+          columns={nameColumns({ en: "Village Development Society Names", si: "ග්‍රාම සංවර්ධන සමිතිවල නම්" })}
           emptyRowFactory={() => ({ name: "", address: "" })}
         />
       </div>
@@ -163,7 +163,7 @@ export default function CommunityOrganizationsPage() {
         <RepeatableTable
           name="youthSocieties"
           title={communityOrganizationsDict.fields.youthSocieties}
-          columns={nameColumns({ en: "Youth Society Names", si: "යෞවන සමාජ සමිතිවල නම" })}
+          columns={nameColumns({ en: "Youth Society Names", si: "යෞවන සමාජ සමිතිවල නම්" })}
           emptyRowFactory={() => ({ name: "", address: "" })}
         />
       </div>
@@ -181,7 +181,7 @@ export default function CommunityOrganizationsPage() {
         <RepeatableTable
           name="funeralAidSocieties"
           title={communityOrganizationsDict.fields.funeralAidSocieties}
-          columns={nameColumns({ en: "Funeral & Welfare Society Names", si: "අවමංගලාය හා සුභසාධක සමිතිවල නම" })}
+          columns={nameColumns({ en: "Funeral & Welfare Society Names", si: "අවමංගල්‍යය හා සුභසාධක සමිතිවල නම්" })}
           emptyRowFactory={() => ({ name: "", address: "" })}
         />
       </div>
@@ -190,7 +190,7 @@ export default function CommunityOrganizationsPage() {
         <RepeatableTable
           name="womensSocieties"
           title={communityOrganizationsDict.fields.womensSocieties}
-          columns={nameColumns({ en: "Women's Society Names", si: "කාන්තා සමිතිවල නම" })}
+          columns={nameColumns({ en: "Women's Society Names", si: "කාන්තා සමිතිවල නම්" })}
           emptyRowFactory={() => ({ name: "", address: "" })}
         />
       </div>
@@ -199,7 +199,7 @@ export default function CommunityOrganizationsPage() {
         <RepeatableTable
           name="eldersSocieties"
           title={communityOrganizationsDict.fields.eldersSocieties}
-          columns={nameColumns({ en: "Elders' Society Names", si: "වැඩිහිටි සමිතිවල නම" })}
+          columns={nameColumns({ en: "Elders' Society Names", si: "වැඩිහිටි සමිතිවල නම්" })}
           emptyRowFactory={() => ({ name: "", address: "" })}
         />
       </div>
@@ -208,7 +208,7 @@ export default function CommunityOrganizationsPage() {
         <RepeatableTable
           name="childrensSocieties"
           title={communityOrganizationsDict.fields.childrensSocieties}
-          columns={nameColumns({ en: "Children's Society Names", si: "ළමා සමාජ සමිතිවල නම" })}
+          columns={nameColumns({ en: "Children's Society Names", si: "ළමා සමාජ සමිතිවල නම්" })}
           emptyRowFactory={() => ({ name: "", address: "" })}
         />
       </div>
@@ -217,7 +217,7 @@ export default function CommunityOrganizationsPage() {
         <RepeatableTable
           name="samurdhiSocieties"
           title={communityOrganizationsDict.fields.samurdhiSocieties}
-          columns={nameColumns({ en: "Samurdhi Society Names", si: "සමෘද්ධි සමිතිවල නම" })}
+          columns={nameColumns({ en: "Samurdhi Society Names", si: "සමෘද්ධි සමිතිවල නම්" })}
           emptyRowFactory={() => ({ name: "", address: "" })}
         />
       </div>
@@ -226,7 +226,7 @@ export default function CommunityOrganizationsPage() {
         <RepeatableTable
           name="friendOrganizations"
           title={communityOrganizationsDict.fields.friendOrganizations}
-          columns={nameColumns({ en: "Friend Organization / Friend Group Names", si: "මිතුරු සංවිධාන/මිතුරු හවුල් වල නම" })}
+          columns={nameColumns({ en: "Friend Organization / Friend Group Names", si: "මිතුරු සංවිධාන/මිතුරු හවුල් වල නම්" })}
           emptyRowFactory={() => ({ name: "", address: "" })}
         />
       </div>
@@ -235,7 +235,7 @@ export default function CommunityOrganizationsPage() {
         <RepeatableTable
           name="ngoCommittees"
           title={communityOrganizationsDict.fields.ngoCommittees}
-          columns={nameColumns({ en: "Non-Governmental Organization Names", si: "රාජ්‍ය නොවන සංවිධාන වල නම" })}
+          columns={nameColumns({ en: "Non-Governmental Organization Names", si: "රාජ්‍ය නොවන සංවිධාන වල නම්" })}
           emptyRowFactory={() => ({ name: "", address: "" })}
         />
       </div>
@@ -244,7 +244,7 @@ export default function CommunityOrganizationsPage() {
         <RepeatableTable
           name="farmerSocieties"
           title={communityOrganizationsDict.fields.farmerSocieties}
-          columns={nameColumns({ en: "Farmer Society Names", si: "ගොවි සමිතිවල නම" })}
+          columns={nameColumns({ en: "Farmer Society Names", si: "ගොවි සමිතිවල නම්" })}
           emptyRowFactory={() => ({ name: "", address: "" })}
         />
       </div>
@@ -253,7 +253,7 @@ export default function CommunityOrganizationsPage() {
         <RepeatableTable
           name="religiousSocieties"
           title={communityOrganizationsDict.fields.religiousSocieties}
-          columns={nameColumns({ en: "Religious Society Names", si: "ආගමික සමිතිවල නම" })}
+          columns={nameColumns({ en: "Religious Society Names", si: "ආගමික සමිතිවල නම්" })}
           emptyRowFactory={() => ({ name: "", address: "" })}
         />
       </div>
@@ -262,7 +262,7 @@ export default function CommunityOrganizationsPage() {
         <RepeatableTable
           name="sanasaSocieties"
           title={communityOrganizationsDict.fields.sanasaSocieties}
-          columns={nameColumns({ en: "SANASA Society Names", si: "සණස සමිතිවල නම" })}
+          columns={nameColumns({ en: "SANASA Society Names", si: "සණස සමිතිවල නම්" })}
           emptyRowFactory={() => ({ name: "", address: "" })}
         />
       </div>
@@ -271,7 +271,7 @@ export default function CommunityOrganizationsPage() {
         <RepeatableTable
           name="civilDefenseCommittees"
           title={communityOrganizationsDict.fields.civilDefenseCommittees}
-          columns={nameColumns({ en: "Civil Defense Committee Names", si: "සිවිල් ආරක්ෂක සමිතිවල නම" })}
+          columns={nameColumns({ en: "Civil Defense Committee Names", si: "සිවිල් ආරක්ෂක සමිතිවල නම්" })}
           emptyRowFactory={() => ({ name: "", address: "" })}
         />
       </div>
@@ -280,7 +280,7 @@ export default function CommunityOrganizationsPage() {
         <RepeatableTable
           name="prajashakthiSocieties"
           title={communityOrganizationsDict.fields.prajashakthiSocieties}
-          columns={nameColumns({ en: "Prajashakthi Society Names", si: "ප්‍රජාශක්ති සමිතිවල නම" })}
+          columns={nameColumns({ en: "Prajashakthi Society Names", si: "ප්‍රජාශක්ති සමිතිවල නම්" })}
           emptyRowFactory={() => ({ name: "", address: "" })}
         />
       </div>

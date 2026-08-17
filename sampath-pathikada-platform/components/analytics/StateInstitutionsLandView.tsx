@@ -55,7 +55,7 @@ function StateInstitutionsLandAreaWideView({ aggregate, lang }: { aggregate: Are
         title={stateInstitutionsLandDict.fields.developmentProjects}
         columns={[
           GN_DIVISION_COLUMN,
-          { key: "projectName", label: { en: "Name of the Stalled Project(s)", si: "අතරමං නවතාදමා ඇති ව්‍යාපෘතියේ/වල නම" } },
+          { key: "projectName", label: { en: "Name of the Stalled Project(s)", si: "අතරමඟ නවතාදමා ඇති ව්‍යාපෘතියේ/වල නම" } },
           { key: "owningInstitution", label: { en: "Owning Institution", si: "ව්‍යාපෘතිය අයත් ආයතනය" } },
           { key: "reasonForHalt", label: { en: "Reason for Halting", si: "නවතාදැමීමට හේතුව" } },
           { key: "currentStatus", label: { en: "Current Status", si: "වර්තමාන තත්වය" } },
@@ -125,7 +125,7 @@ export function StateInstitutionsLandView() {
             <ReadOnlyTable
               title={stateInstitutionsLandDict.fields.developmentProjects}
               columns={[
-                { key: "projectName", label: { en: "Name of the Stalled Project(s)", si: "අතරමං නවතාදමා ඇති ව්‍යාපෘතියේ/වල නම" } },
+                { key: "projectName", label: { en: "Name of the Stalled Project(s)", si: "අතරමඟ නවතාදමා ඇති ව්‍යාපෘතියේ/වල නම" } },
                 { key: "owningInstitution", label: { en: "Owning Institution", si: "ව්‍යාපෘතිය අයත් ආයතනය" } },
                 { key: "reasonForHalt", label: { en: "Reason for Halting", si: "නවතාදැමීමට හේතුව" } },
                 { key: "currentStatus", label: { en: "Current Status", si: "වර්තමාන තත්වය" } },

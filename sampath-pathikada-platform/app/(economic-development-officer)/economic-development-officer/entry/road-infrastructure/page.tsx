@@ -232,7 +232,7 @@ export default function RoadInfrastructurePage() {
   ];
 
   const bridgeRepairColumns: RepeatableColumn[] = [
-    { key: "name", label: { en: "Bridge / Culvert / Footpath", si: "පාලම/බෝක්කුව/පැතිබැම්" }, type: "text", required: true },
+    { key: "name", label: { en: "Bridge / Culvert / Footpath", si: "පාලම/බෝක්කුව/පැතිබැමි" }, type: "text", required: true },
     { key: "roadNumber", label: { en: "Road Number", si: "මාර්ග අංකය" }, type: "text" },
     { key: "location", label: { en: "Location (Describe)", si: "පිහිටීම (විස්තර කරන්න)" }, type: "text", required: true },
     { key: "maintainingAuthority", label: { en: "** Maintaining Authority", si: "**නඩත්තු කරනු ලබන ආයතනය" }, type: "text" },
