@@ -10,8 +10,9 @@ const DS_USER = {
   dsDivision: "galle-fg",
 };
 
-async function shot(browser: import("playwright").Browser, user: typeof DS_USER, url: string, outPath: string) {
-  const token = await signToken(user);
+async function main() {
+  const browser = await chromium.launch();
+  const token = await signToken(DS_USER);
   const context = await browser.newContext();
   await context.addCookies([
     { name: "sp_session", value: token, domain: "localhost", path: "/", httpOnly: true, sameSite: "Lax" },
@@ -23,25 +24,15 @@ async function shot(browser: import("playwright").Browser, user: typeof DS_USER,
   });
   page.on("pageerror", (err) => consoleErrors.push(`pageerror: ${err.message}`));
 
-  await page.goto(url, { waitUntil: "networkidle" });
-  await page.waitForTimeout(1200);
+  await page.goto(`${APP_URL}/divisional-secretariat/graphs/housing`, { waitUntil: "networkidle" });
+  await page.waitForTimeout(1000);
 
-  await page.screenshot({ path: outPath, fullPage: true });
-  console.log(`${outPath}: console errors = ${consoleErrors.length ? consoleErrors.join(" | ") : "none"}`);
+  await page.getByText("ප්‍රස්ථාරය", { exact: false }).first().click({ timeout: 8000 }).catch(() => {});
+  await page.waitForTimeout(800);
+
+  await page.screenshot({ path: "scripts/screenshot-housing-sanitation.png", fullPage: true });
+  console.log(`console errors = ${consoleErrors.length ? consoleErrors.join(" | ") : "none"}`);
   await context.close();
-}
-
-async function main() {
-  const browser = await chromium.launch();
-
-  // Physical & Environment whole-division rollup — the tables the user flagged.
-  await shot(
-    browser,
-    DS_USER,
-    `${APP_URL}/divisional-secretariat/graphs/physical-environment`,
-    "scripts/screenshot-physical-env-si.png"
-  );
-
   await browser.close();
 }
 
