@@ -201,7 +201,7 @@ function HousingGraphSection({ data }: { data: HousingNumericData }) {
         slices={[
           {
             label: t("Adequately Served", "ප්‍රමාණවත් සේවා ලබන"),
-            value: Math.max(0, data.sanitation.total - data.sanitation.withoutSafeSanitation - data.sanitation.needingAssistance),
+            value: Math.max(0, data.sanitation.total - data.sanitation.withoutSafeSanitation),
             color: GREEN,
           },
           {
@@ -209,8 +209,13 @@ function HousingGraphSection({ data }: { data: HousingNumericData }) {
             value: data.sanitation.withoutSafeSanitation,
             color: MAROON,
           },
-          { label: t("Needing Toilet Assistance", "වැසිකිලි ආධාර ලබාදිය යුතු"), value: data.sanitation.needingAssistance, color: AMBER },
         ]}
+        footer={
+          <p className="mt-4 border-t border-border pt-3 text-fluid-sm text-muted-foreground">
+            <Bilingual en="Of these, needing toilet assistance: " si="මින්, වැසිකිලි ආධාර ලබාදිය යුතු: " />
+            <span className="font-semibold nums-tabular text-foreground">{data.sanitation.needingAssistance}</span>
+          </p>
+        }
       />
 
       <ColumnCard
