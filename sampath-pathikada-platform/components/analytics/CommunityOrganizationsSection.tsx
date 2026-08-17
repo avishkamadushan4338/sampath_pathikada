@@ -86,6 +86,7 @@ function TopicCard({
 }
 
 interface CommunityOrganizationDirectoryTableProps {
+  lang: "en" | "si";
   titleEn: string;
   titleSi: string;
   nameHeaderEn: string;
@@ -99,6 +100,7 @@ interface CommunityOrganizationDirectoryTableProps {
 }
 
 function CommunityOrganizationDirectoryTable({
+  lang,
   titleEn,
   titleSi,
   nameHeaderEn,
@@ -121,26 +123,32 @@ function CommunityOrganizationDirectoryTable({
       </CardHeader>
       <CardContent>
         {error ? (
-          <div className="text-sm text-destructive">Unable to load organization directory.</div>
+          <div className="text-sm text-destructive">
+            <Bilingual en="Unable to load organization directory." si="සංවිධාන ලැයිස්තුව පූරණය කළ නොහැක." />
+          </div>
         ) : isLoading ? (
-          <div className="text-sm text-muted-foreground">Loading…</div>
+          <div className="text-sm text-muted-foreground">
+            <Bilingual en="Loading…" si="පූරණය වෙමින්..." />
+          </div>
         ) : (
           <div className="overflow-hidden rounded-md border border-border">
             <div ref={tableRef} className="overflow-x-auto">
               <table className="w-full text-left text-sm">
                 <thead className="bg-muted/40 text-muted-foreground">
                   <tr>
-                    <th className="px-3 py-3">{nameHeaderEn}</th>
-                    {showAddress && <th className="px-3 py-3">Address</th>}
-                    {showMembersAndNeeds && <th className="px-3 py-3">Member Count</th>}
-                    {showMembersAndNeeds && <th className="px-3 py-3">Identified Needs</th>}
+                    <th className="px-3 py-3">{lang === "si" ? nameHeaderSi : nameHeaderEn}</th>
+                    {showAddress && <th className="px-3 py-3"><Bilingual en="Address" si="ලිපිනය" /></th>}
+                    {showMembersAndNeeds && <th className="px-3 py-3"><Bilingual en="Member Count" si="සාමාජික සංඛ්‍යාව" /></th>}
+                    {showMembersAndNeeds && <th className="px-3 py-3"><Bilingual en="Identified Needs" si="හඳුනාගත් අවශ්‍යතා" /></th>}
                   </tr>
                 </thead>
                 <tbody>
                   {rows.length === 0 ? (
                     <tr>
                       <td className="px-3 py-3" colSpan={colSpan}>
-                        <span className="text-muted-foreground">No records available.</span>
+                        <span className="text-muted-foreground">
+                          <Bilingual en="No records available." si="වාර්තා නොමැත." />
+                        </span>
                       </td>
                     </tr>
                   ) : (
@@ -313,9 +321,13 @@ export function CommunityOrganizationsSection({
           </CardHeader>
           <CardContent>
             {analyticsError ? (
-              <div className="text-sm text-destructive">Unable to load organization data.</div>
+              <div className="text-sm text-destructive">
+                <Bilingual en="Unable to load organization data." si="සංවිධාන දත්ත පූරණය කළ නොහැක." />
+              </div>
             ) : !analytics ? (
-              <div className="text-sm text-muted-foreground">Loading…</div>
+              <div className="text-sm text-muted-foreground">
+                <Bilingual en="Loading…" si="පූරණය වෙමින්..." />
+              </div>
             ) : (
               <div className="overflow-hidden rounded-md border border-border">
                 <div ref={communityOrganizationsTableRef} className="overflow-x-auto">
@@ -352,82 +364,82 @@ export function CommunityOrganizationsSection({
 
       <TopicCard titleEn="Village Development Societies" titleSi="ග්‍රාම සංවර්ධන සමිති" onClick={() => setShowVillageDevelopmentSocieties((v) => !v)} buttonLabel={{ en: showVillageDevelopmentSocieties ? "Hide" : "View", si: showVillageDevelopmentSocieties ? "සඟවන්න" : "බලන්න" }} />
       {showVillageDevelopmentSocieties && (
-        <CommunityOrganizationDirectoryTable titleEn="Village Development Societies" titleSi="ග්‍රාම සංවර්ධන සමිති" nameHeaderEn="Village Development Society Names" nameHeaderSi="ග්‍රාම සංවර්ධන සමිතිවල නම" rows={villageDevelopmentSocietyRows} tableRef={villageDevelopmentSocietiesTableRef} isLoading={!analytics} error={analyticsError} />
+        <CommunityOrganizationDirectoryTable lang={lang} titleEn="Village Development Societies" titleSi="ග්‍රාම සංවර්ධන සමිති" nameHeaderEn="Village Development Society Names" nameHeaderSi="ග්‍රාම සංවර්ධන සමිතිවල නම" rows={villageDevelopmentSocietyRows} tableRef={villageDevelopmentSocietiesTableRef} isLoading={!analytics} error={analyticsError} />
       )}
 
       <TopicCard titleEn="Youth Societies" titleSi="යෞවන සමාජ සමිති" onClick={() => setShowYouthSocieties((v) => !v)} buttonLabel={{ en: showYouthSocieties ? "Hide" : "View", si: showYouthSocieties ? "සඟවන්න" : "බලන්න" }} />
       {showYouthSocieties && (
-        <CommunityOrganizationDirectoryTable titleEn="Youth Societies" titleSi="යෞවන සමාජ සමිති" nameHeaderEn="Youth Society Names" nameHeaderSi="යෞවන සමාජ සමිතිවල නම" rows={youthSocietyRows} tableRef={youthSocietiesTableRef} isLoading={!analytics} error={analyticsError} />
+        <CommunityOrganizationDirectoryTable lang={lang} titleEn="Youth Societies" titleSi="යෞවන සමාජ සමිති" nameHeaderEn="Youth Society Names" nameHeaderSi="යෞවන සමාජ සමිතිවල නම" rows={youthSocietyRows} tableRef={youthSocietiesTableRef} isLoading={!analytics} error={analyticsError} />
       )}
 
       <TopicCard titleEn="Sports Societies" titleSi="ක්‍රීඩා සමාජ" onClick={() => setShowSportsClubs((v) => !v)} buttonLabel={{ en: showSportsClubs ? "Hide" : "View", si: showSportsClubs ? "සඟවන්න" : "බලන්න" }} />
       {showSportsClubs && (
-        <CommunityOrganizationDirectoryTable titleEn="Sports Societies" titleSi="ක්‍රීඩා සමාජ" nameHeaderEn="Sports Society Name & Address" nameHeaderSi="ක්‍රීඩා සමාජවල නම හා ලිපිනය" rows={sportsClubRows} tableRef={sportsClubsTableRef} isLoading={!analytics} error={analyticsError} showAddress={false} showMembersAndNeeds />
+        <CommunityOrganizationDirectoryTable lang={lang} titleEn="Sports Societies" titleSi="ක්‍රීඩා සමාජ" nameHeaderEn="Sports Society Name & Address" nameHeaderSi="ක්‍රීඩා සමාජවල නම හා ලිපිනය" rows={sportsClubRows} tableRef={sportsClubsTableRef} isLoading={!analytics} error={analyticsError} showAddress={false} showMembersAndNeeds />
       )}
 
       <TopicCard titleEn="Funeral & Welfare Societies" titleSi="අවමංගලාය හා සුභසාධක සමිති" onClick={() => setShowFuneralAidSocieties((v) => !v)} buttonLabel={{ en: showFuneralAidSocieties ? "Hide" : "View", si: showFuneralAidSocieties ? "සඟවන්න" : "බලන්න" }} />
       {showFuneralAidSocieties && (
-        <CommunityOrganizationDirectoryTable titleEn="Funeral & Welfare Societies" titleSi="අවමංගලාය හා සුභසාධක සමිති" nameHeaderEn="Funeral & Welfare Society Names" nameHeaderSi="අවමංගලාය හා සුභසාධක සමිතිවල නම" rows={funeralAidSocietyRows} tableRef={funeralAidSocietiesTableRef} isLoading={!analytics} error={analyticsError} />
+        <CommunityOrganizationDirectoryTable lang={lang} titleEn="Funeral & Welfare Societies" titleSi="අවමංගලාය හා සුභසාධක සමිති" nameHeaderEn="Funeral & Welfare Society Names" nameHeaderSi="අවමංගලාය හා සුභසාධක සමිතිවල නම" rows={funeralAidSocietyRows} tableRef={funeralAidSocietiesTableRef} isLoading={!analytics} error={analyticsError} />
       )}
 
       <TopicCard titleEn="Women's Societies" titleSi="කාන්තා සමිති" onClick={() => setShowWomensSocieties((v) => !v)} buttonLabel={{ en: showWomensSocieties ? "Hide" : "View", si: showWomensSocieties ? "සඟවන්න" : "බලන්න" }} />
       {showWomensSocieties && (
-        <CommunityOrganizationDirectoryTable titleEn="Women's Societies" titleSi="කාන්තා සමිති" nameHeaderEn="Women's Society Names" nameHeaderSi="කාන්තා සමිතිවල නම" rows={womensSocietyRows} tableRef={womensSocietiesTableRef} isLoading={!analytics} error={analyticsError} />
+        <CommunityOrganizationDirectoryTable lang={lang} titleEn="Women's Societies" titleSi="කාන්තා සමිති" nameHeaderEn="Women's Society Names" nameHeaderSi="කාන්තා සමිතිවල නම" rows={womensSocietyRows} tableRef={womensSocietiesTableRef} isLoading={!analytics} error={analyticsError} />
       )}
 
       <TopicCard titleEn="Elders' Societies" titleSi="වැඩිහිටි සමිති" onClick={() => setShowEldersSocieties((v) => !v)} buttonLabel={{ en: showEldersSocieties ? "Hide" : "View", si: showEldersSocieties ? "සඟවන්න" : "බලන්න" }} />
       {showEldersSocieties && (
-        <CommunityOrganizationDirectoryTable titleEn="Elders' Societies" titleSi="වැඩිහිටි සමිති" nameHeaderEn="Elders' Society Names" nameHeaderSi="වැඩිහිටි සමිතිවල නම" rows={eldersSocietyRows} tableRef={eldersSocietiesTableRef} isLoading={!analytics} error={analyticsError} />
+        <CommunityOrganizationDirectoryTable lang={lang} titleEn="Elders' Societies" titleSi="වැඩිහිටි සමිති" nameHeaderEn="Elders' Society Names" nameHeaderSi="වැඩිහිටි සමිතිවල නම" rows={eldersSocietyRows} tableRef={eldersSocietiesTableRef} isLoading={!analytics} error={analyticsError} />
       )}
 
       <TopicCard titleEn="Children's Societies" titleSi="ළමා සමාජ" onClick={() => setShowChildrensSocieties((v) => !v)} buttonLabel={{ en: showChildrensSocieties ? "Hide" : "View", si: showChildrensSocieties ? "සඟවන්න" : "බලන්න" }} />
       {showChildrensSocieties && (
-        <CommunityOrganizationDirectoryTable titleEn="Children's Societies" titleSi="ළමා සමාජ" nameHeaderEn="Children's Society Names" nameHeaderSi="ළමා සමාජ සමිතිවල නම" rows={childrensSocietyRows} tableRef={childrensSocietiesTableRef} isLoading={!analytics} error={analyticsError} />
+        <CommunityOrganizationDirectoryTable lang={lang} titleEn="Children's Societies" titleSi="ළමා සමාජ" nameHeaderEn="Children's Society Names" nameHeaderSi="ළමා සමාජ සමිතිවල නම" rows={childrensSocietyRows} tableRef={childrensSocietiesTableRef} isLoading={!analytics} error={analyticsError} />
       )}
 
       <TopicCard titleEn="Samurdhi Societies" titleSi="සමෘද්ධි සමිති" onClick={() => setShowSamurdhiSocieties((v) => !v)} buttonLabel={{ en: showSamurdhiSocieties ? "Hide" : "View", si: showSamurdhiSocieties ? "සඟවන්න" : "බලන්න" }} />
       {showSamurdhiSocieties && (
-        <CommunityOrganizationDirectoryTable titleEn="Samurdhi Societies" titleSi="සමෘද්ධි සමිති" nameHeaderEn="Samurdhi Society Names" nameHeaderSi="සමෘද්ධි සමිතිවල නම" rows={samurdhiSocietyRows} tableRef={samurdhiSocietiesTableRef} isLoading={!analytics} error={analyticsError} />
+        <CommunityOrganizationDirectoryTable lang={lang} titleEn="Samurdhi Societies" titleSi="සමෘද්ධි සමිති" nameHeaderEn="Samurdhi Society Names" nameHeaderSi="සමෘද්ධි සමිතිවල නම" rows={samurdhiSocietyRows} tableRef={samurdhiSocietiesTableRef} isLoading={!analytics} error={analyticsError} />
       )}
 
       <TopicCard titleEn="Friend Organizations / Friend Groups" titleSi="මිතුරු සංවිධාන/මිතුරු හවුල්" onClick={() => setShowFriendOrganizations((v) => !v)} buttonLabel={{ en: showFriendOrganizations ? "Hide" : "View", si: showFriendOrganizations ? "සඟවන්න" : "බලන්න" }} />
       {showFriendOrganizations && (
-        <CommunityOrganizationDirectoryTable titleEn="Friend Organizations / Friend Groups" titleSi="මිතුරු සංවිධාන/මිතුරු හවුල්" nameHeaderEn="Friend Organization / Friend Group Names" nameHeaderSi="මිතුරු සංවිධාන/මිතුරු හවුල් වල නම" rows={friendOrganizationRows} tableRef={friendOrganizationsTableRef} isLoading={!analytics} error={analyticsError} />
+        <CommunityOrganizationDirectoryTable lang={lang} titleEn="Friend Organizations / Friend Groups" titleSi="මිතුරු සංවිධාන/මිතුරු හවුල්" nameHeaderEn="Friend Organization / Friend Group Names" nameHeaderSi="මිතුරු සංවිධාන/මිතුරු හවුල් වල නම" rows={friendOrganizationRows} tableRef={friendOrganizationsTableRef} isLoading={!analytics} error={analyticsError} />
       )}
 
       <TopicCard titleEn="Non-Governmental Organizations" titleSi="රාජ්‍ය නොවන සංවිධාන" onClick={() => setShowNgoCommittees((v) => !v)} buttonLabel={{ en: showNgoCommittees ? "Hide" : "View", si: showNgoCommittees ? "සඟවන්න" : "බලන්න" }} />
       {showNgoCommittees && (
-        <CommunityOrganizationDirectoryTable titleEn="Non-Governmental Organizations" titleSi="රාජ්‍ය නොවන සංවිධාන" nameHeaderEn="Non-Governmental Organization Names" nameHeaderSi="රාජ්‍ය නොවන සංවිධාන වල නම" rows={ngoCommitteeRows} tableRef={ngoCommitteesTableRef} isLoading={!analytics} error={analyticsError} />
+        <CommunityOrganizationDirectoryTable lang={lang} titleEn="Non-Governmental Organizations" titleSi="රාජ්‍ය නොවන සංවිධාන" nameHeaderEn="Non-Governmental Organization Names" nameHeaderSi="රාජ්‍ය නොවන සංවිධාන වල නම" rows={ngoCommitteeRows} tableRef={ngoCommitteesTableRef} isLoading={!analytics} error={analyticsError} />
       )}
 
       <TopicCard titleEn="Farmer Societies" titleSi="ගොවි සමිති" onClick={() => setShowFarmerSocieties((v) => !v)} buttonLabel={{ en: showFarmerSocieties ? "Hide" : "View", si: showFarmerSocieties ? "සඟවන්න" : "බලන්න" }} />
       {showFarmerSocieties && (
-        <CommunityOrganizationDirectoryTable titleEn="Farmer Societies" titleSi="ගොවි සමිති" nameHeaderEn="Farmer Society Names" nameHeaderSi="ගොවි සමිතිවල නම" rows={farmerSocietyRows} tableRef={farmerSocietiesTableRef} isLoading={!analytics} error={analyticsError} />
+        <CommunityOrganizationDirectoryTable lang={lang} titleEn="Farmer Societies" titleSi="ගොවි සමිති" nameHeaderEn="Farmer Society Names" nameHeaderSi="ගොවි සමිතිවල නම" rows={farmerSocietyRows} tableRef={farmerSocietiesTableRef} isLoading={!analytics} error={analyticsError} />
       )}
 
       <TopicCard titleEn="Religious Societies" titleSi="ආගමික සමිති" onClick={() => setShowReligiousSocieties((v) => !v)} buttonLabel={{ en: showReligiousSocieties ? "Hide" : "View", si: showReligiousSocieties ? "සඟවන්න" : "බලන්න" }} />
       {showReligiousSocieties && (
-        <CommunityOrganizationDirectoryTable titleEn="Religious Societies" titleSi="ආගමික සමිති" nameHeaderEn="Religious Society Names" nameHeaderSi="ආගමික සමිතිවල නම" rows={religiousSocietyRows} tableRef={religiousSocietiesTableRef} isLoading={!analytics} error={analyticsError} />
+        <CommunityOrganizationDirectoryTable lang={lang} titleEn="Religious Societies" titleSi="ආගමික සමිති" nameHeaderEn="Religious Society Names" nameHeaderSi="ආගමික සමිතිවල නම" rows={religiousSocietyRows} tableRef={religiousSocietiesTableRef} isLoading={!analytics} error={analyticsError} />
       )}
 
       <TopicCard titleEn="SANASA Societies" titleSi="සණස සමිති" onClick={() => setShowSanasaSocieties((v) => !v)} buttonLabel={{ en: showSanasaSocieties ? "Hide" : "View", si: showSanasaSocieties ? "සඟවන්න" : "බලන්න" }} />
       {showSanasaSocieties && (
-        <CommunityOrganizationDirectoryTable titleEn="SANASA Societies" titleSi="සණස සමිති" nameHeaderEn="SANASA Society Names" nameHeaderSi="සණස සමිතිවල නම" rows={sanasaSocietyRows} tableRef={sanasaSocietiesTableRef} isLoading={!analytics} error={analyticsError} />
+        <CommunityOrganizationDirectoryTable lang={lang} titleEn="SANASA Societies" titleSi="සණස සමිති" nameHeaderEn="SANASA Society Names" nameHeaderSi="සණස සමිතිවල නම" rows={sanasaSocietyRows} tableRef={sanasaSocietiesTableRef} isLoading={!analytics} error={analyticsError} />
       )}
 
       <TopicCard titleEn="Civil Defense Committees" titleSi="සිවිල් ආරක්ෂක කමිටු" onClick={() => setShowCivilDefenseCommittees((v) => !v)} buttonLabel={{ en: showCivilDefenseCommittees ? "Hide" : "View", si: showCivilDefenseCommittees ? "සඟවන්න" : "බලන්න" }} />
       {showCivilDefenseCommittees && (
-        <CommunityOrganizationDirectoryTable titleEn="Civil Defense Committees" titleSi="සිවිල් ආරක්ෂක කමිටු" nameHeaderEn="Civil Defense Committee Names" nameHeaderSi="සිවිල් ආරක්ෂක සමිතිවල නම" rows={civilDefenseCommitteeRows} tableRef={civilDefenseCommitteesTableRef} isLoading={!analytics} error={analyticsError} />
+        <CommunityOrganizationDirectoryTable lang={lang} titleEn="Civil Defense Committees" titleSi="සිවිල් ආරක්ෂක කමිටු" nameHeaderEn="Civil Defense Committee Names" nameHeaderSi="සිවිල් ආරක්ෂක සමිතිවල නම" rows={civilDefenseCommitteeRows} tableRef={civilDefenseCommitteesTableRef} isLoading={!analytics} error={analyticsError} />
       )}
 
       <TopicCard titleEn="Prajashakthi Societies" titleSi="ප්‍රජාශක්ති සමිති" onClick={() => setShowPrajashakthiSocieties((v) => !v)} buttonLabel={{ en: showPrajashakthiSocieties ? "Hide" : "View", si: showPrajashakthiSocieties ? "සඟවන්න" : "බලන්න" }} />
       {showPrajashakthiSocieties && (
-        <CommunityOrganizationDirectoryTable titleEn="Prajashakthi Societies" titleSi="ප්‍රජාශක්ති සමිති" nameHeaderEn="Prajashakthi Society Names" nameHeaderSi="ප්‍රජාශක්ති සමිතිවල නම" rows={prajashakthiSocietyRows} tableRef={prajashakthiSocietiesTableRef} isLoading={!analytics} error={analyticsError} />
+        <CommunityOrganizationDirectoryTable lang={lang} titleEn="Prajashakthi Societies" titleSi="ප්‍රජාශක්ති සමිති" nameHeaderEn="Prajashakthi Society Names" nameHeaderSi="ප්‍රජාශක්ති සමිතිවල නම" rows={prajashakthiSocietyRows} tableRef={prajashakthiSocietiesTableRef} isLoading={!analytics} error={analyticsError} />
       )}
 
       <TopicCard titleEn="Information About Active Cooperative Societies Within the GN Division" titleSi="ග්‍රාම නිලධාරී වසම තුල ක්‍රියාත්මක සමුපකාර සමිති පිළිබඳ තොරතුරු" onClick={() => setShowCooperativeSocieties((v) => !v)} buttonLabel={{ en: showCooperativeSocieties ? "Hide" : "View", si: showCooperativeSocieties ? "සඟවන්න" : "බලන්න" }} />
       {showCooperativeSocieties && (
-        <CommunityOrganizationDirectoryTable titleEn="Information About Active Cooperative Societies Within the GN Division" titleSi="ග්‍රාම නිලධාරී වසම තුල ක්‍රියාත්මක සමුපකාර සමිති පිළිබඳ තොරතුරු" nameHeaderEn="Multi-Purpose Cooperative Society Name" nameHeaderSi="වි.සේවා.සමූපකාර සමිතියේ නම" rows={cooperativeSocietyRows} tableRef={cooperativeSocietiesTableRef} isLoading={!analytics} error={analyticsError} showAddress={false} />
+        <CommunityOrganizationDirectoryTable lang={lang} titleEn="Information About Active Cooperative Societies Within the GN Division" titleSi="ග්‍රාම නිලධාරී වසම තුල ක්‍රියාත්මක සමුපකාර සමිති පිළිබඳ තොරතුරු" nameHeaderEn="Multi-Purpose Cooperative Society Name" nameHeaderSi="වි.සේවා.සමූපකාර සමිතියේ නම" rows={cooperativeSocietyRows} tableRef={cooperativeSocietiesTableRef} isLoading={!analytics} error={analyticsError} showAddress={false} />
       )}
     </div>
   );

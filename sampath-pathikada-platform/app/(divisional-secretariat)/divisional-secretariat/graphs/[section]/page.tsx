@@ -78,11 +78,19 @@ function SocialWelfareTable({
   const { lang } = useLanguage();
 
   if (error) {
-    return <div className="text-sm text-destructive">Unable to load social welfare data.</div>;
+    return (
+      <div className="text-sm text-destructive">
+        <Bilingual en="Unable to load social welfare data." si="සමාජ සුබසාධන දත්ත පූරණය කළ නොහැක." />
+      </div>
+    );
   }
 
   if (isLoading || !communityWelfare) {
-    return <div className="text-sm text-muted-foreground">Loading…</div>;
+    return (
+      <div className="text-sm text-muted-foreground">
+        <Bilingual en="Loading…" si="පූරණය වෙමින්..." />
+      </div>
+    );
   }
 
   const paymentCounts = communityWelfare.welfarePaymentHouseholdCounts;
@@ -341,119 +349,6 @@ function SocialWelfareTable({
             </p>
           </section>
         </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-interface CommunityOrganizationDirectoryRow {
-  id: string;
-  name: string;
-  address?: string;
-  memberCount?: number;
-  identifiedNeeds?: string;
-}
-
-function CommunityOrganizationDirectoryTable({
-  titleEn,
-  titleSi,
-  nameHeaderEn,
-  nameHeaderSi,
-  rows,
-  tableRef,
-  isLoading,
-  error,
-  showAddress = true,
-  showMembersAndNeeds = false,
-}: {
-  titleEn: string;
-  titleSi: string;
-  nameHeaderEn: string;
-  nameHeaderSi: string;
-  rows: CommunityOrganizationDirectoryRow[];
-  tableRef: React.RefObject<HTMLDivElement | null>;
-  isLoading: boolean;
-  error: unknown;
-  showAddress?: boolean;
-  showMembersAndNeeds?: boolean;
-}) {
-  const colSpan = (showAddress ? 2 : 1) + (showMembersAndNeeds ? 2 : 0);
-
-  return (
-    <Card className="card-lift overflow-hidden border-border/60 shadow-md">
-      <CardHeader>
-        <CardTitle className="font-display text-fluid-xl font-semibold text-foreground">
-          <Bilingual en={titleEn} si={titleSi} />
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        {error ? (
-          <div className="text-sm text-destructive">Unable to load organization data.</div>
-        ) : isLoading ? (
-          <div className="text-sm text-muted-foreground">Loading…</div>
-        ) : (
-          <div className="overflow-hidden rounded-md border border-border">
-            <div ref={tableRef} className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead className="bg-muted/40 text-muted-foreground">
-                  <tr>
-                    <th className="px-3 py-3">
-                      <Bilingual en={nameHeaderEn} si={nameHeaderSi} />
-                    </th>
-                    {showAddress && (
-                      <th className="px-3 py-3">
-                        <Bilingual en="Address" si="ලිපිනය" />
-                      </th>
-                    )}
-                    {showMembersAndNeeds && (
-                      <>
-                        <th className="px-3 py-3">
-                          <Bilingual en="Number of Members" si="සාමාජික සංඛ්‍යාව" />
-                        </th>
-                        <th className="px-3 py-3">
-                          <Bilingual en="Identified Needs" si="හඳුනාගත් අවශ්‍යතා" />
-                        </th>
-                      </>
-                    )}
-                  </tr>
-                </thead>
-                <tbody>
-                  {rows.length === 0 ? (
-                    <tr className="border-t last:border-b">
-                      <td colSpan={colSpan} className="px-3 py-6 text-center text-muted-foreground">
-                        <Bilingual en="No records available for the selected division." si="තෝරාගත් වසම සඳහා වාර්තා නොමැත." />
-                      </td>
-                    </tr>
-                  ) : (
-                    rows.map((row) => (
-                      <tr key={row.id} className="border-t last:border-b">
-                        <td className="px-3 py-3 font-medium">{row.name || "—"}</td>
-                        {showAddress && <td className="px-3 py-3">{row.address || "—"}</td>}
-                        {showMembersAndNeeds && (
-                          <>
-                            <td className="px-3 py-3 nums-tabular">{(row.memberCount ?? 0).toLocaleString()}</td>
-                            <td className="px-3 py-3">{row.identifiedNeeds || "—"}</td>
-                          </>
-                        )}
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-            <div className="border-t border-border/80 bg-muted/50 px-4 py-3 text-right">
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-2"
-                onClick={() => tableRef.current?.scrollIntoView({ behavior: "smooth" })}
-              >
-                <ArrowUp className="size-4" />
-                <Bilingual en="Back to top" si="ඉහළට" />
-              </Button>
-            </div>
-          </div>
-        )}
       </CardContent>
     </Card>
   );
