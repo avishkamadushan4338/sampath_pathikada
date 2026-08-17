@@ -20,6 +20,7 @@ type DemographicsSectionAnalytics = {
   gnBreakdown: Array<{
     gnId: string;
     gnName: string;
+    gnNameSi: string;
     demographics: {
       totalPopulation: number;
       female: number;
@@ -102,6 +103,60 @@ type Props = {
     total: number;
   };
 };
+
+/* ── Shared bilingual labels reused across every table in this file ────────── */
+const T = {
+  gnDivision: { en: "GN Division", si: "ග්‍රාම නිලධාරී වසම" },
+  totalPopulation: { en: "Total Population", si: "මුළු ජනගහනය" },
+  families: { en: "Families", si: "පවුල් සංඛ්‍යාව" },
+  totals: { en: "Totals", si: "එකතුව" },
+  total: { en: "Total", si: "එකතුව" },
+  collection: { en: "Collection", si: "එකතුව" },
+  loading: { en: "Loading…", si: "පූරණය වෙමින්..." },
+};
+
+const ERRORS = {
+  demographics: { en: "Unable to load demographics.", si: "ජනගහන දත්ත පූරණය කළ නොහැක." },
+  gnTotals: { en: "Unable to load GN division totals.", si: "ග්‍රාම නිලධාරී වසම් එකතුව පූරණය කළ නොහැක." },
+  religion: { en: "Unable to load religion distribution.", si: "ආගමික බෙදාහැරීම පූරණය කළ නොහැක." },
+  ethnicity: { en: "Unable to load ethnicity distribution.", si: "ජාතික බෙදාහැරීම පූරණය කළ නොහැක." },
+  foreign: { en: "Unable to load expatriate population data.", si: "විදේශගත ජනගහන දත්ත පූරණය කළ නොහැක." },
+  households: { en: "Unable to load families data.", si: "පවුල් දත්ත පූරණය කළ නොහැක." },
+  voters: { en: "Unable to load registered voters data.", si: "ලියාපදිංචි ඡන්ද දායක දත්ත පූරණය කළ නොහැක." },
+};
+
+const RELIGION_LABELS = {
+  buddhist: { en: "Buddhist", si: "බෞද්ධ" },
+  hindu: { en: "Hindu", si: "හින්දු" },
+  islam: { en: "Islam", si: "ඉස්ලාම්" },
+  catholic: { en: "Roman Catholic", si: "රෝමානු කතෝලික" },
+  otherChristians: { en: "Other Christians", si: "වෙනත් ක්‍රිස්තියානි" },
+  other: { en: "Other", si: "වෙනත්" },
+};
+
+const ETHNICITY_LABELS = {
+  sinhala: { en: "Sinhala", si: "සිංහල" },
+  sriLankanTamil: { en: "Sri Lankan Tamil", si: "ශ්‍රී ලාංකික දෙමළ" },
+  indianTamil: { en: "Indian Tamil", si: "ඉන්දියානු දෙමළ" },
+  sriLankanYonaka: { en: "Sri Lankan Yonaka", si: "ශ්‍රී ලාංකික යෝනක" },
+  burgher: { en: "Burger", si: "බර්ගර්" },
+  malay: { en: "Malay", si: "මැලේ" },
+};
+
+function LoadOrError({ error, errorText }: { error: unknown; errorText: { en: string; si: string } }) {
+  if (error) {
+    return (
+      <div className="text-sm text-destructive">
+        <Bilingual {...errorText} />
+      </div>
+    );
+  }
+  return (
+    <div className="text-sm text-muted-foreground">
+      <Bilingual {...T.loading} />
+    </div>
+  );
+}
 
 function TopicCard({
   icon: Icon,
@@ -191,14 +246,14 @@ export function DivisionDemographicsSection({
         {showTotalPopulation && (
           <CardContent>
             {analyticsError ? (
-              <div className="text-sm text-destructive">Unable to load demographics.</div>
+              <LoadOrError error={analyticsError} errorText={ERRORS.demographics} />
             ) : !analytics ? (
-              <div className="text-sm text-muted-foreground">Loading…</div>
+              <LoadOrError error={null} errorText={ERRORS.demographics} />
             ) : (
               <div className="grid gap-3">
                 <div className="grid grid-cols-2 gap-3 rounded-md border border-border bg-muted/50 p-4 text-sm md:grid-cols-4">
                   <div>
-                    <p className="text-muted-foreground">Total Population</p>
+                    <p className="text-muted-foreground"><Bilingual {...T.totalPopulation} /></p>
                     <p className="mt-1 text-fluid-lg font-semibold nums-tabular text-foreground">
                       {analytics.demographics.totalPopulation.toLocaleString()}
                     </p>
@@ -248,20 +303,20 @@ export function DivisionDemographicsSection({
         {showGnBreakdown && (
           <CardContent>
             {analyticsError ? (
-              <div className="text-sm text-destructive">Unable to load GN division totals.</div>
+              <LoadOrError error={analyticsError} errorText={ERRORS.gnTotals} />
             ) : !analytics ? (
-              <div className="text-sm text-muted-foreground">Loading…</div>
+              <LoadOrError error={null} errorText={ERRORS.gnTotals} />
             ) : (
               <div className="overflow-hidden rounded-md border border-border">
                 <div ref={gnBreakdownRef} className="overflow-x-auto">
                   <table className="w-full text-left text-sm">
                     <thead className="bg-muted/40 text-muted-foreground">
                       <tr>
-                        <th className="px-3 py-3">GN Division</th>
-                        <th className="px-3 py-3">Total Population</th>
+                        <th className="px-3 py-3"><Bilingual {...T.gnDivision} /></th>
+                        <th className="px-3 py-3"><Bilingual {...T.totalPopulation} /></th>
                         <th className="px-3 py-3"><Bilingual en="Female" si="ස්ත්‍රී" /></th>
                         <th className="px-3 py-3"><Bilingual en="Male" si="පුරුෂ" /></th>
-                        <th className="px-3 py-3">Families</th>
+                        <th className="px-3 py-3"><Bilingual {...T.families} /></th>
                       </tr>
                     </thead>
                     <tbody>
@@ -270,7 +325,7 @@ export function DivisionDemographicsSection({
                         return (
                           <React.Fragment key={g.gnId}>
                             <tr className="border-t last:border-b">
-                              <td className="px-3 py-3 font-medium">{g.gnName}</td>
+                              <td className="px-3 py-3 font-medium">{lang === "si" ? g.gnNameSi : g.gnName}</td>
                               <td className="px-3 py-3">{demo ? demo.totalPopulation.toLocaleString() : "—"}</td>
                               <td className="px-3 py-3">{demo ? demo.female.toLocaleString() : "—"}</td>
                               <td className="px-3 py-3">{demo ? demo.male.toLocaleString() : "—"}</td>
@@ -284,10 +339,10 @@ export function DivisionDemographicsSection({
                                       <table className="w-full text-left text-sm">
                                         <thead className="bg-muted/40 text-muted-foreground">
                                           <tr>
-                                            <th className="px-3 py-2">Religion</th>
+                                            <th className="px-3 py-2"><Bilingual en="Religion" si="ආගම" /></th>
                                             <th className="px-3 py-2"><Bilingual en="Female" si="ස්ත්‍රී" /></th>
                                             <th className="px-3 py-2"><Bilingual en="Male" si="පුරුෂ" /></th>
-                                            <th className="px-3 py-2">Total</th>
+                                            <th className="px-3 py-2"><Bilingual {...T.total} /></th>
                                           </tr>
                                         </thead>
                                         <tbody>
@@ -312,7 +367,7 @@ export function DivisionDemographicsSection({
                     </tbody>
                     <tfoot className="bg-muted/40 text-muted-foreground">
                       <tr className="border-t">
-                        <td className="px-3 py-3 font-semibold">Totals</td>
+                        <td className="px-3 py-3 font-semibold"><Bilingual {...T.totals} /></td>
                         <td className="px-3 py-3 font-semibold">{gnTotals.totalPopulation.toLocaleString()}</td>
                         <td className="px-3 py-3 font-semibold">{gnTotals.female.toLocaleString()}</td>
                         <td className="px-3 py-3 font-semibold">{gnTotals.male.toLocaleString()}</td>
@@ -354,23 +409,23 @@ export function DivisionDemographicsSection({
           </CardHeader>
           <CardContent>
             {analyticsError ? (
-              <div className="text-sm text-destructive">Unable to load religion distribution.</div>
+              <LoadOrError error={analyticsError} errorText={ERRORS.religion} />
             ) : !analytics ? (
-              <div className="text-sm text-muted-foreground">Loading…</div>
+              <LoadOrError error={null} errorText={ERRORS.religion} />
             ) : (
               <div className="overflow-hidden rounded-md border border-border">
                 <div ref={religionTableRef} className="overflow-x-auto">
                   <table className="w-full text-left text-sm">
                     <thead className="bg-muted/40 text-muted-foreground">
                       <tr>
-                        <th className="px-3 py-3">GN Division</th>
-                        <th className="px-3 py-3">Buddhist</th>
-                        <th className="px-3 py-3">Hindu</th>
-                        <th className="px-3 py-3">Islam</th>
-                        <th className="px-3 py-3">Roman Catholic</th>
-                        <th className="px-3 py-3">Other Christians</th>
-                        <th className="px-3 py-3">Other</th>
-                        <th className="px-3 py-3">Collection</th>
+                        <th className="px-3 py-3"><Bilingual {...T.gnDivision} /></th>
+                        <th className="px-3 py-3"><Bilingual {...RELIGION_LABELS.buddhist} /></th>
+                        <th className="px-3 py-3"><Bilingual {...RELIGION_LABELS.hindu} /></th>
+                        <th className="px-3 py-3"><Bilingual {...RELIGION_LABELS.islam} /></th>
+                        <th className="px-3 py-3"><Bilingual {...RELIGION_LABELS.catholic} /></th>
+                        <th className="px-3 py-3"><Bilingual {...RELIGION_LABELS.otherChristians} /></th>
+                        <th className="px-3 py-3"><Bilingual {...RELIGION_LABELS.other} /></th>
+                        <th className="px-3 py-3"><Bilingual {...T.collection} /></th>
                       </tr>
                     </thead>
                     <tbody>
@@ -386,7 +441,7 @@ export function DivisionDemographicsSection({
 
                         return (
                           <tr key={gn.gnId} className="border-t last:border-b">
-                            <td className="px-3 py-3 font-medium">{gn.gnName}</td>
+                            <td className="px-3 py-3 font-medium">{lang === "si" ? gn.gnNameSi : gn.gnName}</td>
                             <td className="px-3 py-3">{demo ? buddhist.toLocaleString() : "—"}</td>
                             <td className="px-3 py-3">{demo ? hindu.toLocaleString() : "—"}</td>
                             <td className="px-3 py-3">{demo ? islam.toLocaleString() : "—"}</td>
@@ -400,7 +455,7 @@ export function DivisionDemographicsSection({
                     </tbody>
                     <tfoot className="bg-muted/40 text-muted-foreground">
                       <tr className="border-t">
-                        <td className="px-3 py-3 font-semibold">Totals</td>
+                        <td className="px-3 py-3 font-semibold"><Bilingual {...T.totals} /></td>
                         <td className="px-3 py-3 font-semibold">{gnReligionTotals.buddhist.toLocaleString()}</td>
                         <td className="px-3 py-3 font-semibold">{gnReligionTotals.hindu.toLocaleString()}</td>
                         <td className="px-3 py-3 font-semibold">{gnReligionTotals.islam.toLocaleString()}</td>
@@ -445,24 +500,24 @@ export function DivisionDemographicsSection({
           </CardHeader>
           <CardContent>
             {analyticsError ? (
-              <div className="text-sm text-destructive">Unable to load ethnicity distribution.</div>
+              <LoadOrError error={analyticsError} errorText={ERRORS.ethnicity} />
             ) : !analytics ? (
-              <div className="text-sm text-muted-foreground">Loading…</div>
+              <LoadOrError error={null} errorText={ERRORS.ethnicity} />
             ) : (
               <div className="overflow-hidden rounded-md border border-border">
                 <div ref={ethnicityTableRef} className="overflow-x-auto">
                   <table className="w-full text-left text-sm">
                     <thead className="bg-muted/40 text-muted-foreground">
                       <tr>
-                        <th className="px-3 py-3">GN Division</th>
-                        <th className="px-3 py-3">Sinhala</th>
-                        <th className="px-3 py-3">Sri Lankan Tamil</th>
-                        <th className="px-3 py-3">Indian Tamil</th>
-                        <th className="px-3 py-3">Sri Lankan Yonaka</th>
-                        <th className="px-3 py-3">Burger</th>
-                        <th className="px-3 py-3">Malay</th>
-                        <th className="px-3 py-3">Other</th>
-                        <th className="px-3 py-3">Collection</th>
+                        <th className="px-3 py-3"><Bilingual {...T.gnDivision} /></th>
+                        <th className="px-3 py-3"><Bilingual {...ETHNICITY_LABELS.sinhala} /></th>
+                        <th className="px-3 py-3"><Bilingual {...ETHNICITY_LABELS.sriLankanTamil} /></th>
+                        <th className="px-3 py-3"><Bilingual {...ETHNICITY_LABELS.indianTamil} /></th>
+                        <th className="px-3 py-3"><Bilingual {...ETHNICITY_LABELS.sriLankanYonaka} /></th>
+                        <th className="px-3 py-3"><Bilingual {...ETHNICITY_LABELS.burgher} /></th>
+                        <th className="px-3 py-3"><Bilingual {...ETHNICITY_LABELS.malay} /></th>
+                        <th className="px-3 py-3"><Bilingual {...RELIGION_LABELS.other} /></th>
+                        <th className="px-3 py-3"><Bilingual {...T.collection} /></th>
                       </tr>
                     </thead>
                     <tbody>
@@ -479,7 +534,7 @@ export function DivisionDemographicsSection({
 
                         return (
                           <tr key={gn.gnId} className="border-t last:border-b">
-                            <td className="px-3 py-3 font-medium">{gn.gnName}</td>
+                            <td className="px-3 py-3 font-medium">{lang === "si" ? gn.gnNameSi : gn.gnName}</td>
                             <td className="px-3 py-3">{demo ? sinhala.toLocaleString() : "—"}</td>
                             <td className="px-3 py-3">{demo ? sriLankanTamil.toLocaleString() : "—"}</td>
                             <td className="px-3 py-3">{demo ? indianTamil.toLocaleString() : "—"}</td>
@@ -494,7 +549,7 @@ export function DivisionDemographicsSection({
                     </tbody>
                     <tfoot className="bg-muted/40 text-muted-foreground">
                       <tr className="border-t">
-                        <td className="px-3 py-3 font-semibold">Totals</td>
+                        <td className="px-3 py-3 font-semibold"><Bilingual {...T.totals} /></td>
                         <td className="px-3 py-3 font-semibold">{gnEthnicityTotals.sinhala.toLocaleString()}</td>
                         <td className="px-3 py-3 font-semibold">{gnEthnicityTotals.sriLankanTamil.toLocaleString()}</td>
                         <td className="px-3 py-3 font-semibold">{gnEthnicityTotals.indianTamil.toLocaleString()}</td>
@@ -540,16 +595,16 @@ export function DivisionDemographicsSection({
           </CardHeader>
           <CardContent>
             {analyticsError ? (
-              <div className="text-sm text-destructive">Unable to load expatriate population data.</div>
+              <LoadOrError error={analyticsError} errorText={ERRORS.foreign} />
             ) : !analytics ? (
-              <div className="text-sm text-muted-foreground">Loading…</div>
+              <LoadOrError error={null} errorText={ERRORS.foreign} />
             ) : (
               <div className="overflow-hidden rounded-md border border-border">
                 <div ref={foreignTableRef} className="overflow-x-auto">
                   <table className="w-full text-left text-sm">
                     <thead className="bg-muted/40 text-muted-foreground">
                       <tr>
-                        <th className="px-3 py-3">GN Division</th>
+                        <th className="px-3 py-3"><Bilingual {...T.gnDivision} /></th>
                         <th className="px-3 py-3"><Bilingual en="Female Count" si="ගැහැණු සංඛ්‍යාව" /></th>
                         <th className="px-3 py-3"><Bilingual en="Male Count" si="පිරිමි සංඛ්‍යාව" /></th>
                         <th className="px-3 py-3"><Bilingual en="Total Count" si="මුළු සංඛ්‍යාව" /></th>
@@ -560,7 +615,7 @@ export function DivisionDemographicsSection({
                         const foreign = gn.demographics?.foreignNationals;
                         return (
                           <tr key={gn.gnId} className="border-t last:border-b">
-                            <td className="px-3 py-3 font-medium">{gn.gnName}</td>
+                            <td className="px-3 py-3 font-medium">{lang === "si" ? gn.gnNameSi : gn.gnName}</td>
                             <td className="px-3 py-3">{foreign ? foreign.female.toLocaleString() : "—"}</td>
                             <td className="px-3 py-3">{foreign ? foreign.male.toLocaleString() : "—"}</td>
                             <td className="px-3 py-3">{foreign ? foreign.total.toLocaleString() : "—"}</td>
@@ -570,7 +625,7 @@ export function DivisionDemographicsSection({
                     </tbody>
                     <tfoot className="bg-muted/40 text-muted-foreground">
                       <tr className="border-t">
-                        <td className="px-3 py-3 font-semibold">Totals</td>
+                        <td className="px-3 py-3 font-semibold"><Bilingual {...T.totals} /></td>
                         <td className="px-3 py-3 font-semibold">{gnForeignNationalsTotals.female.toLocaleString()}</td>
                         <td className="px-3 py-3 font-semibold">{gnForeignNationalsTotals.male.toLocaleString()}</td>
                         <td className="px-3 py-3 font-semibold">{gnForeignNationalsTotals.collection.toLocaleString()}</td>
@@ -611,16 +666,16 @@ export function DivisionDemographicsSection({
           </CardHeader>
           <CardContent>
             {analyticsError ? (
-              <div className="text-sm text-destructive">Unable to load families data.</div>
+              <LoadOrError error={analyticsError} errorText={ERRORS.households} />
             ) : !analytics ? (
-              <div className="text-sm text-muted-foreground">Loading…</div>
+              <LoadOrError error={null} errorText={ERRORS.households} />
             ) : (
               <div className="overflow-hidden rounded-md border border-border">
                 <div ref={householdsTableRef} className="overflow-x-auto">
                   <table className="w-full text-left text-sm">
                     <thead className="bg-muted/40 text-muted-foreground">
                       <tr>
-                        <th className="px-3 py-3">GN Division</th>
+                        <th className="px-3 py-3"><Bilingual {...T.gnDivision} /></th>
                         <th className="px-3 py-3"><Bilingual en="Total Number of Families" si="මුළු පවුල් සංඛ්‍යාව" /></th>
                         <th className="px-3 py-3"><Bilingual en="Female-Headed Families" si="කාන්තා ගෘහමූලික පවුල් සංඛ්‍යාව" /></th>
                         <th className="px-3 py-3"><Bilingual en="Families with Children in Probation Care" si="පරිවාසගත ළමුන් සිටින පවුල් සංඛ්‍යාව" /></th>
@@ -631,7 +686,7 @@ export function DivisionDemographicsSection({
                         const households = gn.demographics?.households;
                         return (
                           <tr key={gn.gnId} className="border-t last:border-b">
-                            <td className="px-3 py-3 font-medium">{gn.gnName}</td>
+                            <td className="px-3 py-3 font-medium">{lang === "si" ? gn.gnNameSi : gn.gnName}</td>
                             <td className="px-3 py-3">{households ? households.total.toLocaleString() : "—"}</td>
                             <td className="px-3 py-3">{households ? households.femaleHeaded.toLocaleString() : "—"}</td>
                             <td className="px-3 py-3">{households ? households.displaced.toLocaleString() : "—"}</td>
@@ -641,7 +696,7 @@ export function DivisionDemographicsSection({
                     </tbody>
                     <tfoot className="bg-muted/40 text-muted-foreground">
                       <tr className="border-t">
-                        <td className="px-3 py-3 font-semibold">Totals</td>
+                        <td className="px-3 py-3 font-semibold"><Bilingual {...T.totals} /></td>
                         <td className="px-3 py-3 font-semibold">{gnHouseholdsTotals.totalHouseholds.toLocaleString()}</td>
                         <td className="px-3 py-3 font-semibold">{gnHouseholdsTotals.femaleHeadedHouseholds.toLocaleString()}</td>
                         <td className="px-3 py-3 font-semibold">{gnHouseholdsTotals.displacedHouseholds.toLocaleString()}</td>
@@ -682,19 +737,19 @@ export function DivisionDemographicsSection({
           </CardHeader>
           <CardContent>
             {analyticsError ? (
-              <div className="text-sm text-destructive">Unable to load registered voters data.</div>
+              <LoadOrError error={analyticsError} errorText={ERRORS.voters} />
             ) : !analytics ? (
-              <div className="text-sm text-muted-foreground">Loading…</div>
+              <LoadOrError error={null} errorText={ERRORS.voters} />
             ) : (
               <div className="overflow-hidden rounded-md border border-border">
                 <div ref={votersTableRef} className="overflow-x-auto">
                   <table className="w-full text-left text-sm">
                     <thead className="bg-muted/40 text-muted-foreground">
                       <tr>
-                        <th className="px-3 py-3">GN Division</th>
+                        <th className="px-3 py-3"><Bilingual {...T.gnDivision} /></th>
                         <th className="px-3 py-3"><Bilingual en="Female" si="ස්ත්‍රී" /></th>
                         <th className="px-3 py-3"><Bilingual en="Male" si="පුරුෂ" /></th>
-                        <th className="px-3 py-3"><Bilingual en="Total" si="එකතුව" /></th>
+                        <th className="px-3 py-3"><Bilingual {...T.total} /></th>
                       </tr>
                     </thead>
                     <tbody>
@@ -702,7 +757,7 @@ export function DivisionDemographicsSection({
                         const voters = gn.demographics?.registeredVoters;
                         return (
                           <tr key={gn.gnId} className="border-t last:border-b">
-                            <td className="px-3 py-3 font-medium">{gn.gnName}</td>
+                            <td className="px-3 py-3 font-medium">{lang === "si" ? gn.gnNameSi : gn.gnName}</td>
                             <td className="px-3 py-3">{voters ? voters.female.toLocaleString() : "—"}</td>
                             <td className="px-3 py-3">{voters ? voters.male.toLocaleString() : "—"}</td>
                             <td className="px-3 py-3">{voters ? voters.total.toLocaleString() : "—"}</td>
@@ -712,7 +767,7 @@ export function DivisionDemographicsSection({
                     </tbody>
                     <tfoot className="bg-muted/40 text-muted-foreground">
                       <tr className="border-t">
-                        <td className="px-3 py-3 font-semibold">Totals</td>
+                        <td className="px-3 py-3 font-semibold"><Bilingual {...T.totals} /></td>
                         <td className="px-3 py-3 font-semibold">{gnRegisteredVotersTotals.female.toLocaleString()}</td>
                         <td className="px-3 py-3 font-semibold">{gnRegisteredVotersTotals.male.toLocaleString()}</td>
                         <td className="px-3 py-3 font-semibold">{gnRegisteredVotersTotals.total.toLocaleString()}</td>
