@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import bcrypt from "bcryptjs";
 import prisma from "@/lib/db";
 import { JWT_SECRET } from "@/lib/jwt-secret";
+import { logAudit } from "@/lib/audit-log";
 
 export const COOKIE_NAME     = "sp_session";
 export const SESSION_DURATION = 60 * 60 * 8; // 8 hours
@@ -143,16 +144,14 @@ export async function loginWithCredentials(
       data:  { loginAttempts: attempts, lockedUntil },
     });
 
-    await prisma.auditLog.create({
-      data: {
-        action:      "Failed Login",
-        description: `Failed login attempt for ${email} (attempt ${attempts}/${MAX})`,
-        category:    "AUTH",
-        severity:    attempts >= MAX ? "WARNING" : "INFO",
-        userId:      null,
-        userName:    "Unknown",
-        userIp:      ip ?? null,
-      },
+    logAudit({
+      action:      "Failed Login",
+      description: `Failed login attempt for ${email} (attempt ${attempts}/${MAX})`,
+      category:    "AUTH",
+      severity:    attempts >= MAX ? "WARNING" : "INFO",
+      userId:      null,
+      userName:    "Unknown",
+      userIp:      ip ?? null,
     });
 
     return { ok: false, message: "Invalid email or password." };
@@ -169,16 +168,14 @@ export async function loginWithCredentials(
     },
   });
 
-  await prisma.auditLog.create({
-    data: {
-      action:      "User Login",
-      description: `Successful login: ${user.name} (${user.email})`,
-      category:    "AUTH",
-      severity:    "SUCCESS",
-      userId:      user.id,
-      userName:    user.name,
-      userIp:      ip ?? null,
-    },
+  logAudit({
+    action:      "User Login",
+    description: `Successful login: ${user.name} (${user.email})`,
+    category:    "AUTH",
+    severity:    "SUCCESS",
+    userId:      user.id,
+    userName:    user.name,
+    userIp:      ip ?? null,
   });
 
   const token = await signToken({

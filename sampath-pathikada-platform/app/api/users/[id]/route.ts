@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import { verifyOrigin } from "@/lib/csrf";
+import { logAudit } from "@/lib/audit-log";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -40,15 +41,13 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     : body.status === "ACTIVE" ? "User Activated"
     : "User Updated";
 
-  await prisma.auditLog.create({
-    data: {
-      action:      actionLabel,
-      description: `${actionLabel}: ${user.name} (${user.email})`,
-      category:    "ADMIN",
-      severity:    body.status === "INACTIVE" ? "WARNING" : "INFO",
-      userId:      session.userId,
-      userName:    session.name,
-    },
+  logAudit({
+    action:      actionLabel,
+    description: `${actionLabel}: ${user.name} (${user.email})`,
+    category:    "ADMIN",
+    severity:    body.status === "INACTIVE" ? "WARNING" : "INFO",
+    userId:      session.userId,
+    userName:    session.name,
   });
 
   return NextResponse.json({ ok: true, data: updated });
@@ -77,15 +76,13 @@ export async function DELETE(req: NextRequest, { params }: Params) {
 
   await prisma.user.delete({ where: { id } });
 
-  await prisma.auditLog.create({
-    data: {
-      action:      "User Deleted",
-      description: `Deleted user account: ${user.name} (${user.email})`,
-      category:    "ADMIN",
-      severity:    "WARNING",
-      userId:      session.userId,
-      userName:    session.name,
-    },
+  logAudit({
+    action:      "User Deleted",
+    description: `Deleted user account: ${user.name} (${user.email})`,
+    category:    "ADMIN",
+    severity:    "WARNING",
+    userId:      session.userId,
+    userName:    session.name,
   });
 
   return NextResponse.json({ ok: true, message: "User deleted." });

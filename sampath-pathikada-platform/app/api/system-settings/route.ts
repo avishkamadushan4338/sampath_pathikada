@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import { verifyOrigin } from "@/lib/csrf";
+import { logAudit } from "@/lib/audit-log";
 
 /* ── GET /api/system-settings ── list all settings ───────────────────────────
    SUPER_ADMIN and ADMIN can both view; ADMIN is read-only (see PATCH below). */
@@ -38,16 +39,14 @@ export async function PATCH(req: NextRequest) {
     create: { key, value },
   });
 
-  await prisma.auditLog.create({
-    data: {
-      action:      "System Setting Updated",
-      description: `${session.name} updated setting "${key}"`,
-      category:    "SYSTEM",
-      severity:    "INFO",
-      userId:      session.userId,
-      userName:    session.name,
-      metadata:    { key, value },
-    },
+  logAudit({
+    action:      "System Setting Updated",
+    description: `${session.name} updated setting "${key}"`,
+    category:    "SYSTEM",
+    severity:    "INFO",
+    userId:      session.userId,
+    userName:    session.name,
+    metadata:    { key, value },
   });
 
   return NextResponse.json({ ok: true, data: setting });
