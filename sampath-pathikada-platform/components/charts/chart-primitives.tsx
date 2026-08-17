@@ -231,6 +231,26 @@ export function DonutCard({
   const total = slices.reduce((sum, s) => sum + s.value, 0);
   const hasData = total > 0;
 
+  // Each slice with a subBreakdown becomes two adjacent pie entries sharing its color (the
+  // sub-portion rendered as a solid fill, the remainder lightened) instead of one — so a slice
+  // that contains a called-out subset (e.g. 30 without facilities, 20 of which need assistance)
+  // reads as a single wedge split into a highlighted inner portion, rather than a same-colored
+  // blob with no visual trace of the split. paddingAngle can't vary per-gap in Recharts, so
+  // slice boundaries are cut with a card-colored stroke on the first entry of each slice instead —
+  // that leaves the sub/rest pair inside one slice seamless while still separating slices.
+  const pieData = slices.flatMap((s, i) => {
+    if (!s.subBreakdown || s.subBreakdown.value <= 0) {
+      return [{ key: `${i}`, value: s.value, color: s.color, isSliceStart: true }];
+    }
+    const rest = Math.max(0, s.value - s.subBreakdown.value);
+    return [
+      { key: `${i}-sub`, value: s.subBreakdown.value, color: s.color, isSliceStart: true },
+      ...(rest > 0
+        ? [{ key: `${i}-rest`, value: rest, color: `color-mix(in srgb, ${s.color} 40%, transparent)`, isSliceStart: false }]
+        : []),
+    ];
+  });
+
   return (
     <Card className="card-lift">
       <CardHeader>
@@ -249,16 +269,19 @@ export function DonutCard({
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
-                    data={slices}
+                    data={pieData}
                     dataKey="value"
-                    nameKey="label"
+                    nameKey="key"
                     innerRadius="64%"
                     outerRadius="100%"
-                    paddingAngle={slices.length > 1 ? 2 : 0}
-                    stroke="none"
                   >
-                    {slices.map((s, i) => (
-                      <Cell key={i} fill={s.color} />
+                    {pieData.map((d) => (
+                      <Cell
+                        key={d.key}
+                        fill={d.color}
+                        stroke={d.isSliceStart && pieData.length > 1 ? "hsl(var(--card))" : "none"}
+                        strokeWidth={d.isSliceStart && pieData.length > 1 ? 2 : 0}
+                      />
                     ))}
                   </Pie>
                 </PieChart>

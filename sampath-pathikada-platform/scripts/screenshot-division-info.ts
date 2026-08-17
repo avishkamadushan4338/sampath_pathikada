@@ -30,7 +30,11 @@ async function main() {
   await page.getByText("ප්‍රස්ථාරය", { exact: false }).first().click({ timeout: 8000 }).catch(() => {});
   await page.waitForTimeout(800);
 
-  await page.screenshot({ path: "scripts/screenshot-housing-sanitation.png", fullPage: true });
+  const heading = page.getByText("වැසිකිලි අවශ්‍යතාවය", { exact: false }).first();
+  const card = heading.locator("xpath=ancestor::*[contains(@class,'card-lift')][1]");
+  await card.screenshot({ path: "scripts/screenshot-housing-sanitation.png" }).catch(async () => {
+    await page.screenshot({ path: "scripts/screenshot-housing-sanitation.png", fullPage: true });
+  });
   console.log(`console errors = ${consoleErrors.length ? consoleErrors.join(" | ") : "none"}`);
   await context.close();
   await browser.close();
