@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, beforeAll, afterAll } from "vitest";
 import { NextRequest } from "next/server";
+import { SECTION_KEYS } from "@/lib/types/submission";
 
 const mockGetSession = vi.fn();
 vi.mock("@/lib/auth", () => ({
@@ -18,6 +19,7 @@ const mockPrisma = {
     create: vi.fn(),
   },
   $transaction: vi.fn(),
+  $queryRaw: vi.fn(),
 };
 vi.mock("@/lib/db", () => ({ default: mockPrisma, prisma: mockPrisma }));
 
@@ -41,6 +43,7 @@ const SUBMITTED_ROW = {
   district: "galle",
   year: 2026,
   data: { identification: { officerName: "K. Perera" } },
+  sectionReviews: null,
 };
 
 function getRequest(url: string) {
@@ -105,7 +108,7 @@ describe("GET /api/submissions/[id]", () => {
   });
 });
 
-describe("PATCH /api/submissions/[id]", () => {
+describe("PATCH /api/submissions/[id] — whole-submission Reject / Approve All Remaining", () => {
   const originalAppUrl = process.env.NEXT_PUBLIC_APP_URL;
   beforeAll(() => {
     process.env.NEXT_PUBLIC_APP_URL = APP_URL;
@@ -116,7 +119,16 @@ describe("PATCH /api/submissions/[id]", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockPrisma.$transaction.mockImplementation(async (ops: unknown[]) => Promise.all(ops as Promise<unknown>[]));
+    // Supports both the interactive-callback form (used by this route) and the old array form,
+    // invoking the callback with `mockPrisma` itself as `tx` — so `tx.submission.findUnique()`
+    // etc. inside the route resolve to the same mocks the tests configure directly.
+    mockPrisma.$transaction.mockImplementation(async (fnOrOps: unknown) => {
+      if (typeof fnOrOps === "function") {
+        return (fnOrOps as (tx: typeof mockPrisma) => Promise<unknown>)(mockPrisma);
+      }
+      return Promise.all(fnOrOps as Promise<unknown>[]);
+    });
+    mockPrisma.$queryRaw.mockResolvedValue(undefined);
   });
 
   it("rejects a mismatched origin (CSRF)", async () => {
@@ -133,16 +145,16 @@ describe("PATCH /api/submissions/[id]", () => {
     expect(res.status).toBe(400);
   });
 
-  it("requires a note for reject", async () => {
+  it("no longer accepts request-revision — that's per-section only now", async () => {
     mockGetSession.mockResolvedValue(DS_SESSION);
-    const req = patchRequest(`${APP_URL}/api/submissions/sub-1`, { action: "reject" });
+    const req = patchRequest(`${APP_URL}/api/submissions/sub-1`, { action: "request-revision", note: "Fix section X" });
     const res = await PATCH(req, { params: Promise.resolve({ id: "sub-1" }) });
     expect(res.status).toBe(400);
   });
 
-  it("requires a note for request-revision", async () => {
+  it("requires a note for reject", async () => {
     mockGetSession.mockResolvedValue(DS_SESSION);
-    const req = patchRequest(`${APP_URL}/api/submissions/sub-1`, { action: "request-revision", note: "   " });
+    const req = patchRequest(`${APP_URL}/api/submissions/sub-1`, { action: "reject" });
     const res = await PATCH(req, { params: Promise.resolve({ id: "sub-1" }) });
     expect(res.status).toBe(400);
   });
@@ -175,7 +187,7 @@ describe("PATCH /api/submissions/[id]", () => {
     expect(mockPrisma.submission.update).not.toHaveBeenCalled();
   });
 
-  it("rejects reviewing a submission that isn't SUBMITTED", async () => {
+  it("rejects deciding a submission that's still a DRAFT", async () => {
     mockGetSession.mockResolvedValue(DS_SESSION);
     mockPrisma.submission.findUnique.mockResolvedValue({ ...SUBMITTED_ROW, status: "DRAFT" });
     const req = patchRequest(`${APP_URL}/api/submissions/sub-1`, { action: "approve" });
@@ -183,7 +195,25 @@ describe("PATCH /api/submissions/[id]", () => {
     expect(res.status).toBe(409);
   });
 
-  it("on approve, upserts DivisionProfile keyed by gnDivision with the submission's data", async () => {
+  it("rejects deciding a submission that's already fully APPROVED", async () => {
+    mockGetSession.mockResolvedValue(DS_SESSION);
+    mockPrisma.submission.findUnique.mockResolvedValue({ ...SUBMITTED_ROW, status: "APPROVED" });
+    const req = patchRequest(`${APP_URL}/api/submissions/sub-1`, { action: "approve" });
+    const res = await PATCH(req, { params: Promise.resolve({ id: "sub-1" }) });
+    expect(res.status).toBe(409);
+  });
+
+  it("allows Reject while the submission is REVISION_NEEDED (still under review), not just SUBMITTED", async () => {
+    mockGetSession.mockResolvedValue(DS_SESSION);
+    mockPrisma.submission.findUnique.mockResolvedValue({ ...SUBMITTED_ROW, status: "REVISION_NEEDED" });
+    mockPrisma.submission.update.mockResolvedValue({ ...SUBMITTED_ROW, status: "REJECTED" });
+
+    const req = patchRequest(`${APP_URL}/api/submissions/sub-1`, { action: "reject", note: "Start over" });
+    const res = await PATCH(req, { params: Promise.resolve({ id: "sub-1" }) });
+    expect(res.status).toBe(200);
+  });
+
+  it("on approve with no prior section decisions, fills every section as approved and upserts DivisionProfile", async () => {
     mockGetSession.mockResolvedValue(DS_SESSION);
     mockPrisma.submission.findUnique.mockResolvedValue(SUBMITTED_ROW);
     mockPrisma.submission.update.mockResolvedValue({ ...SUBMITTED_ROW, status: "APPROVED" });
@@ -193,6 +223,9 @@ describe("PATCH /api/submissions/[id]", () => {
     const res = await PATCH(req, { params: Promise.resolve({ id: "sub-1" }) });
 
     expect(res.status).toBe(200);
+    const updateArg = mockPrisma.submission.update.mock.calls[0][0];
+    expect(updateArg.data.status).toBe("APPROVED");
+    expect(Object.keys(updateArg.data.sectionReviews)).toHaveLength(SECTION_KEYS.length);
     expect(mockPrisma.divisionProfile.upsert).toHaveBeenCalledWith(
       expect.objectContaining({
         where: { gnDivision: "galle-fort" },
@@ -202,9 +235,37 @@ describe("PATCH /api/submissions/[id]", () => {
     );
   });
 
-  it("on reject, does not touch DivisionProfile and stores the note as rejectionNote", async () => {
+  it("on approve, leaves a section already flagged REVISION_NEEDED untouched and does not complete approval", async () => {
     mockGetSession.mockResolvedValue(DS_SESSION);
-    mockPrisma.submission.findUnique.mockResolvedValue(SUBMITTED_ROW);
+    const flagged = {
+      status: "REVISION_NEEDED" as const,
+      note: "Fix the count",
+      reviewedById: "ds-1",
+      reviewedAt: "2026-01-01T00:00:00.000Z",
+    };
+    mockPrisma.submission.findUnique.mockResolvedValue({
+      ...SUBMITTED_ROW,
+      status: "REVISION_NEEDED",
+      sectionReviews: { [SECTION_KEYS[0]]: flagged },
+    });
+    mockPrisma.submission.update.mockResolvedValue({ ...SUBMITTED_ROW, status: "REVISION_NEEDED" });
+
+    const req = patchRequest(`${APP_URL}/api/submissions/sub-1`, { action: "approve" });
+    const res = await PATCH(req, { params: Promise.resolve({ id: "sub-1" }) });
+
+    expect(res.status).toBe(200);
+    const updateArg = mockPrisma.submission.update.mock.calls[0][0];
+    expect(updateArg.data.sectionReviews[SECTION_KEYS[0]]).toEqual(flagged);
+    expect(updateArg.data.status).toBe("REVISION_NEEDED");
+    expect(mockPrisma.divisionProfile.upsert).not.toHaveBeenCalled();
+  });
+
+  it("on reject, does not touch DivisionProfile, stores the note as rejectionNote, and clears sectionReviews", async () => {
+    mockGetSession.mockResolvedValue(DS_SESSION);
+    mockPrisma.submission.findUnique.mockResolvedValue({
+      ...SUBMITTED_ROW,
+      sectionReviews: { [SECTION_KEYS[0]]: { status: "APPROVED", note: null, reviewedById: "ds-1", reviewedAt: "2026-01-01T00:00:00.000Z" } },
+    });
     mockPrisma.submission.update.mockResolvedValue({ ...SUBMITTED_ROW, status: "REJECTED" });
 
     const req = patchRequest(`${APP_URL}/api/submissions/sub-1`, { action: "reject", note: "Incomplete tea estate data" });
@@ -215,5 +276,6 @@ describe("PATCH /api/submissions/[id]", () => {
     const updateArg = mockPrisma.submission.update.mock.calls[0][0];
     expect(updateArg.data.rejectionNote).toBe("Incomplete tea estate data");
     expect(updateArg.data.status).toBe("REJECTED");
+    expect(updateArg.data.sectionReviews).toEqual({});
   });
 });
