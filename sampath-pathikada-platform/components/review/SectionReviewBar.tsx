@@ -11,13 +11,16 @@ import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { dictionary } from "@/lib/i18n/dictionary";
 import { toast } from "sonner";
 import type { SectionKey } from "@/lib/types/submission";
-import type { SectionReview } from "@/lib/submission-review";
+import { getStageForRole, type SectionReview } from "@/lib/submission-review";
 import { SECTION_REVIEW_BADGE_CLASS, SECTION_REVIEW_ICON, SECTION_REVIEW_LABEL, type SectionReviewState } from "@/lib/status-ui";
 
 interface SectionReviewBarProps {
   submissionId: string;
   sectionKey: SectionKey;
   review: SectionReview | undefined;
+  /** Who made `review`'s decision, resolved from `reviewedById` — undefined while unresolved
+   *  (still loading) or if no decision has been recorded yet for this section. */
+  reviewer?: { name: string; role: string };
   /** Whether the whole submission is currently under review — a DS can only decide a section
    *  while that's true; once fully APPROVED/REJECTED there's nothing left to decide. */
   canDecide: boolean;
@@ -28,7 +31,7 @@ interface SectionReviewBarProps {
 
 type PendingAction = "approve" | "request-revision" | null;
 
-export function SectionReviewBar({ submissionId, sectionKey, review, canDecide, onDecided }: SectionReviewBarProps) {
+export function SectionReviewBar({ submissionId, sectionKey, review, reviewer, canDecide, onDecided }: SectionReviewBarProps) {
   const { lang } = useLanguage();
   const [pendingAction, setPendingAction] = useState<PendingAction>(null);
   const [note, setNote] = useState("");
@@ -69,6 +72,7 @@ export function SectionReviewBar({ submissionId, sectionKey, review, canDecide, 
         </Badge>
         {review && (
           <span className="text-fluid-xs text-muted-foreground">
+            {reviewer && `${reviewer.name} (${getStageForRole(reviewer.role) ?? reviewer.role}) · `}
             {new Date(review.reviewedAt).toLocaleDateString(lang === "si" ? "si-LK" : "en-LK")}
           </span>
         )}

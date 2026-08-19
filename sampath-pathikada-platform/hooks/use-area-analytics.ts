@@ -1,7 +1,8 @@
 "use client";
 
 import useSWR from "swr";
-import { useSession } from "@/hooks/use-session";
+import { useAnalyticsScope } from "@/lib/analytics-scope-context";
+import { buildAnalyticsQuery } from "@/lib/analytics-scope";
 import { CURRENT_YEAR } from "@/lib/constants";
 import type { DemographicsAggregate } from "@/lib/analytics/aggregate-demographics";
 import type {
@@ -38,14 +39,15 @@ const fetcher = async (url: string) => {
   return json as AreaAnalytics;
 };
 
-/** Whole-division aggregate (every approved GN division in the caller's own DS division) —
- *  the same /api/analytics data the "My Division Information" dashboard and DsAreaGraphs use,
- *  reused here so a GN-scoped section page can fall back to the area-wide picture when no
- *  single GN division is selected. */
+/** Whole-scope aggregate (every approved GN division within the active scope — the caller's own
+ *  DS division by default, or whatever `AnalyticsScopeProvider` above in the tree specifies for
+ *  Super Admin's Data View) — the same /api/analytics data the "My Division Information"
+ *  dashboard and DsAreaGraphs use, reused here so a GN-scoped section page can fall back to the
+ *  area-wide picture when no single GN division is selected. */
 export function useAreaAnalytics() {
-  const { user } = useSession();
+  const scope = useAnalyticsScope();
   const { data, error, isLoading } = useSWR(
-    user?.dsDivision ? `/api/analytics?year=${CURRENT_YEAR}` : null,
+    scope ? buildAnalyticsQuery(scope, { year: CURRENT_YEAR }) : null,
     fetcher
   );
 
