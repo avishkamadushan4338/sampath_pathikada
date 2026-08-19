@@ -31,6 +31,14 @@ const DS_SESSION = {
   dsDivision: "galle-fg",
 };
 
+const AD_SESSION = {
+  userId: "ad-1",
+  email: "ad@example.com",
+  name: "AD One",
+  role: "ASSISTANT_DIRECTOR_PLANNING",
+  dsDivision: "galle-fg",
+};
+
 const ROW = {
   id: "sub-1",
   year: 2026,
@@ -121,6 +129,29 @@ describe("GET /api/submissions", () => {
 
   it("rejects a Divisional Secretariat with no assigned division", async () => {
     mockGetSession.mockResolvedValue({ ...DS_SESSION, dsDivision: null });
+    const res = await GET(getRequest(`${APP_URL}/api/submissions?year=2026`));
+    expect(res.status).toBe(403);
+  });
+
+  it("scopes a Divisional Secretariat to reviewStage DS", async () => {
+    mockGetSession.mockResolvedValue(DS_SESSION);
+    await GET(getRequest(`${APP_URL}/api/submissions?year=2026`));
+
+    const call = mockPrisma.submission.findMany.mock.calls[0][0];
+    expect(call.where.reviewStage).toBe("DS");
+  });
+
+  it("scopes an Assistant Director Planning to their own dsDivision and reviewStage AD", async () => {
+    mockGetSession.mockResolvedValue(AD_SESSION);
+    await GET(getRequest(`${APP_URL}/api/submissions?year=2026`));
+
+    const call = mockPrisma.submission.findMany.mock.calls[0][0];
+    expect(call.where.dsDivision).toBe("galle-fg");
+    expect(call.where.reviewStage).toBe("AD");
+  });
+
+  it("rejects an Assistant Director Planning with no assigned division", async () => {
+    mockGetSession.mockResolvedValue({ ...AD_SESSION, dsDivision: null });
     const res = await GET(getRequest(`${APP_URL}/api/submissions?year=2026`));
     expect(res.status).toBe(403);
   });

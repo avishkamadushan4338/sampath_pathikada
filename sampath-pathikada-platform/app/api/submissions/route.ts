@@ -35,14 +35,21 @@ export async function GET(req: NextRequest) {
     ];
   }
 
-  // A Divisional Secretariat or Admin may only ever see submissions from their own DS division —
-  // this overrides any other filter and is not client-controllable.
-  if (session.role === "DIVISIONAL_SECRETARIAT" || session.role === "ADMIN") {
+  // An Assistant Director Planning, Divisional Secretariat, or Admin may only ever see
+  // submissions from their own DS division — this overrides any other filter and is not
+  // client-controllable.
+  if (session.role === "ASSISTANT_DIRECTOR_PLANNING" || session.role === "DIVISIONAL_SECRETARIAT" || session.role === "ADMIN") {
     if (!session.dsDivision) {
       return NextResponse.json({ ok: false, message: "No division assigned to this account." }, { status: 403 });
     }
     where.dsDivision = session.dsDivision;
   }
+  // AD and DS are further scoped to whichever review stage is theirs — AD only sees submissions
+  // still awaiting AD review, DS only sees submissions AD has already cleared. Session-derived
+  // only, not client-controllable, same as the dsDivision scoping above. ADMIN/SUPER_ADMIN see
+  // every stage within/without their scope, unchanged.
+  if (session.role === "ASSISTANT_DIRECTOR_PLANNING") where.reviewStage = "AD";
+  if (session.role === "DIVISIONAL_SECRETARIAT") where.reviewStage = "DS";
 
   const [total, submissions] = await Promise.all([
     prisma.submission.count({ where }),
@@ -58,6 +65,7 @@ export async function GET(req: NextRequest) {
         dsDivision: true,
         gnDivision: true,
         status: true,
+        reviewStage: true,
         rejectionNote: true,
         sectionReviews: true,
         createdAt: true,

@@ -17,7 +17,7 @@ const MAROON = "#66261E";
 const GREEN  = "#2D7A51";
 
 type UserStatus = "ACTIVE" | "INACTIVE" | "SUSPENDED";
-type UserRole = "SUPER_ADMIN" | "ADMIN" | "ECONOMIC_DEVELOPMENT_OFFICER" | "DIVISIONAL_SECRETARIAT";
+type UserRole = "SUPER_ADMIN" | "ADMIN" | "ECONOMIC_DEVELOPMENT_OFFICER" | "ASSISTANT_DIRECTOR_PLANNING" | "DIVISIONAL_SECRETARIAT";
 
 interface UserRow {
   id: string; name: string; email: string; phone: string | null;
@@ -37,6 +37,7 @@ const ROLE_LABEL: Record<UserRole, string> = {
   SUPER_ADMIN: "Super Admin",
   ADMIN: "Admin",
   ECONOMIC_DEVELOPMENT_OFFICER: "Economic Development Officer",
+  ASSISTANT_DIRECTOR_PLANNING: "Assistant Director Planning",
   DIVISIONAL_SECRETARIAT: "Divisional Secretariat",
 };
 
@@ -44,6 +45,7 @@ const ROLE_COLOR: Record<UserRole, string> = {
   SUPER_ADMIN: GOLD_D,
   ADMIN: MAROON,
   ECONOMIC_DEVELOPMENT_OFFICER: NAVY,
+  ASSISTANT_DIRECTOR_PLANNING: GOLD,
   DIVISIONAL_SECRETARIAT: GREEN,
 };
 
@@ -61,7 +63,7 @@ function divisionLabel(dsDivision: string | null): { name: string; district: str
   return { name: div.en, district: district?.en ?? div.districtId };
 }
 
-const ROLE_FILTERS: (UserRole | "all")[] = ["all", "DIVISIONAL_SECRETARIAT", "ECONOMIC_DEVELOPMENT_OFFICER", "ADMIN", "SUPER_ADMIN"];
+const ROLE_FILTERS: (UserRole | "all")[] = ["all", "DIVISIONAL_SECRETARIAT", "ASSISTANT_DIRECTOR_PLANNING", "ECONOMIC_DEVELOPMENT_OFFICER", "ADMIN", "SUPER_ADMIN"];
 
 export default function UsersPage() {
   const { data: users, isLoading } = useSWR("/api/users", fetcher);
@@ -81,6 +83,7 @@ export default function UsersPage() {
   const statItems = [
     { label: "Total Users", value: rows.length, color: "hsl(var(--foreground))" },
     { label: "Divisional Secretariats", value: rows.filter((u) => u.role === "DIVISIONAL_SECRETARIAT").length, color: GREEN },
+    { label: "Assistant Directors Planning", value: rows.filter((u) => u.role === "ASSISTANT_DIRECTOR_PLANNING").length, color: GOLD },
     { label: "Economic Development Officers", value: rows.filter((u) => u.role === "ECONOMIC_DEVELOPMENT_OFFICER").length, color: NAVY },
     { label: "Admins & Super Admins", value: rows.filter((u) => u.role === "ADMIN" || u.role === "SUPER_ADMIN").length, color: GOLD_D },
   ];

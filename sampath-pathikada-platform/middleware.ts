@@ -10,6 +10,7 @@ const PROTECTED_PREFIXES = [
   "/super-admin",
   "/admin",
   "/economic-development-officer",
+  "/assistant-director-planning",
   "/divisional-secretariat",
 ];
 
@@ -20,6 +21,7 @@ const ROLE_DASHBOARDS: Record<string, string> = {
   SUPER_ADMIN:                  "/super-admin/dashboard",
   ADMIN:                        "/admin/dashboard",
   ECONOMIC_DEVELOPMENT_OFFICER: "/economic-development-officer/dashboard",
+  ASSISTANT_DIRECTOR_PLANNING:  "/assistant-director-planning/dashboard",
   DIVISIONAL_SECRETARIAT:       "/divisional-secretariat/dashboard",
 };
 

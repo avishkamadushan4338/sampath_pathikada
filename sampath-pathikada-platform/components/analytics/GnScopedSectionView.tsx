@@ -1,13 +1,15 @@
 "use client";
 
 import { useMemo, useState, type ReactNode } from "react";
-import { useSession } from "@/hooks/use-session";
+import { Download } from "lucide-react";
 import { useDivisionProfile, type DivisionProfileResult } from "@/hooks/use-division-profile";
 import { GnDivisionCombobox } from "@/components/analytics/GnDivisionCombobox";
 import { Bilingual } from "@/components/Bilingual";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { GN_DIVISIONS } from "@/lib/registration-data";
+import { useAnalyticsScope } from "@/lib/analytics-scope-context";
+import { scopeToGnRoster } from "@/lib/analytics-scope";
 import type { Translated } from "@/lib/i18n/types";
 
 interface GnScopedSectionViewProps {
@@ -26,18 +28,25 @@ interface GnScopedSectionViewProps {
  *  roster scoping and the not-selected/loading/error/no-approved-record states so each section
  *  view only has to define its own tables. */
 export function GnScopedSectionView({ prompt, unselectedContent, children }: GnScopedSectionViewProps) {
-  const { user } = useSession();
+  const scope = useAnalyticsScope();
   const [gnDivision, setGnDivision] = useState<string | null>(null);
   const { profile, isLoading, isError } = useDivisionProfile(gnDivision);
 
-  const roster = useMemo(
-    () => (user?.dsDivision ? GN_DIVISIONS.filter((gn) => gn.dsId === user.dsDivision) : []),
-    [user]
-  );
+  const roster = useMemo(() => (scope ? scopeToGnRoster(scope) : []), [scope]);
 
   return (
     <div className="flex flex-col gap-6">
-      <GnDivisionCombobox divisions={roster} value={gnDivision} onChange={setGnDivision} />
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <GnDivisionCombobox divisions={roster} value={gnDivision} onChange={setGnDivision} />
+        {profile && (
+          <Button asChild variant="outline" size="sm" className="gap-1.5">
+            <a href={`/api/division-profile/csv?gnDivision=${encodeURIComponent(profile.gnDivision)}`} download>
+              <Download className="size-4" aria-hidden="true" />
+              <Bilingual en="Download CSV" si="CSV බාගන්න" />
+            </a>
+          </Button>
+        )}
+      </div>
 
       {!gnDivision ? (
         unselectedContent ?? (

@@ -2,18 +2,27 @@
 
 import Link from "next/link";
 import useSWR from "swr";
-import { FileClock, UserX, Inbox, CheckCircle2 } from "lucide-react";
+import { FileClock, UserX, Inbox, CheckCircle2, BadgeCheck, ArrowRight } from "lucide-react";
 import { useSession } from "@/hooks/use-session";
-import { DISTRICTS, DIVISIONAL_SECRETARIATS } from "@/lib/registration-data";
+import { DISTRICTS, DIVISIONAL_SECRETARIATS, GN_DIVISIONS } from "@/lib/registration-data";
 import { CURRENT_YEAR } from "@/lib/constants";
 
 const NAVY = "#0E2B4E";
+const GREEN = "#2D7A51";
 
 interface AnalyticsResponse {
   funnel: { notStarted: number; submitted: number; revisionNeeded: number; approved: number; rejected: number; draft: number };
   totalGnDivisions: number;
   notRegisteredCount: number;
   totalSubmissions: number;
+}
+
+interface ApprovedSubmissionRow {
+  id: string; gnDivision: string; updatedAt: string; submittedBy: { name: string };
+}
+
+interface ApprovedSubmissionsResponse {
+  data: ApprovedSubmissionRow[];
 }
 
 const fetcher = async (url: string) => {
@@ -23,6 +32,24 @@ const fetcher = async (url: string) => {
   return json as AnalyticsResponse;
 };
 
+const submissionsFetcher = async (url: string) => {
+  const res = await fetch(url);
+  const json = await res.json();
+  if (!res.ok || !json.ok) throw new Error(json.message ?? "Failed to load");
+  return json as ApprovedSubmissionsResponse;
+};
+
+function timeAgo(iso: string): string {
+  const diffMs = Date.now() - new Date(iso).getTime();
+  const mins = Math.floor(diffMs / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
+}
+
 export default function AdminDashboard() {
   const { user, isLoading: userLoading } = useSession();
 
@@ -30,6 +57,13 @@ export default function AdminDashboard() {
     user?.dsDivision ? `/api/analytics?year=${CURRENT_YEAR}` : null,
     fetcher
   );
+
+  const { data: approvedData } = useSWR(
+    user?.dsDivision ? `/api/submissions?year=${CURRENT_YEAR}&status=APPROVED&limit=5` : null,
+    submissionsFetcher
+  );
+  const recentlyApproved = approvedData?.data ?? [];
+  const gnLabel = (id: string) => GN_DIVISIONS.find((g) => g.id === id)?.en ?? id;
 
   const today = new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
 
@@ -136,6 +170,61 @@ export default function AdminDashboard() {
               </p>
             </Link>
           ))}
+        </div>
+      )}
+
+      {user?.dsDivision && (
+        <div
+          className="rounded-2xl overflow-hidden"
+          style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}
+        >
+          <div
+            className="flex items-center justify-between px-5 py-4"
+            style={{ borderBottom: "1px solid hsl(var(--border))" }}
+          >
+            <h2 className="font-bold text-[14.5px]" style={{ color: "hsl(var(--foreground))" }}>
+              Recently Approved by Divisional Secretariat
+            </h2>
+            <Link
+              href="/admin/divisions?status=approved"
+              className="flex items-center gap-1 text-[12px] font-semibold hover:underline"
+              style={{ color: NAVY }}
+            >
+              View all <ArrowRight size={12} />
+            </Link>
+          </div>
+          <div>
+            {recentlyApproved.length === 0 && (
+              <p className="text-[12.5px] px-5 py-6 text-center" style={{ color: "hsl(var(--muted-foreground))" }}>
+                {dataLoading ? "Loading…" : "No submissions fully approved yet"}
+              </p>
+            )}
+            {recentlyApproved.map((s) => (
+              <div
+                key={s.id}
+                className="flex items-start gap-3 px-5 py-3.5"
+                style={{ borderBottom: "1px solid hsl(var(--border))" }}
+              >
+                <span
+                  className="mt-0.5 w-8 h-8 rounded-full flex items-center justify-center shrink-0"
+                  style={{ background: `${GREEN}1a`, color: GREEN }}
+                >
+                  <BadgeCheck size={16} />
+                </span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[13px] font-semibold truncate" style={{ color: "hsl(var(--foreground))" }}>
+                    {gnLabel(s.gnDivision)}
+                  </p>
+                  <p className="text-[11px] truncate" style={{ color: "hsl(var(--muted-foreground))" }}>
+                    {s.submittedBy.name}
+                  </p>
+                </div>
+                <span className="text-[10px] shrink-0 pt-0.5" style={{ color: "hsl(var(--muted-foreground))" }}>
+                  {timeAgo(s.updatedAt)}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>

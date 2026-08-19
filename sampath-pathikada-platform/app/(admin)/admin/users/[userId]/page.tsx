@@ -12,6 +12,7 @@ const NAVY2 = "#0B2240";
 const ROLE_LABELS: Record<string, string> = {
   ADMIN:                         "Admin",
   DIVISIONAL_SECRETARIAT:        "Divisional Secretariat",
+  ASSISTANT_DIRECTOR_PLANNING:   "Assistant Director Planning",
   ECONOMIC_DEVELOPMENT_OFFICER:  "Economic Development Officer",
 };
 

@@ -172,14 +172,18 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ ye
       const nextData = { ...currentData, [section]: parsed.data };
 
       // Resubmitting a revision-needed section clears its flag and puts the submission back in
-      // the DS's queue for re-review — the officer's only action is the same Save button they
-      // already use for everything else.
+      // the reviewer's queue for re-review (whichever stage flagged it — see the stage-preserving
+      // note in my-submission/[year]/submit/route.ts) — the officer's only action is the same
+      // Save button they already use for everything else.
       let nextReviews = parseSectionReviews(row.sectionReviews);
       let nextStatus = row.status;
+      let nextReviewStage = row.reviewStage;
       if (isResubmit) {
         nextReviews = { ...nextReviews };
         delete nextReviews[section];
-        nextStatus = deriveSubmissionStatus(nextReviews);
+        const derived = deriveSubmissionStatus(nextReviews, row.reviewStage);
+        nextStatus = derived.status;
+        nextReviewStage = derived.reviewStage;
       }
 
       return tx.submission.update({
@@ -187,7 +191,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ ye
         // Prisma's InputJsonValue requires an index signature, which a plain TS interface
         // (SectionReview) doesn't have — the cast is safe because parseSectionReviews/callers
         // are the only producers of this shape and it's a plain serializable object.
-        data: { data: nextData, sectionReviews: nextReviews as Prisma.InputJsonValue, status: nextStatus },
+        data: { data: nextData, sectionReviews: nextReviews as Prisma.InputJsonValue, status: nextStatus, reviewStage: nextReviewStage },
       });
     },
     { isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted, timeout: 10_000 }

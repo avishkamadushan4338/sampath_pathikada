@@ -170,7 +170,10 @@ export default function DivisionalSecretariatDashboardPage() {
 
   const counts = useMemo(() => {
     const rows = data?.data ?? [];
-    const submitted = rows.filter((r) => r.status === "SUBMITTED").length;
+    // DS's own submission list is already scoped to reviewStage "DS" server-side, so "awaiting
+    // review" here means AD_APPROVED (AD already cleared it, now waiting on DS) — DS never sees a
+    // plain SUBMITTED row (that's still with AD).
+    const submitted = rows.filter((r) => r.status === "AD_APPROVED").length;
     const approved = rows.filter((r) => r.status === "APPROVED").length;
     const rejected = rows.filter((r) => r.status === "REJECTED").length;
     const revisionNeeded = rows.filter((r) => r.status === "REVISION_NEEDED").length;
@@ -371,7 +374,7 @@ export default function DivisionalSecretariatDashboardPage() {
             const submission = submissionByGn.get(gn.id);
             const colorVar = !submission
               ? "--border"
-              : submission.status === "SUBMITTED" || submission.status === "REVISION_NEEDED"
+              : submission.status === "AD_APPROVED" || submission.status === "REVISION_NEEDED"
                 ? "--status-pending"
                 : submission.status === "APPROVED"
                   ? "--status-approved"

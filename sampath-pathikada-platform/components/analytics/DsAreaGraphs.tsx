@@ -21,6 +21,12 @@ import type {
 } from "@/lib/analytics/aggregate-sections";
 
 export interface DsAreaGraphsProps {
+  /** Route prefix each section card links into, e.g. "/divisional-secretariat" or
+   *  "/super-admin/divisions" — previously hardcoded to the DS route group regardless of caller. */
+  basePath: string;
+  /** Optional query string (without leading "?") appended to every section card's link — used by
+   *  Super Admin's Data View so the chosen scope survives navigating into a section page. */
+  queryString?: string;
   demographics: DemographicsAggregate;
   housing: HousingAggregate;
   employment: EmploymentAggregate;
@@ -110,7 +116,8 @@ function SectionCard({
  *  in, each card linking out to its own dedicated page (/divisional-secretariat/graphs/[section])
  *  instead of rendering charts inline. Aggregate props are accepted for interface compatibility
  *  with the caller but are no longer consumed here. */
-export function DsAreaGraphs(_props: DsAreaGraphsProps) {
+export function DsAreaGraphs({ basePath, queryString }: DsAreaGraphsProps) {
+  const suffix = queryString ? `?${queryString}` : "";
   return (
     <div className="flex flex-col gap-6">
       {SECTION_KEYS.map((key) => {
@@ -122,7 +129,7 @@ export function DsAreaGraphs(_props: DsAreaGraphsProps) {
             titleEn={meta.title.en}
             titleSi={meta.title.si}
             accent={SECTION_ACCENTS[key]}
-            href={`/divisional-secretariat/graphs/${SECTION_ROUTES[key]}`}
+            href={`${basePath}/graphs/${SECTION_ROUTES[key]}${suffix}`}
           />
         );
       })}

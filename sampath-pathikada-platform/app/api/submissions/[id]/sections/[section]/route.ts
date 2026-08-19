@@ -47,7 +47,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   }
 
   const existing = await prisma.submission.findUnique({ where: { id } });
-  if (!existing || isOutOfScope(session, existing.dsDivision)) {
+  if (!existing || isOutOfScope(session, existing)) {
     return NextResponse.json({ ok: false, message: "Submission not found." }, { status: 404 });
   }
   if (!isUnderReview(existing.status)) {
@@ -78,18 +78,26 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         reviewedAt: reviewedAt.toISOString(),
       };
       const nextReviews = { ...parseSectionReviews(row.sectionReviews), [section]: entry };
-      const nextStatus = deriveSubmissionStatus(nextReviews);
+      const nextStatus = deriveSubmissionStatus(nextReviews, row.reviewStage);
 
       const result = await tx.submission.update({
         where: { id },
-        data: { sectionReviews: nextReviews as Prisma.InputJsonValue, status: nextStatus, reviewedById: session.userId, reviewedAt },
+        data: {
+          sectionReviews: nextReviews as Prisma.InputJsonValue,
+          status: nextStatus.status,
+          reviewStage: nextStatus.reviewStage,
+          reviewedById: session.userId,
+          reviewedAt,
+        },
       });
 
-      // All 15 sections just became approved — snapshot the submission as the division's
-      // official record, same as whole-submission approval always has. Sourced from `row` (read
-      // inside this transaction), not the pre-transaction `existing` read above, so a concurrent
-      // edit can't slip an unreviewed change into the snapshot.
-      if (nextStatus === "APPROVED") {
+      // All 15 sections just became approved at the DS stage — snapshot the submission as the
+      // division's official record, same as whole-submission approval always has. Sourced from
+      // `row` (read inside this transaction), not the pre-transaction `existing` read above, so a
+      // concurrent edit can't slip an unreviewed change into the snapshot. This never fires at AD
+      // stage completion (that transitions to AD_APPROVED, not APPROVED) — by construction, only
+      // DS-stage completion can reach status "APPROVED".
+      if (nextStatus.status === "APPROVED") {
         await tx.divisionProfile.upsert({
           where: { gnDivision: row.gnDivision },
           create: {
@@ -136,7 +144,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     severity: "INFO",
     userId: session.userId,
     userName: session.name,
-    metadata: { submissionId: id, year: existing.year, section, note: note ?? null, overallStatus: updated.status },
+    metadata: { submissionId: id, year: existing.year, section, note: note ?? null, overallStatus: updated.status, reviewStage: updated.reviewStage },
   });
 
   return NextResponse.json({ ok: true, data: updated });

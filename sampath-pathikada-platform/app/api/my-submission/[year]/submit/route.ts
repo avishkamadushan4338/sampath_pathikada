@@ -60,13 +60,24 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ yea
   }
 
   // Resubmitting from REVISION_NEEDED clears only the sections that were actually flagged (back
-  // to pending, so the DS looks at them again) and keeps any sections the DS already approved —
-  // a fresh DRAFT submission has no reviews yet, so this is a no-op for the first-time-submit
-  // case and `deriveSubmissionStatus` correctly returns "SUBMITTED" either way. reviewedById/At
-  // are left as-is (not nulled) since they now track "who last decided on any section", which a
-  // resubmit shouldn't erase for the sections that remain approved.
+  // to pending, so the same reviewer stage looks at them again) and keeps any sections already
+  // approved — a fresh DRAFT submission has no reviews yet, so this is a no-op for the
+  // first-time-submit case and `deriveSubmissionStatus` correctly returns "SUBMITTED" either way.
+  // reviewedById/At are left as-is (not nulled) since they now track "who last decided on any
+  // section", which a resubmit shouldn't erase for the sections that remain approved.
   //
-  // A DS could be deciding a different section at the same moment the officer clicks this
+  // `row.reviewStage` is passed straight through unchanged here (never itself set by this
+  // route) — it was preserved exactly as AD or DS last left it, which is what makes "resubmit
+  // returns to whoever flagged it" work automatically: if AD flagged a section, reviewStage was
+  // never advanced past "AD", so this resubmit lands back on SUBMITTED/reviewStage "AD"; if DS
+  // flagged a section (only possible once AD had already cleared everything, advancing
+  // reviewStage to "DS"), this resubmit lands back on AD_APPROVED/reviewStage "DS" — skipping AD,
+  // since AD's earlier full approval isn't re-litigated for sections AD never flagged. A whole-
+  // submission Reject (as opposed to a per-section revision flag) is the one case that DOES reset
+  // `reviewStage` — back to "AD" — at reject time (see PATCH /api/submissions/[id]), so a REJECTED
+  // resubmit always restarts at AD regardless of who rejected it.
+  //
+  // A reviewer could be deciding a different section at the same moment the officer clicks this
   // button — same `sectionReviews` race as the review routes, same locking-read fix.
   const updated = await prisma.$transaction(
     async (tx) => {
@@ -79,10 +90,13 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ yea
         if (nextReviews[key]?.status === "REVISION_NEEDED") delete nextReviews[key];
       }
 
+      const nextStatus = deriveSubmissionStatus(nextReviews, row.reviewStage);
+
       return tx.submission.update({
         where: { id: row.id },
         data: {
-          status: deriveSubmissionStatus(nextReviews),
+          status: nextStatus.status,
+          reviewStage: nextStatus.reviewStage,
           sectionReviews: nextReviews as Prisma.InputJsonValue,
           rejectionNote: null,
         },

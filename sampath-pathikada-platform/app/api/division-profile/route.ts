@@ -3,7 +3,7 @@ import prisma from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import { GN_DIVISIONS } from "@/lib/registration-data";
 
-const ALLOWED_ROLES = ["DIVISIONAL_SECRETARIAT", "ADMIN", "SUPER_ADMIN"];
+const ALLOWED_ROLES = ["ASSISTANT_DIRECTOR_PLANNING", "DIVISIONAL_SECRETARIAT", "ADMIN", "SUPER_ADMIN"];
 
 /* ── GET /api/division-profile?gnDivision=<id> ── one GN division's latest approved
    record (DivisionProfile) — the same approved-only, always-current source that powers
@@ -23,12 +23,13 @@ export async function GET(req: NextRequest) {
 
   const gn = GN_DIVISIONS.find((g) => g.id === gnDivision);
 
-  // A Divisional Secretariat (or Admin scoped to one division) may only look up GN divisions
-  // inside their own division — an unknown id and an out-of-scope id get the identical 404,
-  // so the response can never be used to probe which divisions exist elsewhere.
+  // An Assistant Director Planning or Divisional Secretariat (or Admin scoped to one division)
+  // may only look up GN divisions inside their own division — an unknown id and an out-of-scope
+  // id get the identical 404, so the response can never be used to probe which divisions exist
+  // elsewhere.
   const outOfScope =
     !gn ||
-    ((session.role === "DIVISIONAL_SECRETARIAT" || session.role === "ADMIN") && gn.dsId !== session.dsDivision);
+    ((session.role === "ASSISTANT_DIRECTOR_PLANNING" || session.role === "DIVISIONAL_SECRETARIAT" || session.role === "ADMIN") && gn.dsId !== session.dsDivision);
   if (outOfScope) {
     return NextResponse.json({ ok: false, message: "Unknown GN division." }, { status: 404 });
   }

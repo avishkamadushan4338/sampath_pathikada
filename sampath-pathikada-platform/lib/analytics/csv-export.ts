@@ -15,8 +15,8 @@ interface SubmissionRow {
   submittedBy: { name: string; email: string };
 }
 
-type CsvValue = string | number;
-type CsvRow = Record<string, CsvValue>;
+export type CsvValue = string | number;
+export type CsvRow = Record<string, CsvValue>;
 
 /** One flat row per GN division submission, every section's key numbers as its own column.
  *  Directory/list sections contribute a count column only — full row-level detail belongs
@@ -190,20 +190,39 @@ export function buildCsvRows(
   });
 }
 
+function escapeCsvCell(value: CsvValue): string {
+  const s = String(value);
+  if (/[",\n\r]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
+  return s;
+}
+
 /** Minimal RFC 4180 CSV serializer — quotes/escapes any field containing a comma, quote, or newline. */
 export function toCsvText(rows: CsvRow[]): string {
   if (rows.length === 0) return "";
   const headers = Object.keys(rows[0]);
 
-  function escapeCell(value: CsvValue): string {
-    const s = String(value);
-    if (/[",\n\r]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
-    return s;
-  }
-
   const lines = [
-    headers.map(escapeCell).join(","),
-    ...rows.map((row) => headers.map((h) => escapeCell(row[h] ?? "")).join(",")),
+    headers.map(escapeCsvCell).join(","),
+    ...rows.map((row) => headers.map((h) => escapeCsvCell(row[h] ?? "")).join(",")),
   ];
   return lines.join("\r\n");
+}
+
+export interface CsvBlock {
+  heading: string;
+  rows: CsvRow[];
+}
+
+/** Serializes several independently-shaped tables into one CSV, each preceded by a blank line
+ *  and a heading marker row — used where a single flat table can't represent the data (e.g. one
+ *  profile's 15 sections, each with its own arbitrary set of columns). An empty block still emits
+ *  its heading with a "No data recorded" placeholder row, so every expected section is visibly
+ *  present in the file even when the officer left it blank. */
+export function toCsvTextMultiBlock(blocks: CsvBlock[]): string {
+  const parts: string[] = [];
+  for (const block of blocks) {
+    parts.push(`"${block.heading.replace(/"/g, '""')}"`);
+    parts.push(block.rows.length > 0 ? toCsvText(block.rows) : `"No data recorded"`);
+  }
+  return parts.join("\r\n\r\n");
 }

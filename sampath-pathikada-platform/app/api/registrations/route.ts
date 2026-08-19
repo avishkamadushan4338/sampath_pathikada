@@ -8,19 +8,21 @@ import { logAudit } from "@/lib/audit-log";
 
 /* ─── Role → table mapping ───────────────────────────────────────────────────
    Incoming `role` values (from the public form):
-     "economic-development-officer" | "divisional-secretariat"
+     "economic-development-officer" | "assistant-director-planning" | "divisional-secretariat"
    Normalised to these keys which map to Prisma delegates.
 ──────────────────────────────────────────────────────────────────────────── */
 
 function resolveTable(role: string): TableKey | null {
   const r = role.toLowerCase().replace(/_/g, "-");
-  if (r === "economic-development-officer") return "gn";
-  if (r === "divisional-secretariat")        return "ds";
+  if (r === "economic-development-officer")   return "gn";
+  if (r === "assistant-director-planning")    return "ad";
+  if (r === "divisional-secretariat")         return "ds";
   return null;
 }
 
 const TABLE_LABELS: Record<TableKey, string> = {
   gn:  "Economic Development Officer",
+  ad:  "Assistant Director Planning",
   ds:  "Divisional Secretariat",
 };
 
@@ -47,13 +49,14 @@ async function cleanupStaleVerificationDocs() {
     OR: [{ verificationDocFrontPath: { not: null } }, { verificationDocBackPath: { not: null } }],
   };
 
-  const [staleGn, staleDs] = await Promise.all([
+  const [staleGn, staleAd, staleDs] = await Promise.all([
     prisma.economicDevelopmentOfficerRegistration.findMany({ where, select: { id: true, verificationDocFrontPath: true, verificationDocBackPath: true } }),
+    prisma.assistantDirectorPlanningRegistration.findMany({ where, select: { id: true, verificationDocFrontPath: true, verificationDocBackPath: true } }),
     prisma.divisionalSecretariatRegistration.findMany({ where, select: { id: true, verificationDocFrontPath: true, verificationDocBackPath: true } }),
   ]);
 
   await Promise.all(
-    [...staleGn, ...staleDs].map(row =>
+    [...staleGn, ...staleAd, ...staleDs].map(row =>
       deleteVerificationDocs(row.id, { front: row.verificationDocFrontPath, back: row.verificationDocBackPath })
     )
   );
@@ -61,6 +64,12 @@ async function cleanupStaleVerificationDocs() {
   if (staleGn.length) {
     await prisma.economicDevelopmentOfficerRegistration.updateMany({
       where: { id: { in: staleGn.map(r => r.id) } },
+      data: { verificationDocFrontPath: null, verificationDocBackPath: null, verificationDocDeletedAt: new Date() },
+    });
+  }
+  if (staleAd.length) {
+    await prisma.assistantDirectorPlanningRegistration.updateMany({
+      where: { id: { in: staleAd.map(r => r.id) } },
       data: { verificationDocFrontPath: null, verificationDocBackPath: null, verificationDocDeletedAt: new Date() },
     });
   }
@@ -75,13 +84,13 @@ async function cleanupStaleVerificationDocs() {
 /* ── GET /api/registrations ── super-admin list (all three tables) ─────────── */
 export async function GET(req: NextRequest) {
   const session = await getSession();
-  if (!session || !["SUPER_ADMIN", "ADMIN", "DIVISIONAL_SECRETARIAT"].includes(session.role)) {
+  if (!session || !["SUPER_ADMIN", "ADMIN", "ASSISTANT_DIRECTOR_PLANNING", "DIVISIONAL_SECRETARIAT"].includes(session.role)) {
     return NextResponse.json({ ok: false, message: "Unauthorized" }, { status: 401 });
   }
 
   const { searchParams } = new URL(req.url);
   const statusParam = searchParams.get("status") ?? "all";
-  const tableParam  = searchParams.get("role")   ?? "all";   // "gn" | "ds" | "all"
+  const tableParam  = searchParams.get("role")   ?? "all";   // "gn" | "ad" | "ds" | "all"
   const search      = searchParams.get("search") ?? "";
   const page        = Math.max(1, parseInt(searchParams.get("page")  ?? "1"));
   const pageSize    = Math.min(50, parseInt(searchParams.get("limit") ?? "20"));
@@ -116,8 +125,9 @@ export async function GET(req: NextRequest) {
     });
     const countBoth = (where: object) => Promise.all([
       prisma.economicDevelopmentOfficerRegistration.count({ where }),
+      prisma.assistantDirectorPlanningRegistration.count({ where }),
       prisma.divisionalSecretariatRegistration.count({ where }),
-    ]).then(([a, b]) => a + b);
+    ]).then(([a, b, c]) => a + b + c);
 
     const [total, pending, approved, rejected] = await Promise.all([
       countBoth(whereFor()),
@@ -152,17 +162,19 @@ export async function GET(req: NextRequest) {
     mahaweli: true,
   } as const;
 
+  const baseSelectAd = baseSelect;
   const baseSelectDs = baseSelect;
 
   // Query only the requested table(s) in parallel
   type GnRow = Awaited<ReturnType<typeof prisma.economicDevelopmentOfficerRegistration.findMany<{ where: typeof baseWhere; select: typeof baseSelectGn }>>>;
+  type AdRow = Awaited<ReturnType<typeof prisma.assistantDirectorPlanningRegistration.findMany<{ where: typeof baseWhere; select: typeof baseSelectAd }>>>;
   type DsRow = Awaited<ReturnType<typeof prisma.divisionalSecretariatRegistration.findMany<{ where: typeof baseWhere; select: typeof baseSelectDs }>>>;
 
   // Bound each table's query to the rows we could possibly need (page * pageSize from
   // each side, worst case), instead of pulling every matching row before merging/slicing.
   const mergedLimit = page * pageSize;
 
-  const [gnRows, dsRows, gnTotal, dsTotal] = await Promise.all([
+  const [gnRows, adRows, dsRows, gnTotal, adTotal, dsTotal] = await Promise.all([
     (tableParam === "all" || tableParam === "gn")
       ? prisma.economicDevelopmentOfficerRegistration.findMany({
           where: actualWhere,
@@ -171,6 +183,14 @@ export async function GET(req: NextRequest) {
           select: baseSelectGn,
         })
       : ([] as GnRow),
+    (tableParam === "all" || tableParam === "ad")
+      ? prisma.assistantDirectorPlanningRegistration.findMany({
+          where: actualWhere,
+          orderBy: { submittedAt: "desc" },
+          take: mergedLimit,
+          select: baseSelectAd,
+        })
+      : ([] as AdRow),
     (tableParam === "all" || tableParam === "ds")
       ? prisma.divisionalSecretariatRegistration.findMany({
           where: actualWhere,
@@ -181,6 +201,9 @@ export async function GET(req: NextRequest) {
       : ([] as DsRow),
     (tableParam === "all" || tableParam === "gn")
       ? prisma.economicDevelopmentOfficerRegistration.count({ where: actualWhere })
+      : 0,
+    (tableParam === "all" || tableParam === "ad")
+      ? prisma.assistantDirectorPlanningRegistration.count({ where: actualWhere })
       : 0,
     (tableParam === "all" || tableParam === "ds")
       ? prisma.divisionalSecretariatRegistration.count({ where: actualWhere })
@@ -198,17 +221,21 @@ export async function GET(req: NextRequest) {
     ...r, ...withDocFlags(verificationDocFrontPath, verificationDocBackPath),
     role: "economic-development-officer" as const, roleLabel: "Economic Development Officer",
   }));
+  const adMapped = adRows.map(({ verificationDocFrontPath, verificationDocBackPath, ...r }) => ({
+    ...r, ...withDocFlags(verificationDocFrontPath, verificationDocBackPath),
+    role: "assistant-director-planning" as const, roleLabel: "Assistant Director Planning",
+  }));
   const dsMapped = dsRows.map(({ verificationDocFrontPath, verificationDocBackPath, ...r }) => ({
     ...r, ...withDocFlags(verificationDocFrontPath, verificationDocBackPath),
     role: "divisional-secretariat" as const, roleLabel: "Divisional Secretariat",
   }));
 
-  const all: Array<typeof gnMapped[number] | typeof dsMapped[number]> = [...gnMapped, ...dsMapped];
+  const all: Array<typeof gnMapped[number] | typeof adMapped[number] | typeof dsMapped[number]> = [...gnMapped, ...adMapped, ...dsMapped];
   all.sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime());
 
   // Merge-then-slice pagination: each side already contributed at most `mergedLimit`
   // rows (ordered), so slicing the merged, sorted set yields the correct page.
-  const total    = gnTotal + dsTotal;
+  const total    = gnTotal + adTotal + dsTotal;
   const pageData = all.slice((page - 1) * pageSize, page * pageSize);
 
   return NextResponse.json({ ok: true, data: pageData, total, page, pageSize });
@@ -249,7 +276,7 @@ export async function POST(req: NextRequest) {
 
     const tableKey = resolveTable(role);
     if (!tableKey) {
-      return NextResponse.json({ ok: false, message: "Invalid role. Must be economic-development-officer or divisional-secretariat." }, { status: 400 });
+      return NextResponse.json({ ok: false, message: "Invalid role. Must be economic-development-officer, assistant-director-planning, or divisional-secretariat." }, { status: 400 });
     }
 
     // Economic Development Officers must provide gnDivision
@@ -272,9 +299,13 @@ export async function POST(req: NextRequest) {
     const nicTrimmed = nic.trim();
     const ip = req.headers.get("x-forwarded-for")?.split(",")[0] ?? undefined;
 
-    // Duplicate check across both tables + users table
-    const [gnDup, dsDup, userDup] = await Promise.all([
+    // Duplicate check across all three registration tables + users table
+    const [gnDup, adDup, dsDup, userDup] = await Promise.all([
       prisma.economicDevelopmentOfficerRegistration.findFirst({
+        where: { OR: [{ email: emailLower }, { nic: nicTrimmed }], status: { not: "REJECTED" } },
+        select: { id: true, email: true },
+      }),
+      prisma.assistantDirectorPlanningRegistration.findFirst({
         where: { OR: [{ email: emailLower }, { nic: nicTrimmed }], status: { not: "REJECTED" } },
         select: { id: true, email: true },
       }),
@@ -288,7 +319,7 @@ export async function POST(req: NextRequest) {
       }),
     ]);
 
-    if (gnDup || dsDup) {
+    if (gnDup || adDup || dsDup) {
       return NextResponse.json({ ok: false, message: "A registration with this email or NIC already exists and is pending or approved." }, { status: 409 });
     }
     if (userDup) {
@@ -325,6 +356,9 @@ export async function POST(req: NextRequest) {
         },
       });
       registrationId = rec.id;
+    } else if (tableKey === "ad") {
+      const rec = await prisma.assistantDirectorPlanningRegistration.create({ data: commonData });
+      registrationId = rec.id;
     } else {
       const rec = await prisma.divisionalSecretariatRegistration.create({ data: commonData });
       registrationId = rec.id;
@@ -336,14 +370,16 @@ export async function POST(req: NextRequest) {
       const backPath  = docBack && docBack.size > 0 ? await saveVerificationDoc(registrationId, "back", docBack) : null;
 
       const docUpdate = { verificationDocFrontPath: frontPath, verificationDocBackPath: backPath };
-      if (tableKey === "gn") await prisma.economicDevelopmentOfficerRegistration.update({ where: { id: registrationId }, data: docUpdate });
-      else                   await prisma.divisionalSecretariatRegistration.update({ where: { id: registrationId }, data: docUpdate });
+      if (tableKey === "gn")      await prisma.economicDevelopmentOfficerRegistration.update({ where: { id: registrationId }, data: docUpdate });
+      else if (tableKey === "ad") await prisma.assistantDirectorPlanningRegistration.update({ where: { id: registrationId }, data: docUpdate });
+      else                        await prisma.divisionalSecretariatRegistration.update({ where: { id: registrationId }, data: docUpdate });
     } catch (docErr) {
       // Roll back: remove the just-created row and any partially-written files.
       // Prisma transactions can't span filesystem writes, so this is a manual two-phase cleanup.
       await cleanupPartialUpload(registrationId);
-      if (tableKey === "gn") await prisma.economicDevelopmentOfficerRegistration.delete({ where: { id: registrationId } }).catch(() => {});
-      else                   await prisma.divisionalSecretariatRegistration.delete({ where: { id: registrationId } }).catch(() => {});
+      if (tableKey === "gn")      await prisma.economicDevelopmentOfficerRegistration.delete({ where: { id: registrationId } }).catch(() => {});
+      else if (tableKey === "ad") await prisma.assistantDirectorPlanningRegistration.delete({ where: { id: registrationId } }).catch(() => {});
+      else                        await prisma.divisionalSecretariatRegistration.delete({ where: { id: registrationId } }).catch(() => {});
 
       const message = docErr instanceof InvalidDocumentError ? docErr.message : "Failed to process the uploaded document image.";
       return NextResponse.json({ ok: false, message }, { status: 400 });

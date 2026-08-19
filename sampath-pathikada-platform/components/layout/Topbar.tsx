@@ -27,6 +27,7 @@ const HOME_ROUTES: Record<string, string> = {
   SUPER_ADMIN: "/super-admin/dashboard",
   ADMIN: "/admin/dashboard",
   ECONOMIC_DEVELOPMENT_OFFICER: "/economic-development-officer/dashboard",
+  ASSISTANT_DIRECTOR_PLANNING: "/assistant-director-planning/dashboard",
   DIVISIONAL_SECRETARIAT: "/divisional-secretariat/dashboard",
 };
 

@@ -1,12 +1,14 @@
 "use client";
 
+import { useMemo } from "react";
 import useSWR from "swr";
 import { Bilingual } from "@/components/Bilingual";
 import { Card, CardContent } from "@/components/ui/card";
-import { useSession } from "@/hooks/use-session";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { CURRENT_YEAR } from "@/lib/constants";
 import { DISTRICTS, DIVISIONAL_SECRETARIATS, GN_DIVISIONS } from "@/lib/registration-data";
+import { useAnalyticsScope } from "@/lib/analytics-scope-context";
+import { scopeToGnRoster } from "@/lib/analytics-scope";
 
 interface RegistrationRow {
   id: string;
@@ -79,9 +81,18 @@ function DirectorySkeleton() {
  *  `officerDesignation` is the one field that DOES come from this year's submission (entered
  *  as part of the Identification section an officer fills in), joined in by GN division. */
 export function IdentificationDirectoryView() {
-  const { user } = useSession();
+  const scope = useAnalyticsScope();
   const { lang } = useLanguage();
-  const showMahaweliColumn = user?.dsDivision === "hambantota-ds";
+
+  // Neither /api/registrations nor /api/submissions accepts a district/dsDivision/gnDivisions
+  // filter, so both are always fetched unscoped and narrowed here to the active scope's GN
+  // roster — same client-side-filter technique DivisionSectionDetailView already uses for the
+  // religious-cultural section's heritage/art-academy/artist rows.
+  const allowedGnIds = useMemo(
+    () => (scope ? new Set(scopeToGnRoster(scope).map((gn) => gn.id)) : null),
+    [scope]
+  );
+  const showMahaweliColumn = scope ? scopeToGnRoster(scope).some((gn) => gn.dsId === "hambantota-ds") : false;
 
   const { data, error, isLoading } = useSWR("/api/registrations?role=gn&status=all&limit=100", fetcher);
   const { data: submissionsData } = useSWR(`/api/submissions?year=${CURRENT_YEAR}&status=all&limit=100`, submissionsFetcher);
@@ -104,6 +115,8 @@ export function IdentificationDirectoryView() {
       </Card>
     );
   }
+
+  const rows = allowedGnIds ? data.data.filter((row) => allowedGnIds.has(row.gnDivision)) : data.data;
 
   return (
     <div className="overflow-x-auto rounded-xl border border-border">
@@ -162,7 +175,7 @@ export function IdentificationDirectoryView() {
           </tr>
         </thead>
         <tbody>
-          {data.data.map((row) => {
+          {rows.map((row) => {
             const gn = GN_DIVISIONS.find((g) => g.id === row.gnDivision);
             const gnName = gn ? (lang === "si" ? gn.si : gn.en) : row.gnDivision;
             const district = DISTRICTS.find((item) => item.id === row.district);

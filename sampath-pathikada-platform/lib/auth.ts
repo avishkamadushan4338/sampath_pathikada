@@ -95,8 +95,12 @@ export async function loginWithCredentials(
     // that's still awaiting Super Admin review. Only reveal that state once the
     // submitted password is verified against the registration, so an attacker
     // guessing emails can't use this to enumerate pending applicants.
-    const [gnReg, dsReg] = await Promise.all([
+    const [gnReg, adReg, dsReg] = await Promise.all([
       prisma.economicDevelopmentOfficerRegistration.findFirst({
+        where: { email: emailLower, status: "PENDING" },
+        select: { passwordHash: true },
+      }),
+      prisma.assistantDirectorPlanningRegistration.findFirst({
         where: { email: emailLower, status: "PENDING" },
         select: { passwordHash: true },
       }),
@@ -105,7 +109,7 @@ export async function loginWithCredentials(
         select: { passwordHash: true },
       }),
     ]);
-    const pendingReg = gnReg ?? dsReg;
+    const pendingReg = gnReg ?? adReg ?? dsReg;
 
     if (pendingReg && await verifyPassword(password, pendingReg.passwordHash)) {
       return {
@@ -190,6 +194,7 @@ export async function loginWithCredentials(
     SUPER_ADMIN:                  "/super-admin/dashboard",
     ADMIN:                        "/admin/dashboard",
     ECONOMIC_DEVELOPMENT_OFFICER: "/economic-development-officer/dashboard",
+    ASSISTANT_DIRECTOR_PLANNING:  "/assistant-director-planning/dashboard",
     DIVISIONAL_SECRETARIAT:       "/divisional-secretariat/dashboard",
   };
 

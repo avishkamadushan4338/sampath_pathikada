@@ -57,8 +57,8 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 
   const { action, role: tableKey, rejectionNote } = body;
 
-  if (!tableKey || !["gn", "ds"].includes(tableKey)) {
-    return NextResponse.json({ ok: false, message: "role must be 'gn' or 'ds'." }, { status: 400 });
+  if (!tableKey || !["gn", "ad", "ds"].includes(tableKey)) {
+    return NextResponse.json({ ok: false, message: "role must be 'gn', 'ad', or 'ds'." }, { status: 400 });
   }
 
   const reg = await findRecord(id, tableKey);
@@ -83,8 +83,9 @@ export async function PATCH(req: NextRequest, { params }: Params) {
       verificationDocDeletedAt: new Date(),
     };
 
-    if (tableKey === "gn")  await prisma.economicDevelopmentOfficerRegistration.update({ where: { id }, data: updateData });
-    else await prisma.divisionalSecretariatRegistration.update({ where: { id }, data: updateData });
+    if (tableKey === "gn")      await prisma.economicDevelopmentOfficerRegistration.update({ where: { id }, data: updateData });
+    else if (tableKey === "ad") await prisma.assistantDirectorPlanningRegistration.update({ where: { id }, data: updateData });
+    else                        await prisma.divisionalSecretariatRegistration.update({ where: { id }, data: updateData });
 
     // Delete the verification document files now that a decision has been made —
     // retaining ID images after review is not permitted.
@@ -114,6 +115,28 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     });
     if (existing) {
       return NextResponse.json({ ok: false, message: "A user account with this email/NIC already exists." }, { status: 409 });
+    }
+
+    // Guard: a division has exactly one active AD and one active DS — never two people holding
+    // the same reviewer role for the same division at once, which would make "the AD"/"the DS"
+    // for that division ambiguous. Deliberately scoped to ACTIVE users only: a previously
+    // suspended/deactivated holder doesn't block approving their replacement. Economic
+    // Development Officers (tableKey "gn") are intentionally excluded — many EDOs per GN division
+    // is expected, not a conflict.
+    if (tableKey === "ad" || tableKey === "ds") {
+      const existingHolder = await prisma.user.findFirst({
+        where: { role: USER_ROLE_MAP[tableKey], dsDivision: reg.dsDivision, status: "ACTIVE" },
+        select: { name: true, email: true },
+      });
+      if (existingHolder) {
+        return NextResponse.json(
+          {
+            ok: false,
+            message: `${existingHolder.name} (${existingHolder.email}) is already the active ${label} for this division. Reassign or deactivate them first.`,
+          },
+          { status: 409 }
+        );
+      }
     }
 
     await prisma.$transaction(async (tx) => {
@@ -154,8 +177,9 @@ export async function PATCH(req: NextRequest, { params }: Params) {
         verificationDocDeletedAt: new Date(),
       };
 
-      if (tableKey === "gn") await tx.economicDevelopmentOfficerRegistration.update({ where: { id }, data: approveData });
-      else                   await tx.divisionalSecretariatRegistration.update({ where: { id }, data: approveData });
+      if (tableKey === "gn")      await tx.economicDevelopmentOfficerRegistration.update({ where: { id }, data: approveData });
+      else if (tableKey === "ad") await tx.assistantDirectorPlanningRegistration.update({ where: { id }, data: approveData });
+      else                        await tx.divisionalSecretariatRegistration.update({ where: { id }, data: approveData });
 
       await tx.auditLog.create({
         data: {

@@ -33,6 +33,14 @@ const DS_SESSION = {
   dsDivision: "galle-fg",
 };
 
+const AD_SESSION = {
+  userId: "ad-1",
+  email: "ad@example.com",
+  name: "AD Officer",
+  role: "ASSISTANT_DIRECTOR_PLANNING",
+  dsDivision: "galle-fg",
+};
+
 const APP_URL = "http://localhost:3004";
 
 function allApprovedExcept(...pending: string[]) {
@@ -44,15 +52,27 @@ function allApprovedExcept(...pending: string[]) {
   return reviews;
 }
 
-const SUBMITTED_ROW = {
+// AD-stage row — awaiting its first review. Most of this file's original tests used DS_SESSION
+// against a plain "SUBMITTED" row; those now exercise the AD stage instead, since a DS reviewer
+// can no longer reach a SUBMITTED (still-awaiting-AD) row — see the isOutOfScope stage tests
+// added below.
+const AD_STAGE_ROW = {
   id: "sub-1",
   status: "SUBMITTED",
+  reviewStage: "AD",
   dsDivision: "galle-fg",
   gnDivision: "galle-fort",
   district: "galle",
   year: 2026,
   data: { identification: { officerName: "K. Perera" } },
   sectionReviews: null,
+};
+
+// DS-stage row — AD already cleared everything, now awaiting DS's decision.
+const DS_STAGE_ROW = {
+  ...AD_STAGE_ROW,
+  status: "AD_APPROVED",
+  reviewStage: "DS",
 };
 
 function patchRequest(url: string, body: unknown, origin: string | null = APP_URL) {
@@ -116,43 +136,59 @@ describe("PATCH /api/submissions/[id]/sections/[section]", () => {
   });
 
   it("does not require a note for approve", async () => {
-    mockGetSession.mockResolvedValue(DS_SESSION);
-    mockPrisma.submission.findUnique.mockResolvedValue(SUBMITTED_ROW);
-    mockPrisma.submission.update.mockResolvedValue({ ...SUBMITTED_ROW, status: "SUBMITTED" });
+    mockGetSession.mockResolvedValue(AD_SESSION);
+    mockPrisma.submission.findUnique.mockResolvedValue(AD_STAGE_ROW);
+    mockPrisma.submission.update.mockResolvedValue({ ...AD_STAGE_ROW, status: "SUBMITTED" });
     const req = patchRequest(`${APP_URL}/api/submissions/sub-1/sections/education`, { action: "approve" });
     const res = await PATCH(req, paramsFor("education"));
     expect(res.status).toBe(200);
   });
 
   it("returns 404 for a reviewer outside the submission's DS division", async () => {
+    mockGetSession.mockResolvedValue(AD_SESSION);
+    mockPrisma.submission.findUnique.mockResolvedValue({ ...AD_STAGE_ROW, dsDivision: "matara-fg" });
+    const req = patchRequest(`${APP_URL}/api/submissions/sub-1/sections/education`, { action: "approve" });
+    const res = await PATCH(req, paramsFor("education"));
+    expect(res.status).toBe(404);
+  });
+
+  it("returns 404 for an AD reviewer once the submission has moved on to the DS stage", async () => {
+    mockGetSession.mockResolvedValue(AD_SESSION);
+    mockPrisma.submission.findUnique.mockResolvedValue(DS_STAGE_ROW);
+    const req = patchRequest(`${APP_URL}/api/submissions/sub-1/sections/education`, { action: "approve" });
+    const res = await PATCH(req, paramsFor("education"));
+    expect(res.status).toBe(404);
+  });
+
+  it("returns 404 for a DS reviewer while the submission is still awaiting AD", async () => {
     mockGetSession.mockResolvedValue(DS_SESSION);
-    mockPrisma.submission.findUnique.mockResolvedValue({ ...SUBMITTED_ROW, dsDivision: "matara-fg" });
+    mockPrisma.submission.findUnique.mockResolvedValue(AD_STAGE_ROW);
     const req = patchRequest(`${APP_URL}/api/submissions/sub-1/sections/education`, { action: "approve" });
     const res = await PATCH(req, paramsFor("education"));
     expect(res.status).toBe(404);
   });
 
   it("rejects deciding a section on a submission that's still a DRAFT", async () => {
-    mockGetSession.mockResolvedValue(DS_SESSION);
-    mockPrisma.submission.findUnique.mockResolvedValue({ ...SUBMITTED_ROW, status: "DRAFT" });
+    mockGetSession.mockResolvedValue(AD_SESSION);
+    mockPrisma.submission.findUnique.mockResolvedValue({ ...AD_STAGE_ROW, status: "DRAFT" });
     const req = patchRequest(`${APP_URL}/api/submissions/sub-1/sections/education`, { action: "approve" });
     const res = await PATCH(req, paramsFor("education"));
     expect(res.status).toBe(409);
   });
 
   it("allows deciding a section while the submission is REVISION_NEEDED (not just SUBMITTED)", async () => {
-    mockGetSession.mockResolvedValue(DS_SESSION);
-    mockPrisma.submission.findUnique.mockResolvedValue({ ...SUBMITTED_ROW, status: "REVISION_NEEDED" });
-    mockPrisma.submission.update.mockResolvedValue({ ...SUBMITTED_ROW, status: "REVISION_NEEDED" });
+    mockGetSession.mockResolvedValue(AD_SESSION);
+    mockPrisma.submission.findUnique.mockResolvedValue({ ...AD_STAGE_ROW, status: "REVISION_NEEDED" });
+    mockPrisma.submission.update.mockResolvedValue({ ...AD_STAGE_ROW, status: "REVISION_NEEDED" });
     const req = patchRequest(`${APP_URL}/api/submissions/sub-1/sections/education`, { action: "approve" });
     const res = await PATCH(req, paramsFor("education"));
     expect(res.status).toBe(200);
   });
 
   it("stores the note and status for a single section decision without touching other sections", async () => {
-    mockGetSession.mockResolvedValue(DS_SESSION);
-    mockPrisma.submission.findUnique.mockResolvedValue({ ...SUBMITTED_ROW, sectionReviews: { health: allApprovedExcept()["health"] } });
-    mockPrisma.submission.update.mockResolvedValue({ ...SUBMITTED_ROW, status: "REVISION_NEEDED" });
+    mockGetSession.mockResolvedValue(AD_SESSION);
+    mockPrisma.submission.findUnique.mockResolvedValue({ ...AD_STAGE_ROW, sectionReviews: { health: allApprovedExcept()["health"] } });
+    mockPrisma.submission.update.mockResolvedValue({ ...AD_STAGE_ROW, status: "REVISION_NEEDED" });
 
     const req = patchRequest(`${APP_URL}/api/submissions/sub-1/sections/education`, {
       action: "request-revision",
@@ -169,8 +205,8 @@ describe("PATCH /api/submissions/[id]/sections/[section]", () => {
 
   it("does not upsert DivisionProfile when only some sections are approved", async () => {
     mockGetSession.mockResolvedValue(DS_SESSION);
-    mockPrisma.submission.findUnique.mockResolvedValue({ ...SUBMITTED_ROW, sectionReviews: allApprovedExcept("education", "health") });
-    mockPrisma.submission.update.mockResolvedValue({ ...SUBMITTED_ROW, status: "SUBMITTED" });
+    mockPrisma.submission.findUnique.mockResolvedValue({ ...DS_STAGE_ROW, sectionReviews: allApprovedExcept("education", "health") });
+    mockPrisma.submission.update.mockResolvedValue({ ...DS_STAGE_ROW, status: "AD_APPROVED" });
 
     const req = patchRequest(`${APP_URL}/api/submissions/sub-1/sections/education`, { action: "approve" });
     const res = await PATCH(req, paramsFor("education"));
@@ -179,10 +215,25 @@ describe("PATCH /api/submissions/[id]/sections/[section]", () => {
     expect(mockPrisma.divisionProfile.upsert).not.toHaveBeenCalled();
   });
 
-  it("upserts DivisionProfile the moment the last section becomes approved", async () => {
+  it("advances AD stage to AD_APPROVED/stage DS the moment the last section becomes approved at the AD stage, without upserting DivisionProfile", async () => {
+    mockGetSession.mockResolvedValue(AD_SESSION);
+    mockPrisma.submission.findUnique.mockResolvedValue({ ...AD_STAGE_ROW, sectionReviews: allApprovedExcept("education") });
+    mockPrisma.submission.update.mockResolvedValue({ ...AD_STAGE_ROW, status: "AD_APPROVED", reviewStage: "DS" });
+
+    const req = patchRequest(`${APP_URL}/api/submissions/sub-1/sections/education`, { action: "approve" });
+    const res = await PATCH(req, paramsFor("education"));
+
+    expect(res.status).toBe(200);
+    const updateArg = mockPrisma.submission.update.mock.calls[0][0];
+    expect(updateArg.data.status).toBe("AD_APPROVED");
+    expect(updateArg.data.reviewStage).toBe("DS");
+    expect(mockPrisma.divisionProfile.upsert).not.toHaveBeenCalled();
+  });
+
+  it("upserts DivisionProfile the moment the last section becomes approved at the DS stage", async () => {
     mockGetSession.mockResolvedValue(DS_SESSION);
-    mockPrisma.submission.findUnique.mockResolvedValue({ ...SUBMITTED_ROW, sectionReviews: allApprovedExcept("education") });
-    mockPrisma.submission.update.mockResolvedValue({ ...SUBMITTED_ROW, status: "APPROVED" });
+    mockPrisma.submission.findUnique.mockResolvedValue({ ...DS_STAGE_ROW, sectionReviews: allApprovedExcept("education") });
+    mockPrisma.submission.update.mockResolvedValue({ ...DS_STAGE_ROW, status: "APPROVED" });
 
     const req = patchRequest(`${APP_URL}/api/submissions/sub-1/sections/education`, { action: "approve" });
     const res = await PATCH(req, paramsFor("education"));
@@ -193,15 +244,15 @@ describe("PATCH /api/submissions/[id]/sections/[section]", () => {
     expect(mockPrisma.divisionProfile.upsert).toHaveBeenCalledWith(
       expect.objectContaining({
         where: { gnDivision: "galle-fort" },
-        create: expect.objectContaining({ sourceSubmissionId: "sub-1", data: SUBMITTED_ROW.data }),
+        create: expect.objectContaining({ sourceSubmissionId: "sub-1", data: DS_STAGE_ROW.data }),
       })
     );
   });
 
-  it("logs the decision at INFO severity, not WARNING — avoids flooding the DS's own Data Quality Alerts feed", async () => {
-    mockGetSession.mockResolvedValue(DS_SESSION);
-    mockPrisma.submission.findUnique.mockResolvedValue(SUBMITTED_ROW);
-    mockPrisma.submission.update.mockResolvedValue({ ...SUBMITTED_ROW, status: "SUBMITTED" });
+  it("logs the decision at INFO severity, not WARNING — avoids flooding the reviewer's own Data Quality Alerts feed", async () => {
+    mockGetSession.mockResolvedValue(AD_SESSION);
+    mockPrisma.submission.findUnique.mockResolvedValue(AD_STAGE_ROW);
+    mockPrisma.submission.update.mockResolvedValue({ ...AD_STAGE_ROW, status: "SUBMITTED" });
 
     const req = patchRequest(`${APP_URL}/api/submissions/sub-1/sections/education`, {
       action: "request-revision",

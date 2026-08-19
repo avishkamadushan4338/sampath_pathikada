@@ -46,6 +46,7 @@ const STRINGS = {
     roleTitle: "Select Your Role",
     roleSub: "Choose the position that matches your official designation",
     gnLabel: "Economic Development Officer", gnSub: "Village-level administrative officer",
+    adLabel: "Assistant Director Planning", adSub: "First-stage divisional reviewer",
     rsLabel: "Divisional Secretariat",   rsSub: "Divisional Secretariat representative",
     locTitle: "Location Details",        locSub: "Select your administrative area",
     district: "District",                selectDistrict: "Select District",
@@ -84,6 +85,7 @@ const STRINGS = {
     roleTitle: "ඔබේ භූමිකාව තෝරන්න",
     roleSub: "ඔබේ නිල තනතුරට ගැළපෙන භූමිකාව තෝරන්න",
     gnLabel: "ආර්ථික සංවර්ධන නිලධාරී",   gnSub: "ගම් මට්ටමේ පරිපාලන නිලධාරී",
+    adLabel: "සහකාර සැලසුම් අධ්‍යක්ෂ",   adSub: "පළමු අදියර කොට්ඨාශ සමාලෝචකයා",
     rsLabel: "ප්‍රාදේශීය ලේකම්",         rsSub: "ප්‍රාදේශීය ලේකම් කාර්යාල නියෝජිතයා",
     locTitle: "ස්ථාන විස්තර",             locSub: "ඔබේ පරිපාලන ප්‍රදේශය තෝරන්න",
     district: "දිස්ත්‍රික්කය",           selectDistrict: "දිස්ත්‍රික්කය තෝරන්න",
@@ -862,8 +864,9 @@ function LangCard({
 
 /* ─── Role card ──────────────────────────────────────────────────────────── */
 const ROLE_META: Record<UserType, { icon: React.ReactNode; color: string; gradient: string }> = {
-  economic_development_officer: { icon: <Users size={24} />,  color: "#1B6CA8", gradient: "linear-gradient(145deg,#2580C8,#1B6CA8)" },
-  divisional_secretariat:       { icon: <Shield size={24} />, color: CRIMSON,   gradient: `linear-gradient(145deg,#8B1220,${CRIMSON})` },
+  economic_development_officer: { icon: <Users size={24} />,       color: "#1B6CA8", gradient: "linear-gradient(145deg,#2580C8,#1B6CA8)" },
+  assistant_director_planning:  { icon: <ShieldCheck size={24} />, color: DEEP_GOLD, gradient: `linear-gradient(145deg,${GOLD},${DEEP_GOLD})` },
+  divisional_secretariat:       { icon: <Shield size={24} />,      color: CRIMSON,   gradient: `linear-gradient(145deg,#8B1220,${CRIMSON})` },
 };
 
 function RoleCard({
@@ -1226,6 +1229,7 @@ export default function RegisterPage() {
     try {
       const roleMap: Record<string, string> = {
         economic_development_officer: "economic-development-officer",
+        assistant_director_planning:  "assistant-director-planning",
         divisional_secretariat:       "divisional-secretariat",
       };
       const fd = new FormData();
@@ -1324,11 +1328,11 @@ export default function RegisterPage() {
             </p>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: "clamp(8px,1.4vh,12px)" }}>
-            {(["economic_development_officer", "divisional_secretariat"] as UserType[]).map(role => (
+            {(["economic_development_officer", "assistant_director_planning", "divisional_secretariat"] as UserType[]).map(role => (
               <RoleCard
                 key={role} role={role}
-                label={role === "economic_development_officer" ? T.gnLabel : T.rsLabel}
-                sub={role === "economic_development_officer" ? T.gnSub : T.rsSub}
+                label={role === "economic_development_officer" ? T.gnLabel : role === "assistant_director_planning" ? T.adLabel : T.rsLabel}
+                sub={role === "economic_development_officer" ? T.gnSub : role === "assistant_director_planning" ? T.adSub : T.rsSub}
                 selected={data.userType === role}
                 onClick={() => set("userType", role)}
                 si={si}

@@ -8,7 +8,7 @@ export interface SessionUser {
   nameSinhala: string | null;
   email: string;
   phone: string | null;
-  role: "SUPER_ADMIN" | "ADMIN" | "ECONOMIC_DEVELOPMENT_OFFICER" | "DIVISIONAL_SECRETARIAT";
+  role: "SUPER_ADMIN" | "ADMIN" | "ECONOMIC_DEVELOPMENT_OFFICER" | "ASSISTANT_DIRECTOR_PLANNING" | "DIVISIONAL_SECRETARIAT";
   district: string | null;
   dsDivision: string | null;
   gnDivision: string | null;

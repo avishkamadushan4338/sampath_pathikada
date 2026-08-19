@@ -5,7 +5,7 @@ import { DIVISIONAL_SECRETARIATS, GN_DIVISIONS } from "@/lib/registration-data";
 import { CURRENT_YEAR } from "@/lib/constants";
 import { buildCsvRows, toCsvText } from "@/lib/analytics/csv-export";
 
-const ALLOWED_ROLES = ["ADMIN", "SUPER_ADMIN"];
+const ALLOWED_ROLES = ["ADMIN", "SUPER_ADMIN", "ASSISTANT_DIRECTOR_PLANNING", "DIVISIONAL_SECRETARIAT"];
 
 export async function GET(req: NextRequest) {
   const session = await getSession();
@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
 
   let dsDivisionFilter: string | null = null;
   let districtFilter: string | null = null;
-  if (session.role === "ADMIN") {
+  if (session.role === "ADMIN" || session.role === "ASSISTANT_DIRECTOR_PLANNING" || session.role === "DIVISIONAL_SECRETARIAT") {
     if (!session.dsDivision) {
       return NextResponse.json({ ok: false, message: "No division assigned to this account." }, { status: 403 });
     }
