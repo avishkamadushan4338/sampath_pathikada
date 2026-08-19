@@ -23,8 +23,8 @@ export async function GET(req: NextRequest, { params }: Params) {
   }
 
   const tableKey = (new URL(req.url).searchParams.get("role") ?? "gn") as TableKey;
-  if (!["gn", "ds"].includes(tableKey)) {
-    return NextResponse.json({ ok: false, message: "role must be 'gn' or 'ds'." }, { status: 400 });
+  if (!["gn", "ad", "ds"].includes(tableKey)) {
+    return NextResponse.json({ ok: false, message: "role must be 'gn', 'ad', or 'ds'." }, { status: 400 });
   }
 
   const reg = await findRecord(id, tableKey);

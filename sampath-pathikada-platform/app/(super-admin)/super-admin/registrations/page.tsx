@@ -16,8 +16,8 @@ const NAVY2 = "#0B2240";
 
 /* ── Types ───────────────────────────────────────────────────── */
 type Status = "pending" | "approved" | "rejected";
-type Role = "economic-development-officer" | "divisional-secretariat";
-type TableKey = "gn" | "ds";
+type Role = "economic-development-officer" | "assistant-director-planning" | "divisional-secretariat";
+type TableKey = "gn" | "ad" | "ds";
 type DocType = "NIC" | "DRIVING_LICENSE" | "PASSPORT" | null;
 
 const DOC_TYPE_LABELS: Record<Exclude<DocType, null>, string> = {
@@ -35,11 +35,13 @@ interface Registration {
 
 const ROLE_TO_TABLE_KEY: Record<Role, TableKey> = {
   "economic-development-officer": "gn",
+  "assistant-director-planning":  "ad",
   "divisional-secretariat":       "ds",
 };
 
 const UI_ROLE_TO_API: Record<Role | "all", string> = {
   "economic-development-officer": "gn",
+  "assistant-director-planning":  "ad",
   "divisional-secretariat":       "ds",
   all:                            "all",
 };
@@ -82,6 +84,7 @@ function mapRow(r: ApiRow): Registration {
 /* Role pill — inline styles instead of broken bg-[#hex]/12 */
 const ROLE_STYLES: Record<Role, { bg: string; color: string; border: string; label: string }> = {
   "economic-development-officer": { bg: "rgba(14,43,78,0.10)",  color: NAVY2,    border: "rgba(14,43,78,0.20)",  label: "Economic Development Officer" },
+  "assistant-director-planning":  { bg: "#eff6ff",               color: "#1d4ed8", border: "#bfdbfe",              label: "Assistant Director Planning"  },
   "divisional-secretariat":       { bg: "#f3e8ff",               color: "#6b21a8", border: "#ddd6fe",              label: "Divisional Secretariat"       },
 };
 
@@ -609,6 +612,7 @@ function RegistrationsContent() {
           >
             <option value="all">All Roles</option>
             <option value="economic-development-officer">Economic Development Officer</option>
+            <option value="assistant-director-planning">Assistant Director Planning</option>
             <option value="divisional-secretariat">Divisional Secretariat</option>
           </select>
           <ChevronDown size={13} className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: "hsl(var(--muted-foreground))" }} />
