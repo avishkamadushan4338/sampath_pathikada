@@ -21,11 +21,30 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     include: { submittedBy: { select: { id: true, name: true, email: true, phone: true, nic: true } } },
   });
 
-  if (!submission || isOutOfScope(session, submission.dsDivision)) {
+  if (!submission || isOutOfScope(session, submission)) {
     return NextResponse.json({ ok: false, message: "Submission not found." }, { status: 404 });
   }
 
-  return NextResponse.json({ ok: true, data: submission });
+  // `sectionReviews` only stores each reviewer's user id (`reviewedById`), not their name — resolve
+  // the small, bounded set of distinct reviewers on this submission (at most one AD and one DS,
+  // per the one-active-reviewer-per-division rule enforced at registration-approval time) to
+  // display names, same join philosophy as `submittedBy` above but the JSON column can't express
+  // a real Prisma relation, so this needs its own lookup rather than an `include`.
+  const reviewedByIds = new Set<string>();
+  if (submission.reviewedById) reviewedByIds.add(submission.reviewedById);
+  for (const review of Object.values(parseSectionReviews(submission.sectionReviews))) {
+    if (review) reviewedByIds.add(review.reviewedById);
+  }
+  const reviewerNames: Record<string, { name: string; role: string }> = {};
+  if (reviewedByIds.size > 0) {
+    const reviewers = await prisma.user.findMany({
+      where: { id: { in: [...reviewedByIds] } },
+      select: { id: true, name: true, role: true },
+    });
+    for (const r of reviewers) reviewerNames[r.id] = { name: r.name, role: r.role };
+  }
+
+  return NextResponse.json({ ok: true, data: { ...submission, reviewerNames } });
 }
 
 /* ── PATCH /api/submissions/[id] ── whole-submission Reject, or "Approve All Remaining" ──────────
@@ -61,7 +80,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   }
 
   const submission = await prisma.submission.findUnique({ where: { id } });
-  if (!submission || isOutOfScope(session, submission.dsDivision)) {
+  if (!submission || isOutOfScope(session, submission)) {
     return NextResponse.json({ ok: false, message: "Submission not found." }, { status: 404 });
   }
   if (!isUnderReview(submission.status)) {
@@ -83,9 +102,14 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       if (!row) return null;
 
       if (action === "reject") {
+        // A whole-submission reject is a full restart, not a targeted revision request — whoever
+        // rejects it (AD or DS), the resubmitted version must be reviewed by AD again from
+        // scratch before DS sees it, same as a brand-new submission. This is deliberately
+        // different from a per-section REVISION_NEEDED flag at the DS stage, which intentionally
+        // skips back to AD only for the flagged section (see deriveSubmissionStatus).
         return tx.submission.update({
           where: { id },
-          data: { status: "REJECTED", rejectionNote: note!.trim(), sectionReviews: {}, reviewedById: session.userId, reviewedAt },
+          data: { status: "REJECTED", reviewStage: "AD", rejectionNote: note!.trim(), sectionReviews: {}, reviewedById: session.userId, reviewedAt },
         });
       }
 
@@ -98,20 +122,21 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
           nextReviews[key] = { status: "APPROVED", note: null, reviewedById: session.userId, reviewedAt: reviewedAt.toISOString() };
         }
       }
-      const nextStatus = deriveSubmissionStatus(nextReviews);
+      const nextStatus = deriveSubmissionStatus(nextReviews, row.reviewStage);
 
       const result = await tx.submission.update({
         where: { id },
         data: {
           sectionReviews: nextReviews as Prisma.InputJsonValue,
-          status: nextStatus,
+          status: nextStatus.status,
+          reviewStage: nextStatus.reviewStage,
           reviewedById: session.userId,
           reviewedAt,
           rejectionNote: null,
         },
       });
 
-      if (nextStatus === "APPROVED") {
+      if (nextStatus.status === "APPROVED") {
         await tx.divisionProfile.upsert({
           where: { gnDivision: row.gnDivision },
           create: {
@@ -152,12 +177,14 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         ? `${session.name} rejected submission ${id} (${submission.gnDivision}, ${submission.year})`
         : updated.status === "APPROVED"
           ? `${session.name} approved all remaining sections of submission ${id} (${submission.gnDivision}, ${submission.year}) — saved as the division's official record`
-          : `${session.name} approved all remaining sections of submission ${id} (${submission.gnDivision}, ${submission.year})`,
+          : updated.status === "AD_APPROVED"
+            ? `${session.name} approved all remaining sections of submission ${id} (${submission.gnDivision}, ${submission.year}) — forwarded to Divisional Secretariat for review`
+            : `${session.name} approved all remaining sections of submission ${id} (${submission.gnDivision}, ${submission.year})`,
     category: "DATA",
     severity: action === "reject" ? "WARNING" : updated.status === "APPROVED" ? "SUCCESS" : "INFO",
     userId: session.userId,
     userName: session.name,
-    metadata: { submissionId: id, year: submission.year, note: note ?? null },
+    metadata: { submissionId: id, year: submission.year, note: note ?? null, reviewStage: updated.reviewStage },
   });
 
   return NextResponse.json({ ok: true, data: updated });

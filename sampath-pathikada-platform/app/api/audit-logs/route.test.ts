@@ -39,6 +39,14 @@ const DS_SESSION = {
   dsDivision: "galle-ds",
 };
 
+const AD_SESSION = {
+  userId: "ad-1",
+  email: "ad@example.com",
+  name: "AD One",
+  role: "ASSISTANT_DIRECTOR_PLANNING",
+  dsDivision: "galle-ds",
+};
+
 beforeEach(() => {
   vi.clearAllMocks();
   mockPrisma.$transaction.mockImplementation(async (ops: Promise<unknown>[]) => Promise.all(ops));
@@ -81,6 +89,25 @@ describe("GET /api/audit-logs", () => {
 
   it("returns an empty result for a Divisional Secretariat with no division assigned, without querying the database", async () => {
     mockGetSession.mockResolvedValue({ ...DS_SESSION, dsDivision: null });
+    const res = await GET(getRequest(`${APP_URL}/api/audit-logs`));
+    expect(res.status).toBe(200);
+    const json = await res.json();
+    expect(json).toMatchObject({ ok: true, data: [], total: 0 });
+    expect(mockPrisma.auditLog.findMany).not.toHaveBeenCalled();
+  });
+
+  it("scopes an Assistant Director Planning's query to their own division, DATA category, and WARNING/ERROR severity — regardless of what they ask for", async () => {
+    mockGetSession.mockResolvedValue(AD_SESSION);
+    const res = await GET(getRequest(`${APP_URL}/api/audit-logs?category=admin&severity=info`));
+    expect(res.status).toBe(200);
+    const where = mockPrisma.auditLog.findMany.mock.calls[0][0].where;
+    expect(where.category).toBe("DATA");
+    expect(where.severity).toEqual({ in: ["WARNING", "ERROR"] });
+    expect(where.user).toEqual({ dsDivision: "galle-ds" });
+  });
+
+  it("returns an empty result for an Assistant Director Planning with no division assigned, without querying the database", async () => {
+    mockGetSession.mockResolvedValue({ ...AD_SESSION, dsDivision: null });
     const res = await GET(getRequest(`${APP_URL}/api/audit-logs`));
     expect(res.status).toBe(200);
     const json = await res.json();

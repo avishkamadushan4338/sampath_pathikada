@@ -6,8 +6,10 @@ import {
   Users, UserCheck, ShieldCheck, Activity, TrendingUp, TrendingDown,
   Clock, CheckCircle2, XCircle, ArrowRight,
   Globe, Database, Zap, Eye, RefreshCw, Download, Calendar, Settings,
-  IdCard, Car, BookImage,
+  IdCard, Car, BookImage, BadgeCheck,
 } from "lucide-react";
+import { GN_DIVISIONS, DIVISIONAL_SECRETARIATS } from "@/lib/registration-data";
+import { CURRENT_YEAR } from "@/lib/constants";
 
 /* ─── Brand tokens ─────────────────────────────────────────────────────── */
 const NAVY   = "#0E2B4E";
@@ -35,6 +37,11 @@ interface UserRow {
 interface AuditRow {
   action: string; description: string; userName: string; userIp: string | null;
   severity: "INFO" | "WARNING" | "ERROR" | "SUCCESS"; createdAt: string;
+}
+
+interface ApprovedSubmissionRow {
+  id: string; gnDivision: string; dsDivision: string; district: string;
+  updatedAt: string; submittedBy: { name: string };
 }
 
 const DOC_ICON: Record<string, React.ElementType> = {
@@ -208,18 +215,20 @@ export default function SuperAdminDashboard() {
   const [regCounts, setRegCounts] = useState({ total: 0, pending: 0, approved: 0, rejected: 0 });
   const [users, setUsers] = useState<UserRow[]>([]);
   const [auditLog, setAuditLog] = useState<AuditRow[]>([]);
+  const [recentlyApproved, setRecentlyApproved] = useState<ApprovedSubmissionRow[]>([]);
   const [health, setHealth] = useState<{ dbHealthy: boolean | null; uptimeSeconds: number | null }>({
     dbHealthy: null, uptimeSeconds: null,
   });
 
   const fetchAll = useCallback(async () => {
     try {
-      const [regsRes, countsRes, usersRes, auditRes, healthRes] = await Promise.all([
+      const [regsRes, countsRes, usersRes, auditRes, healthRes, approvedRes] = await Promise.all([
         fetch("/api/registrations?status=all&role=all&limit=50"),
         fetch("/api/registrations?countsOnly=true"),
         fetch("/api/users"),
         fetch("/api/audit-logs?limit=5"),
         fetch("/api/health"),
+        fetch(`/api/submissions?year=${CURRENT_YEAR}&status=APPROVED&limit=5`),
       ]);
 
       const regsJson = await regsRes.json() as { ok: boolean; data?: RegistrationRow[] };
@@ -236,6 +245,9 @@ export default function SuperAdminDashboard() {
 
       const healthJson = await healthRes.json() as { ok: boolean; uptimeSeconds?: number };
       setHealth({ dbHealthy: healthJson.ok, uptimeSeconds: healthJson.uptimeSeconds ?? null });
+
+      const approvedJson = await approvedRes.json() as { ok: boolean; data?: ApprovedSubmissionRow[] };
+      if (approvedJson.ok) setRecentlyApproved(approvedJson.data ?? []);
     } catch {
       // dashboard is best-effort; leave previous state on transient network errors
       setHealth(h => ({ ...h, dbHealthy: false }));
@@ -268,6 +280,9 @@ export default function SuperAdminDashboard() {
   );
 
   const today = new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+
+  const gnLabel = (id: string) => GN_DIVISIONS.find(g => g.id === id)?.en ?? id;
+  const dsLabel = (id: string) => DIVISIONAL_SECRETARIATS.find(d => d.id === id)?.en ?? id;
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-6">
@@ -365,7 +380,62 @@ export default function SuperAdminDashboard() {
       </div>
 
       {/* ── Recent tables ── */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
+
+        {/* Recently Approved (by Divisional Secretariat) */}
+        <div
+          className="rounded-2xl overflow-hidden"
+          style={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }}
+        >
+          <div
+            className="flex items-center justify-between px-5 py-4"
+            style={{ borderBottom: "1px solid hsl(var(--border))" }}
+          >
+            <h2 className="font-bold text-[14.5px]" style={{ color: "hsl(var(--foreground))" }}>
+              Recently Approved
+            </h2>
+            <Link
+              href="/super-admin/divisions"
+              className="flex items-center gap-1 text-[12px] font-semibold hover:underline"
+              style={{ color: GOLD_D }}
+            >
+              View all <ArrowRight size={12} />
+            </Link>
+          </div>
+          <div>
+            {recentlyApproved.length === 0 && (
+              <p className="text-[12.5px] px-5 py-6 text-center" style={{ color: "hsl(var(--muted-foreground))" }}>
+                {loading ? "Loading…" : "No submissions fully approved yet"}
+              </p>
+            )}
+            {recentlyApproved.map(s => (
+              <div
+                key={s.id}
+                className="flex items-start gap-3 px-5 py-3.5"
+                style={{ borderBottom: "1px solid hsl(var(--border))" }}
+              >
+                <span
+                  className="mt-0.5 w-8 h-8 rounded-full flex items-center justify-center shrink-0"
+                  style={{ background: `${GREEN}1a`, color: GREEN }}
+                >
+                  <BadgeCheck size={16} />
+                </span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[13px] font-semibold truncate" style={{ color: "hsl(var(--foreground))" }}>
+                    {gnLabel(s.gnDivision)}
+                  </p>
+                  <p className="text-[11px] truncate" style={{ color: "hsl(var(--muted-foreground))" }}>
+                    {dsLabel(s.dsDivision)} · {s.submittedBy.name}
+                  </p>
+                </div>
+                <span className="text-[10px] shrink-0 pt-0.5" style={{ color: "hsl(var(--muted-foreground))" }}>
+                  {timeAgo(s.updatedAt)}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+
 
         {/* Recent Registrations */}
         <div

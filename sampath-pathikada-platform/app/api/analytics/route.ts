@@ -9,8 +9,8 @@ import {
   aggregateEconomicAgriculture, aggregateCommunityWelfare, aggregateInfrastructure, aggregateAreaProfile,
 } from "@/lib/analytics/aggregate-sections";
 
-const ALLOWED_ROLES = ["ADMIN", "SUPER_ADMIN", "DIVISIONAL_SECRETARIAT"];
-const VALID_STATUSES = ["DRAFT", "SUBMITTED", "APPROVED", "REJECTED", "REVISION_NEEDED"];
+const ALLOWED_ROLES = ["ADMIN", "SUPER_ADMIN", "ASSISTANT_DIRECTOR_PLANNING", "DIVISIONAL_SECRETARIAT"];
+const VALID_STATUSES = ["DRAFT", "SUBMITTED", "AD_APPROVED", "APPROVED", "REJECTED", "REVISION_NEEDED"];
 
 interface SubmissionRow {
   id: string;
@@ -64,7 +64,7 @@ export async function GET(req: NextRequest) {
   let dsDivisionFilter: string | null = null;
   let districtFilter: string | null = null;
 
-  if (session.role === "ADMIN" || session.role === "DIVISIONAL_SECRETARIAT") {
+  if (session.role === "ADMIN" || session.role === "ASSISTANT_DIRECTOR_PLANNING" || session.role === "DIVISIONAL_SECRETARIAT") {
     if (!session.dsDivision) {
       return NextResponse.json({ ok: false, message: "No division assigned to this account." }, { status: 403 });
     }

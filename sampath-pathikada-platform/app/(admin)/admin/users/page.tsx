@@ -12,7 +12,7 @@ import { DISTRICTS, DIVISIONAL_SECRETARIATS, GN_DIVISIONS } from "@/lib/registra
 const NAVY = "#0E2B4E";
 
 type UserStatus = "ACTIVE" | "INACTIVE";
-type UserRole = "DIVISIONAL_SECRETARIAT" | "ECONOMIC_DEVELOPMENT_OFFICER";
+type UserRole = "DIVISIONAL_SECRETARIAT" | "ASSISTANT_DIRECTOR_PLANNING" | "ECONOMIC_DEVELOPMENT_OFFICER";
 
 interface UserRow {
   id: string; name: string; email: string; phone: string | null;
@@ -50,6 +50,7 @@ function gnDivisionLabel(id: string | null): string {
 
 const ROLE_LABELS: Record<UserRole, string> = {
   DIVISIONAL_SECRETARIAT:       "Divisional Secretariat",
+  ASSISTANT_DIRECTOR_PLANNING:  "Assistant Director Planning",
   ECONOMIC_DEVELOPMENT_OFFICER: "Economic Development Officer",
 };
 
@@ -119,11 +120,13 @@ export default function AdminUsersPage() {
   });
 
   const dsRows  = filtered.filter((u) => u.role === "DIVISIONAL_SECRETARIAT");
+  const adRows  = filtered.filter((u) => u.role === "ASSISTANT_DIRECTOR_PLANNING");
   const edoRows = filtered.filter((u) => u.role === "ECONOMIC_DEVELOPMENT_OFFICER");
 
   const statItems = [
     { label: "Total Users",              value: rows.length,                                                       color: "hsl(var(--foreground))" },
     { label: "Divisional Secretariat",   value: rows.filter((u) => u.role === "DIVISIONAL_SECRETARIAT").length,     color: "#7c2d12" },
+    { label: "Assistant Director Planning", value: rows.filter((u) => u.role === "ASSISTANT_DIRECTOR_PLANNING").length, color: "#BC9144" },
     { label: "Economic Dev. Officers",   value: rows.filter((u) => u.role === "ECONOMIC_DEVELOPMENT_OFFICER").length, color: NAVY },
   ];
 
@@ -162,7 +165,7 @@ export default function AdminUsersPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-4 gap-3">
         {statItems.map((s) => (
           <div
             key={s.label}
@@ -215,6 +218,16 @@ export default function AdminUsersPage() {
         icon={Landmark}
         rows={dsRows}
         emptyText="No Divisional Secretariat has been assigned to your division yet."
+        isLoading={isLoading}
+      />
+
+      {/* Assistant Director Planning */}
+      <RoleSection
+        title="Assistant Director Planning"
+        subtitle="Reviews submissions before the Divisional Secretariat"
+        icon={Landmark}
+        rows={adRows}
+        emptyText="No Assistant Director Planning has been assigned to your division yet."
         isLoading={isLoading}
       />
 
