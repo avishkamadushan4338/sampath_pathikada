@@ -63,6 +63,7 @@ export const dictionary = {
   skipToContent: { en: "Skip to main content", si: "ප්‍රධාන අන්තර්ගතයට යන්න" } satisfies Translated,
   statusDraft: { en: "Draft", si: "කෙටුම්පත" } satisfies Translated,
   statusSubmitted: { en: "Submitted", si: "ඉදිරිපත් කරන ලදී" } satisfies Translated,
+  statusAdApproved: { en: "Awaiting DS Review", si: "ප්‍රාදේශීය ලේකම් සමාලෝචනය බලාපොරොත්තුවෙන්" } satisfies Translated,
   statusApproved: { en: "Approved", si: "අනුමත කරන ලදී" } satisfies Translated,
   statusRejected: { en: "Rejected", si: "ප්‍රතික්ෂේප කරන ලදී" } satisfies Translated,
   statusRevisionNeeded: { en: "Revision Needed", si: "සංශෝධනය අවශ්‍යයි" } satisfies Translated,

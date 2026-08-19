@@ -63,39 +63,45 @@ describe("getSectionReviewState", () => {
 });
 
 describe("deriveSubmissionStatus", () => {
-  it("returns SUBMITTED for an empty review set", () => {
-    expect(deriveSubmissionStatus({})).toBe("SUBMITTED");
+  it("returns SUBMITTED/stage AD for an empty review set at the AD stage", () => {
+    expect(deriveSubmissionStatus({}, "AD")).toEqual({ status: "SUBMITTED", reviewStage: "AD" });
   });
 
-  it("returns SUBMITTED when some sections are approved and the rest are pending", () => {
+  it("returns SUBMITTED/stage AD when some sections are approved and the rest are pending, at the AD stage", () => {
     const reviews: SectionReviews = { education: APPROVED_ENTRY, health: APPROVED_ENTRY };
-    expect(deriveSubmissionStatus(reviews)).toBe("SUBMITTED");
+    expect(deriveSubmissionStatus(reviews, "AD")).toEqual({ status: "SUBMITTED", reviewStage: "AD" });
   });
 
-  it("returns REVISION_NEEDED when any section is flagged, regardless of the rest", () => {
+  it("returns REVISION_NEEDED at whichever stage flagged it, regardless of the rest", () => {
     const reviews: SectionReviews = { ...allApproved(), education: REVISION_ENTRY };
-    expect(deriveSubmissionStatus(reviews)).toBe("REVISION_NEEDED");
+    expect(deriveSubmissionStatus(reviews, "AD")).toEqual({ status: "REVISION_NEEDED", reviewStage: "AD" });
+    expect(deriveSubmissionStatus(reviews, "DS")).toEqual({ status: "REVISION_NEEDED", reviewStage: "DS" });
   });
 
-  it("returns APPROVED only when every one of SECTION_KEYS is approved", () => {
-    expect(deriveSubmissionStatus(allApproved())).toBe("APPROVED");
+  it("advances AD stage to DS with status AD_APPROVED once every section is approved at the AD stage", () => {
+    expect(deriveSubmissionStatus(allApproved(), "AD")).toEqual({ status: "AD_APPROVED", reviewStage: "DS" });
   });
 
-  it("does not return APPROVED when all-but-one sections are approved", () => {
+  it("returns terminal APPROVED, stage DS, once every section is approved at the DS stage", () => {
+    expect(deriveSubmissionStatus(allApproved(), "DS")).toEqual({ status: "APPROVED", reviewStage: "DS" });
+  });
+
+  it("does not advance the stage when all-but-one sections are approved", () => {
     const reviews = allApproved();
     delete reviews[SECTION_KEYS[0]];
-    expect(deriveSubmissionStatus(reviews)).toBe("SUBMITTED");
+    expect(deriveSubmissionStatus(reviews, "AD")).toEqual({ status: "SUBMITTED", reviewStage: "AD" });
+    expect(deriveSubmissionStatus(reviews, "DS")).toEqual({ status: "SUBMITTED", reviewStage: "DS" });
   });
 
   it("ignores a stale key outside SECTION_KEYS when checking for full approval", () => {
     const reviews = { ...allApproved(), notARealSection: APPROVED_ENTRY } as SectionReviews;
-    // Still APPROVED because every real SECTION_KEYS entry is approved — the stale key is inert.
-    expect(deriveSubmissionStatus(reviews)).toBe("APPROVED");
+    // Still advances because every real SECTION_KEYS entry is approved — the stale key is inert.
+    expect(deriveSubmissionStatus(reviews, "DS")).toEqual({ status: "APPROVED", reviewStage: "DS" });
   });
 });
 
 describe("isUnderReview", () => {
-  it.each(["SUBMITTED", "REVISION_NEEDED"] as const)("returns true for %s", (status) => {
+  it.each(["SUBMITTED", "AD_APPROVED", "REVISION_NEEDED"] as const)("returns true for %s", (status) => {
     expect(isUnderReview(status)).toBe(true);
   });
 
@@ -119,6 +125,10 @@ describe("getSectionEditability", () => {
 
   it("is locked-submitted for a pending section while under review", () => {
     expect(getSectionEditability("SUBMITTED", {}, "education")).toBe("locked-submitted");
+  });
+
+  it("is locked-submitted for a pending section while AD_APPROVED (awaiting DS), same as SUBMITTED", () => {
+    expect(getSectionEditability("AD_APPROVED", {}, "education")).toBe("locked-submitted");
   });
 
   it("is locked-approved for a section the DS already approved, even while others are still pending", () => {
