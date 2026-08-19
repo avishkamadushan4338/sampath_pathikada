@@ -11,13 +11,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   return (
     <RoleGuard allow={["ASSISTANT_DIRECTOR_PLANNING"]}>
-      <a
-        href="#main-content"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-(--z-toast) focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground"
-      >
-        {lang === "si" ? dictionary.skipToContent.si : dictionary.skipToContent.en}
-      </a>
-      <div className="flex min-h-dvh flex-col lg:flex-row">
+      <div className="theme-ad flex min-h-dvh flex-col lg:flex-row">
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-(--z-toast) focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground"
+        >
+          {lang === "si" ? dictionary.skipToContent.si : dictionary.skipToContent.en}
+        </a>
         <AdSidebar />
         <div className="flex min-w-0 flex-1 flex-col">
           <Topbar />
