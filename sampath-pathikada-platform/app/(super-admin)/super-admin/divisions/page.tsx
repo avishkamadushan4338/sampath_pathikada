@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo } from "react";
+import { Suspense, useCallback, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Globe2, MapPinned, MapPin } from "lucide-react";
 import { DISTRICTS, DIVISIONAL_SECRETARIATS, GN_DIVISIONS } from "@/lib/registration-data";
@@ -12,6 +12,14 @@ import { DivisionInformationView } from "@/components/review/DivisionInformation
 const ALL = "__all__";
 
 export default function SuperAdminDivisionsPage() {
+  return (
+    <Suspense>
+      <SuperAdminDivisionsContent />
+    </Suspense>
+  );
+}
+
+function SuperAdminDivisionsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const scope = useMemo(() => scopeFromSearchParams(searchParams), [searchParams]);

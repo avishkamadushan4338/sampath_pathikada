@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import useSWR from "swr";
 import {
@@ -75,6 +75,14 @@ function matchesFilter(row: GnBreakdownRow, filter: FilterKey) {
 }
 
 export default function AdminDivisionsPage() {
+  return (
+    <Suspense>
+      <AdminDivisionsContent />
+    </Suspense>
+  );
+}
+
+function AdminDivisionsContent() {
   const { user, isLoading: userLoading } = useSession();
   const searchParams = useSearchParams();
   const [search, setSearch] = useState("");

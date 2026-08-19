@@ -1,6 +1,6 @@
 "use client";
 
-import { use } from "react";
+import { Suspense, use } from "react";
 import { useSearchParams } from "next/navigation";
 import { AnalyticsScopeProvider } from "@/lib/analytics-scope-context";
 import { scopeFromSearchParams } from "@/lib/analytics-scope-url";
@@ -8,6 +8,15 @@ import { DivisionSectionDetailView } from "@/components/review/DivisionSectionDe
 
 export default function Page({ params }: { params: Promise<{ section: string }> }) {
   const { section } = use(params);
+
+  return (
+    <Suspense>
+      <PageContent section={section} />
+    </Suspense>
+  );
+}
+
+function PageContent({ section }: { section: string }) {
   const searchParams = useSearchParams();
   const scope = scopeFromSearchParams(searchParams);
 
