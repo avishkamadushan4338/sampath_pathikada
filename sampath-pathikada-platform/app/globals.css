@@ -274,6 +274,31 @@
       radial-gradient(at 80% 10%, rgba(14,43,78,.25)   0, transparent 50%),
       radial-gradient(at 10% 70%, rgba(102,38,30,.12)  0, transparent 50%);
   }
+
+  /* Role identity themes for AD vs DS. Both roles share every layout and
+     component in the review pipeline (sidebar, topbar, dashboard, review
+     queue and detail pages), so without this they look identical apart from
+     route path and copy. Scoped classes applied to each route group's root
+     layout re-declare only the identity tokens (primary, primary-hover,
+     ring), which drive active-nav highlight, headings, quick-link card
+     accents, and focus rings, using the same override mechanism as .dark
+     above. Status and accent tokens are deliberately left untouched since
+     those carry functional meaning (pending, approved, rejected) that must
+     read the same regardless of which role is looking at it. Colors match
+     the AD/DS identity already established on the public registration
+     wizard's role picker (AD gold, DS crimson). */
+  .theme-ad {
+    --primary:            42 53% 54%;   /* Gold #C8A34D, matches register wizard AD card */
+    --primary-hover:      45 100% 33%;  /* Deep Gold #A67C00 */
+    --primary-foreground: 30 60% 9%;    /* dark text for contrast on gold */
+    --ring:               42 53% 54%;
+  }
+  .theme-ds {
+    --primary:            353 75% 24%; /* Crimson #6B0F1A, matches register wizard DS card */
+    --primary-hover:      353 77% 31%; /* #8B1220 */
+    --primary-foreground: 38 42% 96%;  /* ivory text on crimson */
+    --ring:               353 75% 24%;
+  }
 }
 
 /* ─── Tailwind v4 theme bridge ───────────────────────────────────────────────
