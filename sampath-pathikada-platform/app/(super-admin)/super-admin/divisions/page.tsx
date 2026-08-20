@@ -79,7 +79,7 @@ function SuperAdminDivisionsContent() {
           Division Drill-Down
         </h1>
         <p className="text-[13.5px] mt-1" style={{ color: "hsl(var(--muted-foreground))" }}>
-          Inspect the same "My Division Information" view a Divisional Secretariat sees — island-wide,
+          Inspect the same &quot;My Division Information&quot; view a Divisional Secretariat sees — island-wide,
           by district, by DS division, or down to a single GN division.
         </p>
       </div>

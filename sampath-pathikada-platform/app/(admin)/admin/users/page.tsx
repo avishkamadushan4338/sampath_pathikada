@@ -326,7 +326,7 @@ export default function AdminUsersPage() {
           </div>
         </div>
         <p className="text-[11.5px]" style={{ color: "hsl(var(--muted-foreground))" }}>
-          Designation is entered by the officer inside their yearly submission and shows as "—" until they save the Identification section for the current cycle.
+          Designation is entered by the officer inside their yearly submission and shows as &quot;—&quot; until they save the Identification section for the current cycle.
         </p>
       </div>
     </div>

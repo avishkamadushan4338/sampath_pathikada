@@ -30,7 +30,6 @@ export const dictionary = {
   } satisfies Translated,
   approveSection: { en: "Approve Section", si: "කොටස අනුමත කරන්න" } satisfies Translated,
   requestSectionRevision: { en: "Request Revision", si: "සංශෝධනයක් ඉල්ලන්න" } satisfies Translated,
-  approveAllRemaining: { en: "Approve All Remaining", si: "ඉතිරි සියල්ල අනුමත කරන්න" } satisfies Translated,
   sectionReviewPending: { en: "Pending Review", si: "සමාලෝචනය බලාපොරොත්තුවෙන්" } satisfies Translated,
   add: { en: "Add Row", si: "පේළියක් එක් කරන්න" } satisfies Translated,
   delete: { en: "Delete", si: "මකන්න" } satisfies Translated,

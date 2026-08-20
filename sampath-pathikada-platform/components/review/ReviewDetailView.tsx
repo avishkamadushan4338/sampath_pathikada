@@ -3,11 +3,10 @@
 import { use, useRef, useState, type WheelEvent } from "react";
 import { useRouter } from "next/navigation";
 import useSWR from "swr";
-import { CheckCircle2, XCircle, ArrowLeft, Loader2, ChartColumn } from "lucide-react";
+import { XCircle, ArrowLeft, Loader2, ChartColumn } from "lucide-react";
 import Link from "next/link";
 import { Bilingual } from "@/components/Bilingual";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
-import { dictionary } from "@/lib/i18n/dictionary";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -60,7 +59,11 @@ const fetcher = async (url: string) => {
   return json.data as SubmissionDetail;
 };
 
-type DecisionAction = "approve" | "reject";
+// Whole-submission "approve" (bulk "Approve All Remaining") was removed — AD/DS must review and
+// decide every section individually via SectionReviewBar (PATCH .../sections/[section]), which
+// already drives the same terminal-status transition once the last section is decided. "reject"
+// remains the one whole-submission action: it's a full restart, not a per-section decision.
+type DecisionAction = "reject";
 
 function DetailSkeleton() {
   return (
@@ -123,9 +126,7 @@ export function ReviewDetailView({ divisionId, basePath, terminalStatuses }: Rev
       // onto the existing cache instead of replacing it wholesale — avoids a second round trip
       // to refetch fields that didn't change, without dropping the ones the response lacks.
       mutate((prev) => (prev ? { ...prev, ...json.data } : json.data), { revalidate: false });
-      // Reject is always terminal; "approve" (Approve All Remaining) is only terminal once the
-      // submission has actually left this reviewer's queue — otherwise sections still flagged
-      // REVISION_NEEDED remain, and the reviewer stays on this page to keep working through them.
+      // Reject is always terminal — the only action this dialog handles now.
       if (terminalStatuses.includes(json.data.status)) {
         router.push(`${basePath}/review`);
       }
@@ -180,12 +181,6 @@ export function ReviewDetailView({ divisionId, basePath, terminalStatuses }: Rev
               <span className="text-fluid-xs text-muted-foreground nums-tabular">
                 {decidedCount}/{counts.total} <Bilingual en="sections reviewed" si="කොටස් සමාලෝචනය කර ඇත" />
               </span>
-              {counts.pending > 0 && (
-                <Button className="touch-target gap-1.5" onClick={() => setPendingAction("approve")}>
-                  <CheckCircle2 className="size-4" />
-                  <Bilingual {...dictionary.approveAllRemaining} />
-                </Button>
-              )}
               <Button variant="destructive" className="touch-target gap-1.5" onClick={() => setPendingAction("reject")}>
                 <XCircle className="size-4" />
                 <Bilingual en="Reject" si="ප්‍රතික්ෂේප කරන්න" />
@@ -254,27 +249,22 @@ export function ReviewDetailView({ divisionId, basePath, terminalStatuses }: Rev
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {pendingAction === "approve" && (
-                <Bilingual en="Approve all remaining sections?" si="ඉතිරි සියලුම කොටස් අනුමත කරන්නද?" />
-              )}
-              {pendingAction === "reject" && <Bilingual en="Reject this submission?" si="මෙම ඉදිරිපත් කිරීම ප්‍රතික්ෂේප කරන්නද?" />}
+              <Bilingual en="Reject this submission?" si="මෙම ඉදිරිපත් කිරීම ප්‍රතික්ෂේප කරන්නද?" />
             </DialogTitle>
           </DialogHeader>
-          {pendingAction === "reject" && (
-            <Textarea
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              placeholder={lang === "si" ? "හේතුව විස්තර කරන්න..." : "Explain the reason..."}
-              className="min-h-24"
-            />
-          )}
+          <Textarea
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            placeholder={lang === "si" ? "හේතුව විස්තර කරන්න..." : "Explain the reason..."}
+            className="min-h-24"
+          />
           <DialogFooter>
             <Button variant="outline" onClick={() => setPendingAction(null)}>
               <Bilingual en="Cancel" si="අවලංගු කරන්න" />
             </Button>
             <Button
               onClick={handleDecision}
-              disabled={submitting || (pendingAction === "reject" && !note.trim())}
+              disabled={submitting || !note.trim()}
               className="gap-2"
             >
               {submitting && <Loader2 className="size-4 animate-spin" />}

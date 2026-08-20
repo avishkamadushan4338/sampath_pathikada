@@ -4,8 +4,7 @@ import prisma from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import { verifyOrigin } from "@/lib/csrf";
 import { REVIEWER_ROLES, isOutOfScope } from "@/lib/review-scope";
-import { SECTION_KEYS } from "@/lib/types/submission";
-import { parseSectionReviews, deriveSubmissionStatus, isUnderReview, type SectionReviews } from "@/lib/submission-review";
+import { parseSectionReviews, isUnderReview } from "@/lib/submission-review";
 import { logAudit } from "@/lib/audit-log";
 
 /* ── GET /api/submissions/[id] ── reviewer view of one officer's submission ──── */
@@ -47,12 +46,12 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   return NextResponse.json({ ok: true, data: { ...submission, reviewerNames } });
 }
 
-/* ── PATCH /api/submissions/[id] ── whole-submission Reject, or "Approve All Remaining" ──────────
- * Per-section decisions go through PATCH /api/submissions/[id]/sections/[section] instead — that
- * endpoint superseded this one's old "approve"/"request-revision" single-decision actions. This
- * route now only handles the two actions that are still genuinely whole-submission: Reject (the
- * submission is unusable as a whole) and "approve" as a convenience that approves every section
- * still pending review in one click, without touching sections already decided either way. */
+/* ── PATCH /api/submissions/[id] ── whole-submission Reject ─────────────────────────────────────
+ * Per-section decisions (including approval) go through PATCH /api/submissions/[id]/sections/[section]
+ * instead — that's the only way to approve a section, deliberately, so AD/DS must review every
+ * section individually rather than bulk-approving everything still pending in one click. This
+ * route now only handles Reject, the one action that's still genuinely whole-submission: the
+ * submission is unusable as a whole, not a per-section judgment. */
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   if (!verifyOrigin(req)) {
     return NextResponse.json({ ok: false, message: "Invalid request origin." }, { status: 403 });
@@ -72,10 +71,10 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   }
 
   const { action, note } = (body ?? {}) as { action?: string; note?: string };
-  if (action !== "approve" && action !== "reject") {
-    return NextResponse.json({ ok: false, message: "Action must be one of: approve, reject." }, { status: 400 });
+  if (action !== "reject") {
+    return NextResponse.json({ ok: false, message: "Action must be: reject." }, { status: 400 });
   }
-  if (action === "reject" && !note?.trim()) {
+  if (!note?.trim()) {
     return NextResponse.json({ ok: false, message: "A note explaining the decision is required for this action." }, { status: 400 });
   }
 
@@ -101,67 +100,15 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       const row = await tx.submission.findUnique({ where: { id } });
       if (!row) return null;
 
-      if (action === "reject") {
-        // A whole-submission reject is a full restart, not a targeted revision request — whoever
-        // rejects it (AD or DS), the resubmitted version must be reviewed by AD again from
-        // scratch before DS sees it, same as a brand-new submission. This is deliberately
-        // different from a per-section REVISION_NEEDED flag at the DS stage, which intentionally
-        // skips back to AD only for the flagged section (see deriveSubmissionStatus).
-        return tx.submission.update({
-          where: { id },
-          data: { status: "REJECTED", reviewStage: "AD", rejectionNote: note!.trim(), sectionReviews: {}, reviewedById: session.userId, reviewedAt },
-        });
-      }
-
-      // "approve" — fill in every still-pending section as approved; leave sections already
-      // decided (approved, or still flagged for revision) exactly as they are.
-      const currentReviews = parseSectionReviews(row.sectionReviews);
-      const nextReviews: SectionReviews = { ...currentReviews };
-      for (const key of SECTION_KEYS) {
-        if (!nextReviews[key]) {
-          nextReviews[key] = { status: "APPROVED", note: null, reviewedById: session.userId, reviewedAt: reviewedAt.toISOString() };
-        }
-      }
-      const nextStatus = deriveSubmissionStatus(nextReviews, row.reviewStage);
-
-      const result = await tx.submission.update({
+      // A whole-submission reject is a full restart, not a targeted revision request — whoever
+      // rejects it (AD or DS), the resubmitted version must be reviewed by AD again from scratch
+      // before DS sees it, same as a brand-new submission. This is deliberately different from a
+      // per-section REVISION_NEEDED flag at the DS stage, which intentionally skips back to AD
+      // only for the flagged section (see deriveSubmissionStatus in lib/submission-review.ts).
+      return tx.submission.update({
         where: { id },
-        data: {
-          sectionReviews: nextReviews as Prisma.InputJsonValue,
-          status: nextStatus.status,
-          reviewStage: nextStatus.reviewStage,
-          reviewedById: session.userId,
-          reviewedAt,
-          rejectionNote: null,
-        },
+        data: { status: "REJECTED", reviewStage: "AD", rejectionNote: note.trim(), sectionReviews: {}, reviewedById: session.userId, reviewedAt },
       });
-
-      if (nextStatus.status === "APPROVED") {
-        await tx.divisionProfile.upsert({
-          where: { gnDivision: row.gnDivision },
-          create: {
-            district: row.district,
-            dsDivision: row.dsDivision,
-            gnDivision: row.gnDivision,
-            data: row.data as object,
-            sourceSubmissionId: row.id,
-            year: row.year,
-            approvedById: session.userId,
-            approvedAt: reviewedAt,
-          },
-          update: {
-            district: row.district,
-            dsDivision: row.dsDivision,
-            data: row.data as object,
-            sourceSubmissionId: row.id,
-            year: row.year,
-            approvedById: session.userId,
-            approvedAt: reviewedAt,
-          },
-        });
-      }
-
-      return result;
     },
     { isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted, timeout: 10_000 }
   );
@@ -171,17 +118,10 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   }
 
   logAudit({
-    action: action === "reject" ? "Submission REJECTED" : `Submission ${updated.status}`,
-    description:
-      action === "reject"
-        ? `${session.name} rejected submission ${id} (${submission.gnDivision}, ${submission.year})`
-        : updated.status === "APPROVED"
-          ? `${session.name} approved all remaining sections of submission ${id} (${submission.gnDivision}, ${submission.year}) — saved as the division's official record`
-          : updated.status === "AD_APPROVED"
-            ? `${session.name} approved all remaining sections of submission ${id} (${submission.gnDivision}, ${submission.year}) — forwarded to Divisional Secretariat for review`
-            : `${session.name} approved all remaining sections of submission ${id} (${submission.gnDivision}, ${submission.year})`,
+    action: "Submission REJECTED",
+    description: `${session.name} rejected submission ${id} (${submission.gnDivision}, ${submission.year})`,
     category: "DATA",
-    severity: action === "reject" ? "WARNING" : updated.status === "APPROVED" ? "SUCCESS" : "INFO",
+    severity: "WARNING",
     userId: session.userId,
     userName: session.name,
     metadata: { submissionId: id, year: submission.year, note: note ?? null, reviewStage: updated.reviewStage },

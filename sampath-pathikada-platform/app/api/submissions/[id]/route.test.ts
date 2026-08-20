@@ -188,7 +188,7 @@ describe("GET /api/submissions/[id]", () => {
   });
 });
 
-describe("PATCH /api/submissions/[id] — whole-submission Reject / Approve All Remaining", () => {
+describe("PATCH /api/submissions/[id] — whole-submission Reject (bulk approve removed — approval is per-section only)", () => {
   const originalAppUrl = process.env.NEXT_PUBLIC_APP_URL;
   beforeAll(() => {
     process.env.NEXT_PUBLIC_APP_URL = APP_URL;
@@ -213,7 +213,7 @@ describe("PATCH /api/submissions/[id] — whole-submission Reject / Approve All 
 
   it("rejects a mismatched origin (CSRF)", async () => {
     mockGetSession.mockResolvedValue(DS_SESSION);
-    const req = patchRequest(`${APP_URL}/api/submissions/sub-1`, { action: "approve" }, "http://evil.example.com");
+    const req = patchRequest(`${APP_URL}/api/submissions/sub-1`, { action: "reject", note: "x" }, "http://evil.example.com");
     const res = await PATCH(req, { params: Promise.resolve({ id: "sub-1" }) });
     expect(res.status).toBe(403);
   });
@@ -223,6 +223,14 @@ describe("PATCH /api/submissions/[id] — whole-submission Reject / Approve All 
     const req = patchRequest(`${APP_URL}/api/submissions/sub-1`, { action: "delete-it" });
     const res = await PATCH(req, { params: Promise.resolve({ id: "sub-1" }) });
     expect(res.status).toBe(400);
+  });
+
+  it("no longer accepts approve — bulk-approving a submission is not supported, only per-section approval via .../sections/[section]", async () => {
+    mockGetSession.mockResolvedValue(DS_SESSION);
+    const req = patchRequest(`${APP_URL}/api/submissions/sub-1`, { action: "approve" });
+    const res = await PATCH(req, { params: Promise.resolve({ id: "sub-1" }) });
+    expect(res.status).toBe(400);
+    expect(mockPrisma.submission.update).not.toHaveBeenCalled();
   });
 
   it("no longer accepts request-revision — that's per-section only now", async () => {
@@ -239,29 +247,18 @@ describe("PATCH /api/submissions/[id] — whole-submission Reject / Approve All 
     expect(res.status).toBe(400);
   });
 
-  it("does not require a note for approve", async () => {
-    mockGetSession.mockResolvedValue(DS_SESSION);
-    mockPrisma.submission.findUnique.mockResolvedValue(SUBMITTED_ROW);
-    mockPrisma.submission.update.mockResolvedValue({ ...SUBMITTED_ROW, status: "APPROVED" });
-    mockPrisma.divisionProfile.upsert.mockResolvedValue({});
-
-    const req = patchRequest(`${APP_URL}/api/submissions/sub-1`, { action: "approve" });
-    const res = await PATCH(req, { params: Promise.resolve({ id: "sub-1" }) });
-    expect(res.status).toBe(200);
-  });
-
   it("returns 404 for a reviewer outside the submission's DS division, not 403", async () => {
     mockGetSession.mockResolvedValue(DS_SESSION);
     mockPrisma.submission.findUnique.mockResolvedValue({ ...SUBMITTED_ROW, dsDivision: "matara-fg" });
-    const req = patchRequest(`${APP_URL}/api/submissions/sub-1`, { action: "approve" });
+    const req = patchRequest(`${APP_URL}/api/submissions/sub-1`, { action: "reject", note: "x" });
     const res = await PATCH(req, { params: Promise.resolve({ id: "sub-1" }) });
     expect(res.status).toBe(404);
   });
 
-  it("returns 404 for a division-scoped ADMIN approving a submission outside their dsDivision", async () => {
+  it("returns 404 for a division-scoped ADMIN rejecting a submission outside their dsDivision", async () => {
     mockGetSession.mockResolvedValue({ ...DS_SESSION, role: "ADMIN", dsDivision: "galle-fg" });
     mockPrisma.submission.findUnique.mockResolvedValue({ ...SUBMITTED_ROW, dsDivision: "matara-fg" });
-    const req = patchRequest(`${APP_URL}/api/submissions/sub-1`, { action: "approve" });
+    const req = patchRequest(`${APP_URL}/api/submissions/sub-1`, { action: "reject", note: "x" });
     const res = await PATCH(req, { params: Promise.resolve({ id: "sub-1" }) });
     expect(res.status).toBe(404);
     expect(mockPrisma.submission.update).not.toHaveBeenCalled();
@@ -270,7 +267,7 @@ describe("PATCH /api/submissions/[id] — whole-submission Reject / Approve All 
   it("rejects deciding a submission that's still a DRAFT", async () => {
     mockGetSession.mockResolvedValue(DS_SESSION);
     mockPrisma.submission.findUnique.mockResolvedValue({ ...SUBMITTED_ROW, status: "DRAFT" });
-    const req = patchRequest(`${APP_URL}/api/submissions/sub-1`, { action: "approve" });
+    const req = patchRequest(`${APP_URL}/api/submissions/sub-1`, { action: "reject", note: "x" });
     const res = await PATCH(req, { params: Promise.resolve({ id: "sub-1" }) });
     expect(res.status).toBe(409);
   });
@@ -278,7 +275,7 @@ describe("PATCH /api/submissions/[id] — whole-submission Reject / Approve All 
   it("rejects deciding a submission that's already fully APPROVED", async () => {
     mockGetSession.mockResolvedValue(DS_SESSION);
     mockPrisma.submission.findUnique.mockResolvedValue({ ...SUBMITTED_ROW, status: "APPROVED" });
-    const req = patchRequest(`${APP_URL}/api/submissions/sub-1`, { action: "approve" });
+    const req = patchRequest(`${APP_URL}/api/submissions/sub-1`, { action: "reject", note: "x" });
     const res = await PATCH(req, { params: Promise.resolve({ id: "sub-1" }) });
     expect(res.status).toBe(409);
   });
@@ -291,69 +288,6 @@ describe("PATCH /api/submissions/[id] — whole-submission Reject / Approve All 
     const req = patchRequest(`${APP_URL}/api/submissions/sub-1`, { action: "reject", note: "Start over" });
     const res = await PATCH(req, { params: Promise.resolve({ id: "sub-1" }) });
     expect(res.status).toBe(200);
-  });
-
-  it("on approve with no prior section decisions at the DS stage, fills every section as approved, reaches terminal APPROVED, and upserts DivisionProfile", async () => {
-    mockGetSession.mockResolvedValue(DS_SESSION);
-    mockPrisma.submission.findUnique.mockResolvedValue(SUBMITTED_ROW); // reviewStage: "DS"
-    mockPrisma.submission.update.mockResolvedValue({ ...SUBMITTED_ROW, status: "APPROVED" });
-    mockPrisma.divisionProfile.upsert.mockResolvedValue({});
-
-    const req = patchRequest(`${APP_URL}/api/submissions/sub-1`, { action: "approve" });
-    const res = await PATCH(req, { params: Promise.resolve({ id: "sub-1" }) });
-
-    expect(res.status).toBe(200);
-    const updateArg = mockPrisma.submission.update.mock.calls[0][0];
-    expect(updateArg.data.status).toBe("APPROVED");
-    expect(updateArg.data.reviewStage).toBe("DS");
-    expect(Object.keys(updateArg.data.sectionReviews)).toHaveLength(SECTION_KEYS.length);
-    expect(mockPrisma.divisionProfile.upsert).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: { gnDivision: "galle-fort" },
-        create: expect.objectContaining({ data: SUBMITTED_ROW.data, sourceSubmissionId: "sub-1" }),
-        update: expect.objectContaining({ data: SUBMITTED_ROW.data, sourceSubmissionId: "sub-1" }),
-      })
-    );
-  });
-
-  it("on approve with no prior section decisions at the AD stage, advances to AD_APPROVED/stage DS and does NOT upsert DivisionProfile", async () => {
-    mockGetSession.mockResolvedValue(AD_SESSION);
-    mockPrisma.submission.findUnique.mockResolvedValue(AD_STAGE_ROW); // reviewStage: "AD"
-    mockPrisma.submission.update.mockResolvedValue({ ...AD_STAGE_ROW, status: "AD_APPROVED", reviewStage: "DS" });
-
-    const req = patchRequest(`${APP_URL}/api/submissions/sub-1`, { action: "approve" });
-    const res = await PATCH(req, { params: Promise.resolve({ id: "sub-1" }) });
-
-    expect(res.status).toBe(200);
-    const updateArg = mockPrisma.submission.update.mock.calls[0][0];
-    expect(updateArg.data.status).toBe("AD_APPROVED");
-    expect(updateArg.data.reviewStage).toBe("DS");
-    expect(mockPrisma.divisionProfile.upsert).not.toHaveBeenCalled();
-  });
-
-  it("on approve, leaves a section already flagged REVISION_NEEDED untouched and does not complete approval", async () => {
-    mockGetSession.mockResolvedValue(DS_SESSION);
-    const flagged = {
-      status: "REVISION_NEEDED" as const,
-      note: "Fix the count",
-      reviewedById: "ds-1",
-      reviewedAt: "2026-01-01T00:00:00.000Z",
-    };
-    mockPrisma.submission.findUnique.mockResolvedValue({
-      ...SUBMITTED_ROW,
-      status: "REVISION_NEEDED",
-      sectionReviews: { [SECTION_KEYS[0]]: flagged },
-    });
-    mockPrisma.submission.update.mockResolvedValue({ ...SUBMITTED_ROW, status: "REVISION_NEEDED" });
-
-    const req = patchRequest(`${APP_URL}/api/submissions/sub-1`, { action: "approve" });
-    const res = await PATCH(req, { params: Promise.resolve({ id: "sub-1" }) });
-
-    expect(res.status).toBe(200);
-    const updateArg = mockPrisma.submission.update.mock.calls[0][0];
-    expect(updateArg.data.sectionReviews[SECTION_KEYS[0]]).toEqual(flagged);
-    expect(updateArg.data.status).toBe("REVISION_NEEDED");
-    expect(mockPrisma.divisionProfile.upsert).not.toHaveBeenCalled();
   });
 
   it("on reject at the DS stage, does not touch DivisionProfile, stores the note as rejectionNote, clears sectionReviews, and resets reviewStage to AD so the resubmit restarts the whole review from AD", async () => {
