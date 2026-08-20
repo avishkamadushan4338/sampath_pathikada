@@ -5,6 +5,15 @@ import { type TableKey } from "@/lib/registrations";
 import { saveVerificationDoc, deleteVerificationDocs, cleanupPartialUpload, InvalidDocumentError } from "@/lib/verification-docs";
 import { verifyOrigin } from "@/lib/csrf";
 import { logAudit } from "@/lib/audit-log";
+import { rateLimit } from "@/lib/rate-limit";
+import { logger } from "@/lib/logger";
+import { getRequestId } from "@/lib/request-id";
+
+// Public, unauthenticated, file-upload-accepting endpoint — bound it the same way
+// login/forgot-password/verify-otp are bound, so it can't be used to spam storage
+// or hammer the duplicate-email/NIC lookups.
+const REGISTER_LIMIT = 5;
+const REGISTER_WINDOW_SECONDS = 60 * 15;
 
 /* ─── Role → table mapping ───────────────────────────────────────────────────
    Incoming `role` values (from the public form):
@@ -87,6 +96,13 @@ export async function GET(req: NextRequest) {
   if (!session || !["SUPER_ADMIN", "ADMIN", "ASSISTANT_DIRECTOR_PLANNING", "DIVISIONAL_SECRETARIAT"].includes(session.role)) {
     return NextResponse.json({ ok: false, message: "Unauthorized" }, { status: 401 });
   }
+  // ADMIN/AD/DS are scoped to their own division below via `dsDivision ?? undefined` — if
+  // dsDivision is null, `?? undefined` makes that filter a no-op instead of scoping, which
+  // would silently return every division's registrations. Deny explicitly instead of falling
+  // through to an unscoped query (same pattern as the registrations/[id] routes).
+  if (session.role !== "SUPER_ADMIN" && !session.dsDivision) {
+    return NextResponse.json({ ok: false, message: "No division assigned to this account." }, { status: 403 });
+  }
 
   const { searchParams } = new URL(req.url);
   const statusParam = searchParams.get("status") ?? "all";
@@ -139,7 +155,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ ok: true, counts: { total, pending, approved, rejected } });
   }
 
-  await cleanupStaleVerificationDocs().catch(err => console.error("[stale-doc-cleanup]", err));
+  await cleanupStaleVerificationDocs().catch(err => logger.error("Stale verification-doc cleanup failed", { route: "cleanupStaleVerificationDocs" }, err));
 
   const baseSelect = {
     id: true, name: true, email: true, phone: true,
@@ -248,6 +264,15 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   if (!verifyOrigin(req)) {
     return NextResponse.json({ ok: false, message: "Invalid request origin." }, { status: 403 });
+  }
+
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? req.headers.get("x-real-ip") ?? "unknown";
+  const { allowed, retryAfterSeconds } = await rateLimit(`register:${ip}`, REGISTER_LIMIT, REGISTER_WINDOW_SECONDS);
+  if (!allowed) {
+    return NextResponse.json(
+      { ok: false, message: "Too many registration attempts. Please try again later." },
+      { status: 429, headers: { "Retry-After": String(retryAfterSeconds) } }
+    );
   }
 
   let registrationId: string | undefined;
@@ -403,7 +428,7 @@ export async function POST(req: NextRequest) {
     }, { status: 201 });
 
   } catch (err) {
-    console.error("[POST /api/registrations]", err);
+    logger.error("Unhandled error in POST /api/registrations", { requestId: getRequestId(req), route: "/api/registrations", method: "POST" }, err);
     return NextResponse.json({ ok: false, message: "An unexpected error occurred." }, { status: 500 });
   }
 }

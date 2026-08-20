@@ -27,7 +27,14 @@ export async function GET(req: NextRequest, { params }: Params) {
     return NextResponse.json({ ok: false, message: "role must be 'gn', 'ad', or 'ds'." }, { status: 400 });
   }
 
-  const reg = await findRecord(id, tableKey);
+  // ADMIN is scoped to their own division — SUPER_ADMIN is unrestricted (see
+  // GET /api/registrations/[id] for the same pattern). An ADMIN with no division
+  // assigned gets nothing rather than falling through to an unscoped query.
+  if (session.role !== "SUPER_ADMIN" && !session.dsDivision) {
+    return NextResponse.json({ ok: false, message: "No division assigned to this account." }, { status: 403 });
+  }
+  const scopeDivision = session.role === "SUPER_ADMIN" ? null : session.dsDivision;
+  const reg = await findRecord(id, tableKey, scopeDivision);
   if (!reg) return NextResponse.json({ ok: false, message: "Not found." }, { status: 404 });
 
   const relativePath = side === "front"
