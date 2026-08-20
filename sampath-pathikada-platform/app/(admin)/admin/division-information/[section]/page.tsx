@@ -3,10 +3,11 @@
 import { use, type ComponentType } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Download } from "lucide-react";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { Bilingual } from "@/components/Bilingual";
 import { Button } from "@/components/ui/button";
+import { CURRENT_YEAR } from "@/lib/constants";
 import { SECTION_KEYS, SECTION_ROUTES, type SectionKey } from "@/lib/types/submission";
 import { SECTION_META } from "@/lib/i18n/section-meta";
 import { SectionDetailViewer } from "@/components/review/SectionDetailViewer";
@@ -90,12 +91,27 @@ export default function AdminDivisionInformationSectionPage({ params }: { params
             <Bilingual en={meta.title.en} si={meta.title.si} />
           </h1>
         </div>
-        <Button asChild variant="outline" className="h-11">
-          <Link href="/admin/division-information" className="flex items-center gap-2">
-            <ArrowLeft className="size-4" />
-            <Bilingual en="Back to Division Information" si="වසම් තොරතුරු වෙත ආපසු" />
-          </Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button asChild variant="outline" className="h-11">
+            {/* ADMIN has no AnalyticsScope picker — their dsDivision is fixed, and
+                GET /api/export/csv/section infers it server-side from the session
+                for this role, so only section+year need to be passed here. */}
+            <a
+              href={`/api/export/csv/section?section=${encodeURIComponent(section)}&year=${CURRENT_YEAR}`}
+              download
+              className="flex items-center gap-2"
+            >
+              <Download className="size-4" />
+              <Bilingual en="Download CSV" si="CSV බාගන්න" />
+            </a>
+          </Button>
+          <Button asChild variant="outline" className="h-11">
+            <Link href="/admin/division-information" className="flex items-center gap-2">
+              <ArrowLeft className="size-4" />
+              <Bilingual en="Back to Division Information" si="වසම් තොරතුරු වෙත ආපසු" />
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {RichView ? <RichView /> : <BasicSectionView sectionKey={sectionKey} />}

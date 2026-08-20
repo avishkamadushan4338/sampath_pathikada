@@ -3,6 +3,7 @@ import {
   aggregateHousing, aggregateEmployment, aggregateEducation, aggregateHealth,
   aggregateEconomicAgriculture, aggregateCommunityWelfare, aggregateInfrastructure, aggregateAreaProfile,
 } from "@/lib/analytics/aggregate-sections";
+import type { SectionKey } from "@/lib/types/submission";
 
 interface SubmissionRow {
   gnDivision: string;
@@ -187,6 +188,55 @@ export function buildCsvRows(
     };
 
     return row;
+  });
+}
+
+/** Maps each of the 15 form sections to the column-name prefix(es) `buildCsvRows` gives its
+ *  columns above — used to filter the wide per-division row down to just one section's data
+ *  for the section-level CSV download. `identification` has no entry: unlike the other 14, it
+ *  isn't submission data at all (it's the registered-officer directory, sourced from
+ *  /api/registrations — see app/api/export/csv/section/route.ts and
+ *  components/analytics/IdentificationDirectoryView.tsx), so it can't be produced by filtering
+ *  this function's output and is handled as its own code path instead.
+ *  `communityOrganizations` and `socialWelfare` share one underlying aggregate
+ *  (CommunityWelfareAggregate) but keep their own column prefixes ("Community"/"Welfare") in
+ *  buildCsvRows, so each maps to just its own prefix here, not both. */
+export const SECTION_CSV_PREFIXES: Partial<Record<SectionKey, string[]>> = {
+  demographics: ["Demographics"],
+  housing: ["Housing"],
+  employment: ["Employment"],
+  education: ["Education"],
+  health: ["Health"],
+  economicAgriculture: ["Agriculture"],
+  communityOrganizations: ["Community"],
+  socialWelfare: ["Welfare"],
+  roadInfrastructure: ["Infrastructure"],
+  physicalEnvironment: ["Physical Env"],
+  religiousCultural: ["Religious"],
+  tourism: ["Tourism"],
+  wasteDisaster: ["Waste"],
+  stateInstitutionsLand: ["State Institutions & Land"],
+};
+
+/** Filters buildCsvRows' wide per-division output down to the "GN Division"/"DS Division"/
+ *  "District" identity columns plus just one section's own columns — same source data and
+ *  aggregation as the full export, just a narrower set of columns. Returns an empty array (not
+ *  an error) for `identification`, since that section has no columns in buildCsvRows at all;
+ *  callers must route identification through its own export path instead of this function. */
+export function filterCsvRowsToSection(rows: CsvRow[], section: SectionKey): CsvRow[] {
+  const prefixes = SECTION_CSV_PREFIXES[section];
+  if (!prefixes) return [];
+
+  const identityKeys = ["GN Division", "DS Division", "District", "Officer", "Officer Email", "Status", "Submitted", "Decided"];
+  return rows.map((row) => {
+    const filtered: CsvRow = {};
+    for (const key of identityKeys) {
+      if (key in row) filtered[key] = row[key];
+    }
+    for (const [key, value] of Object.entries(row)) {
+      if (prefixes.some((p) => key.startsWith(`${p}: `))) filtered[key] = value;
+    }
+    return filtered;
   });
 }
 
