@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { loginWithCredentials, COOKIE_NAME, SESSION_DURATION } from "@/lib/auth";
 import { rateLimit } from "@/lib/rate-limit";
 import { verifyOrigin } from "@/lib/csrf";
+import { logger } from "@/lib/logger";
+import { getRequestId } from "@/lib/request-id";
 
 const LOGIN_LIMIT = 10;
 const LOGIN_WINDOW_SECONDS = 60;
@@ -14,7 +16,7 @@ export async function POST(req: NextRequest) {
   try {
     const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? req.headers.get("x-real-ip") ?? "unknown";
 
-    const { allowed, retryAfterSeconds } = rateLimit(`login:${ip}`, LOGIN_LIMIT, LOGIN_WINDOW_SECONDS);
+    const { allowed, retryAfterSeconds } = await rateLimit(`login:${ip}`, LOGIN_LIMIT, LOGIN_WINDOW_SECONDS);
     if (!allowed) {
       return NextResponse.json(
         { ok: false, message: "Too many login attempts. Please try again shortly." },
@@ -48,7 +50,7 @@ export async function POST(req: NextRequest) {
 
     return res;
   } catch (err) {
-    console.error("[POST /api/auth/login]", err);
+    logger.error("Unhandled error in POST /api/auth/login", { requestId: getRequestId(req), route: "/api/auth/login", method: "POST" }, err);
     return NextResponse.json({ ok: false, message: "An unexpected error occurred. Please try again." }, { status: 500 });
   }
 }

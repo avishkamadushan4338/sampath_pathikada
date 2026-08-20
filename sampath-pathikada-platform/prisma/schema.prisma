@@ -406,6 +406,12 @@ model PasswordResetOtp {
   expiresAt  DateTime
   createdAt  DateTime  @default(now())
 
+  // Set once the OTP is verified and a reset token is issued — `jti` identifies that
+  // token so /api/auth/reset-password can atomically claim it (see resetTokenUsedAt),
+  // making the otherwise-stateless JWT single-use for its remaining lifetime.
+  resetTokenJti    String?   @unique @db.VarChar(36)
+  resetTokenUsedAt DateTime?
+
   @@index([email])
   @@map("password_reset_otps")
 }
