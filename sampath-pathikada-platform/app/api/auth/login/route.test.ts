@@ -109,9 +109,9 @@ describe("POST /api/auth/login", () => {
     expect(setCookie).toContain(`${COOKIE_NAME}=`);
     expect(setCookie.toLowerCase()).toContain("httponly");
     expect(setCookie.toLowerCase()).toContain("samesite=lax");
-    // secure=false is expected here since NODE_ENV isn't "production" under vitest —
-    // this assertion documents that behavior rather than assuming it.
-    expect(setCookie.toLowerCase()).not.toContain("secure");
+    // Secure depends on NODE_ENV (see the dedicated "cookie attributes in production"
+    // describe block below, which pins it via vi.stubEnv) — CI runs this whole suite
+    // with NODE_ENV=production, so it isn't a safe ambient assumption here.
 
     // The cookie must contain a real, verifiable session token for this exact user.
     const tokenMatch = setCookie.match(new RegExp(`${COOKIE_NAME}=([^;]+)`));
