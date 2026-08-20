@@ -41,7 +41,6 @@ const NAV = [
   {
     label: "Control",
     items: [
-      { href: "/super-admin/roles-permissions",icon: ShieldCheck,     label: "Roles & Permissions" },
       { href: "/super-admin/audit-logs",       icon: ScrollText,      label: "Audit Logs"      },
       { href: "/super-admin/backups",          icon: Database,        label: "Backups"         },
     ],

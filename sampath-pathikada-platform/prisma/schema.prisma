@@ -288,23 +288,6 @@ model AuditLog {
   @@map("audit_logs")
 }
 
-// ─── Admin Invite ─────────────────────────────────────────────────────────────
-
-model AdminInvite {
-  id           String    @id @default(cuid())
-  email        String    @unique @db.VarChar(255)
-  name         String    @db.VarChar(120)
-  tempPassword String    @db.VarChar(255)
-  districts    Json?
-  invitedById  String
-  acceptedAt   DateTime?
-  expiresAt    DateTime
-  createdAt    DateTime  @default(now())
-
-  @@index([email])
-  @@map("admin_invites")
-}
-
 // ─── Submission ───────────────────────────────────────────────────────────────
 
 model Submission {
