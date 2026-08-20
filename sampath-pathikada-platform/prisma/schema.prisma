@@ -288,23 +288,6 @@ model AuditLog {
   @@map("audit_logs")
 }
 
-// ─── Admin Invite ─────────────────────────────────────────────────────────────
-
-model AdminInvite {
-  id           String    @id @default(cuid())
-  email        String    @unique @db.VarChar(255)
-  name         String    @db.VarChar(120)
-  tempPassword String    @db.VarChar(255)
-  districts    Json?
-  invitedById  String
-  acceptedAt   DateTime?
-  expiresAt    DateTime
-  createdAt    DateTime  @default(now())
-
-  @@index([email])
-  @@map("admin_invites")
-}
-
 // ─── Submission ───────────────────────────────────────────────────────────────
 
 model Submission {
@@ -405,6 +388,12 @@ model PasswordResetOtp {
   consumedAt DateTime?
   expiresAt  DateTime
   createdAt  DateTime  @default(now())
+
+  // Set once the OTP is verified and a reset token is issued — `jti` identifies that
+  // token so /api/auth/reset-password can atomically claim it (see resetTokenUsedAt),
+  // making the otherwise-stateless JWT single-use for its remaining lifetime.
+  resetTokenJti    String?   @unique @db.VarChar(36)
+  resetTokenUsedAt DateTime?
 
   @@index([email])
   @@map("password_reset_otps")

@@ -3,7 +3,7 @@
 import * as React from "react";
 import useSWR from "swr";
 import Link from "next/link";
-import { ArrowLeft, ArrowUp } from "lucide-react";
+import { ArrowLeft, ArrowUp, Download } from "lucide-react";
 import type { DemographicsAggregate } from "@/lib/analytics/aggregate-demographics";
 import type { AreaProfileAggregate, EmploymentAggregate } from "@/lib/analytics/aggregate-sections";
 import { Bilingual } from "@/components/Bilingual";
@@ -19,7 +19,7 @@ import {
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { CURRENT_YEAR } from "@/lib/constants";
 import { useAnalyticsScope } from "@/lib/analytics-scope-context";
-import { buildAnalyticsQuery, scopeToGnRoster } from "@/lib/analytics-scope";
+import { buildAnalyticsQuery, scopeToGnRoster, scopeToSectionExportQuery } from "@/lib/analytics-scope";
 import { scopeToSearchParams } from "@/lib/analytics-scope-url";
 import type { CommunityWelfareAggregate } from "@/lib/analytics/aggregate-sections";
 import { StateInstitutionsLandView } from "@/components/analytics/StateInstitutionsLandView";
@@ -369,6 +369,11 @@ export function DivisionSectionDetailView({ section, basePath }: DivisionSection
   // survives navigating into a section and back out — DS/AD's own dashboards ignore the extra
   // query params, since neither reads useSearchParams().
   const backHref = `${basePath}/graphs${scope ? `?${scopeToSearchParams(scope).toString()}` : ""}`;
+  // Section-wise CSV download — available to the same 4 roles GET /api/export/csv/section
+  // authorizes (Admin, Super Admin, Assistant Director Planning, Divisional Secretariat).
+  // Undefined until `scope` resolves, matching the pattern the whole-division CSV button on
+  // DivisionInformationView already uses (`{scope && ... && <Button>}`).
+  const sectionCsvHref = scope ? scopeToSectionExportQuery(scope, section, { year: CURRENT_YEAR }) : undefined;
   const isIdentification = section === "identification";
   const isDemographics = section === "demographics";
   const isEmployment = section === "employment";
@@ -1016,12 +1021,22 @@ export function DivisionSectionDetailView({ section, basePath }: DivisionSection
               <Bilingual en={description.en} si={description.si} />
             </p>
           </div>
-          <Button asChild variant="outline" className="h-11">
-            <Link href={backHref} className="flex items-center gap-2">
-              <ArrowLeft className="size-4" />
-              <Bilingual en="Back to dashboard" si="පුවරුවට ආපසු" />
-            </Link>
-          </Button>
+          <div className="flex items-center gap-2">
+            {sectionCsvHref && (
+              <Button asChild variant="outline" className="h-11">
+                <a href={sectionCsvHref} download className="flex items-center gap-2">
+                  <Download className="size-4" />
+                  <Bilingual en="Download CSV" si="CSV බාගන්න" />
+                </a>
+              </Button>
+            )}
+            <Button asChild variant="outline" className="h-11">
+              <Link href={backHref} className="flex items-center gap-2">
+                <ArrowLeft className="size-4" />
+                <Bilingual en="Back to dashboard" si="පුවරුවට ආපසු" />
+              </Link>
+            </Button>
+          </div>
         </div>
 
         <div className="mb-6 max-w-sm space-y-1">
@@ -1059,12 +1074,22 @@ export function DivisionSectionDetailView({ section, basePath }: DivisionSection
             <Bilingual en={description.en} si={description.si} />
           </p>
         </div>
-        <Button asChild variant="outline" className="h-11">
-          <Link href={backHref} className="flex items-center gap-2">
-            <ArrowLeft className="size-4" />
-            <Bilingual en="Back to dashboard" si="පුවරුවට ආපසු" />
-          </Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          {sectionCsvHref && (
+            <Button asChild variant="outline" className="h-11">
+              <a href={sectionCsvHref} download className="flex items-center gap-2">
+                <Download className="size-4" />
+                <Bilingual en="Download CSV" si="CSV බාගන්න" />
+              </a>
+            </Button>
+          )}
+          <Button asChild variant="outline" className="h-11">
+            <Link href={backHref} className="flex items-center gap-2">
+              <ArrowLeft className="size-4" />
+              <Bilingual en="Back to dashboard" si="පුවරුවට ආපසු" />
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {isIdentification ? (

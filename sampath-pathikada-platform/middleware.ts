@@ -14,6 +14,19 @@ const PROTECTED_PREFIXES = [
   "/divisional-secretariat",
 ];
 
+/* ── Which role may access which protected prefix ────────────────────────
+   Server-side enforcement of the same role gate RoleGuard applies client-side —
+   without this, a valid session for ANY role could load another role's page
+   shell (data stays protected by each API route's own check regardless, but
+   the UI shouldn't be reachable in the first place). */
+const PREFIX_ROLES: Record<string, string> = {
+  "/super-admin":                  "SUPER_ADMIN",
+  "/admin":                        "ADMIN",
+  "/economic-development-officer": "ECONOMIC_DEVELOPMENT_OFFICER",
+  "/assistant-director-planning":  "ASSISTANT_DIRECTOR_PLANNING",
+  "/divisional-secretariat":       "DIVISIONAL_SECRETARIAT",
+};
+
 /* ── Routes that logged-in users should NOT revisit ─────────────────────── */
 const AUTH_ROUTES = ["/auth/login", "/auth/register"];
 
@@ -55,6 +68,21 @@ export async function middleware(request: NextRequest) {
     const loginUrl = new URL("/auth/login", request.url);
     loginUrl.searchParams.set("from", pathname);
     return NextResponse.redirect(loginUrl);
+  }
+
+  /* ── If authenticated but visiting a prefix that isn't theirs → send them to
+     their own dashboard, not just any protected page (e.g. a DS session
+     hitting /super-admin/*) ── */
+  if (isProtected && authenticated && token) {
+    const matchedPrefix = PROTECTED_PREFIXES.find((p) => pathname.startsWith(p));
+    const requiredRole = matchedPrefix ? PREFIX_ROLES[matchedPrefix] : undefined;
+    if (requiredRole) {
+      const role = await getSessionRole(token);
+      if (role !== requiredRole) {
+        const dest = ROLE_DASHBOARDS[role ?? ""] ?? "/auth/login";
+        return NextResponse.redirect(new URL(dest, request.url));
+      }
+    }
   }
 
   /* ── If visiting login/register while already logged in → redirect home ── */

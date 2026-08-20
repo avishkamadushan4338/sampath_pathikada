@@ -1,12 +1,24 @@
 "use client";
 
 import { useState } from "react";
-import useSWR from "swr";
+import useSWR, { mutate as globalMutate } from "swr";
 import {
   Search, Mail, Phone, CheckCircle2, XCircle, ShieldAlert,
-  Users as UsersIcon, MapPin,
+  Users as UsersIcon, MapPin, Trash2, Loader2,
 } from "lucide-react";
+import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { DISTRICTS, DIVISIONAL_SECRETARIATS } from "@/lib/registration-data";
+import { useSession } from "@/hooks/use-session";
 
 /* ─── Brand tokens ─────────────────────────────────────────────────────── */
 const NAVY   = "#0E2B4E";
@@ -66,10 +78,34 @@ function divisionLabel(dsDivision: string | null): { name: string; district: str
 const ROLE_FILTERS: (UserRole | "all")[] = ["all", "DIVISIONAL_SECRETARIAT", "ASSISTANT_DIRECTOR_PLANNING", "ECONOMIC_DEVELOPMENT_OFFICER", "ADMIN", "SUPER_ADMIN"];
 
 export default function UsersPage() {
-  const { data: users, isLoading } = useSWR("/api/users", fetcher);
+  const { data: users, isLoading, mutate } = useSWR("/api/users", fetcher);
+  const { user: currentUser } = useSession();
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState<UserRole | "all">("all");
   const [statusFilter, setStatusFilter] = useState<UserStatus | "all">("all");
+  const [pendingDelete, setPendingDelete] = useState<UserRow | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  async function confirmDelete() {
+    if (!pendingDelete) return;
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/users/${pendingDelete.id}`, { method: "DELETE" });
+      const json = await res.json();
+      if (!res.ok || !json.ok) {
+        toast.error(json.message ?? "Failed to delete user.");
+        return;
+      }
+      toast.success(`${pendingDelete.name} was deleted.`);
+      setPendingDelete(null);
+      // Drop the deleted row from the cached list without waiting on a refetch, and also
+      // invalidate the audit-logs list — deletion just wrote a new entry there.
+      mutate((prev) => (prev ? prev.filter((u) => u.id !== pendingDelete.id) : prev), { revalidate: false });
+      globalMutate((key) => typeof key === "string" && key.startsWith("/api/audit-logs"));
+    } finally {
+      setDeleting(false);
+    }
+  }
 
   const rows = users ?? [];
 
@@ -170,7 +206,7 @@ export default function UsersPage() {
           <table className="w-full">
             <thead>
               <tr style={{ borderBottom: "1px solid hsl(var(--border))", background: "hsl(var(--muted))" }}>
-                {["User", "Contact", "Role", "Division", "Status", "Joined"].map((h) => (
+                {["User", "Contact", "Role", "Division", "Status", "Joined", "Actions"].map((h) => (
                   <th
                     key={h}
                     className="px-5 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider whitespace-nowrap"
@@ -183,11 +219,11 @@ export default function UsersPage() {
             </thead>
             <tbody>
               {isLoading && (
-                <tr><td colSpan={6} className="px-5 py-8 text-center text-[13px]" style={{ color: "hsl(var(--muted-foreground))" }}>Loading…</td></tr>
+                <tr><td colSpan={7} className="px-5 py-8 text-center text-[13px]" style={{ color: "hsl(var(--muted-foreground))" }}>Loading…</td></tr>
               )}
               {!isLoading && filtered.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-5 py-10 text-center text-[13px]" style={{ color: "hsl(var(--muted-foreground))" }}>
+                  <td colSpan={7} className="px-5 py-10 text-center text-[13px]" style={{ color: "hsl(var(--muted-foreground))" }}>
                     <UsersIcon size={22} className="mx-auto mb-2 opacity-40" />
                     No users match these filters
                   </td>
@@ -268,6 +304,26 @@ export default function UsersPage() {
                     <td className="px-5 py-3.5 text-[12px] whitespace-nowrap" style={{ color: "hsl(var(--muted-foreground))" }}>
                       {new Date(u.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
                     </td>
+
+                    {/* Actions */}
+                    <td className="px-5 py-3.5 whitespace-nowrap">
+                      {u.id === currentUser?.id ? (
+                        <span className="text-[11px]" style={{ color: "hsl(var(--muted-foreground))" }}>
+                          You
+                        </span>
+                      ) : (
+                        <button
+                          onClick={() => setPendingDelete(u)}
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition-colors"
+                          style={{ color: "#9f1239" }}
+                          onMouseEnter={(e) => (e.currentTarget.style.background = "#fff1f2")}
+                          onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                          aria-label={`Delete ${u.name}`}
+                        >
+                          <Trash2 size={13} /> Delete
+                        </button>
+                      )}
+                    </td>
                   </tr>
                 );
               })}
@@ -275,6 +331,30 @@ export default function UsersPage() {
           </table>
         </div>
       </div>
+
+      <AlertDialog open={pendingDelete !== null} onOpenChange={(open) => !open && !deleting && setPendingDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete {pendingDelete?.name}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This permanently deletes {pendingDelete?.email}&apos;s account ({pendingDelete ? ROLE_LABEL[pendingDelete.role] : ""}).
+              This cannot be undone — if you want to temporarily block their access instead, deactivate the
+              account rather than deleting it.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              disabled={deleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 gap-2"
+            >
+              {deleting && <Loader2 size={14} className="animate-spin" />}
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

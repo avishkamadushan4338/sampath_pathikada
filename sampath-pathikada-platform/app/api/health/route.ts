@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
-import prisma from "@/lib/db";
 
+/* ── GET /api/health ── liveness ──────────────────────────────────────────────
+   "Is the Node process itself alive and able to handle a request?" Deliberately
+   does NOT touch MySQL — an orchestrator/process-manager restarting this
+   process because the *database* is briefly slow would be actively harmful
+   (kills a perfectly healthy Node process, adds restart churn on top of a
+   pre-existing DB problem). For "is this instance ready to serve real traffic"
+   (which does need to know about DB connectivity), see /api/health/ready. ── */
 export async function GET() {
-  try {
-    await prisma.$queryRaw`SELECT 1`;
-    return NextResponse.json({ ok: true, db: "up", uptimeSeconds: process.uptime(), timestamp: new Date().toISOString() });
-  } catch (err) {
-    console.error("[GET /api/health]", err);
-    return NextResponse.json({ ok: false, db: "down", uptimeSeconds: process.uptime(), timestamp: new Date().toISOString() }, { status: 503 });
-  }
+  return NextResponse.json({ ok: true, uptimeSeconds: process.uptime(), timestamp: new Date().toISOString() });
 }

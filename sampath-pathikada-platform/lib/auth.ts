@@ -1,6 +1,7 @@
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import bcrypt from "bcryptjs";
+import { randomUUID } from "crypto";
 import prisma from "@/lib/db";
 import { JWT_SECRET } from "@/lib/jwt-secret";
 import { logAudit } from "@/lib/audit-log";
@@ -38,23 +39,30 @@ export async function verifyToken(token: string): Promise<SessionPayload | null>
 // ─── Password-reset tokens ────────────────────────────────────────────────────
 // Short-lived, single-purpose JWT issued after a successful OTP check, so the
 // reset-password step doesn't need to re-verify the OTP. `purpose` keeps it from
-// being confused with (or accepted as) a session token.
+// being confused with (or accepted as) a session token. Each token also carries a
+// unique `jti`, recorded against the originating PasswordResetOtp row so
+// reset-password can atomically claim it — making the token single-use even
+// though it remains cryptographically valid for its full 10-minute lifetime.
 
 const RESET_TOKEN_DURATION = 10 * 60; // 10 minutes
 
-export async function signResetToken(email: string): Promise<string> {
-  return new SignJWT({ email, purpose: "password-reset" })
+export async function signResetToken(email: string): Promise<{ token: string; jti: string }> {
+  const jti = randomUUID();
+  const token = await new SignJWT({ email, purpose: "password-reset", jti })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime(`${RESET_TOKEN_DURATION}s`)
     .sign(JWT_SECRET);
+  return { token, jti };
 }
 
-export async function verifyResetToken(token: string): Promise<{ email: string } | null> {
+export async function verifyResetToken(token: string): Promise<{ email: string; jti: string } | null> {
   try {
     const { payload } = await jwtVerify(token, JWT_SECRET);
-    if (payload.purpose !== "password-reset" || typeof payload.email !== "string") return null;
-    return { email: payload.email };
+    if (payload.purpose !== "password-reset" || typeof payload.email !== "string" || typeof payload.jti !== "string") {
+      return null;
+    }
+    return { email: payload.email, jti: payload.jti };
   } catch {
     return null;
   }
@@ -137,16 +145,25 @@ export async function loginWithCredentials(
   const passwordOk = await verifyPassword(password, user.passwordHash);
 
   if (!passwordOk) {
-    const attempts = user.loginAttempts + 1;
     const MAX = 5;
-    const lockedUntil = attempts >= MAX
-      ? new Date(Date.now() + 15 * 60 * 1000)
-      : null;
 
-    await prisma.user.update({
+    // Atomic DB-level increment (not `user.loginAttempts + 1` written back) so concurrent
+    // failed attempts for the same account can't race and lose an increment — Prisma/MySQL
+    // execute `attempts = attempts + 1` as a single UPDATE, never reading the stale
+    // in-process `user.loginAttempts` value fetched above. The returned row reflects the
+    // post-increment count, which is what decides whether this attempt also triggers lockout.
+    const updated = await prisma.user.update({
       where: { id: user.id },
-      data:  { loginAttempts: attempts, lockedUntil },
+      data:  { loginAttempts: { increment: 1 } },
     });
+    const attempts = updated.loginAttempts;
+
+    if (attempts >= MAX && !(updated.lockedUntil && updated.lockedUntil > new Date())) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data:  { lockedUntil: new Date(Date.now() + 15 * 60 * 1000) },
+      });
+    }
 
     logAudit({
       action:      "Failed Login",

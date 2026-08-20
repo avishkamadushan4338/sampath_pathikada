@@ -6,6 +6,8 @@ import { DIVISIONAL_SECRETARIATS } from "@/lib/registration-data";
 import { verifyOrigin } from "@/lib/csrf";
 import { CURRENT_YEAR } from "@/lib/constants";
 import { logAudit } from "@/lib/audit-log";
+import { logger } from "@/lib/logger";
+import { getRequestId } from "@/lib/request-id";
 
 /* ── GET /api/users ── list users ─────────────────────────────────────────────
    SUPER_ADMIN sees all users. ADMIN is scoped to their own dsDivision only,
@@ -144,7 +146,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ ok: true, data: user }, { status: 201 });
   } catch (err) {
-    console.error("[POST /api/users]", err);
+    logger.error("Unhandled error in POST /api/users", { requestId: getRequestId(req), route: "/api/users", method: "POST" }, err);
     return NextResponse.json({ ok: false, message: "An unexpected error occurred." }, { status: 500 });
   }
 }

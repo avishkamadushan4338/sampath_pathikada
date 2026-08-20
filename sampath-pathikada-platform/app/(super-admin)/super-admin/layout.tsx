@@ -9,6 +9,7 @@ import {
   ChevronDown, Crown, Activity, AlertCircle, CheckCircle2, Clock, Zap, X,
   MapPinned,
 } from "lucide-react";
+import { RoleGuard } from "@/components/layout/RoleGuard";
 
 /* ─── Brand tokens (raw hex so they work everywhere) ─────────────────────── */
 const NAVY   = "#0E2B4E";
@@ -41,7 +42,6 @@ const NAV = [
   {
     label: "Control",
     items: [
-      { href: "/super-admin/roles-permissions",icon: ShieldCheck,     label: "Roles & Permissions" },
       { href: "/super-admin/audit-logs",       icon: ScrollText,      label: "Audit Logs"      },
       { href: "/super-admin/backups",          icon: Database,        label: "Backups"         },
     ],
@@ -61,7 +61,7 @@ const NOTIFS = [
   { id: 4, type: "pending", msg: "3 admin accounts awaiting approval",         time: "2h ago"  },
 ];
 
-export default function SuperAdminLayout({ children }: { children: React.ReactNode }) {
+function SuperAdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router   = useRouter();
 
@@ -531,6 +531,14 @@ export default function SuperAdminLayout({ children }: { children: React.ReactNo
         <div className="fixed inset-0 z-40" onClick={closeAll} />
       )}
     </div>
+  );
+}
+
+export default function SuperAdminLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <RoleGuard allow={["SUPER_ADMIN"]}>
+      <SuperAdminShell>{children}</SuperAdminShell>
+    </RoleGuard>
   );
 }
 

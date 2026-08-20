@@ -227,7 +227,7 @@ export default function SuperAdminDashboard() {
         fetch("/api/registrations?countsOnly=true"),
         fetch("/api/users"),
         fetch("/api/audit-logs?limit=5"),
-        fetch("/api/health"),
+        fetch("/api/health/ready"),
         fetch(`/api/submissions?year=${CURRENT_YEAR}&status=APPROVED&limit=5`),
       ]);
 

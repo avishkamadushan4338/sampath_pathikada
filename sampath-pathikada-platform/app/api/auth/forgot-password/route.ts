@@ -4,6 +4,8 @@ import prisma from "@/lib/db";
 import { rateLimit } from "@/lib/rate-limit";
 import { verifyOrigin } from "@/lib/csrf";
 import { sendPasswordResetOtpEmail } from "@/lib/email";
+import { logger } from "@/lib/logger";
+import { getRequestId } from "@/lib/request-id";
 
 const OTP_LIMIT = 5;
 const OTP_WINDOW_SECONDS = 60 * 15;
@@ -28,7 +30,7 @@ export async function POST(req: NextRequest) {
     }
 
     const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? req.headers.get("x-real-ip") ?? "unknown";
-    const { allowed, retryAfterSeconds } = rateLimit(`forgot-password:${ip}:${emailLower}`, OTP_LIMIT, OTP_WINDOW_SECONDS);
+    const { allowed, retryAfterSeconds } = await rateLimit(`forgot-password:${ip}:${emailLower}`, OTP_LIMIT, OTP_WINDOW_SECONDS);
     if (!allowed) {
       return NextResponse.json(
         { ok: false, message: "Too many requests. Please try again shortly." },
@@ -57,7 +59,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ ok: true, message: "If that email is registered, a code has been sent." });
   } catch (err) {
-    console.error("[POST /api/auth/forgot-password]", err);
+    logger.error("Unhandled error in POST /api/auth/forgot-password", { requestId: getRequestId(req), route: "/api/auth/forgot-password", method: "POST" }, err);
     return NextResponse.json({ ok: false, message: "An unexpected error occurred. Please try again." }, { status: 500 });
   }
 }

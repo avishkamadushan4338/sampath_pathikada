@@ -4,7 +4,7 @@ import autoTable from "jspdf-autotable";
 import prisma from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import { DISTRICTS, DIVISIONAL_SECRETARIATS, GN_DIVISIONS } from "@/lib/registration-data";
-import { CURRENT_YEAR } from "@/lib/constants";
+import { CURRENT_YEAR, EXPORT_ROW_CAP } from "@/lib/constants";
 import { aggregateDemographics } from "@/lib/analytics/aggregate-demographics";
 import {
   aggregateHousing, aggregateEmployment, aggregateEducation, aggregateHealth,
@@ -49,11 +49,19 @@ export async function GET(req: NextRequest) {
   const rows = await prisma.submission.findMany({
     where,
     orderBy: { gnDivision: "asc" },
+    take: EXPORT_ROW_CAP + 1,
     select: {
       gnDivision: true, status: true, createdAt: true, reviewedAt: true, data: true,
       submittedBy: { select: { name: true } },
     },
   });
+
+  if (rows.length > EXPORT_ROW_CAP) {
+    return NextResponse.json(
+      { ok: false, message: "This export exceeds the maximum supported row count. Narrow the filter (district or division) and try again." },
+      { status: 413 }
+    );
+  }
 
   const division = dsDivisionFilter ? DIVISIONAL_SECRETARIATS.find((d) => d.id === dsDivisionFilter) : null;
   const district = districtFilter

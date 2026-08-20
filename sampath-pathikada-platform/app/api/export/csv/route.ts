@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import { DIVISIONAL_SECRETARIATS, GN_DIVISIONS } from "@/lib/registration-data";
-import { CURRENT_YEAR } from "@/lib/constants";
+import { CURRENT_YEAR, EXPORT_ROW_CAP } from "@/lib/constants";
 import { buildCsvRows, toCsvText } from "@/lib/analytics/csv-export";
 
 const ALLOWED_ROLES = ["ADMIN", "SUPER_ADMIN", "ASSISTANT_DIRECTOR_PLANNING", "DIVISIONAL_SECRETARIAT"];
@@ -42,12 +42,20 @@ export async function GET(req: NextRequest) {
   const rows = await prisma.submission.findMany({
     where,
     orderBy: { gnDivision: "asc" },
+    take: EXPORT_ROW_CAP + 1,
     select: {
       gnDivision: true, dsDivision: true, district: true, status: true,
       createdAt: true, reviewedAt: true, data: true,
       submittedBy: { select: { name: true, email: true } },
     },
   });
+
+  if (rows.length > EXPORT_ROW_CAP) {
+    return NextResponse.json(
+      { ok: false, message: "This export exceeds the maximum supported row count. Narrow the filter (district or division) and try again." },
+      { status: 413 }
+    );
+  }
 
   const gnLabel = (id: string) => GN_DIVISIONS.find((g) => g.id === id)?.en ?? id;
   const dsLabel = (id: string) => DIVISIONAL_SECRETARIATS.find((d) => d.id === id)?.en ?? id;

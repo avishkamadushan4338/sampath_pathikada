@@ -1,0 +1,15 @@
+[Unit]
+Description=Run Sampath Pathikada database backup daily
+
+[Timer]
+# 02:00 server-local time — adjust OnCalendar if your VPS's timezone means
+# that's not actually a low-traffic window for your users.
+OnCalendar=*-*-* 02:00:00
+# If the box was off/asleep at 02:00, run the missed backup on next boot
+# instead of silently skipping a whole day — closes a real gap for a
+# single-VPS deployment that might reboot for patching.
+Persistent=true
+Unit=sampath-pathikada-backup.service
+
+[Install]
+WantedBy=timers.target

@@ -14,9 +14,14 @@ export const USER_ROLE_MAP: Record<TableKey, "ECONOMIC_DEVELOPMENT_OFFICER" | "A
   ds: "DIVISIONAL_SECRETARIAT",
 };
 
-export function findRecord(id: string, tableKey: TableKey) {
-  if (tableKey === "gn") return prisma.economicDevelopmentOfficerRegistration.findUnique({ where: { id } });
-  if (tableKey === "ad") return prisma.assistantDirectorPlanningRegistration.findUnique({ where: { id } });
-  return prisma.divisionalSecretariatRegistration.findUnique({ where: { id } });
+// dsDivision: pass null/undefined for SUPER_ADMIN (unrestricted). For any other role,
+// pass session.dsDivision so an ADMIN can never fetch/mutate another division's
+// registration by guessing its id — mirrors the scoping already enforced by the
+// GET /api/registrations list endpoint.
+export function findRecord(id: string, tableKey: TableKey, dsDivision?: string | null) {
+  const where = dsDivision ? { id, dsDivision } : { id };
+  if (tableKey === "gn") return prisma.economicDevelopmentOfficerRegistration.findFirst({ where });
+  if (tableKey === "ad") return prisma.assistantDirectorPlanningRegistration.findFirst({ where });
+  return prisma.divisionalSecretariatRegistration.findFirst({ where });
 }
 

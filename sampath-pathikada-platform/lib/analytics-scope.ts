@@ -41,6 +41,15 @@ export function scopeToExportQuery(scope: AnalyticsScope, extra?: { year?: numbe
   return buildAnalyticsQuery(scope, extra).replace("/api/analytics?", "/api/export/csv?");
 }
 
+/** Same scope→query-param mapping, targeting the per-section CSV export route — the
+ *  "Section-wise CSV" download button on each section's graphs page. `section` is the URL route
+ *  slug (e.g. "state-institutions-land"), matching what DivisionSectionDetailView already
+ *  receives as its `section` prop. */
+export function scopeToSectionExportQuery(scope: AnalyticsScope, section: string, extra?: { year?: number }): string {
+  const query = buildAnalyticsQuery(scope, extra).replace("/api/analytics?", "/api/export/csv/section?");
+  return `${query}&section=${encodeURIComponent(section)}`;
+}
+
 /** Resolves the GN-division roster a given scope covers — used for client-side picker options
  *  and for filtering data from endpoints that aren't scope-aware themselves (e.g. the
  *  registrations directory). */
