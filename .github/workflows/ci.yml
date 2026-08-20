@@ -15,10 +15,24 @@ env:
   JWT_SECRET: "ci-only-secret-value-not-used-in-production-00000000"
   NEXT_PUBLIC_APP_URL: "http://localhost:3004"
   NODE_ENV: "production"
+  # lib/rate-limit.test.ts exercises the real RedisRateLimiter (not just the
+  # in-memory fallback) against this service container, so CI actually proves
+  # the distributed backend works rather than only the dev-fallback path.
+  RATE_LIMIT_REDIS_URL: "redis://localhost:6379"
 
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - uses: actions/checkout@v4
 
@@ -30,6 +44,16 @@ jobs:
 
       - name: Install dependencies
         run: npm ci --include=dev
+
+      # Blocks the build on new CRITICAL-severity advisories (e.g. the next@15.3.3
+      # RCE this repo shipped with previously). Set to critical-only rather than
+      # high: as of this writing, xlsx has an unfixed high-severity advisory with
+      # no available patch on npm (write-only usage in this app — see
+      # app/api/export/excel/route.ts), and next's own internal sharp copy needs a
+      # major Next version bump to clear — both are accepted/tracked risks, not
+      # things a red CI run can fix. Revisit this threshold once either is resolved.
+      - name: Dependency security audit
+        run: npm audit --audit-level=critical
 
       - name: Generate Prisma client
         run: npm run db:generate
