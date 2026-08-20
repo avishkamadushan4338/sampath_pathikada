@@ -1,5 +1,6 @@
 import { Prisma } from "@/lib/prisma-client";
 import prisma from "@/lib/db";
+import { logger } from "@/lib/logger";
 
 /** Fire-and-forget audit logging. Every mutation in this app writes an audit-log row as a
  *  best-effort side record — it must never add latency to (or fail) the user-facing action it's
@@ -19,9 +20,9 @@ export function logAudit(data: Prisma.AuditLogUncheckedCreateInput): void {
     // propagate out of this function, since nothing calling it should have to handle a logging
     // failure.
     Promise.resolve(prisma.auditLog.create({ data })).catch((err: unknown) => {
-      console.error("Failed to write audit log:", err);
+      logger.error("Failed to write audit log", { action: data.action, category: data.category }, err);
     });
   } catch (err) {
-    console.error("Failed to write audit log:", err);
+    logger.error("Failed to write audit log", { action: data.action, category: data.category }, err);
   }
 }

@@ -1,6 +1,7 @@
 import fs from "fs/promises";
 import path from "path";
 import sharp from "sharp";
+import { logger } from "@/lib/logger";
 
 /* ─────────────────────────────────────────────────────────────────────────────
    Verification documents (NIC / Driving License / Passport images) are used
@@ -98,7 +99,7 @@ export async function deleteVerificationDocs(
       await fs.unlink(resolveVerificationDocPath(relativePath));
     } catch (err: any) {
       if (err?.code !== "ENOENT") {
-        console.error(`[verification-docs] failed to delete ${relativePath}:`, err);
+        logger.error("Failed to delete verification document", { registrationId, relativePath }, err);
       }
     }
   }
@@ -106,7 +107,7 @@ export async function deleteVerificationDocs(
   try {
     await fs.rm(dir, { recursive: true, force: true });
   } catch (err) {
-    console.error(`[verification-docs] failed to clean up directory ${dir}:`, err);
+    logger.error("Failed to clean up verification-doc directory", { registrationId, dir }, err);
   }
 }
 
@@ -115,6 +116,6 @@ export async function cleanupPartialUpload(registrationId: string): Promise<void
   try {
     await fs.rm(registrationDir(registrationId), { recursive: true, force: true });
   } catch (err) {
-    console.error(`[verification-docs] failed to clean up partial upload ${registrationId}:`, err);
+    logger.error("Failed to clean up partial verification-doc upload", { registrationId }, err);
   }
 }
