@@ -1,0 +1,24 @@
+[Unit]
+Description=Sampath Pathikada database backup
+# Don't fire the backup if the box is on battery/about to sleep, etc. — not
+# relevant on a VPS, but harmless; mainly documents intent for a systemd unit.
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+# EnvironmentFile keeps DATABASE_URL (a secret) out of this unit file, which
+# is typically world-readable at /etc/systemd/system/*.service — see the
+# install steps in DATABASE.md for what goes in the EnvironmentFile.
+EnvironmentFile=/etc/sampath-pathikada/backup.env
+Environment=BACKUP_DIR=/var/backups/sampath-pathikada
+Environment=RETENTION_DAYS=30
+WorkingDirectory=/opt/sampath-pathikada-platform
+ExecStart=/opt/sampath-pathikada-platform/scripts/backup-database.sh
+# A failed run (mysqldump error, disk full, etc.) exits non-zero — systemd
+# marks the unit "failed", which OnFailure below turns into a visible signal
+# instead of a silently-skipped backup (the actual BKP-001/backup-monitoring gap).
+OnFailure=sampath-pathikada-backup-failure-notify.service
+
+[Install]
+WantedBy=multi-user.target

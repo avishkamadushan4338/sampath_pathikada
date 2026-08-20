@@ -1,0 +1,7 @@
+[Unit]
+Description=Notify on Sampath Pathikada database backup failure
+
+[Service]
+Type=oneshot
+EnvironmentFile=-/etc/sampath-pathikada/backup.env
+ExecStart=/opt/sampath-pathikada-platform/scripts/backup-failure-notify.sh

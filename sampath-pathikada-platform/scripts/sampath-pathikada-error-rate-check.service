@@ -1,0 +1,9 @@
+[Unit]
+Description=Sampath Pathikada error-rate log check
+
+[Service]
+Type=oneshot
+EnvironmentFile=-/etc/sampath-pathikada/backup.env
+Environment=WINDOW_MINUTES=5
+Environment=THRESHOLD=10
+ExecStart=/opt/sampath-pathikada-platform/scripts/check-error-rate.sh

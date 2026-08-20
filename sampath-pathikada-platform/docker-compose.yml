@@ -1,0 +1,66 @@
+services:
+  app:
+    build:
+      context: .
+      args:
+        # NEXT_PUBLIC_APP_URL is baked into the client bundle at build time —
+        # override it here (or via --build-arg) with the real production domain.
+        NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3004}
+    image: sampath-pathikada-platform:latest
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: ${DATABASE_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3004}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      RESEND_FROM_EMAIL: ${RESEND_FROM_EMAIL:-}
+      VERIFICATION_DOC_RETENTION_DAYS: ${VERIFICATION_DOC_RETENTION_DAYS:-14}
+      # Rate limiting (lib/rate-limit.ts) — required in production; the app
+      # refuses to start without it. Points at the `redis` service below by
+      # default; override to an external managed Redis/Valkey instance if you
+      # don't want to run Redis in this compose stack (e.g. a managed cache
+      # service, or a separate host shared across multiple app deployments).
+      RATE_LIMIT_REDIS_URL: ${RATE_LIMIT_REDIS_URL:-redis://redis:6379}
+    volumes:
+      # Verification documents (NIC/license/passport images) are written to local
+      # disk (lib/verification-docs.ts) and are NOT safe to leave as an anonymous
+      # container filesystem layer — without this bind mount, every redeploy or
+      # restart silently deletes any pending applicant's uploaded ID images.
+      # MySQL itself is assumed to run externally (managed service or a separate
+      # host) — this compose file intentionally does not bundle a MySQL container,
+      # matching how DATABASE_URL is already configured as an external connection
+      # string everywhere else in this repo.
+      - verification-uploads:/app/storage/verification-uploads
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://127.0.0.1:3000/api/health/ready',res=>process.exit(res.statusCode===200?0:1)).on('error',()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
+
+  # Backs lib/rate-limit.ts so rate limits are enforced consistently across
+  # every app replica, not per-process. This is the single shared datastore
+  # the rate limiter depends on — if you already run Redis/Valkey elsewhere
+  # (managed service, shared cluster), delete this service and point
+  # RATE_LIMIT_REDIS_URL above at it instead of running a second instance here.
+  # No persistence volume is mounted deliberately: rate-limit counters are
+  # short-lived (window <= 15 minutes in this app) and are safe to lose on
+  # restart — that just resets counters early, it never corrupts state.
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      start_period: 5s
+      retries: 5
+
+volumes:
+  verification-uploads:
