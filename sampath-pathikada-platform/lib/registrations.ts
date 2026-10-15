@@ -3,7 +3,7 @@ import prisma from "@/lib/db";
 export type TableKey = "gn" | "ad" | "ds";
 
 export const ROLE_LABELS: Record<TableKey, string> = {
-  gn: "Economic Development Officer",
+  gn: "Community Empowerment Officer",
   ad: "Assistant Director Planning",
   ds: "Divisional Secretariat",
 };

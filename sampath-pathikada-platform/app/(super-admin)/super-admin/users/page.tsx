@@ -48,7 +48,7 @@ const fetcher = async (url: string) => {
 const ROLE_LABEL: Record<UserRole, string> = {
   SUPER_ADMIN: "Super Admin",
   ADMIN: "Admin",
-  ECONOMIC_DEVELOPMENT_OFFICER: "Economic Development Officer",
+  ECONOMIC_DEVELOPMENT_OFFICER: "Community Empowerment Officer",
   ASSISTANT_DIRECTOR_PLANNING: "Assistant Director Planning",
   DIVISIONAL_SECRETARIAT: "Divisional Secretariat",
 };
@@ -120,7 +120,7 @@ export default function UsersPage() {
     { label: "Total Users", value: rows.length, color: "hsl(var(--foreground))" },
     { label: "Divisional Secretariats", value: rows.filter((u) => u.role === "DIVISIONAL_SECRETARIAT").length, color: GREEN },
     { label: "Assistant Directors Planning", value: rows.filter((u) => u.role === "ASSISTANT_DIRECTOR_PLANNING").length, color: GOLD },
-    { label: "Economic Development Officers", value: rows.filter((u) => u.role === "ECONOMIC_DEVELOPMENT_OFFICER").length, color: NAVY },
+    { label: "Community Empowerment Officers", value: rows.filter((u) => u.role === "ECONOMIC_DEVELOPMENT_OFFICER").length, color: NAVY },
     { label: "Admins & Super Admins", value: rows.filter((u) => u.role === "ADMIN" || u.role === "SUPER_ADMIN").length, color: GOLD_D },
   ];
 

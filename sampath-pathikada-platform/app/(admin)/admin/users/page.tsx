@@ -51,7 +51,7 @@ function gnDivisionLabel(id: string | null): string {
 const ROLE_LABELS: Record<UserRole, string> = {
   DIVISIONAL_SECRETARIAT:       "Divisional Secretariat",
   ASSISTANT_DIRECTOR_PLANNING:  "Assistant Director Planning",
-  ECONOMIC_DEVELOPMENT_OFFICER: "Economic Development Officer",
+  ECONOMIC_DEVELOPMENT_OFFICER: "Community Empowerment Officer",
 };
 
 const CSV_HEADERS = [
@@ -147,7 +147,7 @@ export default function AdminUsersPage() {
               Users
             </h1>
             <p className="text-[13.5px] mt-1" style={{ color: "hsl(var(--muted-foreground))" }}>
-              View-only directory of the Divisional Secretariat and Economic Development Officers in your division
+              View-only directory of the Divisional Secretariat and Community Empowerment Officers in your division
             </p>
           </div>
         </div>
@@ -231,14 +231,14 @@ export default function AdminUsersPage() {
         isLoading={isLoading}
       />
 
-      {/* Economic Development Officers */}
+      {/* Community Empowerment Officers */}
       <div className="space-y-3">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: "hsl(var(--muted))" }}>
             <Briefcase size={15} style={{ color: NAVY }} />
           </div>
           <div>
-            <h2 className="text-[15px] font-bold" style={{ color: "hsl(var(--foreground))" }}>Economic Development Officers</h2>
+            <h2 className="text-[15px] font-bold" style={{ color: "hsl(var(--foreground))" }}>Community Empowerment Officers</h2>
             <p className="text-[12px]" style={{ color: "hsl(var(--muted-foreground))" }}>
               Full identification details for every officer assigned across your division&apos;s GN divisions
             </p>
@@ -275,7 +275,7 @@ export default function AdminUsersPage() {
                   <tr><td colSpan={13} className="px-5 py-8 text-center text-[13px]" style={{ color: "hsl(var(--muted-foreground))" }}>Loading…</td></tr>
                 )}
                 {!isLoading && edoRows.length === 0 && (
-                  <tr><td colSpan={13} className="px-5 py-8 text-center text-[13px]" style={{ color: "hsl(var(--muted-foreground))" }}>No Economic Development Officers found for your division.</td></tr>
+                  <tr><td colSpan={13} className="px-5 py-8 text-center text-[13px]" style={{ color: "hsl(var(--muted-foreground))" }}>No Community Empowerment Officers found for your division.</td></tr>
                 )}
                 {edoRows.map((user, idx) => {
                   return (

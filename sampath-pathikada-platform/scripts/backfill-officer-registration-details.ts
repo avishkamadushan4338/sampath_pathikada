@@ -1,5 +1,5 @@
 /**
- * One-time backfill for Economic Development Officer accounts approved before
+ * One-time backfill for Community Empowerment Officer accounts approved before
  * localGovt/electoral/farmers/eduZone/eduDiv/mahaweli were added to the User
  * table and copied on approval — pulls the missing values from their original
  * (approved) registration row, matched by NIC or email. Only fills nulls,

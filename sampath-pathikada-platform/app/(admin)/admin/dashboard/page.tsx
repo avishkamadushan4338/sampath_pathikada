@@ -84,7 +84,7 @@ export default function AdminDashboard() {
     },
     {
       label: "GN Divisions Without Officer",
-      sublabel: "No Economic Development Officer registered yet",
+      sublabel: "No Community Empowerment Officer registered yet",
       value: data?.notRegisteredCount ?? 0,
       color: "#991b1b",
       bg: "#fef2f2",

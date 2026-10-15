@@ -45,7 +45,7 @@ const STRINGS = {
     langSub: "Select your preferred language to continue",
     roleTitle: "Select Your Role",
     roleSub: "Choose the position that matches your official designation",
-    gnLabel: "Economic Development Officer", gnSub: "Village-level administrative officer",
+    gnLabel: "Community Empowerment Officer", gnSub: "Village-level administrative officer",
     adLabel: "Assistant Director Planning", adSub: "First-stage divisional reviewer",
     rsLabel: "Divisional Secretariat",   rsSub: "Divisional Secretariat representative",
     locTitle: "Location Details",        locSub: "Select your administrative area",
@@ -84,7 +84,7 @@ const STRINGS = {
     langSub: "ඉදිරිය සඳහා ඔබේ කැමති භාෂාව තෝරන්න",
     roleTitle: "ඔබේ භූමිකාව තෝරන්න",
     roleSub: "ඔබේ නිල තනතුරට ගැළපෙන භූමිකාව තෝරන්න",
-    gnLabel: "ආර්ථික සංවර්ධන නිලධාරී",   gnSub: "ගම් මට්ටමේ පරිපාලන නිලධාරී",
+    gnLabel: "ප්‍රජා සවිබල ගැන්වීමේ නිලධාරී",   gnSub: "ගම් මට්ටමේ පරිපාලන නිලධාරී",
     adLabel: "සහකාර සැලසුම් අධ්‍යක්ෂ",   adSub: "පළමු අදියර කොට්ඨාශ සමාලෝචකයා",
     rsLabel: "ප්‍රාදේශීය ලේකම්",         rsSub: "ප්‍රාදේශීය ලේකම් කාර්යාල නියෝජිතයා",
     locTitle: "ස්ථාන විස්තර",             locSub: "ඔබේ පරිපාලන ප්‍රදේශය තෝරන්න",
@@ -1378,7 +1378,7 @@ export default function RegisterPage() {
               bilingual
             />
 
-            {/* GN Division — for Economic Development Officer */}
+            {/* GN Division — for Community Empowerment Officer */}
             {data.userType === "economic_development_officer" && (
               <PremiumSelect
                 id="gnDiv" label={T.gn} value={data.gnDiv} locale={locale}
@@ -1390,7 +1390,7 @@ export default function RegisterPage() {
               />
             )}
 
-            {/* Extra Economic Development Officer fields */}
+            {/* Extra Community Empowerment Officer fields */}
             {data.userType === "economic_development_officer" && (
               <>
                 <div style={{
@@ -1404,7 +1404,7 @@ export default function RegisterPage() {
                     textTransform: "uppercase", color: DEEP_GOLD,
                     fontFamily: si ? "'Yaldevi','Noto Sans Sinhala',sans-serif" : "'Inter',system-ui,sans-serif",
                   }}>
-                    {si ? "ආර්ථික සංවර්ධන නිලධාරී - අතිරේක විස්තර" : "Economic Development Officer – Additional Details"}
+                    {si ? "ප්‍රජා සවිබල ගැන්වීමේ නිලධාරී - අතිරේක විස්තර" : "Community Empowerment Officer – Additional Details"}
                   </p>
 
                   <PremiumInput id="localGovt" label={T.localGovt} value={data.localGovt} locale={locale}

@@ -91,7 +91,7 @@ model User {
   dsDivision        String?    @db.VarChar(80)
   gnDivision        String?    @db.VarChar(80)
 
-  // Additional details captured at registration (Economic Development Officers only) —
+  // Additional details captured at registration (Community Empowerment Officers only) —
   // copied from EconomicDevelopmentOfficerRegistration on approval, used to pre-fill the
   // Identification section of the yearly submission.
   localGovt         String?    @db.VarChar(200)
@@ -128,9 +128,9 @@ model User {
   @@map("users")
 }
 
-// ─── 1. Economic Development Officer Registrations ───────────────────────────
-//    Table: economic_development_officer_registrations
-//    gnDivision is required — Economic Development Officers are assigned to a specific division
+// ─── 1. Community Empowerment Officer Registrations ───────────────────────────
+//    Table: economic_development_officer_registrations (name unchanged — see role rename note)
+//    gnDivision is required — Community Empowerment Officers are assigned to a specific division
 
 model EconomicDevelopmentOfficerRegistration {
   id                   String             @id @default(cuid())

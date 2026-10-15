@@ -30,7 +30,7 @@ function resolveTable(role: string): TableKey | null {
 }
 
 const TABLE_LABELS: Record<TableKey, string> = {
-  gn:  "Economic Development Officer",
+  gn:  "Community Empowerment Officer",
   ad:  "Assistant Director Planning",
   ds:  "Divisional Secretariat",
 };
@@ -235,7 +235,7 @@ export async function GET(req: NextRequest) {
 
   const gnMapped = gnRows.map(({ verificationDocFrontPath, verificationDocBackPath, ...r }) => ({
     ...r, ...withDocFlags(verificationDocFrontPath, verificationDocBackPath),
-    role: "economic-development-officer" as const, roleLabel: "Economic Development Officer",
+    role: "economic-development-officer" as const, roleLabel: "Community Empowerment Officer",
   }));
   const adMapped = adRows.map(({ verificationDocFrontPath, verificationDocBackPath, ...r }) => ({
     ...r, ...withDocFlags(verificationDocFrontPath, verificationDocBackPath),
@@ -304,7 +304,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: false, message: "Invalid role. Must be economic-development-officer, assistant-director-planning, or divisional-secretariat." }, { status: 400 });
     }
 
-    // Economic Development Officers must provide gnDivision
+    // Community Empowerment Officers must provide gnDivision
     if (tableKey === "gn" && !gnDivision?.trim()) {
       return NextResponse.json({ ok: false, message: "GN Division is required for this registration type." }, { status: 400 });
     }

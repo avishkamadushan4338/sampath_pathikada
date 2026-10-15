@@ -43,7 +43,12 @@ changes, and unrelated to `sharp`/native modules specifically.
   ```bash
   HOME="D:/tmp" USERPROFILE="D:/tmp" npm run build
   ```
-  This was confirmed to take the build from failing immediately to compiling
+  Or use `npm run build:win`, which bakes this in (via `cross-env`, so it
+  works the same from PowerShell, cmd, or Git Bash) and also sets a
+  placeholder `RATE_LIMIT_REDIS_URL` — needed because `next build` forces
+  `NODE_ENV=production`, which trips `lib/rate-limit.ts`'s fail-closed check
+  even though nothing actually connects to Redis at build time. This was
+  confirmed to take the build from failing immediately to compiling
   successfully on an affected machine. Alternatively, run the build inside
   Docker (`docker compose build` uses the Linux base image and is unaffected)
   or inside WSL2 — either sidesteps Windows junctions entirely.

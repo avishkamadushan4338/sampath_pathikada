@@ -52,7 +52,7 @@ export async function GET(req: NextRequest) {
 
   // Designation is entered by the officer per reporting cycle (inside their own
   // submission), not stored on the User profile — pull it from this year's
-  // submission, if one exists, for each Economic Development Officer returned.
+  // submission, if one exists, for each Community Empowerment Officer returned.
   // Uses JSON_EXTRACT to pull just this one string out of MySQL rather than selecting the whole
   // multi-section `data` blob per officer and discarding everything else — same fix as the
   // reviewer-facing submissions list (see app/api/submissions/route.ts).

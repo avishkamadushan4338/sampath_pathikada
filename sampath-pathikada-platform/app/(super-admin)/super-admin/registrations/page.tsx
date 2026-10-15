@@ -83,7 +83,7 @@ function mapRow(r: ApiRow): Registration {
 
 /* Role pill — inline styles instead of broken bg-[#hex]/12 */
 const ROLE_STYLES: Record<Role, { bg: string; color: string; border: string; label: string }> = {
-  "economic-development-officer": { bg: "rgba(14,43,78,0.10)",  color: NAVY2,    border: "rgba(14,43,78,0.20)",  label: "Economic Development Officer" },
+  "economic-development-officer": { bg: "rgba(14,43,78,0.10)",  color: NAVY2,    border: "rgba(14,43,78,0.20)",  label: "Community Empowerment Officer" },
   "assistant-director-planning":  { bg: "#eff6ff",               color: "#1d4ed8", border: "#bfdbfe",              label: "Assistant Director Planning"  },
   "divisional-secretariat":       { bg: "#f3e8ff",               color: "#6b21a8", border: "#ddd6fe",              label: "Divisional Secretariat"       },
 };
@@ -611,7 +611,7 @@ function RegistrationsContent() {
             style={{ border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", color: "hsl(var(--foreground))" }}
           >
             <option value="all">All Roles</option>
-            <option value="economic-development-officer">Economic Development Officer</option>
+            <option value="economic-development-officer">Community Empowerment Officer</option>
             <option value="assistant-director-planning">Assistant Director Planning</option>
             <option value="divisional-secretariat">Divisional Secretariat</option>
           </select>

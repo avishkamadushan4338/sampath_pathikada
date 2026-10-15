@@ -476,8 +476,8 @@ export function DivisionSectionDetailView({ section, basePath }: DivisionSection
 
   const description = isIdentification
     ? {
-        en: "View the complete administrative directory and details for your EDOs.",
-        si: "ඔබගේ EDO සඳහා පූර්ණ පරිපාලන ඩිරෙක්ටරිය සහ විස්තර දැක්වීමට මෙහි ක්ලික් කරන්න.",
+        en: "View the complete administrative directory and details for your Community Empowerment Officers.",
+        si: "ඔබගේ ප්‍රජා සවිබල ගැන්වීමේ නිලධාරීන් සඳහා පූර්ණ පරිපාලන ඩිරෙක්ටරිය සහ විස්තර දැක්වීමට මෙහි ක්ලික් කරන්න.",
       }
     : isDemographics
     ? {
