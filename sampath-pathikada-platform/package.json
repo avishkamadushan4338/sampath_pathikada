@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev --turbo -p 3004",
     "build": "next build",
+    "build:win": "cross-env HOME=D:/tmp USERPROFILE=D:/tmp RATE_LIMIT_REDIS_URL=redis://placeholder:6379 next build",
     "start": "next start",
     "lint": "next lint",
     "lint:fix": "next lint --fix",
@@ -92,6 +93,7 @@
     "@typescript-eslint/eslint-plugin": "^8.34.1",
     "@typescript-eslint/parser": "^8.34.1",
     "@vitejs/plugin-react": "^5.2.0",
+    "cross-env": "^10.1.0",
     "eslint": "^9.28.0",
     "eslint-config-next": "^15.5.23",
     "eslint-plugin-tailwindcss": "^4.3.0",
